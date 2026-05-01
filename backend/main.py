@@ -32,6 +32,8 @@ from routers.staff import router as staff_router
 from routers.slot_admin import router as slot_admin_router
 from routers.skill_creator import router as skill_creator_router
 from routers.artifacts import router as artifacts_router
+from routers.accounts import router as accounts_router
+from routers.workspaces import router as workspaces_router, invitations_router
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 
@@ -112,6 +114,9 @@ app.include_router(staff_router)
 app.include_router(slot_admin_router)
 app.include_router(skill_creator_router)
 app.include_router(artifacts_router)
+app.include_router(accounts_router)
+app.include_router(workspaces_router)
+app.include_router(invitations_router)
 
 
 @app.get("/health")
