@@ -1,0 +1,358 @@
+{
+  "meta": {
+    "project_name": "Build-Factory",
+    "version": "1.0.0",
+    "created_at": "2026-05-01",
+    "last_updated": "2026-05-01",
+    "owner": {
+      "name": "masato",
+      "email": "info@engine-base.com",
+      "company": "ENGINE BASE"
+    },
+    "repo": "https://github.com/engine-base/Build-Factory",
+    "local_path": "~/Documents/Build-Factory",
+    "current_branch": "feature/dev-specialization",
+    "status": "bootstrap_done_dev_specialization_in_progress",
+    "sister_project": {
+      "name": "company-dashboard",
+      "repo": "https://github.com/masato214/engine-base",
+      "relation": "complete_independent_running_with_shared_core_concepts"
+    }
+  },
+
+  "purpose": {
+    "tagline": "決めるのは人間 / 準備・実行・管理・品質保証は AI チーム を完璧に成立させる、開発工場 OS",
+    "industry_problem": [
+      "受託案件は増えているがエンジニアが足りない（採用・育成コスト高）",
+      "AI コーディング（Claude Code / Cursor / Devin）は個人の道具・チーム型支援がない",
+      "Notion / Linear / Asana は管理盤として機能するが実装連動・品質保証 AI が弱い"
+    ],
+    "personal_problem": [
+      "1 人で複数案件を並行すると context switch コスト爆発",
+      "AI に頼んでも 8 割は微妙・自分で壁打ちして直す時間が結局必要",
+      "company-dashboard は会社運営版・開発業務専用版がない",
+      "SaaS として商用化したい"
+    ],
+    "moat": [
+      "リーダー AI による壁打ちループ（下位 AI 出力を完璧になるまで差し戻し）",
+      "ナレッジで AI が育つ（差し戻し履歴・修正・評価が蓄積）",
+      "多層検証（実装 AI → レビュー AI → QA AI → セキュリティ AI）",
+      "管理盤と工場の一体化（Notion + Linear + Cursor を 1 つに）"
+    ]
+  },
+
+  "goal": {
+    "essential": "決めるのは人間 / 準備・実行・管理・品質保証は AI チーム",
+    "role_split": {
+      "human": [
+        "何を作るかを決める",
+        "要件・設計の最終判断",
+        "インフラ・アカウント登録など物理タスク",
+        "赤線（重要判断）の承認",
+        "クライアントとのリアルなやりとり"
+      ],
+      "ai_team": [
+        "決めるのを完璧に補助（要件捕捉・分解・案出し）",
+        "決まったことを完璧に実行（仕様書化・タスク分解）",
+        "全てを完璧に管理（タスク・進捗・成果物・履歴）",
+        "リーダー AI が下の社員出力を壁打ちして品質保証"
+      ],
+      "claude_code": [
+        "MCP 経由で Build-Factory からタスク取得",
+        "実装・テスト・コミット・PR 作成",
+        "成果物を Build-Factory へ書き戻し"
+      ]
+    },
+    "success_quantitative": [
+      "1 人で 10 プロジェクト並行が破綻なく回る",
+      "リーダー AI 壁打ちで下の AI 出力差し戻し率を 80% → 20% 以下に",
+      "自社で 1 案件完走（最初の検証案件）"
+    ],
+    "success_qualitative": [
+      "まさとさんが「もう手放せない」と感じる",
+      "監視担当が「確認するだけで OK」と言える品質",
+      "SaaS 顧客が「これがないと開発回らない」と感じる",
+      "Notion AI / Linear / ClickUp / Devin がカバーしていない領域を埋める"
+    ]
+  },
+
+  "data_model": {
+    "hierarchy": "Account -> Workspaces -> Workspace Members",
+    "entities": {
+      "account": {
+        "scope": "課金単位・AI 社員所有・ナレッジ所有",
+        "owner": "作成者のみ",
+        "shared_resources": ["AI 社員", "ナレッジ（機密ラベル付きは workspace 横断不可）"]
+      },
+      "workspace": {
+        "scope": "1 プロジェクト",
+        "isolation": "他 workspace は見えない（クライアントも安心）",
+        "members": "workspace 単位で招待・role はカスタマイズ可"
+      },
+      "workspace_member_role": {
+        "default_roles": ["admin", "contributor", "viewer", "client"],
+        "customizable": true
+      }
+    },
+    "ai_employees": [
+      {"name": "PM 秘書", "role": "secretary", "primary_skill": "secretary", "specialty": "要件捕捉・タスク分解・進行管理"},
+      {"name": "アーキテクト", "role": "leader", "primary_skill": "architecture-design", "specialty": "設計判断・技術選定・ADR"},
+      {"name": "シニアエンジニア", "role": "leader", "primary_skill": "implementation", "specialty": "実装方針・コード生成"},
+      {"name": "レビュアー", "role": "leader", "primary_skill": "code-review", "specialty": "PR レビュー・品質ゲート"},
+      {"name": "QA", "role": "leader", "primary_skill": "test-strategy", "specialty": "テスト戦略・E2E 設計"},
+      {"name": "DevOps", "role": "leader", "primary_skill": "deploy-plan", "specialty": "CI/CD・デプロイ・運用監視"},
+      {"name": "ドキュメント担当", "role": "leader", "primary_skill": "documentation", "specialty": "README / ADR / changelog"}
+    ]
+  },
+
+  "requirements": {
+    "must": [
+      {"id": "M-1", "title": "Account / Workspace 階層"},
+      {"id": "M-2", "title": "Workspace メンバー権限（configurable role）"},
+      {"id": "M-3", "title": "AI 社員 7 体"},
+      {"id": "M-4", "title": "既存スキル流用 13 個"},
+      {"id": "M-5", "title": "要件 → 仕様書工場"},
+      {"id": "M-6", "title": "タスク分解（機能/ページ/ブランチ単位）"},
+      {"id": "M-7", "title": "チェックリスト（タスク単位 + 納品状態）"},
+      {"id": "M-8", "title": "リーダー AI 壁打ちループ"},
+      {"id": "M-9", "title": "MCP サーバー（Claude Code 連携）"},
+      {"id": "M-10", "title": "コメント機能（Figma/Notion 風 + AI 一括反映）"},
+      {"id": "M-11", "title": "クライアント表示制御（タブ ON/OFF）"},
+      {"id": "M-12", "title": "技術スタック選定 AI（3 段階評価器 + Web 検索）"},
+      {"id": "M-13", "title": "ナレッジ蓄積（成功 + 失敗 + ネガティブ + 機密ラベル）"},
+      {"id": "M-14", "title": "赤線リスト + 自動停止"},
+      {"id": "M-15", "title": "コスト管理（上限 + モデル切替 + API キー切替 + ローカル LLM）"},
+      {"id": "M-16", "title": "Account ダッシュボード"},
+      {"id": "M-17", "title": "Workspace ダッシュボード"},
+      {"id": "M-18", "title": "既存 core 流用（artifact / orchestrator / observability / slot tracking）"}
+    ],
+    "should": [
+      {"id": "S-1", "title": "監査ログ・操作履歴"},
+      {"id": "S-2", "title": "自動 Slack 通知"},
+      {"id": "S-3", "title": "AI 評価基盤（壁打ち精度測定）"},
+      {"id": "S-4", "title": "バージョン管理 UI"},
+      {"id": "S-5", "title": "進捗自動 rollup（Account レベル）"},
+      {"id": "S-6", "title": "新規スキル 4 つ", "details": ["client-comm-bridge", "code-review-loop", "claude-code-handoff", "progress-rollup"]},
+      {"id": "S-7", "title": "クライアントコメントの自動分類"}
+    ],
+    "could": [
+      {"id": "C-1", "title": "認証統合（Google SSO / GitHub OAuth）"},
+      {"id": "C-2", "title": "課金（Stripe / Lemon Squeezy）"},
+      {"id": "C-3", "title": "多言語対応（英語 UI）"},
+      {"id": "C-4", "title": "モバイル対応 UI"},
+      {"id": "C-5", "title": "通知設定の細分化"},
+      {"id": "C-6", "title": "障害時の人間エスカレーション自動化"},
+      {"id": "C-7", "title": "API 公開"}
+    ],
+    "wont": [
+      {"id": "W-1", "title": "AI 自身による要件発生", "reason": "信用毀損リスク"},
+      {"id": "W-2", "title": "クライアント自身が UI を直接編集", "reason": "権限管理複雑化"},
+      {"id": "W-3", "title": "Build-Factory が直接本番デプロイ", "reason": "必ず人間承認"},
+      {"id": "W-4", "title": "Claude Code 以外の実装エンジン対応", "reason": "MVP 後検討"},
+      {"id": "W-5", "title": "モバイルアプリ版", "reason": "Web 完結で十分"},
+      {"id": "W-6", "title": "テンプレート機能", "reason": "汎用設計で対応"},
+      {"id": "W-7", "title": "案件 type の持ち方", "reason": "汎用設計"}
+    ]
+  },
+
+  "constraints": {
+    "deadline": "なるべく早く・Phase 1 = 2-3 週間目標",
+    "budget": "Claude Code Pro 並み上限想定（要確認）",
+    "tech_stack_constraints": ["Next.js 15", "FastAPI", "SQLite", "OpenAI Agents SDK", "LangGraph", "Instructor", "Mem0", "Langfuse"],
+    "team_size_initial": 1,
+    "team_size_future": "ENGINE BASE 内他スタッフ → SaaS 顧客（個人〜中小開発会社）",
+    "existing_systems": ["company-dashboard（並走・独立稼働）"]
+  },
+
+  "stakeholders": [
+    {"role": "最終決裁者", "person": "masato", "involvement": "high", "expectations": "10 案件並行・SaaS 商用化"},
+    {"role": "監視担当", "involvement": "medium", "expectations": "チェックだけで品質担保", "concerns": "AI のミス見逃し責任"},
+    {"role": "クライアント（受託）", "involvement": "medium", "expectations": "進捗見える・コメント反映早い"},
+    {"role": "AI 社員（7 体）", "involvement": "high", "expectations": "自領域で漏れなく実行"},
+    {"role": "Claude Code（外部実装エンジン）", "involvement": "high", "expectations": "与えられた仕様で正確に実装"},
+    {"role": "将来の SaaS 顧客", "involvement": "low_now_high_future", "expectations": "自社の開発 OS として利用"}
+  ],
+
+  "red_lines": [
+    {"id": 1, "rule": "顧客 API キー / 秘密情報の漏洩", "action": "自動停止 + 人間承認待ち"},
+    {"id": 2, "rule": "本番 DB への破壊的書込み（DROP TABLE / DELETE 全件）", "action": "自動停止 + 人間承認待ち"},
+    {"id": 3, "rule": "GitHub の force push / 他人ブランチ書換", "action": "自動停止 + 人間承認待ち"},
+    {"id": 4, "rule": "AI コール無限ループ", "action": "上限超過時の自動停止"},
+    {"id": 5, "rule": "メール / Slack の誤送信", "action": "承認なしの送信操作禁止"},
+    {"id": 6, "rule": "ナレッジ横断時の機密情報リーク", "action": "機密ラベル付きは workspace 横断不可"},
+    {"id": 7, "rule": "デプロイ判断の独断", "action": "本番デプロイは必ず人間承認"}
+  ],
+
+  "test_coverage_policy": {
+    "minimum_pass": 0.80,
+    "recommended": 0.95,
+    "exception": "E2E が物理的に書けない 3rd party UI は単体テストで代替可",
+    "loop_breaker_rule": "3 ターン連続で改善しない場合は人間エスカレーション"
+  },
+
+  "roadmap": [
+    {
+      "phase": 1,
+      "name": "MVP（自社内利用）",
+      "duration_weeks": "2-3",
+      "scope": [
+        "Account 1 + Workspace 3 並行",
+        "AI 社員 7 体",
+        "既存 13 スキル流用",
+        "仕様書工場 + Claude Code MCP 連携",
+        "タスク分解 + チェックリスト",
+        "リーダー壁打ち（1 段階）",
+        "ナレッジ蓄積（基本）",
+        "赤線リスト主要 5 項目",
+        "Account ダッシュボード簡易版"
+      ],
+      "goal": "自社の 1 案件を Build-Factory + Claude Code で完走"
+    },
+    {
+      "phase": 2,
+      "name": "β（社外限定試用）",
+      "duration_weeks": "+3-4",
+      "scope": [
+        "コスト管理強化",
+        "権限細分化（custom role）",
+        "コメント機能（Figma/Notion 風）",
+        "AI 一括反映",
+        "監査ログ",
+        "Slack 通知",
+        "赤線リスト 7 項目フル"
+      ],
+      "goal": "1-2 社の協力先で試用"
+    },
+    {
+      "phase": 3,
+      "name": "商用 SaaS",
+      "duration_weeks": "+1-2 ヶ月",
+      "scope": [
+        "認証統合（Google SSO / GitHub OAuth）",
+        "Stripe 課金",
+        "マルチテナント本格化",
+        "SLA 設計",
+        "障害監視",
+        "データバックアップ"
+      ],
+      "goal": "商用提供開始"
+    }
+  ],
+
+  "risks": [
+    {"id": "R-1", "risk": "LLM ハルシネーション", "impact": "high", "mitigation": "リーダー壁打ち + 多層検証 + 監視担当チェック"},
+    {"id": "R-2", "risk": "API コスト爆発", "impact": "high", "mitigation": "上限管理 / 軽量モデル fallback / ローカル LLM 切替 / 顧客 API"},
+    {"id": "R-3", "risk": "機密情報の横断リーク", "impact": "high", "mitigation": "ナレッジ機密ラベル / 取得時フィルタ / 監査ログ"},
+    {"id": "R-4", "risk": "Claude Code 連携の不安定さ", "impact": "medium", "mitigation": "MCP 標準準拠 / stub 実装 / フォールバック"},
+    {"id": "R-5", "risk": "カバレッジ「終わらない」事故", "impact": "medium", "mitigation": "3 ターン改善なしで人間エスカレ"},
+    {"id": "R-6", "risk": "「思ってたと違う」仕様書", "impact": "high", "mitigation": "hearing スキル徹底 + クライアントコメント + AI 秘書すり合わせ"},
+    {"id": "R-7", "risk": "まさとさん 1 人で MVP 開発の負荷", "impact": "medium", "mitigation": "既存 core 流用 / Phase 分割 / Claude Code 自体を実装エンジンに"},
+    {"id": "R-8", "risk": "赤線リスト抵触の見逃し", "impact": "high", "mitigation": "ミドルウェア層で自動検出 + 違反時即停止 + 監査ログ"},
+    {"id": "R-9", "risk": "SaaS マルチテナント設計ミス", "impact": "high", "mitigation": "account_id 全テーブル必須 / クエリ層強制フィルタ / RLS 検討"},
+    {"id": "R-10", "risk": "Notion / Linear / Devin の追従", "impact": "medium", "mitigation": "moat（壁打ち + ナレッジ + 多層検証）に集中"}
+  ],
+
+  "existing_assets_inherited": {
+    "skills": [
+      "hearing", "requirements-definition", "architecture-design",
+      "tech-stack", "api-design", "feature-decomposition",
+      "task-decomposition", "acceptance-criteria", "test-verification",
+      "decision-record", "release-planning", "delivery",
+      "verification-loop", "skill-creator"
+    ],
+    "core_modules": [
+      "services/artifact_service.py", "services/output_processor.py",
+      "services/orchestrator_graph.py", "services/slot_state.py",
+      "services/slot_extractor.py", "services/skill_manager.py",
+      "services/skill_detector.py", "services/observability.py",
+      "services/long_term_memory.py", "services/conversation_memory.py",
+      "services/conversation_summarizer.py", "services/mode_detector.py",
+      "ai_agents/secretary_agent.py", "routers/artifacts.py",
+      "frontend/components/artifacts/", "frontend/components/chat/"
+    ],
+    "view_types": [
+      "list", "table", "kanban", "kpi-card", "markdown",
+      "chart", "gantt", "calendar", "compare", "workflow",
+      "gallery", "matrix", "form", "slide", "mindmap"
+    ]
+  },
+
+  "new_implementation": {
+    "skills_planned": [
+      {"name": "client-comm-bridge", "purpose": "まさとさん ↔ クライアントの会話を AI 秘書に同期"},
+      {"name": "code-review-loop", "purpose": "リーダー AI の壁打ちループ専用"},
+      {"name": "claude-code-handoff", "purpose": "Claude Code への仕様パッケージング"},
+      {"name": "progress-rollup", "purpose": "10 案件横断の進捗集約"}
+    ],
+    "tables_planned": [
+      "accounts", "account_members",
+      "workspaces", "workspace_members", "workspace_invitations",
+      "projects", "repos", "pull_requests", "reviews", "tasks"
+    ],
+    "mcp_tools_planned": [
+      "bf_list_projects", "bf_set_active_project",
+      "bf_get_next_task", "bf_get_spec", "bf_load_skill",
+      "bf_post_progress", "bf_attach_artifact",
+      "bf_request_review", "bf_get_review_feedback"
+    ],
+    "ui_planned": [
+      "2 階層ダッシュボード（Account / Workspace）",
+      "コメント注釈レイヤー（artifact 拡張）",
+      "赤線リスト承認 UI"
+    ]
+  },
+
+  "competitors": {
+    "direct": [
+      {"name": "Devin", "strength": "自律実装", "differentiation": "チーム型（複数 AI 分業）+ 管理盤一体"},
+      {"name": "Notion AI", "strength": "ドキュメント生成", "differentiation": "実装連携（Claude Code MCP）+ 壁打ちループ"},
+      {"name": "Linear / Jira", "strength": "タスク管理成熟", "differentiation": "仕様書工場 + AI による自律進行"},
+      {"name": "Cursor / Claude Code", "strength": "個人実装支援", "differentiation": "チーム化・複数案件並走・品質保証層"}
+    ],
+    "industry_trends": {
+      "source": "Okta Businesses at Work 2026",
+      "url": "https://cloud.watch.impress.co.jp/docs/news/2105912.html",
+      "findings": [
+        "AI エージェントが「非人間アイデンティティ」として企業に増加（前年比 650%）",
+        "Notion が日本で 25% 増・初の TOP10 入り（AI ワークスペース化）",
+        "セキュリティ系ツールが急成長（NinjaOne 240% / CrowdStrike 66%）"
+      ]
+    }
+  },
+
+  "decision_log": [
+    {"id": "D-1", "decision": "company-dashboard を完全コピーして bootstrap", "reason": "動く土台を最速で確保", "alternative": "共通 lib 化から開始", "rejection_reason": "抽出設計に時間がかかる"},
+    {"id": "D-2", "decision": "Account → Workspace → Member 階層", "reason": "SaaS マルチテナント前提"},
+    {"id": "D-3", "decision": "Members は workspace 単位", "reason": "案件ごとに招待管理が現実的"},
+    {"id": "D-4", "decision": "テンプレート機能なし", "reason": "汎用設計で対応・スコープ削減"},
+    {"id": "D-5", "decision": "Claude Code は外部実装エンジン（MCP 連携）", "reason": "既存ツールの強みを活かす"},
+    {"id": "D-6", "decision": "port 8001 / 3001 で company-dashboard と並走", "reason": "干渉防止"},
+    {"id": "D-7", "decision": "DB / Obsidian / credentials 等を完全分離", "reason": "データ事故防止"},
+    {"id": "D-8", "decision": "「3 ターン改善なしで人間エスカレ」ルール", "reason": "カバレッジ無限ループ防止"},
+    {"id": "D-9", "decision": "リーダー AI 壁打ちループを moat とする", "reason": "他ツールが弱い領域"},
+    {"id": "D-10", "decision": "ナレッジは社員別 + 共通の二段構成", "reason": "既存 company-dashboard と同じ"}
+  ],
+
+  "unresolved": [
+    {"id": "U-1", "question": "MVP のリリース日（具体日付）", "importance": "high"},
+    {"id": "U-2", "question": "monthly Token 上限の数値", "importance": "high"},
+    {"id": "U-3", "question": "試運転対象案件の特定", "importance": "medium"},
+    {"id": "U-4", "question": "チェックリストの粒度", "importance": "low"},
+    {"id": "U-5", "question": "リーダー AI 壁打ち回数上限", "importance": "medium"},
+    {"id": "U-6", "question": "クライアント招待時のメール文面", "importance": "low"},
+    {"id": "U-7", "question": "Slack 通知の頻度・チャネル設計", "importance": "medium"},
+    {"id": "U-8", "question": "Phase 1 の各機能の実装順序", "importance": "high"}
+  ],
+
+  "next_skill": "requirements-definition",
+
+  "handoff_quick_start": {
+    "first_read": "docs/PROJECT_BRIEF.md",
+    "structured": "docs/PROJECT_BRIEF.json",
+    "hearing_log": "docs/hearing/",
+    "readme": "README.md",
+    "backend_entry": "backend/main.py",
+    "frontend_entry": "frontend/src/app/",
+    "db_path": "data/db/build.db"
+  }
+}

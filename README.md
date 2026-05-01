@@ -77,6 +77,14 @@ pnpm dev -p 3001
 
 > 現在は company-dashboard の AI 社員設定をそのまま継承中。順次開発特化版に差し替え予定。
 
+## 📖 まず読むべきドキュメント
+
+- **`docs/PROJECT_BRIEF.md`** ← プロジェクトの目的・ゴール・要件の完全引き継ぎ
+- **`docs/PROJECT_BRIEF.json`** ← 構造化データ（プログラム用）
+- **`docs/hearing/2026-05-01_hearing_log.md`** ← ヒアリング詳細履歴
+
+新しいセッション・新しい担当者は **必ず PROJECT_BRIEF.md から始めること**。
+
 ## ステータス
 
 Bootstrap 完了。company-dashboard の core を流用して動く状態。
