@@ -1,0 +1,62 @@
+# Web framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+
+# AI Agents (OpenAI Agents SDK - supports Ollama, LiteLLM, any OpenAI-compatible endpoint)
+openai-agents>=0.0.19
+openai>=1.82.0
+
+# Anthropic SDK (Claude direct)
+anthropic>=0.52.0
+
+# Ollama Python client (local LLM)
+ollama>=0.4.0
+
+# LiteLLM (universal LLM proxy - 100+ models)
+litellm>=1.67.0
+
+# Database
+aiosqlite>=0.20.0
+
+# Markdown + YAML frontmatter parsing
+python-frontmatter>=1.1.0
+markdown>=3.7
+
+# Data validation
+pydantic>=2.10.0
+pydantic-settings>=2.6.0
+
+# Environment
+python-dotenv>=1.0.0
+
+# File watching (auto-refresh when skills write new files)
+watchdog>=6.0.0
+
+# MCP SDK
+mcp>=1.9.0
+
+# Utilities
+python-multipart>=0.0.20
+httpx>=0.28.0
+
+# === Phase 1: Observability (Langfuse) ===
+# 全LLM呼び出し・トークン・レイテンシ・トレースを可視化
+langfuse>=2.50.0
+
+# === Phase 2: Structured output (Instructor) ===
+# Pydantic スキーマで LLM 出力を強制・自動リトライ
+instructor>=1.6.0
+
+# === Phase 3: Orchestration (LangGraph) ===
+# 状態機械・チェックポイント・条件分岐
+langgraph>=0.2.50
+langgraph-checkpoint-sqlite>=2.0.0
+
+# === Phase 4: Long-term memory (Mem0) ===
+# 人物・好み・履歴の自動抽出・統合
+mem0ai>=0.1.50
+
+# === Artifact エクスポート（PDF / Excel / PPTX） ===
+openpyxl>=3.1.0
+python-pptx>=1.0.0
+reportlab>=4.0.0

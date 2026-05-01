@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "company-os": {
+      "command": "curl",
+      "args": ["-s", "http://localhost:8000/mcp/tools/call"],
+      "env": {}
+    }
+  }
+}
