@@ -53,7 +53,7 @@ class ConversationState(TypedDict, total=False):
 
 async def node_load_employee(state: ConversationState) -> dict:
     """社員情報を読み込む。"""
-    import aiosqlite
+    from db import async_db as aiosqlite
     from db.queries import DB_PATH
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row

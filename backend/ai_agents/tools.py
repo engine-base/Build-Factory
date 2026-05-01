@@ -118,7 +118,7 @@ async def delegate_to_employee(
     Returns:
         作成されたタスクの ID
     """
-    import aiosqlite
+    from db import async_db as aiosqlite
     from pathlib import Path
     DB_PATH = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
 
@@ -135,10 +135,11 @@ async def delegate_to_employee(
 
         cursor = await db.execute(
             """INSERT INTO tasks (title, description, assigned_to, skill_name, status)
-               VALUES (?, ?, ?, ?, 'pending')""",
+               VALUES (?, ?, ?, ?, 'pending') RETURNING id""",
             (task_description[:200], task_description, emp_id, skill_name)
         )
-        task_id = cursor.lastrowid
+        _row = await cursor.fetchone()
+        task_id = _row["id"]
         await db.commit()
 
     # 即時実行を発火
@@ -161,7 +162,7 @@ async def delegate_to_employee(
 @function_tool
 async def list_pending_tasks() -> str:
     """進行中・未完了のタスク一覧を取得する。"""
-    import aiosqlite
+    from db import async_db as aiosqlite
     from pathlib import Path
     DB_PATH = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
     async with aiosqlite.connect(DB_PATH) as db:
@@ -181,7 +182,7 @@ async def list_employees_and_skills() -> str:
     利用可能な全社員AIと、各社員の保有スキル一覧を返す。
     どの社員にタスクを振るか判断する時に呼ぶ。
     """
-    import aiosqlite
+    from db import async_db as aiosqlite
     from pathlib import Path
     DB_PATH = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
     async with aiosqlite.connect(DB_PATH) as db:
@@ -295,7 +296,8 @@ async def create_approval_request(
         content:     承認内容（実際の生成物）
         action_type: "email_send" | "invoice_send" | "post" | "report_save" | "db_update"
     """
-    import aiosqlite, json as _json
+    from db import async_db as aiosqlite
+    import json as _json
     from pathlib import Path
     from datetime import datetime, timedelta
     DB_PATH = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
@@ -305,11 +307,12 @@ async def create_approval_request(
         cursor = await db.execute(
             """INSERT INTO approval_queue
                (action_type, title, content, source_skill, expires_at)
-               VALUES (?, ?, ?, 'agent', ?)""",
+               VALUES (?, ?, ?, 'agent', ?) RETURNING id""",
             (action_type, title[:80], content, expires_at)
         )
+        _row = await cursor.fetchone()
         await db.commit()
-    return _json.dumps({"approval_id": cursor.lastrowid}, ensure_ascii=False)
+    return _json.dumps({"approval_id": _row["id"]}, ensure_ascii=False)
 
 
 # ─────────────────────────────────────────────

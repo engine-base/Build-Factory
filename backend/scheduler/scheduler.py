@@ -8,7 +8,7 @@ task_schedule テーブルを読み込んでジョブを動的登録する。
 from pathlib import Path
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
-import aiosqlite
+from db import async_db as aiosqlite
 
 DB_PATH = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
 

@@ -17,7 +17,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-import aiosqlite
+from db import async_db as aiosqlite
 
 DB_PATH = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
 
@@ -220,11 +220,12 @@ async def _create_workflow_run(user_request: str, plan: dict) -> int:
         cursor = await db.execute(
             """INSERT INTO workflow_runs
                (user_request, plan_json, status, steps_total)
-               VALUES (?, ?, 'running', ?)""",
+               VALUES (?, ?, 'running', ?) RETURNING id""",
             (user_request, json.dumps(plan, ensure_ascii=False), len(plan.get("steps", [])))
         )
+        _row = await cursor.fetchone()
         await db.commit()
-        return cursor.lastrowid
+        return _row["id"]
 
 
 async def _complete_workflow_run(workflow_id: int, output: str, approval_id: Optional[int]):
@@ -245,7 +246,7 @@ async def _create_step(workflow_id: int, step: dict, enriched_input: str) -> int
             """INSERT INTO workflow_steps
                (workflow_run_id, step_number, skill_name, input,
                 parallel_group, depends_on, status, started_at)
-               VALUES (?, ?, ?, ?, ?, ?, 'running', datetime('now','localtime'))""",
+               VALUES (?, ?, ?, ?, ?, ?, 'running', datetime('now','localtime')) RETURNING id""",
             (
                 workflow_id,
                 step.get("step", 0),
@@ -255,8 +256,9 @@ async def _create_step(workflow_id: int, step: dict, enriched_input: str) -> int
                 json.dumps(step.get("depends_on", [])),
             )
         )
+        _row = await cursor.fetchone()
         await db.commit()
-        return cursor.lastrowid
+        return _row["id"]
 
 
 async def _complete_step(step_id: int, output: str, duration: float):
@@ -295,7 +297,7 @@ async def _create_approval(request: str, output: str, plan: dict) -> int:
         cursor = await db.execute(
             """INSERT INTO approval_queue
                (action_type, title, content, source_skill, expires_at, metadata)
-               VALUES ('workflow_result', ?, ?, 'multi-agent', ?, ?)""",
+               VALUES ('workflow_result', ?, ?, 'multi-agent', ?, ?) RETURNING id""",
             (
                 request[:80],
                 output,
@@ -303,8 +305,9 @@ async def _create_approval(request: str, output: str, plan: dict) -> int:
                 json.dumps({"plan_summary": plan.get("summary", "")}, ensure_ascii=False),
             )
         )
+        _row = await cursor.fetchone()
         await db.commit()
-        return cursor.lastrowid
+        return _row["id"]
 
 
 async def _print_say(msg: str):

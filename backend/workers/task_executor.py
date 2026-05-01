@@ -22,7 +22,7 @@ import re
 from datetime import datetime, timedelta
 from pathlib import Path
 
-import aiosqlite
+from db import async_db as aiosqlite
 
 import os
 DB_PATH      = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"

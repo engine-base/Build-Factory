@@ -21,7 +21,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-import aiosqlite
+from db import async_db as aiosqlite
 
 from db.queries import DB_PATH
 
@@ -138,14 +138,15 @@ async def create_employee(
                  persona_name, personality, tone_style, catchphrase,
                  avatar_emoji, specialty, handles, knowledge_folders,
                  llm_provider, llm_model, is_active)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ollama', 'qwen2.5:7b', 1)""",
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ollama', 'qwen2.5:7b', 1) RETURNING id""",
             (employee_name, display_name, category, primary_skill,
              role_level, parent_id,
              persona_name, personality, tone_style, catchphrase,
              avatar_emoji, specialty, handles, json.dumps(knowledge_folders, ensure_ascii=False)),
         )
+        _row = await cur.fetchone()
         await db.commit()
-        employee_id = cur.lastrowid
+        employee_id = _row["id"]
 
     # Obsidianフォルダ作成
     for folder in knowledge_folders:

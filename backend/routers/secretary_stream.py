@@ -13,7 +13,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-import aiosqlite
+from db import async_db as aiosqlite
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -160,10 +160,11 @@ async def secretary_stream_chat(body: StreamChatBody):
         cursor = await db.execute(
             """INSERT INTO conversation_log
                (channel, with_employee, role, message, thread_id)
-               VALUES (?, ?, 'user', ?, ?)""",
+               VALUES (?, ?, 'user', ?, ?) RETURNING id""",
             (f"web_{channel}", employee_id, enriched_message[:5000], thread_id)
         )
-        user_msg_id = cursor.lastrowid
+        _row = await cursor.fetchone()
+        user_msg_id = _row["id"]
         await db.execute(
             "UPDATE threads SET last_active_at=datetime('now','localtime') WHERE id=?",
             (thread_id,)
@@ -297,10 +298,11 @@ async def secretary_stream_chat(body: StreamChatBody):
                     cursor = await db.execute(
                         """INSERT INTO conversation_log
                            (channel, with_employee, role, message, thread_id)
-                           VALUES (?, ?, 'assistant', ?, ?)""",
+                           VALUES (?, ?, 'assistant', ?, ?) RETURNING id""",
                         (f"web_{channel}", employee_id, full_text[:5000], thread_id)
                     )
-                    asst_msg_id = cursor.lastrowid
+                    _row = await cursor.fetchone()
+                    asst_msg_id = _row["id"]
                     await db.execute(
                         "UPDATE threads SET last_active_at=datetime('now','localtime') WHERE id=?",
                         (thread_id,)

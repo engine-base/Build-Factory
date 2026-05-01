@@ -12,7 +12,7 @@ import json
 import re
 from typing import Any
 
-import aiosqlite
+from db import async_db as aiosqlite
 
 from db.queries import DB_PATH
 

@@ -7,7 +7,7 @@ threads.py — チャットスレッド管理 API
 from pathlib import Path
 from typing import Optional
 
-import aiosqlite
+from db import async_db as aiosqlite
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
@@ -62,11 +62,12 @@ async def create_thread(body: ThreadCreate):
     async with aiosqlite.connect(DB_PATH) as db:
         cursor = await db.execute(
             """INSERT INTO threads (channel, with_employee, title)
-               VALUES (?, ?, ?)""",
+               VALUES (?, ?, ?) RETURNING id""",
             (body.channel, body.with_employee, body.title or "新しいチャット")
         )
+        _row = await cursor.fetchone()
         await db.commit()
-    return {"id": cursor.lastrowid}
+    return {"id": _row["id"]}
 
 
 @router.get("/{thread_id}")
@@ -144,8 +145,9 @@ async def get_or_create_thread(
             if rows:
                 return rows[0]["id"]
         cursor = await db.execute(
-            "INSERT INTO threads (channel, with_employee) VALUES (?, ?)",
+            "INSERT INTO threads (channel, with_employee) VALUES (?, ?) RETURNING id",
             (channel, with_employee)
         )
+        _row = await cursor.fetchone()
         await db.commit()
-        return cursor.lastrowid
+        return _row["id"]

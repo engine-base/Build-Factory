@@ -9,7 +9,7 @@ import json
 from datetime import datetime, timedelta
 from typing import Optional
 
-import aiosqlite
+from db import async_db as aiosqlite
 from fastapi import APIRouter, HTTPException
 from pathlib import Path
 from pydantic import BaseModel
@@ -63,7 +63,7 @@ async def create_approval(body: ApprovalCreate):
             """INSERT INTO approval_queue
                (action_type, title, content, metadata,
                 source_skill, source_execution_id, expires_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+               VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id""",
             (
                 body.action_type,
                 body.title,
@@ -74,9 +74,11 @@ async def create_approval(body: ApprovalCreate):
                 expires_at,
             ),
         )
+        _new_row = await cursor.fetchone()
+        _new_id = _new_row["id"]
         await db.commit()
         rows = await db.execute_fetchall(
-            "SELECT * FROM approval_queue WHERE id=?", (cursor.lastrowid,)
+            "SELECT * FROM approval_queue WHERE id=?", (_new_id,)
         )
         item = _row_to_dict(rows[0])
 

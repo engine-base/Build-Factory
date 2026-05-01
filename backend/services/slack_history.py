@@ -2,7 +2,7 @@
 slack_history.py — Slack DM の会話履歴を conversation_log にロード/セーブする薄いラッパ。
 """
 
-import aiosqlite
+from db import async_db as aiosqlite
 
 from db.queries import DB_PATH
 

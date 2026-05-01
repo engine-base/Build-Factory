@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from typing import Optional
 
-import aiosqlite
+from db import async_db as aiosqlite
 
 from db.queries import DB_PATH
 
@@ -57,11 +57,12 @@ async def create_account(
         cur = await db.execute(
             """INSERT INTO accounts
                (name, type, plan, owner_user_id, billing_email, metadata)
-               VALUES (?, ?, ?, ?, ?, ?)""",
+               VALUES (?, ?, ?, ?, ?, ?) RETURNING id""",
             (name, type, plan, owner_user_id, billing_email,
              json.dumps(metadata or {}, ensure_ascii=False)),
         )
-        account_id = cur.lastrowid
+        _row = await cur.fetchone()
+        account_id = _row["id"]
         await db.execute(
             """INSERT INTO account_members (account_id, user_id, role)
                VALUES (?, ?, 'owner')""",

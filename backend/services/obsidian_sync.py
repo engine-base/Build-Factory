@@ -11,7 +11,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-import aiosqlite
+from db import async_db as aiosqlite
 
 DB_PATH      = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
 # OBSIDIAN_VAULT_PATH があればそれを使う。
@@ -110,11 +110,12 @@ async def _sync_file(md_file: Path) -> bool:
                 """INSERT INTO knowledge_base
                    (title, content, summary, category, skill_tags,
                     tags, md_path, source, confirmed_by_user)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, 'obsidian', 1)""",
+                   VALUES (?, ?, ?, ?, ?, ?, ?, 'obsidian', 1) RETURNING id""",
                 (title, content, content[:500], category,
                  skill_tags, content_hash, str(md_file))
             )
-            kb_id = cursor.lastrowid
+            _row = await cursor.fetchone()
+            kb_id = _row["id"]
 
         await db.commit()
 

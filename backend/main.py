@@ -36,6 +36,7 @@ from routers.accounts import router as accounts_router
 from routers.workspaces import router as workspaces_router, invitations_router
 from routers.design_pipeline import router as design_pipeline_router
 from routers.reviewer import router as reviewer_router
+from routers.knowledge_search import router as knowledge_search_router
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 
@@ -121,6 +122,7 @@ app.include_router(workspaces_router)
 app.include_router(invitations_router)
 app.include_router(design_pipeline_router)
 app.include_router(reviewer_router)
+app.include_router(knowledge_search_router)
 
 
 @app.get("/health")

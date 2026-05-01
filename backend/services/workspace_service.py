@@ -19,7 +19,7 @@ import secrets
 from datetime import datetime, timedelta
 from typing import Optional
 
-import aiosqlite
+from db import async_db as aiosqlite
 
 from db.queries import DB_PATH
 
@@ -84,11 +84,12 @@ async def create_workspace(
         cur = await db.execute(
             """INSERT INTO workspaces
                (account_id, name, description, project_meta)
-               VALUES (?, ?, ?, ?)""",
+               VALUES (?, ?, ?, ?) RETURNING id""",
             (account_id, name, description,
              json.dumps(project_meta or {}, ensure_ascii=False)),
         )
-        workspace_id = cur.lastrowid
+        _row = await cur.fetchone()
+        workspace_id = _row["id"]
         await db.execute(
             """INSERT INTO workspace_members
                (workspace_id, user_id, role, invited_by)

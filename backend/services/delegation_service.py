@@ -12,7 +12,7 @@ import re
 from pathlib import Path
 from typing import Optional
 
-import aiosqlite
+from db import async_db as aiosqlite
 
 DB_PATH = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
 
@@ -235,11 +235,12 @@ async def _create_approval(skill: str, request: str, result: str) -> int:
         cursor = await db.execute(
             """INSERT INTO approval_queue
                (action_type, title, content, source_skill, expires_at)
-               VALUES (?, ?, ?, ?, ?)""",
+               VALUES (?, ?, ?, ?, ?) RETURNING id""",
             (action_type, request[:80], result, skill, expires_at)
         )
+        _row = await cursor.fetchone()
         await db.commit()
-        return cursor.lastrowid
+        return _row["id"]
 
 
 async def _print_say(msg: str):

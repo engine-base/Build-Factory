@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
-import aiosqlite
+from db import async_db as aiosqlite
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
@@ -114,15 +114,17 @@ async def create_schedule(body: ScheduleCreate):
             """INSERT INTO task_schedule
                (task_name, skill_name, description, frequency, run_time,
                 day_of_week, day_of_month, is_active, autonomy)
-               VALUES (?,?,?,?,?,?,?,1,?)""",
+               VALUES (?,?,?,?,?,?,?,1,?) RETURNING id""",
             (body.task_name, body.skill_name, body.description,
              body.frequency, body.run_time, body.day_of_week,
              body.day_of_month, body.autonomy),
         )
+        _new_row = await cursor.fetchone()
+        _new_id = _new_row["id"]
         await db.commit()
         db.row_factory = aiosqlite.Row
         rows = await db.execute_fetchall(
-            "SELECT * FROM task_schedule WHERE id=?", (cursor.lastrowid,)
+            "SELECT * FROM task_schedule WHERE id=?", (_new_id,)
         )
     new_task = dict(rows[0])
     try:

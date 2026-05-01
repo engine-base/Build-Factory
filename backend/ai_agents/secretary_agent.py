@@ -443,7 +443,7 @@ async def _legacy_prepare(
 ) -> tuple[dict, str, Optional[str], str]:
     """レガシー直結経路: emp / mode / triggered_skill / rag_text を返す。
     LangGraph が無効・失敗時のフォールバック。"""
-    import aiosqlite
+    from db import async_db as aiosqlite
     from db.queries import DB_PATH
     from services.mode_detector import detect_mode
     from services.skill_detector import detect_skill

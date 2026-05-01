@@ -9,7 +9,7 @@ import re
 from pathlib import Path
 from typing import Optional
 
-import aiosqlite
+from db import async_db as aiosqlite
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
@@ -124,12 +124,13 @@ async def create_skill(body: SkillCreate):
             cursor = await db.execute(
                 """INSERT INTO skill_definitions
                    (skill_name, display_name, description, category, tags, md_path)
-                   VALUES (?, ?, ?, ?, ?, ?)""",
+                   VALUES (?, ?, ?, ?, ?, ?) RETURNING id""",
                 (skill_name, display_name, description, body.category or "general",
                  body.tags or f"#{skill_name}", str(dest_file)),
             )
+            _row = await cursor.fetchone()
             await db.commit()
-            new_id = cursor.lastrowid
+            new_id = _row["id"]
         except Exception as e:
             if "UNIQUE" in str(e):
                 raise HTTPException(409, f"スキル '{skill_name}' は既に存在します")

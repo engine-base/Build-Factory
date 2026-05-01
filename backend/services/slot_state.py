@@ -22,7 +22,7 @@ import re
 from dataclasses import dataclass, field, asdict
 from typing import Any, Optional
 
-import aiosqlite
+from db import async_db as aiosqlite
 
 from db.queries import DB_PATH
 

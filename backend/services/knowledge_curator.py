@@ -18,7 +18,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-import aiosqlite
+from db import async_db as aiosqlite
 
 DB_PATH    = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
 VAULT_PATH = Path.home() / "Documents" / "Obsidian" / "ENGINE-BASE"
@@ -114,14 +114,15 @@ async def classify_and_save(
             """INSERT INTO knowledge_base
                (title, content, summary, category, skill_tags, tags, md_path,
                 source, source_execution_id, confidence, confirmed_by_user)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)""",
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1) RETURNING id""",
             (
                 title, extracted, summary, ktype, skill_tags or None,
                 tag_str or None, str(md_path) if md_path else None,
                 source, source_id, confidence,
             )
         )
-        kb_id = cursor.lastrowid
+        _row = await cursor.fetchone()
+        kb_id = _row["id"]
         await db.commit()
 
     # Embedding 計算

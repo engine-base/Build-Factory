@@ -19,7 +19,7 @@ import os
 from datetime import datetime
 from typing import Any, Optional
 
-import aiosqlite
+from db import async_db as aiosqlite
 
 from db.queries import DB_PATH
 
@@ -77,11 +77,12 @@ async def request_review(
         cur = await db.execute(
             """INSERT INTO reviews
                (pr_id, reviewer_employee_id, verdict, summary, findings_json)
-               VALUES (?, ?, 'pending', ?, ?)""",
+               VALUES (?, ?, 'pending', ?, ?) RETURNING id""",
             (None, reviewer_id, summary or f"[{review_kind}] レビュー依頼",
              json.dumps(findings, ensure_ascii=False)),
         )
-        review_id = cur.lastrowid
+        _row = await cur.fetchone()
+        review_id = _row["id"]
         await db.commit()
     return {
         "review_id": review_id,

@@ -31,7 +31,7 @@ async def secretary_history(limit: int = 50):
 @router.delete("/history")
 async def clear_history():
     """会話履歴をクリアする。"""
-    import aiosqlite
+    from db import async_db as aiosqlite
     from pathlib import Path
     DB_PATH = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
     async with aiosqlite.connect(DB_PATH) as db:

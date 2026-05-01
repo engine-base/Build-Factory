@@ -37,7 +37,7 @@ DB_PATH = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
 async def register_skill_in_db(name: str, description: str, md_path: str,
                                 category: str = "custom") -> None:
     """skill_definitions テーブルに upsert する（管理 UI が参照する）。"""
-    import aiosqlite
+    from db import async_db as aiosqlite
     async with aiosqlite.connect(DB_PATH) as db:
         cur = await db.execute(
             "SELECT id FROM skill_definitions WHERE skill_name=?", (name,)
@@ -253,7 +253,7 @@ async def delete_skill(name: str, *, hard: bool = False) -> dict:
     既定 (hard=False): ファイルは残し DB を is_active=0 にする（リバート可能・既存挙動と一致）
     hard=True: primary + mirror + DB レコードも完全削除
     """
-    import aiosqlite
+    from db import async_db as aiosqlite
     primary, mirror = _both_paths(name)
 
     if hard:

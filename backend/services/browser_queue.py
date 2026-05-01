@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 from typing import Optional
 
-import aiosqlite
+from db import async_db as aiosqlite
 
 from db.queries import DB_PATH
 
@@ -29,12 +29,13 @@ async def add_task(
             """INSERT INTO browser_task_queue
                (task, service, priority, max_steps, provider, model,
                 requested_by, requested_via_thread, status)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')""",
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending') RETURNING id""",
             (task, service, priority, max_steps, provider, model,
              requested_by, requested_via_thread),
         )
+        _row = await cur.fetchone()
         await db.commit()
-        return cur.lastrowid
+        return _row["id"]
 
 
 async def list_tasks(status: Optional[str] = None, limit: int = 100) -> list[dict]:

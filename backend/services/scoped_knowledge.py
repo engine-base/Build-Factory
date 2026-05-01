@@ -23,7 +23,7 @@ import json
 import re
 from typing import Optional
 
-import aiosqlite
+from db import async_db as aiosqlite
 
 from db.queries import DB_PATH
 
@@ -360,12 +360,13 @@ async def save_knowledge(
             """INSERT INTO knowledge_base
                 (title, content, summary, category, source, md_path,
                  assigned_employee_id, confidence, use_count, created_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, 1.0, 0, datetime('now','localtime'))""",
+               VALUES (?, ?, ?, ?, ?, ?, ?, 1.0, 0, datetime('now','localtime')) RETURNING id""",
             (title, content, content[:200], category, source,
              str(md_file), target_employee_id),
         )
+        _row = await cur.fetchone()
         await db.commit()
-        knowledge_id = cur.lastrowid
+        knowledge_id = _row["id"]
 
     # Embedding 計算
     try:

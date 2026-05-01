@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-import aiosqlite
+from db import async_db as aiosqlite
 
 DB_PATH = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
 
@@ -232,10 +232,11 @@ async def _create_and_dispatch(user_request: str, tasks: list[dict]) -> list[dic
     async with aiosqlite.connect(DB_PATH) as db:
         proj_cursor = await db.execute(
             """INSERT INTO projects (title, description, initiated_by)
-               VALUES (?, ?, 'secretary')""",
+               VALUES (?, ?, 'secretary') RETURNING id""",
             (user_request[:80], user_request)
         )
-        project_id = proj_cursor.lastrowid
+        _proj_row = await proj_cursor.fetchone()
+        project_id = _proj_row["id"]
 
         # 社員名→IDマップ
         db.row_factory = aiosqlite.Row
@@ -251,7 +252,7 @@ async def _create_and_dispatch(user_request: str, tasks: list[dict]) -> list[dic
                 """INSERT INTO tasks
                    (project_id, title, description, assigned_to,
                     skill_name, depends_on, order_index)
-                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                   VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id""",
                 (
                     project_id,
                     t.get("title", "")[:200],
@@ -262,7 +263,8 @@ async def _create_and_dispatch(user_request: str, tasks: list[dict]) -> list[dic
                     i,
                 )
             )
-            task_id = cursor.lastrowid
+            _task_row = await cursor.fetchone()
+            task_id = _task_row["id"]
             created_tasks.append({
                 "task_id":  task_id,
                 "title":    t.get("title"),

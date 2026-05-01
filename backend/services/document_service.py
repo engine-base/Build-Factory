@@ -14,7 +14,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-import aiosqlite
+from db import async_db as aiosqlite
 
 import os
 DB_PATH    = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
@@ -81,7 +81,7 @@ async def ingest_pdf(
             """INSERT INTO knowledge_base
                (title, content, summary, category, skill_tags,
                 md_path, source, confirmed_by_user)
-               VALUES (?, ?, ?, ?, ?, ?, 'document', 1)""",
+               VALUES (?, ?, ?, ?, ?, ?, 'document', 1) RETURNING id""",
             (
                 title,
                 text[:8000],
@@ -91,7 +91,8 @@ async def ingest_pdf(
                 str(md_file),
             )
         )
-        kb_id = cursor.lastrowid
+        _row = await cursor.fetchone()
+        kb_id = _row["id"]
         await db.commit()
 
     # 5. Embedding を計算

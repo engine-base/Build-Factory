@@ -10,7 +10,7 @@ import json
 import re
 from pathlib import Path
 
-import aiosqlite
+from db import async_db as aiosqlite
 
 DB_PATH = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
 RECORDS_PATH = Path(__file__).resolve().parents[2] / "data" / "records"
@@ -196,7 +196,7 @@ async def _add_to_approval_queue(pipeline: dict, draft: dict) -> int:
         cursor = await db.execute(
             """INSERT INTO approval_queue
                (action_type, title, content, metadata, source_skill, expires_at)
-               VALUES ('email_send', ?, ?, ?, '01_sales', ?)""",
+               VALUES ('email_send', ?, ?, ?, '01_sales', ?) RETURNING id""",
             (
                 f"フォローメール: {pipeline.get('client', '')} 様",
                 draft.get("body", ""),
@@ -204,5 +204,6 @@ async def _add_to_approval_queue(pipeline: dict, draft: dict) -> int:
                 expires_at,
             ),
         )
+        _row = await cursor.fetchone()
         await db.commit()
-        return cursor.lastrowid
+        return _row["id"]

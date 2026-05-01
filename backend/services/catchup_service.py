@@ -13,7 +13,7 @@ import json
 from datetime import datetime, timedelta
 from pathlib import Path
 
-import aiosqlite
+from db import async_db as aiosqlite
 
 DB_PATH = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
 RECORDS_PATH = Path(__file__).resolve().parents[2] / "data" / "records" / "13_セルフマネジメント" / "catchups"

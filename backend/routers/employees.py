@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 from typing import Optional
 
-import aiosqlite
+from db import async_db as aiosqlite
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 

@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from typing import Optional
 
-import aiosqlite
+from db import async_db as aiosqlite
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
@@ -45,11 +45,12 @@ async def create_project(body: ProjectCreate):
     async with aiosqlite.connect(DB_PATH) as db:
         cursor = await db.execute(
             """INSERT INTO projects (title, description, goal)
-               VALUES (?, ?, ?)""",
+               VALUES (?, ?, ?) RETURNING id""",
             (body.title, body.description, body.goal)
         )
+        _row = await cursor.fetchone()
         await db.commit()
-    return {"id": cursor.lastrowid}
+    return {"id": _row["id"]}
 
 
 @router.get("/projects/{project_id}")
@@ -131,15 +132,16 @@ async def create_task(body: TaskCreate):
             """INSERT INTO tasks
                (project_id, parent_task_id, title, description,
                 assigned_to, skill_name, depends_on, level)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id""",
             (
                 body.project_id, body.parent_task_id, body.title, body.description,
                 body.assigned_to, body.skill_name,
                 json.dumps(body.depends_on or []), level
             )
         )
+        _row = await cursor.fetchone()
         await db.commit()
-    return {"id": cursor.lastrowid, "level": level}
+    return {"id": _row["id"], "level": level}
 
 
 @router.get("/tasks/{task_id}")
@@ -219,15 +221,16 @@ async def create_question(body: QuestionCreate):
         cursor = await db.execute(
             """INSERT INTO task_questions
                (task_id, asked_by, ask_to, question)
-               VALUES (?, ?, ?, ?)""",
+               VALUES (?, ?, ?, ?) RETURNING id""",
             (body.task_id, body.asked_by, body.ask_to, body.question)
         )
+        _row = await cursor.fetchone()
         await db.execute(
             "UPDATE tasks SET status='blocked_question' WHERE id=?",
             (body.task_id,)
         )
         await db.commit()
-    return {"id": cursor.lastrowid}
+    return {"id": _row["id"]}
 
 
 class QuestionAnswer(BaseModel):

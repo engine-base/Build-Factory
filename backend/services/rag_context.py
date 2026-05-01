@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-import aiosqlite
+from db import async_db as aiosqlite
 
 from db.queries import DB_PATH
 
