@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "build-factory": {
+      "command": "/Users/masato0420/Documents/Build-Factory/backend/.venv/bin/python3",
+      "args": ["/Users/masato0420/Documents/Build-Factory/backend/mcp_stdio_server.py"],
+      "env": {
+        "PYTHONPATH": "/Users/masato0420/Documents/Build-Factory/backend"
+      }
+    }
+  }
+}

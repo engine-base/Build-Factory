@@ -1,6 +1,6 @@
 const HOME = process.env.HOME;
 const PROJECT = `${HOME}/Documents/Build-Factory`;
-const VENV = `${PROJECT}/.venv`;
+const VENV = `${PROJECT}/backend/.venv`;
 const NODE = `${HOME}/.nvm/versions/node/v22.21.1/bin/node`;
 const NEXT = `${PROJECT}/frontend/node_modules/.bin/next`;
 

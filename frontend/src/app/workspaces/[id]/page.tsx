@@ -207,11 +207,175 @@ function DesignTab({
         </p>
       </Card>
 
-      <Card title="Onlook 連携（実装中）">
-        <p className="text-xs text-gray-500">
-          Iteration 7 で Onlook self-host を起動し、ここから「[ Onlook で開く ]」が押せるようにする。
-        </p>
-      </Card>
+      <OnlookCard workspace={workspace} />
+      <PipelineCard workspaceId={workspace.id} />
+    </div>
+  );
+}
+
+function OnlookCard({ workspace }: { workspace: Workspace }) {
+  const [showHelp, setShowHelp] = useState(false);
+  const meta = (() => {
+    try { return JSON.parse(workspace.project_meta || "{}"); } catch { return {}; }
+  })();
+  const onlookUrl = meta.onlook_url as string | undefined;
+  const designSystem = workspace.design_system_ref;
+
+  return (
+    <div className="rounded-lg border bg-white p-5">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold flex items-center gap-2">
+          🎨 Onlook 連携
+          <span className="text-[10px] rounded-full bg-purple-100 text-purple-700 px-2 py-0.5">
+            Phase 1: ホスト版
+          </span>
+        </h3>
+        <button
+          onClick={() => setShowHelp((v) => !v)}
+          className="text-xs text-blue-600 hover:underline"
+        >
+          {showHelp ? "閉じる" : "使い方"}
+        </button>
+      </div>
+
+      {showHelp && (
+        <div className="mb-3 rounded bg-gray-50 p-3 text-xs text-gray-700 space-y-1.5">
+          <p><strong>1.</strong> 下のボタンで onlook.com を開く（別タブ）</p>
+          <p><strong>2.</strong> Onlook でプロジェクト作成・モック生成</p>
+          <p><strong>3.</strong> 確定したら Next.js プロジェクトを GitHub にエクスポート</p>
+          <p><strong>4.</strong> その GitHub URL を Build-Factory のタスクに紐付け</p>
+          <p className="text-gray-500 mt-2">
+            機密案件で本格運用する時は self-host へ移行（onlook/README.md 参照）
+          </p>
+        </div>
+      )}
+
+      <div className="space-y-2 text-xs">
+        <div className="flex items-center gap-2">
+          <span className="text-gray-500 w-24">design_system:</span>
+          <span className={`rounded px-2 py-0.5 ${designSystem ? "bg-purple-50 text-purple-700" : "bg-gray-100 text-gray-500"}`}>
+            {designSystem || "未設定（上で設定）"}
+          </span>
+        </div>
+        {onlookUrl && (
+          <div className="flex items-center gap-2">
+            <span className="text-gray-500 w-24">onlook URL:</span>
+            <a href={onlookUrl} target="_blank" rel="noopener noreferrer"
+               className="text-blue-600 hover:underline truncate">
+              {onlookUrl}
+            </a>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 flex gap-2">
+        <a
+          href={onlookUrl || "https://onlook.com/"}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700"
+        >
+          🎨 Onlook で開く
+        </a>
+        <button
+          onClick={() => {
+            const url = prompt(
+              "このワークスペース用の Onlook プロジェクト URL を貼ってください",
+              onlookUrl || "",
+            );
+            if (url !== null) {
+              const meta2 = { ...meta, onlook_url: url };
+              fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/workspaces/${workspace.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ project_meta: meta2 }),
+              }).then(() => location.reload());
+            }
+          }}
+          className="rounded border px-3 py-2 text-sm hover:bg-gray-50"
+        >
+          {onlookUrl ? "URL 編集" : "Onlook URL を登録"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function PipelineCard({ workspaceId }: { workspaceId: number }) {
+  type Step = {
+    step: number; skill: string; title: string;
+    optional: boolean; owner: string; completed: boolean;
+    artifact_id: string | null;
+  };
+  const [state, setState] = useState<{ steps: Step[]; all_required_done: boolean } | null>(null);
+  const [running, setRunning] = useState<number | null>(null);
+  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001";
+
+  useEffect(() => {
+    fetch(`${API}/api/design-pipeline/${workspaceId}`)
+      .then((r) => r.json())
+      .then(setState)
+      .catch(() => setState(null));
+  }, [workspaceId, API]);
+
+  const runStep = async (step: number) => {
+    setRunning(step);
+    try {
+      const r = await fetch(`${API}/api/design-pipeline/${workspaceId}/step/${step}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const result = await r.json();
+      console.log("[pipeline]", result);
+      // 状態再取得
+      const s = await fetch(`${API}/api/design-pipeline/${workspaceId}`).then((r) => r.json());
+      setState(s);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setRunning(null);
+    }
+  };
+
+  return (
+    <div className="rounded-lg border bg-white p-5">
+      <h3 className="text-sm font-semibold mb-3">📐 Phase A デザインパイプライン</h3>
+      {!state && <div className="text-xs text-gray-500">読み込み中…</div>}
+      {state && (
+        <div className="space-y-2">
+          {state.steps.map((s) => (
+            <div key={s.step} className="flex items-center gap-3 text-sm rounded border px-3 py-2">
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+                s.completed ? "bg-green-500 text-white" :
+                s.optional ? "bg-gray-200 text-gray-500" : "bg-blue-100 text-blue-700"
+              }`}>
+                {s.completed ? "✓" : s.step}
+              </div>
+              <div className="flex-1">
+                <div className="font-medium">{s.title}</div>
+                <div className="text-xs text-gray-500">
+                  {s.skill} · {s.owner}{s.optional && " · 任意"}
+                </div>
+              </div>
+              {s.completed ? (
+                <span className="text-xs text-green-600">完了</span>
+              ) : (
+                <button
+                  onClick={() => runStep(s.step)}
+                  disabled={running !== null}
+                  className="rounded bg-blue-600 text-white px-3 py-1 text-xs hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {running === s.step ? "実行中…" : "実行"}
+                </button>
+              )}
+            </div>
+          ))}
+          <p className="text-xs text-gray-500 mt-2">
+            実行には OPENAI_API_KEY が必要・各ステップは markdown artifact として保存されます
+          </p>
+        </div>
+      )}
     </div>
   );
 }
