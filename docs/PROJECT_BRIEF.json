@@ -255,11 +255,14 @@
   "existing_assets_inherited": {
     "skills": [
       "hearing", "requirements-definition", "architecture-design",
-      "tech-stack", "api-design", "feature-decomposition",
+      "tech-stack", "api-design",
+      "brand-voice", "design-md", "frontend-design", "ui-mockup",
+      "feature-decomposition",
       "task-decomposition", "acceptance-criteria", "test-verification",
       "decision-record", "release-planning", "delivery",
       "verification-loop", "skill-creator"
     ],
+    "design_skills_added": ["brand-voice", "design-md", "frontend-design", "ui-mockup"],
     "core_modules": [
       "services/artifact_service.py", "services/output_processor.py",
       "services/orchestrator_graph.py", "services/slot_state.py",
@@ -320,6 +323,66 @@
     }
   },
 
+  "design_stack": {
+    "main_editor": {
+      "name": "Onlook",
+      "url": "https://github.com/onlook-dev/onlook",
+      "license": "Apache-2.0",
+      "saas_ok": true,
+      "form": "Web (Desktop deprecated・Web 統合済)",
+      "features_used": [
+        "Figma 風無限キャンバス",
+        "要素クリック AI 編集",
+        "コメント機能",
+        "共同編集",
+        "MCP 対応"
+      ],
+      "phase_1_strategy": "OSS 素のまま self-host (フォークなし)",
+      "deployment": "リバースプロキシで engine-base.com/design に配信・OAuth SSO",
+      "fork_decision_indicators": [
+        "Onlook 独自機能の 50% 以上を使っていない",
+        "Build-Factory AI 社員 と Onlook AI チャットの画面分離が苦痛",
+        "Onlook 上流変更が Build-Factory 体験を壊す",
+        "監視担当・クライアントから 2 タブ作業の苦情"
+      ]
+    },
+    "asset_source": {
+      "name": "Open Design (nexu-io)",
+      "url": "https://github.com/nexu-io/open-design",
+      "license": "Apache-2.0",
+      "saas_ok": true,
+      "usage": "資産取り込みのみ・本体採用なし",
+      "assets_imported": {
+        "design_systems": "71 DESIGN.md (Linear / Stripe / Vercel / Airbnb / Notion / Apple 等)",
+        "skills": "31 SKILL.md (saas-landing / dashboard / mobile-app / email-marketing 等)"
+      },
+      "import_target": {
+        "design_systems": "data/design-systems/",
+        "skills": "data/skills/"
+      },
+      "rejected_features": [
+        "5 候補ピッカー方式（土台 1 個 + Onlook 反復編集の方が効率的）"
+      ]
+    },
+    "design_skills_phase_a": [
+      {"name": "brand-voice", "purpose": "ブランドボイス・トーン", "optional": true, "skip_for": "自社プロダクト・既存ブランドあり"},
+      {"name": "design-md", "purpose": "Google Labs 形式デザインシステム確定", "required": true},
+      {"name": "frontend-design", "purpose": "UI スタイル方針 (Editorial/Brutalism/Minimal 等)", "required": true},
+      {"name": "ui-mockup", "purpose": "デザイントークン → UI モック方針", "required": true}
+    ],
+    "rejected_oss": [
+      {"name": "Open CoDesign", "reason": "Electron デスクトップ専用・組込み困難"},
+      {"name": "OpenPencil", "reason": "Electron 専用・GUI 機能は Onlook と重複"},
+      {"name": "Penpot", "reason": "AI 生成弱い・MPL-2.0 で SaaS 制約"},
+      {"name": "自作 GUI レイヤー", "reason": "工数 4-5 日 + メンテ過大"}
+    ],
+    "mock_workflow": {
+      "before": "5 候補ピッカー方式・タスクごとに個別モック",
+      "after": "土台 1 個生成 + Onlook で反復編集・全画面完成後にタスク分解",
+      "reason": "設計確定後はブレ少ない・編集での詰めの方が速い・全体一貫性"
+    }
+  },
+
   "claude_code_integration": {
     "pattern": "A_build_factory_command_center",
     "official_reference": "https://qiita.com/nogataka/items/efe8eb9df612d2211221",
@@ -375,7 +438,14 @@
     {"id": "D-13", "decision": "段階導入なし・最初から 3 分離", "reason": "スコープ明確化 + 公式パターン完成形を狙う"},
     {"id": "D-14", "decision": "Evaluator はタスク単位 (機能/画面ごと)", "reason": "並列実装対応・各タスクに通過基準"},
     {"id": "D-15", "decision": "全体統合テストは Build-Factory レビュアー AI 主導", "reason": "納品前の最終品質保証・E2E と機能間連携"},
-    {"id": "D-16", "decision": "コスト計算は Claude Code Pro/Max プラン内で完結", "reason": "API ではなくサブスクリプション利用"}
+    {"id": "D-16", "decision": "コスト計算は Claude Code Pro/Max プラン内で完結", "reason": "API ではなくサブスクリプション利用"},
+    {"id": "D-17", "decision": "デザイン編集に Onlook 採用 (Apache 2.0)", "reason": "Figma 風キャンバス + GUI + AI + コメントが既に実装済"},
+    {"id": "D-18", "decision": "Open Design は資産流用のみ (71 DESIGN.md + 31 SKILL.md)", "reason": "本体採用せず資産だけ取り込み・即時 100+ ナレッジ"},
+    {"id": "D-19", "decision": "5 候補ピッカー方式不採用・土台 1 個 + Onlook で反復", "reason": "コスト 5 倍・選択疲労を回避"},
+    {"id": "D-20", "decision": "モック生成は **タスク分解の前** に全画面完成", "reason": "全体一貫性 + タスク分解時に該当部分抜粋可"},
+    {"id": "D-21", "decision": "Phase A にデザインスキル明示組込 (brand-voice / design-md / frontend-design / ui-mockup)", "reason": "既存スキル資産活用 + Onlook 入力の質向上"},
+    {"id": "D-22", "decision": "Onlook は **OSS 素のまま self-host** (Phase 1 はフォークしない)", "reason": "MVP 集中・上流追従の利益・使ってから判断"},
+    {"id": "D-23", "decision": "Onlook はリバースプロキシで engine-base.com/design 配信", "reason": "1 アプリ感を出しつつ iframe 埋込み回避"}
   ],
 
   "unresolved": [

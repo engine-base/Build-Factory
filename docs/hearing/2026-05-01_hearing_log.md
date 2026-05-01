@@ -318,6 +318,156 @@ Anthropic 公式の **「3 エージェント分離パターン」** (Planner / 
 
 ---
 
+## STEP 3.6: デザインフェーズの統合検討（追加ヒアリング）
+
+### きっかけ
+
+まさとさんからの提示:
+> チャットベースなのでデザインがどうしてもきちんと再現できないことも多い
+> このOSSを使うことで解決できないか
+> https://github.com/nexu-io/open-design
+
+**問題提起**: モック・PDF 出力で「思ってたのと違う」が頻発する。チャットベースの限界。
+
+### Step 3.6.1: 既存デザインスキルの確認
+
+既に `company-dashboard` 側に存在:
+- `brand-voice` — ブランドの声・トーン
+- `design-md` — Google Labs 形式デザインシステム (色 / タイポ / 間隔 / コンポーネント)
+- `frontend-design` — Editorial / Brutalism / Minimal / Glassmorphism 等の方針
+- `ui-mockup` — デザイントークンを元にした UI モック方針
+
+→ **Phase A にデザインフェーズを正式組込**:
+```
+brand-voice → design-md → frontend-design → ui-mockup
+```
+（feature-decomposition の前に走る）
+
+### Step 3.6.2: Open Design 評価
+
+URL: https://github.com/nexu-io/open-design
+
+特徴:
+- Apache 2.0
+- Web (local daemon)
+- 71 DESIGN.md + 31 SKILL.md（資産が豊富）
+- 5 方向ピッカー
+- ❌ GUI 編集はロードマップ段階・未実装
+
+まさとさんの指示:
+> 直接編集などもできるの？できるなら、候補を出さなくても土台でいいのでは
+> 要素クリックでコメント、AI もしくはデザイナーが GUI で編集とか
+
+→ Open Design 単体では不足。
+
+### Step 3.6.3: 自作 GUI レイヤー検討
+
+候補: iframe + 要素クリック + AI 編集を Build-Factory 側で実装
+
+まさとさんの反応:
+> 重くなりそうだし iframe はちょっと嫌
+> 探して欲しい・うまく上記の OSS のいい部分だけ取るのはできないのか
+
+→ 自作は不採用方針。
+
+### Step 3.6.4: 他 OSS の比較
+
+| OSS | ライセンス | 実装 | GUI 編集 | 採否 |
+|---|---|---|---|---|
+| Open Design (nexu-io) | Apache-2.0 | Web (daemon) | ❌ ロードマップ | 資産のみ流用 |
+| Open CoDesign | MIT | Electron | ✅ Comment mode | ❌ Electron 専用 |
+| OpenPencil | MIT | Electron + MCP | ✅ | ❌ Electron 専用 |
+| **Onlook** | **Apache-2.0** | **Web** | **✅ Figma 風 + AI** | **✅ 採用** |
+| Penpot | MPL-2.0 | Web | ✅ Figma 完全代替 | ❌ AI 弱い・MPL-2.0 SaaS 制約 |
+
+**Onlook が最有力候補として浮上**:
+- Web ベース（Desktop 廃止して Web 統合）
+- Figma 風無限キャンバス
+- 要素クリック AI 編集
+- コメント機能・共同編集
+- MCP 対応
+- Apache 2.0
+- Next.js + Tailwind 出力
+
+### Step 3.6.5: 「いいとこ取り」戦略の確定
+
+```
+Onlook                = メイン編集ツール（GUI + AI + コメント + 共同編集）
+Open Design           = 資産取り込み（71 DESIGN.md + 31 SKILL.md）
+Build-Factory         = オーケストレータ（タスク管理 + 仕様書工場 + AI 社員）
+```
+
+不採用:
+- Open CoDesign / OpenPencil（Electron 専用・Onlook で機能重複）
+- Penpot（AI 弱い・MPL-2.0）
+- 自作 GUI レイヤー（工数過大）
+
+### Step 3.6.6: フォーク判断
+
+まさとさんの問い:
+> フォークして使ったほうがいいとか？
+> 機能としてはデザイン部分だけだし、こちらの AI 社員、もしくは MCP でスラックか cloude アプリからとかだし
+
+選択肢:
+- (X) **OSS 素のまま self-host**：工数 0.5 日 / メンテ 0
+- (Y) ライトフォーク：工数 2-3 日 / メンテ月 1-2 日
+- (Z) フル統合フォーク：工数 4-5 日 / メンテ全責任
+
+まさとさんの指示:
+> OSS のままでもいいと思うけど、どっちがいいと思うのか教えて
+
+→ **私の答え: 候補 X（OSS 素のまま）が正解**
+
+理由:
+1. Build-Factory 本丸（リーダー AI 壁打ち / 仕様書工場 / Claude Code 連携）に集中したい
+2. デザイン編集は全体の 10〜15% → fork の投資対効果が悪い
+3. Onlook は急速進化中 → 上流追従の利益が大きい
+4. 「使い込んでから fork」が王道（Cursor / Linear も同じパターン）
+
+→ **まさとさん承認**: 「OSS のままでいいです」
+
+### Step 3.6.7: 5 候補方式の廃止
+
+設計確定後ならブレが少ないため、Open Design の 5 候補方式は不採用:
+- ❌ 5 候補生成 → 選ぶ
+- ✅ **土台 1 個生成 → Onlook で反復編集** （要素クリック AI 編集 + コメント）
+
+### Step 3.6.8: モック生成のタイミング変更
+
+> あとはモックは分解したものごとにする感じではなく完成的に作りましょう
+> そこから分解して実装するけど実装のデザイン部分だけ抜粋して cloude で開発する感じ
+
+→ **モック生成は feature-decomposition の前**:
+1. 全画面まとめての完成モック生成
+2. その後でタスク分解
+3. 各タスクが「モック内の該当部分（コンポーネント）」を紐付け
+4. Claude Code 実装時に「全体モック + 該当部分」が渡る
+
+### Step 3.6.9: デプロイ方法確定
+
+> iframe はちょっと嫌
+> 別タブ も避けたい
+
+→ **リバースプロキシで `engine-base.com/design` に配信**:
+- 同じドメイン下の別パス
+- OAuth で SSO
+- 1 アプリ感を出すが実態は別プロセス
+- iframe 埋込みなし・別タブ起動なし
+
+### Step 3.6 のまとめ（決定）
+
+| 決定 ID | 内容 |
+|---|---|
+| D-17 | Onlook 採用（Apache 2.0・GUI + AI + コメント） |
+| D-18 | Open Design は資産取り込みのみ（71 + 31） |
+| D-19 | 5 候補方式不採用・土台 1 個 + Onlook 反復 |
+| D-20 | モック生成は分解の前に全画面完成 |
+| D-21 | Phase A にデザインスキル明示組込（brand-voice / design-md / frontend-design / ui-mockup） |
+| D-22 | Onlook は **OSS 素のまま self-host**（Phase 1 はフォークしない） |
+| D-23 | リバースプロキシで `/design` 配信（1 アプリ感） |
+
+---
+
 ## 主要な決定とその理由
 
 | # | 決定 | 理由 |
