@@ -14,11 +14,15 @@ import aiosqlite
 
 DB_PATH = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
 
+import os
 # スキル格納場所の優先順:
-#   1. <repo>/data/skills/{name}/SKILL.md  ← 正式格納場所
-#   2. ~/.claude/skills/{name}/SKILL.md               ← フォールバック
+#   1. <repo>/data/skills/{name}/SKILL.md       ← 正式格納場所
+#   2. ~/.claude/skills/build-factory/{name}/SKILL.md  ← Build-Factory ミラー
+#   3. ~/.claude/skills/{name}/SKILL.md         ← グローバル共通フォールバック
 SKILL_STORE = Path(__file__).resolve().parents[2] / "data" / "skills"
-SKILLS_PATH = Path.home() / ".claude" / "skills"
+_default_mirror = Path.home() / ".claude" / "skills" / "build-factory"
+SKILLS_PATH = Path(os.environ.get("CLAUDE_SKILLS_MIRROR") or _default_mirror)
+SKILLS_PATH_GLOBAL = Path.home() / ".claude" / "skills"
 
 # 全スキルがナレッジ注入対象（knowledge_base は共有・スキル別両方を持つ）
 # ここでの管理は不要になったが互換のため残す

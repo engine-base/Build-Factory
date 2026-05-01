@@ -6,6 +6,7 @@ APScheduler から5分ごとに差分チェックを行う。
 """
 
 import hashlib
+import os
 import re
 from datetime import datetime
 from pathlib import Path
@@ -13,7 +14,10 @@ from pathlib import Path
 import aiosqlite
 
 DB_PATH      = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
-VAULT_PATH   = Path.home() / "Documents" / "Obsidian" / "ENGINE-BASE"
+# OBSIDIAN_VAULT_PATH があればそれを使う。
+# Build-Factory ではデフォルトで repo 内 vault（共有事故防止）。
+_default_vault = Path(__file__).resolve().parents[2] / "data" / "obsidian"
+VAULT_PATH = Path(os.environ.get("OBSIDIAN_VAULT_PATH") or _default_vault)
 
 # フォルダ名 → skill_tags マッピング
 # NULLなら全スキル共有、値があればそのスキルのみ

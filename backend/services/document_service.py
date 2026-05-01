@@ -16,8 +16,10 @@ from typing import Optional
 
 import aiosqlite
 
+import os
 DB_PATH    = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
-VAULT_PATH = Path.home() / "Documents" / "Obsidian" / "ENGINE-BASE"
+_default_vault = Path(__file__).resolve().parents[2] / "data" / "obsidian"
+VAULT_PATH = Path(os.environ.get("OBSIDIAN_VAULT_PATH") or _default_vault)
 ATTACH_DIR = VAULT_PATH / "05_資料・添付"
 
 # カテゴリ → サブフォルダマッピング

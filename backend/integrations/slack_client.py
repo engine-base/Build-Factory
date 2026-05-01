@@ -79,7 +79,7 @@ async def stop_slack() -> None:
 
 # ── T5-03: 通知送信ユーティリティ ────────────────────────────────────────
 
-CHANNEL = os.environ.get("SLACK_CHANNEL_ID", "#engine-base-ai")
+CHANNEL = os.environ.get("SLACK_CHANNEL_ID", "#build-factory-ai")
 
 
 async def send_approval_notification(

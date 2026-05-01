@@ -24,8 +24,12 @@ from pathlib import Path
 
 import aiosqlite
 
+import os
 DB_PATH      = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
-FEEDBACK_DIR = Path.home() / "Documents" / "Obsidian" / "ENGINE-BASE" / "04_AI社員フィードバック"
+# Obsidian vault 配下にフィードバックを書くが、未設定なら repo 内 data/feedback へ
+_default_vault = Path(__file__).resolve().parents[2] / "data" / "obsidian"
+_vault = Path(os.environ.get("OBSIDIAN_VAULT_PATH") or _default_vault)
+FEEDBACK_DIR = _vault / "04_AI社員フィードバック"
 
 # 承認必須の action_type
 APPROVAL_REQUIRED_KEYWORDS = (

@@ -25,7 +25,7 @@ from mcp.server.fastmcp import FastMCP
 DB_PATH = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
 RECORDS_PATH = Path(__file__).resolve().parents[2] / "data" / "records"
 
-mcp = FastMCP("ENGINE BASE")
+mcp = FastMCP("Build-Factory")
 
 
 # ── DB Query ──────────────────────────────────────────────────────────────────

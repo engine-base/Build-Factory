@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -21,7 +22,10 @@ from typing import Optional
 import yaml
 
 SKILL_STORE = Path(__file__).resolve().parents[2] / "data" / "skills"
-CLAUDE_SKILLS = Path.home() / ".claude" / "skills"
+# ~/.claude/skills へのミラーは Build-Factory 専用サブディレクトリに分離
+# （company-dashboard と衝突しないように）
+_default_mirror = Path.home() / ".claude" / "skills" / "build-factory"
+CLAUDE_SKILLS = Path(os.environ.get("CLAUDE_SKILLS_MIRROR") or _default_mirror)
 SKILL_CREATOR_PATH = SKILL_STORE / "skill-creator"
 DB_PATH = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
 
