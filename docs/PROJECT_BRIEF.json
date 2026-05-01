@@ -320,6 +320,45 @@
     }
   },
 
+  "claude_code_integration": {
+    "pattern": "A_build_factory_command_center",
+    "official_reference": "https://qiita.com/nogataka/items/efe8eb9df612d2211221",
+    "anthropic_official_pattern": "3-agent separation (Planner / Generator / Evaluator)",
+    "communication": "file-based (memory-shared not allowed)",
+    "test_tools": ["Playwright MCP (UI)", "vitest (unit)"],
+    "cost_model": "Claude Code Pro/Max subscription plan (NOT API per-call)",
+    "phased_introduction": false,
+    "rationale_no_phasing": "scope clarity + official pattern complete form from start",
+    "evaluator_scope": "per_task (per feature / per screen)",
+    "reviewer_ai_scope": "global integration test (final pre-delivery)",
+    "task_evaluation_criteria": [
+      "unit tests pass",
+      "acceptance criteria met",
+      "design conformance"
+    ],
+    "global_integration_criteria": [
+      "feature interconnection",
+      "end-to-end flow",
+      "performance",
+      "security",
+      "delivery checklist"
+    ],
+    "ai_role_mapping": {
+      "build_factory_high_level": {
+        "pm_secretary": "requirement capture",
+        "architect": "design decisions / ADR",
+        "reviewer_ai": "global integration test orchestrator",
+        "devops": "deploy planning",
+        "docs": "deliverables"
+      },
+      "claude_code_implementation_layer": {
+        "planner": "task-level implementation plan",
+        "generator": "code + commit",
+        "evaluator": "task-level evaluation / debug / test"
+      }
+    }
+  },
+
   "decision_log": [
     {"id": "D-1", "decision": "company-dashboard を完全コピーして bootstrap", "reason": "動く土台を最速で確保", "alternative": "共通 lib 化から開始", "rejection_reason": "抽出設計に時間がかかる"},
     {"id": "D-2", "decision": "Account → Workspace → Member 階層", "reason": "SaaS マルチテナント前提"},
@@ -330,7 +369,13 @@
     {"id": "D-7", "decision": "DB / Obsidian / credentials 等を完全分離", "reason": "データ事故防止"},
     {"id": "D-8", "decision": "「3 ターン改善なしで人間エスカレ」ルール", "reason": "カバレッジ無限ループ防止"},
     {"id": "D-9", "decision": "リーダー AI 壁打ちループを moat とする", "reason": "他ツールが弱い領域"},
-    {"id": "D-10", "decision": "ナレッジは社員別 + 共通の二段構成", "reason": "既存 company-dashboard と同じ"}
+    {"id": "D-10", "decision": "ナレッジは社員別 + 共通の二段構成", "reason": "既存 company-dashboard と同じ"},
+    {"id": "D-11", "decision": "Claude Code Sub-agent 3 分離パターン採用 (Planner/Generator/Evaluator)", "reason": "Anthropic 公式推奨・実装〜テストが完結"},
+    {"id": "D-12", "decision": "パターン A: Build-Factory 指揮所 + Claude Code 実行所", "reason": "AI 社員概念を活かす + 公式パターン活用", "alternative": "B (薄い管理) / C (Build-Factory 内で 3 分離)", "rejection_reason": "moat 薄れる / 設計方針と矛盾"},
+    {"id": "D-13", "decision": "段階導入なし・最初から 3 分離", "reason": "スコープ明確化 + 公式パターン完成形を狙う"},
+    {"id": "D-14", "decision": "Evaluator はタスク単位 (機能/画面ごと)", "reason": "並列実装対応・各タスクに通過基準"},
+    {"id": "D-15", "decision": "全体統合テストは Build-Factory レビュアー AI 主導", "reason": "納品前の最終品質保証・E2E と機能間連携"},
+    {"id": "D-16", "decision": "コスト計算は Claude Code Pro/Max プラン内で完結", "reason": "API ではなくサブスクリプション利用"}
   ],
 
   "unresolved": [

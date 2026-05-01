@@ -257,6 +257,67 @@ progress-rollup           10 案件横断進捗集約
 
 ---
 
+## STEP 3.5: Claude Code 統合パターン（追加ヒアリング）
+
+### きっかけ
+
+まさとさんから提示された参考記事:
+https://qiita.com/nogataka/items/efe8eb9df612d2211221
+
+Anthropic 公式の **「3 エージェント分離パターン」** (Planner / Generator / Evaluator) を Claude Code Sub-agent で実装する記事。
+
+### 記事の要点
+
+- **3 エージェント分離**:
+  - Planner: 何を作るか決定 → 実装計画ファイル
+  - Generator: どう作るか実装 → コード + git commit
+  - Evaluator: 動いているか検証 → PASS/FAIL + フィードバック
+- 通信: ファイル経由（メモリ共有なし・コンテキスト独立）
+- テスト: Playwright MCP（UI 検証）+ vitest（単体）
+- コスト: 6 時間で $200（Opus 4.5 時代）— **ただし Claude Code Pro/Max プラン内で動く**ためサブスク利用
+- 段階導入推奨: まず Evaluator 1 体から
+
+### まさとさんの判断
+
+**Q1. パターン**:
+> A で進めましょう（Build-Factory が指揮所・Claude Code が実行所）
+
+**Q2. 段階導入のペース**:
+> 3 分離でいいのでは？（最初から 3 分離フル展開）
+
+**Q3. コスト上限**:
+> 何度も言うけど API ではないでしょこれはプランに入っているので Claude Code やるって言っているよね？
+> → コストは Claude Code サブスクリプションプラン内で完結。
+> → Build-Factory 側の API コスト管理は OpenAI / Claude API を直接呼ぶ部分のみ。
+
+**Q4. レビュアー AI vs Evaluator の役割**:
+> 細かく言うとレビュアー AI（Build-Factory 側）は高位の人ならレビューやテスト・検証のリーダー
+> Evaluator は各実装の機能や画面ごとのレビュー
+> 全てが終わったら統合して納品のための最大のテストとして全体テストが必要・そこは全体評価・チェック基準あり
+
+→ **階層が確定**:
+
+```
+[タスク単位]
+  Claude Code 3 分離セット (機能/画面ごと)
+    Planner → Generator → Evaluator
+    各タスクに評価・デバッグ・テストの通過基準
+
+[全タスク完了後]
+  Build-Factory レビュアー AI（高位リーダー）
+    全体統合テスト（納品前の最大テスト）
+    機能間連携・E2E・パフォーマンス・セキュリティ・納品基準
+```
+
+### この決定によって変わったこと
+
+1. **Evaluator は Build-Factory 内ではなく Claude Code Sub-agent として走る**（タスク単位）
+2. **Build-Factory レビュアー AI は「Evaluator のリーダー + 統合テスト指揮」**役割に明確化
+3. **コスト管理は OpenAI/Claude API を Build-Factory が直接呼ぶ部分のみ**で考える（Claude Code はサブスク内）
+4. **段階導入は不採用**（最初から 3 分離フル展開）
+
+---
+
 ## 主要な決定とその理由
 
 | # | 決定 | 理由 |

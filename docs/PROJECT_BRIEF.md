@@ -166,9 +166,25 @@
     ↓
 各タスクに acceptance-criteria でチェックリスト紐付け
     ↓
-[Claude Code] が MCP で bf_get_next_task → bf_get_spec で取得 → 実装・テスト
+─────────── ここから Claude Code 側（タスク単位で並列）─────────────
+[Claude Code] が MCP で bf_get_next_task → bf_get_spec で取得
     ↓
-[レビュアー AI] が PR を壁打ち → 差し戻し or OK
+Anthropic 公式「3 エージェント分離パターン」を各タスクに適用:
+    ・Planner    タスク単位の実装計画（.claude/plans/*.md）
+    ・Generator  実装 + git commit
+    ・Evaluator  そのタスクの評価・デバッグ・テスト
+                  (PASS/FAIL + フィードバックで反復)
+    ↓
+タスク単位の通過基準（acceptance-criteria）クリア → 完了
+─────────── ここから Build-Factory 側 ─────────────────────────
+[Build-Factory レビュアー AI] が全タスクの Evaluator 結果を統括
+    ↓
+全タスク完了後 → 「全体統合テスト」発火（納品前の最大テスト）
+    ・機能間連携
+    ・エンドツーエンドフロー
+    ・パフォーマンス
+    ・セキュリティ
+    ・納品基準チェック
     ↓
 [QA] verification-loop で最終確認
     ↓
@@ -180,6 +196,7 @@
 ```
 
 各ステップで artifact が生まれ、次の AI に handoff される。
+**実装・テストは Claude Code 側のサブスクリプションプラン内で完結**（API コスト計算は Build-Factory 側のみ）。
 
 ---
 
@@ -342,6 +359,59 @@ artifacts           → workspace_id
 conversation_log    → workspace_id
 conversation_slots  → workspace_id
 ```
+
+---
+
+## 9.5. Claude Code 統合パターン（重要）
+
+### Anthropic 公式「3 エージェント分離パターン」採用
+
+参照: https://qiita.com/nogataka/items/efe8eb9df612d2211221
+
+Claude Code は単一エージェントだと長時間タスクで品質低下する（コンテキスト不安）。
+そのため Anthropic は **「計画・生成・評価」3 分離** を公式推奨している。
+
+```
+[Claude Code 内で動く 3 サブエージェント]
+  Planner    要件 1〜4 文 → 実装計画 (.claude/plans/*.md)
+  Generator  計画ファイル → コード + git commit
+  Evaluator  コード + 計画 → PASS/FAIL + フィードバック
+
+通信: ファイル経由（メモリ共有なし・コンテキスト独立）
+テスト: Playwright MCP（UI 検証）+ vitest（単体）
+```
+
+### Build-Factory との統合（パターン A 採用）
+
+**Build-Factory が指揮所・Claude Code が実行所**:
+
+```
+[Build-Factory 高位レイヤー]              [Claude Code 実装レイヤー]
+─────────────────────────────────       ──────────────────────────
+PM 秘書        要件捕捉                    Planner       タスク単位の計画
+アーキテクト   設計判断・技術選定            Generator     実装 + commit
+レビュアー AI  全体統合テスト指揮            Evaluator     タスク単位の評価
+DevOps        デプロイ準備                                 (機能/画面ごと)
+ドキュメント担当 納品物
+```
+
+### 役割の階層（Evaluator vs レビュアー AI）
+
+| レイヤー | 主体 | 責任範囲 | 評価基準 |
+|---|---|---|---|
+| **タスク単位（機能/画面ごと）** | Claude Code Evaluator | そのタスク 1 つの評価・デバッグ・テスト | 単体テスト・受入基準・設計通りか |
+| **全体統合（納品前）** | Build-Factory レビュアー AI | 全タスク統合の最終評価 | 機能間連携・E2E・パフォーマンス・セキュリティ・納品基準 |
+
+→ **タスク 1 つに 1 Evaluator が付く**（並列で複数 Evaluator が同時稼働）。
+→ 全タスク完了後に **レビュアー AI が統合テストを指揮**。
+
+### コスト感（重要な訂正）
+
+- **Claude Code 側**: Pro / Max プランのサブスクリプション内で完結
+  → API コスト計算不要・Build-Factory はプラン消費を見るだけ
+- **Build-Factory 側**: OpenAI / Claude API を直接呼ぶ部分のコスト管理（高位 AI 社員）
+  → workspace 単位で月次・日次・1 タスク Token 上限を設定
+  → ローカル LLM (Ollama) 切替も可能
 
 ---
 
@@ -621,6 +691,12 @@ pnpm dev -p 3001
 | D-8 | 「3 ターン改善なしで人間エスカレ」ルール | カバレッジ無限ループ防止 | 100% 必須 | 実運用で停滞 |
 | D-9 | リーダー AI 壁打ちループを moat とする | 他ツールが弱い領域 | 実装速度勝負 | Claude Code 等に勝てない |
 | D-10 | ナレッジは社員別 + 共通の二段構成 | 既存 company-dashboard と同じ | 完全共通 / 完全分離 | 専門性 vs 汎用性のバランス |
+| D-11 | Claude Code Sub-agent 3 分離パターン採用（Planner/Generator/Evaluator） | Anthropic 公式推奨・実装〜テストが完結 | 単一 Agent のまま | 長時間タスクで品質低下 |
+| D-12 | パターン A（Build-Factory 指揮所 + Claude Code 実行所） | AI 社員概念を活かす + 公式パターン活用 | パターン B (薄い管理) / C (Build-Factory 内で 3 分離) | moat（壁打ち）が薄れる / 設計方針と矛盾 |
+| D-13 | 段階導入なし・最初から 3 分離 | スコープ明確化 / 公式パターンの完成形を狙う | Evaluator 1 体から段階導入 | 中途半端な実装期間が長い |
+| D-14 | Evaluator はタスク単位（機能/画面ごとに 1 個） | 並列実装に対応・各タスクに通過基準 | 全体に Evaluator 1 個 | 大粒度すぎて差し戻しが効かない |
+| D-15 | 全体統合テストは Build-Factory レビュアー AI が指揮 | 納品前の最終品質保証・E2E と機能間連携 | Evaluator が全体も担当 | タスク粒度と全体粒度の責任範囲混在 |
+| D-16 | コスト計算は Claude Code Pro/Max プラン内で完結 | API ではなくサブスクリプション利用 | API キー消費型 | プラン使い放題のメリットを活かさない |
 
 ---
 
