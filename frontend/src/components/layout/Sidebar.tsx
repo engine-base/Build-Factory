@@ -5,10 +5,11 @@ import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard, MessageSquare, FileText, Users, TrendingUp,
-  Bot, CheckSquare, BookOpen, ScrollText, Wifi, Cpu, FolderOpen, ListTodo, Sparkles, Package,
+  Bot, CheckSquare, BookOpen, ScrollText, Wifi, Cpu, FolderOpen, ListTodo, Sparkles, Package, LayoutGrid,
 } from "lucide-react";
 
 const AI_NAV = [
+  { href: "/workspaces",   label: "🏗 Workspaces",   icon: LayoutGrid },
   { href: "/secretary",    label: "秘書チャット",     icon: Sparkles },
   { href: "/ai-employees", label: "AI社員",           icon: Bot },
   { href: "/artifacts",    label: "Artifacts",        icon: Package },
