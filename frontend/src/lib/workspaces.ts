@@ -40,16 +40,40 @@ export interface WorkspaceMember {
   created_at: string;
 }
 
+async function safeJson<T>(r: Response, fallback: T): Promise<T> {
+  if (!r.ok) {
+    console.warn(`[workspaces] HTTP ${r.status} ${r.url}`);
+    return fallback;
+  }
+  try {
+    return await r.json();
+  } catch (e) {
+    console.warn("[workspaces] JSON parse failed", e);
+    return fallback;
+  }
+}
+
 // ── Accounts ─────────────────────────────────
 
 export async function fetchAccounts(userId = "masato"): Promise<Account[]> {
-  const r = await fetch(`${BASE}/api/accounts?user_id=${userId}`);
-  return (await r.json()).accounts;
+  try {
+    const r = await fetch(`${BASE}/api/accounts?user_id=${userId}`);
+    const data = await safeJson<{ accounts?: Account[] }>(r, {});
+    return data.accounts ?? [];
+  } catch (e) {
+    console.warn("[fetchAccounts] failed", e);
+    return [];
+  }
 }
 
-export async function fetchAccount(id: number): Promise<Account> {
-  const r = await fetch(`${BASE}/api/accounts/${id}`);
-  return r.json();
+export async function fetchAccount(id: number): Promise<Account | null> {
+  try {
+    const r = await fetch(`${BASE}/api/accounts/${id}`);
+    if (!r.ok) return null;
+    return await r.json();
+  } catch {
+    return null;
+  }
 }
 
 // ── Workspaces ───────────────────────────────
@@ -57,15 +81,25 @@ export async function fetchAccount(id: number): Promise<Account> {
 export async function fetchWorkspacesByAccount(
   accountId: number, includeArchived = false,
 ): Promise<Workspace[]> {
-  const r = await fetch(
-    `${BASE}/api/workspaces?account_id=${accountId}&include_archived=${includeArchived}`,
-  );
-  return (await r.json()).workspaces;
+  try {
+    const r = await fetch(
+      `${BASE}/api/workspaces?account_id=${accountId}&include_archived=${includeArchived}`,
+    );
+    const data = await safeJson<{ workspaces?: Workspace[] }>(r, {});
+    return data.workspaces ?? [];
+  } catch {
+    return [];
+  }
 }
 
 export async function fetchWorkspacesForUser(userId = "masato"): Promise<Workspace[]> {
-  const r = await fetch(`${BASE}/api/workspaces?user_id=${userId}`);
-  return (await r.json()).workspaces;
+  try {
+    const r = await fetch(`${BASE}/api/workspaces?user_id=${userId}`);
+    const data = await safeJson<{ workspaces?: Workspace[] }>(r, {});
+    return data.workspaces ?? [];
+  } catch {
+    return [];
+  }
 }
 
 export async function fetchWorkspace(id: number): Promise<Workspace> {
@@ -108,8 +142,13 @@ export async function archiveWorkspace(id: number): Promise<Workspace> {
 // ── Members ──────────────────────────────────
 
 export async function fetchMembers(workspaceId: number): Promise<WorkspaceMember[]> {
-  const r = await fetch(`${BASE}/api/workspaces/${workspaceId}/members`);
-  return (await r.json()).members;
+  try {
+    const r = await fetch(`${BASE}/api/workspaces/${workspaceId}/members`);
+    const data = await safeJson<{ members?: WorkspaceMember[] }>(r, {});
+    return data.members ?? [];
+  } catch {
+    return [];
+  }
 }
 
 export async function addMember(

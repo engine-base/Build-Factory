@@ -28,13 +28,19 @@ export default function AccountDashboardPage() {
 
   useEffect(() => {
     (async () => {
-      const accs = await fetchAccounts();
-      setAccounts(accs);
-      if (accs[0]) {
-        setActiveAccount(accs[0]);
-        setWorkspaces(await fetchWorkspacesByAccount(accs[0].id));
+      try {
+        const accs = (await fetchAccounts()) ?? [];
+        setAccounts(accs);
+        if (accs.length > 0 && accs[0]) {
+          setActiveAccount(accs[0]);
+          const ws = (await fetchWorkspacesByAccount(accs[0].id)) ?? [];
+          setWorkspaces(ws);
+        }
+      } catch (e) {
+        console.error("[AccountDashboard] init failed", e);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     })();
   }, []);
 
