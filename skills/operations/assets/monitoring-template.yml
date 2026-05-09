@@ -1,0 +1,81 @@
+# 監視設定テンプレート
+# operations スキルの出力に基づいて値を埋めること
+
+project:
+  name: ""
+  environment: production
+  tech_stack: ""
+
+# ---- 死活監視（UptimeRobot想定） ----
+uptime_monitoring:
+  enabled: true
+  tool: UptimeRobot  # または Checkly / Better Uptime
+  monitors:
+    - name: "本番サイト - TOP"
+      url: "https://example.com"
+      type: HTTP
+      interval_minutes: 5
+      alert_contacts:
+        - email: ""
+        - slack_channel: ""
+
+    - name: "APIヘルスチェック"
+      url: "https://api.example.com/health"
+      type: HTTP
+      interval_minutes: 5
+      expected_status: 200
+
+# ---- エラー監視（Sentry想定） ----
+error_monitoring:
+  enabled: true
+  tool: Sentry
+  project_dsn: ""  # Sentryのプロジェクトに発行されるDSN
+  settings:
+    environment: production
+    traces_sample_rate: 0.1
+    alert_rules:
+      - name: "エラー急増アラート"
+        condition: "error count > 10 in 5 minutes"
+        action: slack_notify
+      - name: "新規エラー検知"
+        condition: "new issue created"
+        action: slack_notify
+
+# ---- パフォーマンス監視 ----
+performance_monitoring:
+  enabled: false  # 必要に応じてtrueに
+  tool: ""  # Vercel Analytics / Datadog / New Relic
+  thresholds:
+    response_time_p95_ms: 500
+    error_rate_percent: 1.0
+
+# ---- アラート通知先 ----
+alerts:
+  channels:
+    slack:
+      webhook_url: ""
+      channel: "#alerts-[project-name]"
+    email:
+      recipients:
+        - ""
+
+  escalation:
+    p0:
+      notify_immediately: true
+      channels: [slack, email]
+    p1:
+      notify_within_minutes: 30
+      channels: [slack]
+    p2:
+      notify_next_business_day: true
+      channels: [slack]
+
+# ---- ログ管理 ----
+logging:
+  provider: ""  # Vercel Logs / AWS CloudWatch / Datadog
+  retention_days: 30
+  excluded_fields:
+    - password
+    - token
+    - api_key
+    - credit_card

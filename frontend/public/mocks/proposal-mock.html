@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>提案書 — デザインモック (Build-Factory)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #004CD9;
+  --primary-2: #1A5FE0;
+  --primary-deep: #002B7A;
+  --primary-bg: #E8EFFF;
+  --primary-soft: #F4F7FF;
+  --success: #16A34A;
+  --success-bg: #DCFCE7;
+  --warning: #F59E0B;
+  --danger: #DC2626;
+  --purple: #7C3AED;
+  --orange: #F97316;
+  --text-1: #0F172A;
+  --text-2: #334155;
+  --text-3: #64748B;
+  --text-4: #94A3B8;
+  --bg: #F5F7FA;
+  --bg-elev: #FFFFFF;
+  --border: #E4E8EE;
+  --divider: #EEF1F5;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text-1);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "palt";
+}
+
+/* ====== Layout ====== */
+.shell {
+  display: grid;
+  grid-template-columns: 240px 1fr 380px;
+  gap: 16px;
+  padding: 16px;
+  min-height: 100vh;
+}
+aside.steps, aside.chat, main.doc {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+aside.steps { padding: 16px; height: fit-content; }
+aside.chat { display: flex; flex-direction: column; max-height: calc(100vh - 32px); overflow: hidden; }
+main.doc { display: flex; flex-direction: column; overflow: hidden; min-height: 800px; }
+
+/* ====== Steps ====== */
+.steps-label {
+  font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-4); margin-bottom: 12px;
+}
+.step-row {
+  display: flex; gap: 10px; padding: 10px 12px; border-radius: 8px;
+  cursor: pointer; transition: background 150ms; margin-bottom: 4px;
+}
+.step-row:hover { background: var(--primary-soft); }
+.step-row.active { background: var(--primary-bg); }
+.step-row .icon {
+  flex-shrink: 0; width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.step-row.done .icon::before {
+  content: ""; width: 16px; height: 16px;
+  background: var(--success); border-radius: 50%;
+  position: absolute;
+}
+.step-row.done .icon::after {
+  content: "✓"; color: #fff; font-size: 10px; font-weight: 700;
+  position: absolute; z-index: 1;
+}
+.step-row.active .icon::before {
+  content: ""; width: 12px; height: 12px;
+  background: var(--primary); border-radius: 50%;
+  box-shadow: 0 0 0 4px var(--primary-bg);
+  position: absolute;
+}
+.step-row.todo .icon::before {
+  content: ""; width: 14px; height: 14px;
+  border: 2px solid var(--text-4); border-radius: 50%;
+  position: absolute;
+}
+.step-row .body { flex: 1; min-width: 0; }
+.step-row .title { font-size: 12.5px; font-weight: 600; color: var(--text-1); }
+.step-row .status { font-size: 10.5px; color: var(--text-3); margin-top: 2px; }
+
+/* ====== Top action bar (above doc) ====== */
+.action-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 16px;
+  background: #FAFBFD;
+  border-bottom: 1px solid var(--divider);
+}
+.action-bar .label-grp { display: flex; align-items: center; gap: 8px; }
+.action-bar .label { font-size: 13px; font-weight: 700; color: var(--text-1); }
+.action-bar .badge {
+  font-size: 10.5px; color: var(--text-4);
+  background: #fff; border: 1px solid var(--border);
+  padding: 1px 6px; border-radius: 999px; font-weight: 500;
+}
+.action-bar .downloads { display: flex; gap: 4px; }
+.dl-btn {
+  font-size: 11px; padding: 5px 10px;
+  border: 1px solid var(--border); background: #fff;
+  border-radius: 6px; color: var(--text-3); cursor: pointer; font-weight: 600;
+  font-family: inherit;
+}
+.dl-btn:hover { color: var(--primary); border-color: var(--primary); }
+
+/* ====== TOC sticky ====== */
+.toc {
+  position: sticky; top: 0; z-index: 5;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--divider);
+  padding: 10px 16px;
+  display: flex; gap: 6px; overflow-x: auto;
+  scrollbar-width: none;
+}
+.toc::-webkit-scrollbar { display: none; }
+.toc-item {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; font-size: 11.5px; font-weight: 600;
+  color: var(--text-3); background: transparent;
+  border: 1px solid transparent; border-radius: 999px;
+  cursor: pointer; white-space: nowrap; transition: all 150ms;
+  font-family: inherit;
+}
+.toc-item:hover { background: var(--primary-bg); color: var(--primary); }
+.toc-item.active {
+  background: var(--primary); color: #fff; border-color: var(--primary);
+}
+.toc-item .num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; font-size: 10px; font-weight: 700;
+  background: rgba(0,0,0,0.06); border-radius: 50%;
+}
+.toc-item.active .num { background: rgba(255,255,255,0.3); }
+
+/* ====== Doc body ====== */
+.doc-body { flex: 1; overflow-y: auto; }
+.doc-inner { max-width: 880px; margin: 0 auto; padding: 0 24px 80px; }
+
+/* Each chapter */
+.chap { margin-top: 56px; scroll-margin-top: 56px; }
+.chap:first-child { margin-top: 0; }
+.chap-num {
+  display: inline-block; font-size: 10.5px; font-weight: 800;
+  color: var(--primary); letter-spacing: 0.12em; text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.chap-h2 {
+  font-size: 32px; font-weight: 800; letter-spacing: -0.02em;
+  line-height: 1.25; color: var(--text-1); margin-bottom: 28px;
+}
+.chap-h2 strong { color: var(--primary); }
+.chap-lead {
+  font-size: 16px; line-height: 1.85; color: var(--text-2);
+  margin-bottom: 28px;
+}
+
+/* ====== Cover ====== */
+.cover {
+  margin-top: 32px; padding: 60px 50px;
+  background: linear-gradient(135deg, var(--primary-deep) 0%, var(--primary) 50%, var(--primary-2) 100%);
+  border-radius: 16px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.cover::before {
+  content: ""; position: absolute; top: -100px; right: -100px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.cover-eyebrow {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.18em;
+  text-transform: uppercase; color: rgba(255,255,255,0.7);
+  margin-bottom: 18px;
+}
+.cover-title {
+  font-size: 44px; font-weight: 900; line-height: 1.15;
+  letter-spacing: -0.02em; margin-bottom: 14px;
+}
+.cover-sub { font-size: 16px; color: rgba(255,255,255,0.85); margin-bottom: 36px; }
+.cover-meta {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;
+  padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.2);
+  position: relative;
+}
+.cover-meta-item .key {
+  font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(255,255,255,0.65); margin-bottom: 4px;
+}
+.cover-meta-item .val { font-size: 14px; font-weight: 600; }
+
+/* ====== Executive Summary ====== */
+.exec-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 14px; margin-top: 28px; margin-bottom: 28px;
+}
+.exec-stat {
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 14px; padding: 22px 24px;
+  border-top: 4px solid var(--primary);
+}
+.exec-stat:nth-child(2) { border-top-color: var(--success); }
+.exec-stat:nth-child(3) { border-top-color: var(--purple); }
+.exec-stat .label {
+  font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text-4); margin-bottom: 8px;
+}
+.exec-stat .num {
+  font-size: 32px; font-weight: 800;
+  letter-spacing: -0.01em; color: var(--text-1); line-height: 1.1;
+}
+.exec-stat .num .unit { font-size: 14px; font-weight: 600; opacity: 0.65; margin-left: 4px; }
+.exec-stat:nth-child(1) .num { color: var(--primary); }
+.exec-stat:nth-child(2) .num { color: var(--success); }
+.exec-stat:nth-child(3) .num { color: var(--purple); }
+.exec-stat .sub { font-size: 12px; color: var(--text-3); margin-top: 6px; }
+
+/* ====== Problem (Before-After) ====== */
+.before-after {
+  display: grid; grid-template-columns: 1fr auto 1fr;
+  gap: 20px; align-items: stretch; margin-top: 28px;
+}
+.ba-col {
+  padding: 24px; border-radius: 14px;
+}
+.ba-col.before {
+  background: #FEF2F2; border: 1px solid #FECACA;
+}
+.ba-col.after {
+  background: #ECFDF5; border: 1px solid #A7F3D0;
+}
+.ba-col .ba-label {
+  font-size: 10.5px; font-weight: 800; letter-spacing: 0.12em;
+  text-transform: uppercase; margin-bottom: 12px;
+}
+.ba-col.before .ba-label { color: var(--danger); }
+.ba-col.after .ba-label { color: var(--success); }
+.ba-col .ba-h3 {
+  font-size: 18px; font-weight: 800; line-height: 1.4;
+  margin-bottom: 12px; color: var(--text-1);
+}
+.ba-col ul { list-style: none; padding: 0; }
+.ba-col ul li {
+  font-size: 13px; line-height: 1.7; color: var(--text-2);
+  padding: 6px 0 6px 24px; position: relative;
+}
+.ba-col.before li::before {
+  content: "✕"; position: absolute; left: 4px;
+  color: var(--danger); font-weight: 700;
+}
+.ba-col.after li::before {
+  content: "✓"; position: absolute; left: 4px;
+  color: var(--success); font-weight: 800;
+}
+.ba-arrow {
+  align-self: center;
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  background: var(--primary); color: #fff;
+  border-radius: 50%; font-size: 16px; font-weight: 800;
+}
+
+/* ====== Solution diagram ====== */
+.sol-feature-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px; margin-top: 28px;
+}
+.sol-feature {
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 12px; padding: 18px 20px;
+  transition: all 200ms;
+  position: relative; overflow: hidden;
+}
+.sol-feature:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0,76,217,0.08);
+}
+.sol-feature .sf-icon {
+  width: 36px; height: 36px;
+  background: var(--primary-bg); color: var(--primary);
+  border-radius: 10px; margin-bottom: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700;
+}
+.sol-feature .sf-name {
+  font-size: 14px; font-weight: 700; color: var(--text-1);
+  margin-bottom: 4px;
+}
+.sol-feature .sf-desc {
+  font-size: 12.5px; color: var(--text-3); line-height: 1.6;
+}
+
+/* ====== ROI Section ====== */
+.roi-hero {
+  background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+  border-radius: 16px;
+  padding: 36px 40px;
+  margin-top: 28px;
+  border: 1px solid #A7F3D0;
+}
+.roi-headline {
+  font-size: 14px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--success); margin-bottom: 12px;
+}
+.roi-bigline {
+  font-size: 36px; font-weight: 900; line-height: 1.2;
+  color: var(--text-1); margin-bottom: 8px; letter-spacing: -0.01em;
+}
+.roi-bigline strong { color: var(--success); }
+.roi-bigline .yen { font-size: 22px; font-weight: 700; opacity: 0.7; }
+.roi-detail-row {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 16px; margin-top: 28px;
+  padding-top: 24px; border-top: 1px solid #A7F3D0;
+}
+.roi-detail-row .key {
+  font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text-3); margin-bottom: 4px;
+}
+.roi-detail-row .val {
+  font-size: 18px; font-weight: 800; color: var(--text-1);
+}
+.roi-detail-row .sub { font-size: 11.5px; color: var(--text-3); margin-top: 2px; }
+
+/* ====== Scope ====== */
+.scope-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 14px; margin-top: 28px;
+}
+.scope-card {
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 12px; padding: 22px 24px;
+}
+.scope-card.in { border-left: 4px solid var(--success); }
+.scope-card.out { border-left: 4px solid var(--text-4); background: #FAFBFD; }
+.scope-card .scope-label {
+  font-size: 11px; font-weight: 800;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 12px;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.scope-card.in .scope-label { color: var(--success); }
+.scope-card.out .scope-label { color: var(--text-3); }
+.scope-card ul { list-style: none; padding: 0; }
+.scope-card ul li {
+  font-size: 13px; line-height: 1.7;
+  padding: 4px 0 4px 22px; position: relative; color: var(--text-2);
+}
+.scope-card.in li::before {
+  content: "✓"; color: var(--success); font-weight: 800;
+  position: absolute; left: 0;
+}
+.scope-card.out li::before {
+  content: "—"; color: var(--text-4); font-weight: 700;
+  position: absolute; left: 0;
+}
+
+/* ====== Schedule (gantt-like) ====== */
+.gantt {
+  margin-top: 28px;
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 14px; padding: 24px 28px; overflow-x: auto;
+}
+.gantt-header {
+  display: grid;
+  grid-template-columns: 200px repeat(5, 1fr);
+  gap: 8px; margin-bottom: 12px;
+  font-size: 11px; font-weight: 700;
+  color: var(--text-4); letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.gantt-row {
+  display: grid;
+  grid-template-columns: 200px repeat(5, 1fr);
+  gap: 8px; align-items: center;
+  padding: 12px 0; border-top: 1px solid var(--divider);
+  font-size: 12.5px;
+}
+.gantt-row .label { color: var(--text-1); font-weight: 600; }
+.gantt-row .bar { position: relative; height: 24px; }
+.gantt-row .bar-fill {
+  position: absolute; height: 100%; border-radius: 6px;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--primary-2) 100%);
+  display: flex; align-items: center; padding: 0 8px;
+  color: #fff; font-size: 10.5px; font-weight: 700;
+  white-space: nowrap;
+}
+.gantt-row.b1 .bar-fill { left: 0%; width: 100%; background: linear-gradient(90deg, #F59E0B 0%, #FB923C 100%); }
+.gantt-row.b2 .bar-fill { grid-column: 2 / span 1; left: 0; width: 100%; }
+.gantt-row.b3 .bar-fill { background: linear-gradient(90deg, var(--primary) 0%, var(--primary-2) 100%); }
+.gantt-row.b4 .bar-fill { background: linear-gradient(90deg, var(--purple) 0%, #9333EA 100%); }
+.gantt-row.b5 .bar-fill { background: linear-gradient(90deg, var(--success) 0%, #15803D 100%); }
+.gantt-cell-empty { background: var(--divider); border-radius: 4px; height: 8px; align-self: center; }
+
+/* ====== Cost (line items) ====== */
+.cost-table {
+  width: 100%; border-collapse: separate; border-spacing: 0;
+  margin-top: 24px;
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+}
+.cost-table th {
+  background: #FAFBFD; padding: 14px 18px;
+  text-align: left; font-size: 11px;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text-3); font-weight: 700;
+  border-bottom: 1px solid var(--divider);
+}
+.cost-table td {
+  padding: 14px 18px; font-size: 13px;
+  border-top: 1px solid var(--divider); color: var(--text-2);
+}
+.cost-table .name { font-weight: 600; color: var(--text-1); }
+.cost-table .amt { text-align: right; font-weight: 700; color: var(--text-1); }
+.cost-table tr.total td {
+  background: var(--primary-bg);
+  border-top: 2px solid var(--primary);
+  font-size: 16px; font-weight: 800; color: var(--primary);
+  padding: 18px;
+}
+.cost-table tr.total .amt { font-size: 22px; }
+
+/* ====== Risk table ====== */
+.risk-grid {
+  display: grid; gap: 10px; margin-top: 24px;
+}
+.risk-row {
+  display: grid; grid-template-columns: 80px 1fr 1fr;
+  align-items: stretch; gap: 0;
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+}
+.risk-cat {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800;
+  letter-spacing: 0.06em; padding: 14px 12px;
+}
+.risk-cat.tech { background: #FFEDD5; color: #C2410C; }
+.risk-cat.ops { background: #FEF3C7; color: #B45309; }
+.risk-cat.req { background: #FEE2E2; color: #B91C1C; }
+.risk-cat.sched { background: #E8EFFF; color: var(--primary); }
+.risk-row .body {
+  padding: 14px 16px; border-left: 1px solid var(--divider);
+}
+.risk-row .body .topic { font-size: 13px; font-weight: 700; color: var(--text-1); margin-bottom: 4px; }
+.risk-row .body .impact { font-size: 11.5px; color: var(--text-3); }
+.risk-row .action {
+  padding: 14px 16px; border-left: 1px solid var(--divider);
+  background: #FAFBFD;
+  font-size: 12.5px; color: var(--text-2);
+}
+
+/* ====== Closing CTA ====== */
+.cta {
+  margin-top: 56px; padding: 40px;
+  background: linear-gradient(135deg, var(--primary-deep) 0%, var(--primary) 100%);
+  border-radius: 16px; color: #fff;
+  text-align: center;
+}
+.cta-h3 {
+  font-size: 28px; font-weight: 900; line-height: 1.3;
+  margin-bottom: 12px; letter-spacing: -0.01em;
+}
+.cta-sub { font-size: 14px; opacity: 0.85; margin-bottom: 24px; }
+.cta-buttons { display: flex; gap: 10px; justify-content: center; }
+.cta-btn {
+  padding: 12px 24px; font-size: 13px; font-weight: 700;
+  border-radius: 999px; cursor: pointer; border: none;
+  font-family: inherit;
+}
+.cta-btn.primary {
+  background: #fff; color: var(--primary);
+}
+.cta-btn.secondary {
+  background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,0.4);
+}
+
+/* ====== Chat ====== */
+.chat-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--divider);
+  background: #FAFBFD;
+}
+.chat-head .dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; }
+.chat-head .name { font-size: 12.5px; font-weight: 700; color: var(--text-1); }
+.chat-head .step-tag {
+  margin-left: auto; font-size: 10.5px; color: var(--text-4);
+  background: #fff; border: 1px solid var(--border);
+  padding: 2px 8px; border-radius: 999px;
+}
+.chat-msgs { flex: 1; overflow-y: auto; padding: 16px; }
+.divider-step { display: flex; align-items: center; gap: 8px; margin: 14px 0; }
+.divider-step .line { flex: 1; height: 1px; background: var(--divider); }
+.divider-step .label {
+  font-size: 10px; font-weight: 700; color: var(--text-4);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  background: #FAFBFD; border: 1px solid var(--border);
+  padding: 2px 8px; border-radius: 999px;
+}
+.msg { margin-bottom: 10px; display: flex; }
+.msg.ai { justify-content: flex-start; }
+.msg.user { justify-content: flex-end; }
+.msg .bubble {
+  max-width: 85%; padding: 9px 13px; border-radius: 10px;
+  font-size: 12.5px; line-height: 1.55; white-space: pre-wrap;
+}
+.msg.ai .bubble { background: #F4F6FA; color: var(--text-1); }
+.msg.user .bubble { background: var(--primary); color: #fff; }
+.chat-input {
+  padding: 12px; border-top: 1px solid var(--divider);
+  background: #FAFBFD; display: flex; gap: 6px;
+}
+.chat-input input {
+  flex: 1; height: 36px; padding: 0 12px;
+  border: 1px solid var(--border); border-radius: 8px;
+  font-family: inherit; font-size: 12.5px; background: #fff;
+}
+.chat-input button {
+  height: 36px; padding: 0 14px;
+  background: var(--primary); color: #fff; border: none; border-radius: 8px;
+  font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+
+/* Step complete */
+.complete-bar {
+  padding: 12px 16px; border-top: 1px solid var(--divider);
+  background: #FAFBFD; display: flex; justify-content: flex-end;
+}
+.btn-complete {
+  height: 34px; padding: 0 16px;
+  background: var(--success); color: #fff; border: none; border-radius: 8px;
+  font-family: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- LEFT STEPS -->
+  <aside class="steps">
+    <div class="steps-label">PHASE 4 / 提案書</div>
+    <div class="step-row done"><div class="icon"></div><div class="body"><div class="title">STEP 1 起点整理・トーン</div><div class="status">確定</div></div></div>
+    <div class="step-row done"><div class="icon"></div><div class="body"><div class="title">STEP 2 課題・ソリューション</div><div class="status">確定</div></div></div>
+    <div class="step-row done"><div class="icon"></div><div class="body"><div class="title">STEP 3 スコープ・スケジュール</div><div class="status">確定</div></div></div>
+    <div class="step-row active"><div class="icon"></div><div class="body"><div class="title">STEP 4 リスク・前提・体制</div><div class="status">進行中</div></div></div>
+    <div class="step-row todo"><div class="icon"></div><div class="body"><div class="title">STEP 5 最終ドラフト</div><div class="status">未着手</div></div></div>
+  </aside>
+
+  <!-- CENTER DOC -->
+  <main class="doc">
+    <div class="action-bar">
+      <div class="label-grp">
+        <span class="label">提案書ドラフト</span>
+        <span class="badge">v1.2 · 2026 年 5 月 8 日</span>
+      </div>
+      <div class="downloads">
+        <button class="dl-btn">▾ HTML</button>
+        <button class="dl-btn">▾ PDF</button>
+        <button class="dl-btn">▾ MD</button>
+      </div>
+    </div>
+
+    <div class="toc" id="toc">
+      <button class="toc-item active" data-jump="cover"><span class="num">1</span>カバー</button>
+      <button class="toc-item" data-jump="exec"><span class="num">2</span>サマリー</button>
+      <button class="toc-item" data-jump="problem"><span class="num">3</span>課題</button>
+      <button class="toc-item" data-jump="solution"><span class="num">4</span>解決策</button>
+      <button class="toc-item" data-jump="roi"><span class="num">5</span>ROI</button>
+      <button class="toc-item" data-jump="scope"><span class="num">6</span>スコープ</button>
+      <button class="toc-item" data-jump="schedule"><span class="num">7</span>スケジュール</button>
+      <button class="toc-item" data-jump="risk"><span class="num">8</span>リスク・体制</button>
+    </div>
+
+    <div class="doc-body" id="docBody">
+      <div class="doc-inner">
+
+        <!-- 1. COVER -->
+        <section class="chap" id="cover">
+          <div class="cover">
+            <div class="cover-eyebrow">PROPOSAL · 開発ご提案</div>
+            <div class="cover-title">自家焙煎コーヒー豆 EC<br>BtoC + BtoB 統合プラットフォーム</div>
+            <div class="cover-sub">サブスクリプション中核の次世代コーヒー EC を 4 か月で構築</div>
+            <div class="cover-meta">
+              <div class="cover-meta-item"><div class="key">クライアント</div><div class="val">株式会社○○珈琲 / 田中 様</div></div>
+              <div class="cover-meta-item"><div class="key">提案者</div><div class="val">株式会社 ENGINE BASE / 高本 聖斗</div></div>
+              <div class="cover-meta-item"><div class="key">提案日</div><div class="val">2026 年 5 月 8 日</div></div>
+              <div class="cover-meta-item"><div class="key">本見積有効期限</div><div class="val">2026 年 6 月 7 日</div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. EXECUTIVE SUMMARY -->
+        <section class="chap" id="exec">
+          <div class="chap-num">02 · エグゼクティブサマリー</div>
+          <h2 class="chap-h2">月商 <strong>300 万円</strong>・継続率 <strong>80%</strong> を 6 か月で達成する EC 基盤を構築します。</h2>
+          <p class="chap-lead">
+            現状の BASE では月 5-10 件の BtoB 機会損失と、定期便運用工数が限界に達しており、年間 <strong>504-804 万円</strong> の機会損失が発生しています。本提案では Stripe Subscription / Paid 連携 / Shippinno 在庫同期を中核に据え、<strong>4 か月で本番リリース</strong>。投資対効果は 6.4 か月で完全回収、年間 504 万円以上の効果を生み出します。
+          </p>
+          <div class="exec-grid">
+            <div class="exec-stat">
+              <div class="label">投資</div>
+              <div class="num">320<span class="unit">万円</span></div>
+              <div class="sub">税抜・構築費</div>
+            </div>
+            <div class="exec-stat">
+              <div class="label">月次効果</div>
+              <div class="num">42-67<span class="unit">万円</span></div>
+              <div class="sub">機会損失回復 + 工数削減</div>
+            </div>
+            <div class="exec-stat">
+              <div class="label">投資回収</div>
+              <div class="num">6.4<span class="unit">か月</span></div>
+              <div class="sub">月 50 万円効果想定</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. PROBLEM -->
+        <section class="chap" id="problem">
+          <div class="chap-num">03 · 課題の深掘り</div>
+          <h2 class="chap-h2">既存の BASE 運用では、<strong>事業成長を支えきれていません。</strong></h2>
+          <p class="chap-lead">
+            BtoC 定期便と BtoB 卸の 2 ラインを抱えながら、現状はスプレッドシート + 手動配送指示で運用されています。顧客 30 名超で運用が破綻し、当日対応できないスキップ要望から解約が連鎖発生。BtoB は与信フローがなく、月 5-10 件の問い合わせを取りこぼしています。
+          </p>
+          <div class="before-after">
+            <div class="ba-col before">
+              <div class="ba-label">AS-IS · 現状</div>
+              <div class="ba-h3">月 5-10 件の機会損失と運用破綻</div>
+              <ul>
+                <li>定期便機能なし → スキップ要望に当日対応できず解約発生</li>
+                <li>BtoB 価格・与信フロー不在 → 月 5-10 件取りこぼし</li>
+                <li>顧客の好みを記録できず → 平均購入単価 2,800 円で頭打ち</li>
+                <li>BASE と倉庫が手動転記 → 月 8 万円の廃棄ロス・欠品</li>
+              </ul>
+            </div>
+            <div class="ba-arrow">→</div>
+            <div class="ba-col after">
+              <div class="ba-label">TO-BE · 提案後</div>
+              <div class="ba-h3">自動化された統合プラットフォーム</div>
+              <ul>
+                <li>Stripe Subscription による定期便自動化 + 1 クリック解約</li>
+                <li>Paid 連携で BtoB 与信を自動化 (3 営業日以内)</li>
+                <li>好み登録 → レコメンド連動で平均単価 4,200 円目標</li>
+                <li>Shippinno 在庫同期で運用工数 月 30 時間削減</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. SOLUTION -->
+        <section class="chap" id="solution">
+          <div class="chap-num">04 · 提案ソリューション</div>
+          <h2 class="chap-h2">Build-Factory が <strong>4 か月で構築</strong>する、自動化された EC 基盤。</h2>
+          <p class="chap-lead">
+            Next.js 16 + Supabase + Stripe Subscription を中核に、Paid 連携で BtoB 与信フローを自動化、Shippinno で在庫・配送を一元管理。<strong>14 機能</strong>を AI 駆動で短納期に開発します。
+          </p>
+          <div class="sol-feature-grid">
+            <div class="sol-feature"><div class="sf-icon">☕</div><div class="sf-name">商品カタログ・検索</div><div class="sf-desc">焙煎度/産地/抽出方法での絞り込み + 全文検索 + 好み連動レコメンド</div></div>
+            <div class="sol-feature"><div class="sf-icon">🔁</div><div class="sf-name">定期便 (Stripe Subscription)</div><div class="sf-desc">2/3/4 週サイクル + 7 日前確認メール + 1 クリック解約</div></div>
+            <div class="sol-feature"><div class="sf-icon">🏪</div><div class="sf-name">BtoB 申込・与信</div><div class="sf-desc">屋号・書類アップ + Paid 与信 + 専用ダッシュボード</div></div>
+            <div class="sol-feature"><div class="sf-icon">📦</div><div class="sf-name">Shippinno 連携</div><div class="sf-desc">在庫同期 (1 時間バッチ) + 配送 + 安全在庫アラート</div></div>
+            <div class="sol-feature"><div class="sf-icon">📧</div><div class="sf-name">メール配信</div><div class="sf-desc">12 種テンプレート + ステップ配信 (登録 3 / 7 / 30 日後)</div></div>
+            <div class="sol-feature"><div class="sf-icon">📊</div><div class="sf-name">管理ダッシュボード</div><div class="sf-desc">商品 / 在庫 / 受注 / 顧客 / レポート + RBAC + 2FA</div></div>
+          </div>
+        </section>
+
+        <!-- 5. ROI -->
+        <section class="chap" id="roi">
+          <div class="chap-num">05 · 投資対効果 (ROI)</div>
+          <h2 class="chap-h2">投資を <strong>6.4 か月で完全回収。</strong>その後は純利益として残ります。</h2>
+          <p class="chap-lead">
+            現状失っている機会と、削減できる運用工数を年間効果として試算しました。月 50 万円の効果想定で、構築投資 320 万円は 6.4 か月で回収完了します。
+          </p>
+          <div class="roi-hero">
+            <div class="roi-headline">年間効果 (機会回復 + 工数削減)</div>
+            <div class="roi-bigline"><strong>504 〜 804 <span class="yen">万円</span></strong></div>
+            <div class="roi-detail-row">
+              <div><div class="key">BtoB 機会損失回復</div><div class="val">25-50 万/月</div><div class="sub">月 5-10 件 × 平均 5 万</div></div>
+              <div><div class="key">運用工数削減</div><div class="val">9 万/月</div><div class="sub">月 30 時間 × 3,000 円</div></div>
+              <div><div class="key">在庫管理自動化</div><div class="val">8 万/月</div><div class="sub">廃棄ロス + 欠品</div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. SCOPE -->
+        <section class="chap" id="scope">
+          <div class="chap-num">06 · スコープ・フェーズ</div>
+          <h2 class="chap-h2">Phase 1 で <strong>14 機能</strong>を実装。Phase 2 以降は段階的拡張。</h2>
+          <p class="chap-lead">
+            今回 (Phase 1) では事業継続に必須な機能のみ集中実装し、4 か月で本番リリース。Phase 2 以降は売上連動で段階的に機能拡張します。
+          </p>
+          <div class="scope-grid">
+            <div class="scope-card in">
+              <div class="scope-label">✓ 含むもの (Phase 1)</div>
+              <ul>
+                <li>商品カタログ・検索・好み連動レコメンド</li>
+                <li>カート・購入・Stripe Checkout 決済</li>
+                <li>サブスクリプション (定期便・スキップ/変更/解約)</li>
+                <li>BtoB 申込・与信・専用ダッシュボード</li>
+                <li>顧客マイページ (注文履歴・好み登録)</li>
+                <li>管理画面 (商品 / 在庫 / 受注 / 顧客 / レポート)</li>
+                <li>Shippinno 在庫同期 (1 時間バッチ)</li>
+                <li>メール通知 (12 種) + ステップ配信</li>
+                <li>BASE データ移行 (商品 80 点・顧客 1,200 件)</li>
+              </ul>
+            </div>
+            <div class="scope-card out">
+              <div class="scope-label">— 含まないもの (将来対応)</div>
+              <ul>
+                <li>実店舗 POS 連携 (Phase 2 候補)</li>
+                <li>海外配送・国際決済</li>
+                <li>B2B EDI 連携</li>
+                <li>ロイヤリティポイントシステム</li>
+                <li>AI レコメンドの自社学習モデル</li>
+                <li>モバイルアプリ (PWA で代替)</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. SCHEDULE -->
+        <section class="chap" id="schedule">
+          <div class="chap-num">07 · スケジュール・費用</div>
+          <h2 class="chap-h2"><strong>4 か月</strong>で本番リリース。費用は <strong>320 万円 (税抜)</strong>。</h2>
+          <p class="chap-lead">
+            5 月着手 → 9 月初週リリースを基本ライン。2 週間刻みのスプリントで進捗を見える化し、月次定例で軌道修正します。
+          </p>
+          <div class="gantt">
+            <div class="gantt-header">
+              <div>フェーズ</div><div>5 月</div><div>6 月</div><div>7 月</div><div>8 月</div><div>9 月</div>
+            </div>
+            <div class="gantt-row b1">
+              <div class="label">要件確定・設計</div>
+              <div class="bar"><div class="bar-fill">5 月</div></div>
+              <div class="gantt-cell-empty"></div><div class="gantt-cell-empty"></div><div class="gantt-cell-empty"></div><div class="gantt-cell-empty"></div>
+            </div>
+            <div class="gantt-row b3">
+              <div class="label">基盤・商品・カート</div>
+              <div class="gantt-cell-empty"></div>
+              <div class="bar"><div class="bar-fill">6 月</div></div>
+              <div class="gantt-cell-empty"></div><div class="gantt-cell-empty"></div><div class="gantt-cell-empty"></div>
+            </div>
+            <div class="gantt-row b4">
+              <div class="label">定期便・BtoB・管理画面</div>
+              <div class="gantt-cell-empty"></div><div class="gantt-cell-empty"></div>
+              <div class="bar"><div class="bar-fill">7 月</div></div>
+              <div class="gantt-cell-empty"></div><div class="gantt-cell-empty"></div>
+            </div>
+            <div class="gantt-row b3">
+              <div class="label">Shippinno・テスト</div>
+              <div class="gantt-cell-empty"></div><div class="gantt-cell-empty"></div><div class="gantt-cell-empty"></div>
+              <div class="bar"><div class="bar-fill">8 月前半 / BASE 移行 8 月後半</div></div>
+              <div class="gantt-cell-empty"></div>
+            </div>
+            <div class="gantt-row b5">
+              <div class="label">本番リリース</div>
+              <div class="gantt-cell-empty"></div><div class="gantt-cell-empty"></div><div class="gantt-cell-empty"></div><div class="gantt-cell-empty"></div>
+              <div class="bar"><div class="bar-fill">9 月初週 ▶</div></div>
+            </div>
+          </div>
+
+          <table class="cost-table">
+            <thead><tr><th>項目</th><th>内容</th><th style="text-align:right;">金額 (税抜)</th></tr></thead>
+            <tbody>
+              <tr><td class="name">中核機能開発</td><td>商品 / カート / 決済 / 認証</td><td class="amt">¥1,200,000</td></tr>
+              <tr><td class="name">サブスクリプション</td><td>Stripe Subscription + 定期便</td><td class="amt">¥600,000</td></tr>
+              <tr><td class="name">BtoB 機能</td><td>申込・与信・専用ダッシュボード</td><td class="amt">¥700,000</td></tr>
+              <tr><td class="name">管理画面</td><td>商品 / 在庫 / 受注 / 顧客</td><td class="amt">¥400,000</td></tr>
+              <tr><td class="name">Shippinno 連携</td><td>在庫同期 + 配送</td><td class="amt">¥200,000</td></tr>
+              <tr><td class="name">BASE データ移行</td><td>商品 80 点・顧客 1,200 件</td><td class="amt">¥100,000</td></tr>
+              <tr class="total"><td>合計 (税抜)</td><td></td><td class="amt">¥3,200,000</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- 8. RISK -->
+        <section class="chap" id="risk">
+          <div class="chap-num">08 · リスク・前提・体制</div>
+          <h2 class="chap-h2">主要リスクは <strong>4 つ</strong>。すべて事前に対応策を定めています。</h2>
+          <p class="chap-lead">
+            技術・運用・要件・スケジュールの 4 観点でリスクを洗い出し、各々に具体的な対応策を用意しています。
+          </p>
+          <div class="risk-grid">
+            <div class="risk-row">
+              <div class="risk-cat tech">技術</div>
+              <div class="body"><div class="topic">Shippinno API レート制限 (1分100req)</div><div class="impact">高ピーク時に遅延の可能性</div></div>
+              <div class="action">キュー処理 + 指数バックオフで吸収</div>
+            </div>
+            <div class="risk-row">
+              <div class="risk-cat ops">運用</div>
+              <div class="body"><div class="topic">倉庫スタッフが管理画面に不慣れ</div><div class="impact">運用初期の対応漏れ</div></div>
+              <div class="action">リリース 2 週間前に研修 + 動画マニュアル</div>
+            </div>
+            <div class="risk-row">
+              <div class="risk-cat req">要件</div>
+              <div class="body"><div class="topic">BtoB 与信ロジックが未確定</div><div class="impact">設計・実装に影響</div></div>
+              <div class="action">6 月 15 日までに業務側で基準確定</div>
+            </div>
+            <div class="risk-row">
+              <div class="risk-cat sched">スケジュール</div>
+              <div class="body"><div class="topic">9 月リリース前提でデザイン未着手</div><div class="impact">後工程逼迫</div></div>
+              <div class="action">6 月中にデザイン完了が前提</div>
+            </div>
+          </div>
+
+          <div class="cta">
+            <div class="cta-h3">この提案で進めましょう。</div>
+            <div class="cta-sub">5 月着手で 9 月リリース。最短ルートでビジネス変革を始めます。</div>
+            <div class="cta-buttons">
+              <button class="cta-btn primary">提案承認・契約手続きへ</button>
+              <button class="cta-btn secondary">追加質問・調整を相談</button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+    <div class="complete-bar">
+      <button class="btn-complete">✓ STEP 4 を完了</button>
+    </div>
+  </main>
+
+  <!-- RIGHT CHAT -->
+  <aside class="chat">
+    <div class="chat-head"><span class="dot"></span><span class="name">PM AI 社員 (提案書)</span><span class="step-tag">STEP 4</span></div>
+    <div class="chat-msgs">
+      <div class="divider-step"><div class="line"></div><div class="label">STEP 1</div><div class="line"></div></div>
+      <div class="msg ai"><div class="bubble">STEP 1 を始めます。前フェーズ情報を踏まえてカバーとサマリーを書きました。経営層向けで ROI 重視のトーンで進めて良いですか?</div></div>
+      <div class="msg user"><div class="bubble">それで OK です。経営層が動きやすい数字で。</div></div>
+
+      <div class="divider-step"><div class="line"></div><div class="label">STEP 2</div><div class="line"></div></div>
+      <div class="msg ai"><div class="bubble">課題を AS-IS / TO-BE で整理しました。月 504-804 万円の機会損失が出る根拠を追加。</div></div>
+
+      <div class="divider-step"><div class="line"></div><div class="label">STEP 3</div><div class="line"></div></div>
+      <div class="msg ai"><div class="bubble">スコープとガントチャートを埋めました。価格設計の 320 万円をそのまま費用に反映。</div></div>
+
+      <div class="divider-step"><div class="line"></div><div class="label">STEP 4</div><div class="line"></div></div>
+      <div class="msg ai"><div class="bubble">リスク 4 件を洗い出しました。BtoB 与信の確定期日 (6/15) はクライアントとの合意で良いですか?</div></div>
+    </div>
+    <div class="chat-input">
+      <input placeholder="STEP 4 の回答や質問を入力…" />
+      <button>送信</button>
+    </div>
+  </aside>
+</div>
+
+<script>
+const tocItems = document.querySelectorAll('.toc-item');
+const docBody = document.getElementById('docBody');
+tocItems.forEach(t => t.addEventListener('click', () => {
+  const target = document.getElementById(t.dataset.jump);
+  if (target) docBody.scrollTo({ top: target.offsetTop - 60, behavior: 'smooth' });
+}));
+docBody.addEventListener('scroll', () => {
+  const sections = document.querySelectorAll('.chap');
+  const top = docBody.scrollTop + 120;
+  let cur = '';
+  sections.forEach(s => { if (s.offsetTop <= top) cur = s.id; });
+  tocItems.forEach(t => {
+    t.classList.toggle('active', t.dataset.jump === cur);
+  });
+});
+</script>
+</body>
+</html>

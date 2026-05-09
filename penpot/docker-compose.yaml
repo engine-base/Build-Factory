@@ -1,0 +1,123 @@
+# Penpot self-hosted (Build-Factory 連携用)
+#
+# 起動: cd penpot && docker compose up -d
+# 停止: docker compose down
+# Studio: http://localhost:9001
+#
+# ライセンス: AGPL-3.0
+# Build-Factory は Penpot を改造せず、API + iframe で連携する。
+# 公式 Docker イメージをそのまま使用 (改造ゼロのため AGPL の公開義務は発生しない)。
+
+services:
+  penpot-frontend:
+    image: penpotapp/frontend:latest
+    container_name: bf-penpot-frontend
+    ports:
+      - "9001:8080"
+    volumes:
+      - penpot_assets:/opt/data/assets
+      # X-Frame-Options を削除して BF からの iframe 埋込を許可するため nginx config を上書き
+      - ./nginx-allow-iframe.conf:/etc/nginx/nginx.conf:ro
+      # Build-Factory ロゴで Penpot ロゴを差し替え (静的ファイルの volume override)
+      - ./branding/penpot-logo.svg:/var/www/app/images/icons/penpot-logo.svg:ro
+      - ./branding/penpot-logo-icon.svg:/var/www/app/images/icons/penpot-logo-icon.svg:ro
+      - ./branding/penpot-logo-icon.svg:/var/www/app/images/icons/penpot-logo-icon-loader.svg:ro
+      - ./branding/penpot-logo.svg:/var/www/app/images/assets/penpot-logo.svg:ro
+      - ./branding/penpot-logo-icon.svg:/var/www/app/images/assets/penpot-logo-icon.svg:ro
+      # BF カスタム CSS (sub_filter 経由で Penpot HTML に注入)
+      - ./branding/bf-overrides.css:/etc/nginx/branding/bf-overrides.css:ro
+      # 完全日本語化済 i18n ファイル (Penpot 公式の ja_jp 翻訳が部分的なため override)
+      - ./branding/translation.ja_jp.js:/var/www/app/js/translation.ja_jp.js:ro
+    depends_on:
+      - penpot-backend
+      - penpot-exporter
+    networks:
+      - penpot
+    environment:
+      PENPOT_FLAGS: >-
+        enable-registration
+        enable-login-with-password
+        disable-email-verification
+        disable-secure-session-cookies
+        disable-onboarding-newsletter
+        disable-onboarding-questions
+        disable-dashboard-templates-section
+        enable-feature-components-v2
+
+  penpot-backend:
+    image: penpotapp/backend:latest
+    container_name: bf-penpot-backend
+    volumes:
+      - penpot_assets:/opt/data/assets
+    depends_on:
+      - penpot-postgres
+      - penpot-redis
+    networks:
+      - penpot
+    environment:
+      PENPOT_FLAGS: >-
+        enable-registration
+        enable-login-with-password
+        disable-email-verification
+        disable-secure-session-cookies
+        disable-onboarding-newsletter
+        disable-onboarding-questions
+        disable-dashboard-templates-section
+        enable-prepl-server
+        enable-feature-components-v2
+      PENPOT_PUBLIC_URI: http://localhost:9001
+      # 再起動時にセッションが無効化されないよう secret-key を固定
+      PENPOT_SECRET_KEY: build-factory-penpot-secret-key-do-not-use-in-production-2026
+      # UI のデフォルト言語を日本語に
+      PENPOT_DEFAULT_LANGUAGE: ja_jp
+      PENPOT_DATABASE_URI: postgresql://penpot-postgres/penpot
+      PENPOT_DATABASE_USERNAME: penpot
+      PENPOT_DATABASE_PASSWORD: penpot
+      PENPOT_REDIS_URI: redis://penpot-redis/0
+      PENPOT_ASSETS_STORAGE_BACKEND: assets-fs
+      PENPOT_STORAGE_ASSETS_FS_DIRECTORY: /opt/data/assets
+      PENPOT_TELEMETRY_ENABLED: "false"
+      PENPOT_SMTP_DEFAULT_FROM: no-reply@example.com
+      PENPOT_SMTP_DEFAULT_REPLY_TO: no-reply@example.com
+      PENPOT_HTTP_SERVER_MAX_BODY_SIZE: 31457280
+      PENPOT_HTTP_SERVER_MAX_MULTIPART_BODY_SIZE: 367001600
+      PENPOT_REGISTRATION_DOMAIN_WHITELIST: ""
+
+  penpot-exporter:
+    image: penpotapp/exporter:latest
+    container_name: bf-penpot-exporter
+    networks:
+      - penpot
+    environment:
+      PENPOT_PUBLIC_URI: http://penpot-frontend:8080
+      PENPOT_REDIS_URI: redis://penpot-redis/0
+
+  penpot-postgres:
+    image: postgres:15
+    container_name: bf-penpot-postgres
+    restart: always
+    stop_signal: SIGINT
+    volumes:
+      - penpot_postgres:/var/lib/postgresql/data
+    networks:
+      - penpot
+    environment:
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+      POSTGRES_DB: penpot
+      POSTGRES_USER: penpot
+      POSTGRES_PASSWORD: penpot
+
+  penpot-redis:
+    image: redis:7
+    container_name: bf-penpot-redis
+    restart: always
+    networks:
+      - penpot
+
+volumes:
+  penpot_postgres:
+  penpot_assets:
+
+networks:
+  penpot:
+    driver: bridge

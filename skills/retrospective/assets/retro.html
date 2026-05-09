@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>振り返り — Sprint {{SPRINT_NUMBER}}</title>
+  <style>
+    :root {
+      --color-bg: #ffffff;
+      --color-surface: #f8f9fa;
+      --color-border: #e2e8f0;
+      --color-text: #1e293b;
+      --color-text-muted: #64748b;
+      --color-keep: #16a34a;
+      --color-keep-bg: #f0fdf4;
+      --color-keep-border: #bbf7d0;
+      --color-problem: #dc2626;
+      --color-problem-bg: #fef2f2;
+      --color-problem-border: #fecaca;
+      --color-try: #2563eb;
+      --color-try-bg: #eff6ff;
+      --color-try-border: #bfdbfe;
+      --color-accent: #7c3aed;
+      --font: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Meiryo", "Yu Gothic", sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: #e2e8f0;
+      color: var(--color-text);
+      font-size: 13px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      width: 297mm;
+      min-height: 210mm;
+      background: var(--color-bg);
+      margin: 24px auto;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.14);
+      overflow: hidden;
+    }
+
+    /* Header */
+    .page-header {
+      background: var(--color-accent);
+      color: #fff;
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .page-header .title-group h1 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .page-header .title-group .subtitle {
+      font-size: 11px;
+      opacity: 0.75;
+      margin-top: 3px;
+    }
+    .page-header .sprint-info {
+      text-align: right;
+    }
+    .page-header .sprint-info .sprint-num {
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .page-header .sprint-info .sprint-label {
+      font-size: 10px;
+      opacity: 0.7;
+    }
+
+    /* Stats bar */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      border-bottom: 1px solid var(--color-border);
+    }
+    .stat-cell {
+      padding: 12px 16px;
+      border-right: 1px solid var(--color-border);
+      text-align: center;
+    }
+    .stat-cell:last-child { border-right: none; }
+    .stat-cell .val {
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--color-text);
+    }
+    .stat-cell .val.good { color: var(--color-keep); }
+    .stat-cell .val.bad { color: var(--color-problem); }
+    .stat-cell .lbl {
+      font-size: 10px;
+      color: var(--color-text-muted);
+      margin-top: 3px;
+    }
+
+    /* Body */
+    .page-body {
+      padding: 20px 32px 28px;
+    }
+
+    /* KPT columns */
+    .kpt-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .kpt-col {}
+
+    .col-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 8px 8px 0 0;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.03em;
+    }
+    .col-header .icon { font-size: 16px; }
+    .col-header .count {
+      margin-left: auto;
+      font-size: 11px;
+      opacity: 0.8;
+    }
+
+    .col-header.keep {
+      background: var(--color-keep);
+      color: #fff;
+    }
+    .col-header.problem {
+      background: var(--color-problem);
+      color: #fff;
+    }
+    .col-header.try {
+      background: var(--color-try);
+      color: #fff;
+    }
+
+    .col-body {
+      border: 1px solid var(--color-border);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      min-height: 200px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .col-body.keep { border-color: var(--color-keep-border); background: var(--color-keep-bg); }
+    .col-body.problem { border-color: var(--color-problem-border); background: var(--color-problem-bg); }
+    .col-body.try { border-color: var(--color-try-border); background: var(--color-try-bg); }
+
+    /* Cards */
+    .kpt-card {
+      background: #fff;
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.5;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .kpt-card .card-title {
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 3px;
+    }
+    .kpt-card .card-sub {
+      font-size: 11px;
+      color: var(--color-text-muted);
+    }
+    .kpt-card .card-sub strong {
+      color: var(--color-text-muted);
+      font-weight: 600;
+    }
+
+    /* Try table */
+    .try-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+    .try-table th {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      padding: 6px 8px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+    }
+    .try-table td {
+      border: 1px solid var(--color-border);
+      padding: 8px;
+      vertical-align: top;
+    }
+    .try-table tr:nth-child(even) td { background: #fafafa; }
+
+    /* Action number */
+    .action-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--color-try);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    /* Section title */
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+      border-bottom: 2px solid #ede9fe;
+    }
+
+    /* Prev try review */
+    .prev-try-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .prev-try-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 12px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      font-size: 11px;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 1px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .status-done { background: var(--color-keep-bg); color: var(--color-keep); border: 1px solid var(--color-keep-border); }
+    .status-ongoing { background: var(--color-try-bg); color: var(--color-try); border: 1px solid var(--color-try-border); }
+    .status-not-done { background: var(--color-problem-bg); color: var(--color-problem); border: 1px solid var(--color-problem-border); }
+
+    /* Footer */
+    .page-footer {
+      border-top: 1px solid var(--color-border);
+      padding: 10px 32px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--color-text-muted);
+      background: var(--color-surface);
+    }
+
+    @media print {
+      body { background: #fff; }
+      .page { margin: 0; box-shadow: none; width: 100%; }
+      @page { size: A4 landscape; margin: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="title-group">
+      <h1>{{TEAM_NAME}} — 振り返りレポート</h1>
+      <div class="subtitle">{{START_DATE}} 〜 {{END_DATE}} / ファシリテーター: {{FACILITATOR}}</div>
+    </div>
+    <div class="sprint-info">
+      <div class="sprint-num">Sprint {{SPRINT_NUMBER}}</div>
+      <div class="sprint-label">RETROSPECTIVE</div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-cell">
+      <div class="val">{{PLANNED_POINTS}}pt</div>
+      <div class="lbl">計画ベロシティ</div>
+    </div>
+    <div class="stat-cell">
+      <div class="val {{VELOCITY_CLASS}}">{{ACTUAL_POINTS}}pt</div>
+      <div class="lbl">実績ベロシティ</div>
+    </div>
+    <div class="stat-cell">
+      <div class="val {{VELOCITY_CLASS}}">{{VELOCITY_RATE}}%</div>
+      <div class="lbl">達成率</div>
+    </div>
+    <div class="stat-cell">
+      <div class="val">{{COMPLETED_TASKS}}/{{PLANNED_TASKS}}</div>
+      <div class="lbl">完了タスク</div>
+    </div>
+    <div class="stat-cell">
+      <div class="val">{{TRY_COUNT}}</div>
+      <div class="lbl">Tryアクション数</div>
+    </div>
+  </div>
+
+  <div class="page-body">
+
+    <!-- KPT columns -->
+    <div style="margin-bottom:8px;">
+      <div class="section-title">KPT — Keep / Problem / Try</div>
+    </div>
+    <div class="kpt-columns">
+
+      <!-- Keep -->
+      <div class="kpt-col">
+        <div class="col-header keep">
+          <span class="icon">✅</span>
+          <span>Keep — 続けること</span>
+          <span class="count">{{KEEP_COUNT}}件</span>
+        </div>
+        <div class="col-body keep">
+          {{KEEP_CARDS_HTML}}
+        </div>
+      </div>
+
+      <!-- Problem -->
+      <div class="kpt-col">
+        <div class="col-header problem">
+          <span class="icon">❌</span>
+          <span>Problem — 課題</span>
+          <span class="count">{{PROBLEM_COUNT}}件</span>
+        </div>
+        <div class="col-body problem">
+          {{PROBLEM_CARDS_HTML}}
+        </div>
+      </div>
+
+      <!-- Try -->
+      <div class="kpt-col">
+        <div class="col-header try">
+          <span class="icon">🚀</span>
+          <span>Try — 次に試すこと</span>
+          <span class="count">{{TRY_COUNT}}件</span>
+        </div>
+        <div class="col-body try">
+          {{TRY_CARDS_HTML}}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Try action table -->
+    <div style="margin-bottom:20px;">
+      <div class="section-title">Tryアクション一覧（担当・期限付き）</div>
+      <table class="try-table">
+        <thead>
+          <tr>
+            <th style="width:30px">#</th>
+            <th>アクション</th>
+            <th style="width:100px">対応するProblem</th>
+            <th style="width:70px">担当</th>
+            <th style="width:80px">期限</th>
+            <th>完了基準</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{TRY_TABLE_ROWS_HTML}}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Prev try review -->
+    <div>
+      <div class="section-title">前スプリントのTry 振り返り</div>
+      <div class="prev-try-grid">
+        {{PREV_TRY_ITEMS_HTML}}
+      </div>
+    </div>
+
+  </div>
+
+  <div class="page-footer">
+    <span>{{TEAM_NAME}} / Sprint {{SPRINT_NUMBER}} 振り返り</span>
+    <span>{{START_DATE}} 〜 {{END_DATE}}</span>
+    <span>{{DATE}} 作成 / {{FACILITATOR}}</span>
+  </div>
+
+</div>
+
+</body>
+</html>

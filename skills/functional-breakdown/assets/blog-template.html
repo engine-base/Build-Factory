@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>{{PROJECT_NAME}} — 機能・画面詳細仕様</title>
+<style>
+  /* スコープを限定: .fb-doc 配下のみに適用される。インライン埋め込み時の衝突を避ける。 */
+  .fb-doc {
+    --fb-bg: #fafaf9;
+    --fb-fg: #1c1917;
+    --fb-muted: #78716c;
+    --fb-border: #e7e5e4;
+    --fb-accent: #1a6648;
+    --fb-card: #ffffff;
+    --fb-decided: #16a34a;
+    --fb-review: #f59e0b;
+    --fb-blocked: #dc2626;
+    --fb-draft: #94a3b8;
+
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+    line-height: 1.7;
+    color: var(--fb-fg);
+    background: var(--fb-bg);
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 48px 24px 96px;
+  }
+  .fb-doc h1 { font-size: 28px; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .fb-doc h2 {
+    font-size: 22px; font-weight: 700; margin: 56px 0 16px;
+    padding-bottom: 8px; border-bottom: 2px solid var(--fb-fg);
+  }
+  .fb-doc h3 {
+    font-size: 17px; font-weight: 700; margin: 32px 0 8px;
+    color: var(--fb-fg);
+  }
+  .fb-doc p { margin: 0 0 12px; color: var(--fb-fg); }
+  .fb-doc .fb-meta {
+    font-size: 13px; color: var(--fb-muted); margin-bottom: 32px;
+  }
+  .fb-doc .fb-summary {
+    background: var(--fb-card); border: 1px solid var(--fb-border);
+    border-radius: 8px; padding: 16px 20px; margin: 16px 0 32px;
+  }
+  .fb-doc .fb-summary table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .fb-doc .fb-summary th, .fb-doc .fb-summary td {
+    text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--fb-border);
+  }
+  .fb-doc .fb-summary th { font-weight: 600; color: var(--fb-muted); }
+  .fb-doc .fb-card {
+    background: var(--fb-card); border: 1px solid var(--fb-border);
+    border-radius: 8px; padding: 20px 24px; margin: 16px 0;
+  }
+  .fb-doc .fb-card-head {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+  }
+  .fb-doc .fb-id {
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 12px; color: var(--fb-muted);
+    background: #f5f5f4; padding: 2px 8px; border-radius: 4px;
+  }
+  .fb-doc .fb-card-title {
+    font-size: 17px; font-weight: 700; flex: 1;
+  }
+  .fb-doc .fb-status {
+    font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .fb-doc .fb-status-decided { background: rgba(22,163,74,0.1); color: var(--fb-decided); }
+  .fb-doc .fb-status-in_review { background: rgba(245,158,11,0.1); color: var(--fb-review); }
+  .fb-doc .fb-status-blocked { background: rgba(220,38,38,0.1); color: var(--fb-blocked); }
+  .fb-doc .fb-status-draft { background: rgba(148,163,184,0.15); color: var(--fb-draft); }
+  .fb-doc .fb-checklist {
+    margin: 12px 0 0; padding: 0; list-style: none; font-size: 13px;
+  }
+  .fb-doc .fb-checklist li {
+    padding: 4px 0; padding-left: 22px; position: relative;
+  }
+  .fb-doc .fb-checklist li::before {
+    content: "✓"; position: absolute; left: 0; color: var(--fb-decided); font-weight: 700;
+  }
+  .fb-doc .fb-kv { font-size: 13px; color: var(--fb-fg); margin: 4px 0; }
+  .fb-doc .fb-kv strong { color: var(--fb-muted); display: inline-block; min-width: 96px; font-weight: 600; }
+  .fb-doc table.fb-matrix {
+    width: 100%; border-collapse: collapse; font-size: 12px; margin: 16px 0;
+  }
+  .fb-doc table.fb-matrix th,
+  .fb-doc table.fb-matrix td {
+    border: 1px solid var(--fb-border); padding: 6px 10px; text-align: center;
+  }
+  .fb-doc table.fb-matrix th {
+    background: #f5f5f4; font-weight: 600;
+  }
+  .fb-doc table.fb-matrix th:first-child,
+  .fb-doc table.fb-matrix td:first-child {
+    text-align: left; background: #f5f5f4; font-weight: 600;
+  }
+  .fb-doc .fb-handoff {
+    background: #fffbeb; border-left: 4px solid #f59e0b;
+    padding: 16px 20px; margin: 24px 0; border-radius: 4px;
+  }
+  .fb-doc .fb-handoff h3 { margin-top: 0; color: #b45309; }
+  .fb-doc .fb-toc {
+    background: var(--fb-card); border: 1px solid var(--fb-border);
+    border-radius: 8px; padding: 16px 24px; margin: 16px 0 32px;
+    font-size: 14px;
+  }
+  .fb-doc .fb-toc ul { margin: 4px 0 0; padding-left: 20px; }
+  .fb-doc .fb-toc li { margin: 2px 0; }
+  .fb-doc .fb-toc a { color: var(--fb-accent); text-decoration: none; }
+  .fb-doc .fb-toc a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<article class="fb-doc">
+  <header>
+    <h1>{{PROJECT_NAME}} — 機能・画面詳細仕様</h1>
+    <div class="fb-meta">
+      作成日 {{GENERATED_AT}} ／ ソース: requirements + functional-breakdown
+    </div>
+
+    <nav class="fb-toc">
+      <strong>目次</strong>
+      <ul>
+        <li><a href="#summary">完了サマリー</a></li>
+        <li><a href="#screens">画面 (Screens)</a></li>
+        <li><a href="#features">機能 (Features)</a></li>
+        <li><a href="#roles">ロール&権限 (Roles)</a></li>
+        <li><a href="#entities">エンティティ草案 (Entities)</a></li>
+        <li><a href="#handoff">アーキテクチャ設計への引き継ぎ事項</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section id="summary">
+    <h2>完了サマリー</h2>
+    <div class="fb-summary">
+      <table>
+        <thead>
+          <tr><th>種別</th><th>decided</th><th>in_review</th><th>blocked</th><th>合計</th></tr>
+        </thead>
+        <tbody>
+          {{SUMMARY_ROWS}}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="screens">
+    <h2>画面 (Screens)</h2>
+    {{SCREENS_HTML}}
+  </section>
+
+  <section id="features">
+    <h2>機能 (Features)</h2>
+    {{FEATURES_HTML}}
+  </section>
+
+  <section id="roles">
+    <h2>ロール&権限 (Roles)</h2>
+    {{ROLES_HTML}}
+    <h3>権限マトリクス</h3>
+    <table class="fb-matrix">{{MATRIX_HTML}}</table>
+  </section>
+
+  <section id="entities">
+    <h2>エンティティ草案 (Entities)</h2>
+    {{ENTITIES_HTML}}
+  </section>
+
+  <section id="handoff" class="fb-handoff">
+    <h3>アーキテクチャ設計への引き継ぎ事項</h3>
+    {{HANDOFF_HTML}}
+  </section>
+</article>
+</body>
+</html>

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>クライアントホーム — Build-Factory v1</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./_shared.css" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  /* client は限定サイドバー */
+  .client-banner {
+    background: linear-gradient(135deg, #E0F2FE 0%, #DBEAFE 100%);
+    border: 1px solid #C7DEFC;
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    margin-bottom: var(--space-6);
+    display: flex; align-items: center; gap: var(--space-4);
+  }
+  .client-banner-icon {
+    width: 48px; height: 48px;
+    background: #fff;
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--info);
+  }
+  .client-banner h2 {
+    font-size: 17px; font-weight: 700; margin-bottom: 2px;
+  }
+  .client-banner p {
+    font-size: 13px; color: var(--text-2);
+  }
+
+  .progress-card {
+    margin-bottom: var(--space-5);
+  }
+  .progress-large {
+    display: flex; flex-direction: column; align-items: center;
+    padding: var(--space-6) var(--space-5);
+  }
+  .progress-circle {
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    background: conic-gradient(var(--primary) 0% 50%, var(--bg-soft) 50% 100%);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    margin-bottom: var(--space-4);
+  }
+  .progress-circle::before {
+    content: '';
+    position: absolute;
+    inset: 14px;
+    background: var(--bg-elev);
+    border-radius: 50%;
+  }
+  .progress-circle-text {
+    position: relative;
+    text-align: center;
+  }
+  .progress-circle-num {
+    font-size: 32px; font-weight: 700; letter-spacing: -0.02em;
+    color: var(--primary);
+    line-height: 1;
+  }
+  .progress-circle-label {
+    font-size: 12px; color: var(--text-3);
+    margin-top: 4px;
+  }
+
+  .phase-stepper {
+    display: flex; align-items: center; gap: 0;
+    padding: var(--space-4) var(--space-5);
+    overflow-x: auto;
+  }
+  .phase-stepper-item {
+    flex: 1;
+    min-width: 110px;
+    text-align: center;
+    position: relative;
+    padding: 0 4px;
+  }
+  .phase-stepper-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 50%; right: -50%;
+    height: 2px;
+    background: var(--border);
+  }
+  .phase-stepper-item.done:not(:last-child)::after { background: var(--success); }
+  .phase-stepper-item.active:not(:last-child)::after {
+    background: linear-gradient(to right, var(--success), var(--border));
+  }
+  .phase-stepper-dot {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--bg-elev);
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 8px;
+    color: var(--text-4);
+    position: relative; z-index: 1;
+  }
+  .phase-stepper-item.done .phase-stepper-dot {
+    background: var(--success); border-color: var(--success); color: #fff;
+  }
+  .phase-stepper-item.active .phase-stepper-dot {
+    background: var(--primary); border-color: var(--primary); color: #fff;
+  }
+  .phase-stepper-name {
+    font-size: 11.5px;
+    color: var(--text-3);
+    font-weight: 500;
+  }
+  .phase-stepper-item.done .phase-stepper-name { color: var(--success); }
+  .phase-stepper-item.active .phase-stepper-name { color: var(--primary); font-weight: 600; }
+
+  .your-tasks-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-5);
+  }
+
+  .task-list-item {
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--divider);
+    display: flex; align-items: flex-start; gap: var(--space-3);
+    cursor: pointer;
+  }
+  .task-list-item:last-child { border-bottom: none; }
+  .task-list-item:hover { background: var(--bg-soft); }
+  .task-list-icon {
+    width: 36px; height: 36px;
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .task-list-icon.review { background: var(--info-bg); color: var(--info); }
+  .task-list-icon.approve { background: var(--success-bg); color: var(--success); }
+  .task-list-icon.question { background: var(--warning-bg); color: var(--warning); }
+  .task-list-icon.comment { background: var(--neutral-bg); color: var(--neutral); }
+  .task-list-content { flex: 1; min-width: 0; }
+  .task-list-title { font-size: 14px; font-weight: 600; color: var(--text-1); margin-bottom: 2px; }
+  .task-list-meta { font-size: 12px; color: var(--text-3); margin-bottom: 8px; }
+  .task-list-action {
+    display: flex; gap: 6px;
+    margin-top: 6px;
+  }
+
+  .news-item {
+    display: flex; gap: var(--space-3);
+    padding: 14px var(--space-5);
+    border-bottom: 1px solid var(--divider);
+    font-size: 13px;
+  }
+  .news-item:last-child { border-bottom: none; }
+  .news-time { font-size: 11.5px; color: var(--text-4); width: 80px; flex-shrink: 0; padding-top: 2px; }
+  .news-text { color: var(--text-2); }
+  .news-text strong { color: var(--text-1); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="header"></header>
+  <aside class="sidebar"></aside>
+
+  <main class="main">
+
+    <div class="client-banner">
+      <div class="client-banner-icon">
+        <i data-lucide="user-check" class="icon-xl"></i>
+      </div>
+      <div style="flex:1">
+        <h2>こんにちは、山田 太郎 様</h2>
+        <p>Build-Factory v1 プロジェクトへようこそ。承認・確認待ちの項目をまとめてご対応いただけます。</p>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size: 11px; color: var(--text-3); margin-bottom: 2px;">役割</div>
+        <span class="badge recommend">クライアント</span>
+      </div>
+    </div>
+
+    <!-- 進捗 -->
+    <div class="card progress-card">
+      <div class="card-header">
+        <h2><i data-lucide="trending-up" class="icon-sm"></i> プロジェクト進捗</h2>
+        <span class="card-header-meta">完了予定 5月20日</span>
+      </div>
+
+      <div class="progress-large">
+        <div class="progress-circle" style="background: conic-gradient(var(--primary) 0% 45%, var(--bg-soft) 45% 100%);">
+          <div class="progress-circle-text">
+            <div class="progress-circle-num">45<span style="font-size:16px;">%</span></div>
+            <div class="progress-circle-label">完了</div>
+          </div>
+        </div>
+        <div style="text-align:center; max-width: 480px;">
+          <div style="font-size: 14px; font-weight: 600; color: var(--text-1); margin-bottom: 4px;">
+            現在のフェーズ: 設計
+          </div>
+          <div style="font-size: 12.5px; color: var(--text-3);">
+            アーキテクチャ + デザインモック作成 を並行で進めています。次のクライアント承認は要件定義書 v2.0 です。
+          </div>
+        </div>
+      </div>
+
+      <div style="border-top: 1px solid var(--divider);">
+        <div class="phase-stepper">
+          <div class="phase-stepper-item done">
+            <div class="phase-stepper-dot"><i data-lucide="check" class="icon-sm"></i></div>
+            <div class="phase-stepper-name">ヒアリング</div>
+          </div>
+          <div class="phase-stepper-item done">
+            <div class="phase-stepper-dot"><i data-lucide="check" class="icon-sm"></i></div>
+            <div class="phase-stepper-name">要件定義</div>
+          </div>
+          <div class="phase-stepper-item active">
+            <div class="phase-stepper-dot"><i data-lucide="loader-2" class="icon-sm"></i></div>
+            <div class="phase-stepper-name">設計</div>
+          </div>
+          <div class="phase-stepper-item">
+            <div class="phase-stepper-dot">4</div>
+            <div class="phase-stepper-name">実装</div>
+          </div>
+          <div class="phase-stepper-item">
+            <div class="phase-stepper-dot">5</div>
+            <div class="phase-stepper-name">テスト</div>
+          </div>
+          <div class="phase-stepper-item">
+            <div class="phase-stepper-dot">6</div>
+            <div class="phase-stepper-name">リリース</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- あなたへのお願い -->
+    <div class="your-tasks-grid">
+      <div class="card">
+        <div class="card-header">
+          <h2><i data-lucide="inbox" class="icon-sm"></i> あなたへのお願い</h2>
+          <span class="card-header-meta">3 件</span>
+        </div>
+        <div>
+          <div class="task-list-item">
+            <div class="task-list-icon review">
+              <i data-lucide="file-search" class="icon"></i>
+            </div>
+            <div class="task-list-content">
+              <div class="task-list-title">要件定義書 v2.0 のご確認</div>
+              <div class="task-list-meta">PM AI が完成 ・ 6 項目のチェック ・ 受付 42 分前</div>
+              <div class="task-list-action">
+                <button class="btn btn-primary btn-sm">確認する</button>
+                <button class="btn btn-ghost btn-sm">後で</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="task-list-item">
+            <div class="task-list-icon question">
+              <i data-lucide="circle-help" class="icon"></i>
+            </div>
+            <div class="task-list-content">
+              <div class="task-list-title">既存 DB との連携要否</div>
+              <div class="task-list-meta">設計 AI からの質問 ・ 受付 1 時間前</div>
+              <div class="task-list-action">
+                <button class="btn btn-primary btn-sm">回答する</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="task-list-item">
+            <div class="task-list-icon approve">
+              <i data-lucide="check-circle-2" class="icon"></i>
+            </div>
+            <div class="task-list-content">
+              <div class="task-list-title">デザインモック (3 画面) のご承認</div>
+              <div class="task-list-meta">デザイナー AI ・ 受付 3 時間前 ・ Penpot で確認</div>
+              <div class="task-list-action">
+                <button class="btn btn-primary btn-sm">モックを開く</button>
+                <button class="btn btn-secondary btn-sm">コメント</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- お知らせ + メンバー -->
+      <div>
+        <div class="card mb-5">
+          <div class="card-header">
+            <h2><i data-lucide="megaphone" class="icon-sm"></i> プロジェクトのお知らせ</h2>
+          </div>
+          <div>
+            <div class="news-item">
+              <div class="news-time">42 分前</div>
+              <div class="news-text"><strong>PM AI</strong> が要件定義書 v2.0 を作成しました</div>
+            </div>
+            <div class="news-item">
+              <div class="news-time">3 時間前</div>
+              <div class="news-text"><strong>デザイナー AI</strong> が主要 3 画面のモックを提出</div>
+            </div>
+            <div class="news-item">
+              <div class="news-time">昨日</div>
+              <div class="news-text"><strong>あなた</strong> が要件定義書 v1.0 にコメント</div>
+            </div>
+            <div class="news-item">
+              <div class="news-time">3 日前</div>
+              <div class="news-text">プロジェクトが開始されました</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2><i data-lucide="users" class="icon-sm"></i> プロジェクトメンバー</h2>
+          </div>
+          <div class="card-body">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom: 14px;">
+              <div class="member-avatar user member-online" title="まさと (admin)">MA</div>
+              <div class="member-avatar client" title="山田 太郎 (あなた)">山</div>
+              <div class="member-avatar leader-pm">PM</div>
+              <div class="member-avatar leader-arch">設</div>
+              <div class="member-avatar leader-design">デ</div>
+              <span style="font-size: 12px; color: var(--text-3); margin-left: 8px;">+ 4 AI</span>
+            </div>
+            <div style="font-size:12px; color:var(--text-3); display: flex; flex-direction: column; gap: 6px;">
+              <div style="display:flex; justify-content:space-between;"><span>高本 まさと</span><span style="color:var(--success)">オンライン</span></div>
+              <div style="display:flex; justify-content:space-between;"><span>あなた (山田 太郎)</span><span>クライアント</span></div>
+              <div style="display:flex; justify-content:space-between;"><span>AI 社員 7 体</span><span>稼働中</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  /* client 用の限定サイドバー */
+  document.querySelector('header.header').innerHTML = `
+    <div class="header-logo">
+      <div class="header-logo-mark">BF</div>
+      Build-Factory
+    </div>
+    <div class="header-divider"></div>
+    <nav class="breadcrumb">
+      <span class="breadcrumb-current">Build-Factory v1</span>
+    </nav>
+    <div class="header-spacer"></div>
+    <div class="header-actions">
+      <button class="header-icon-btn" title="通知">
+        <i data-lucide="bell" class="icon-lg"></i>
+        <span class="badge-dot"></span>
+      </button>
+      <div class="header-avatar" style="background:#94A3B8">山</div>
+    </div>
+  `;
+
+  document.querySelector('aside.sidebar').innerHTML = `
+    <div class="sidebar-project">
+      <div class="sidebar-project-title">Build-Factory v1</div>
+      <div class="sidebar-project-meta">
+        <i data-lucide="building-2" class="icon-sm"></i>
+        ●●株式会社のプロジェクト
+      </div>
+      <div class="sidebar-project-progress"><span style="width:45%"></span></div>
+      <div class="sidebar-project-meta" style="justify-content:space-between; margin-top:6px">
+        <span>進捗 45%</span>
+        <span>完了予定 5/20</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section-title">あなたができること</div>
+    <a href="#" class="sidebar-item active">
+      <i data-lucide="layout-dashboard" class="icon"></i>
+      ホーム
+    </a>
+    <a href="#" class="sidebar-item">
+      <i data-lucide="trending-up" class="icon"></i>
+      進捗
+    </a>
+    <a href="#" class="sidebar-item">
+      <i data-lucide="inbox" class="icon"></i>
+      あなたへのお願い
+      <span class="sidebar-item-badge alert">3</span>
+    </a>
+    <a href="#" class="sidebar-item">
+      <i data-lucide="palette" class="icon"></i>
+      デザインモック確認
+    </a>
+    <a href="#" class="sidebar-item">
+      <i data-lucide="file-text" class="icon"></i>
+      議事録
+    </a>
+    <a href="#" class="sidebar-item">
+      <i data-lucide="message-square" class="icon"></i>
+      コメント
+    </a>
+
+    <div class="sidebar-section-title">情報</div>
+    <a href="#" class="sidebar-item">
+      <i data-lucide="users" class="icon"></i>
+      メンバー
+    </a>
+    <a href="#" class="sidebar-item">
+      <i data-lucide="settings" class="icon"></i>
+      アカウント設定
+    </a>
+  `;
+
+  lucide.createIcons();
+</script>
+</body>
+</html>

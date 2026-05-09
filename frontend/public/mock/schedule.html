@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>スケジュール — Build-Factory v1</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./_shared.css" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  .schedule-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: var(--space-5);
+  }
+
+  /* timeline */
+  .timeline {
+    position: relative;
+    padding-left: 30px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: var(--space-5);
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -27px; top: 4px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--bg-elev);
+    border: 2px solid var(--text-4);
+  }
+  .timeline-item.done::before {
+    background: var(--success);
+    border-color: var(--success);
+  }
+  .timeline-item.current::before {
+    background: var(--primary);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px var(--primary-bg);
+  }
+  .timeline-item.upcoming::before {
+    background: var(--bg-elev);
+    border-color: var(--border-strong);
+  }
+  .timeline-date {
+    font-size: 11.5px;
+    color: var(--text-3);
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .timeline-content {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+  }
+  .timeline-item.current .timeline-content {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+  }
+  .timeline-title {
+    font-size: 14px; font-weight: 700; color: var(--text-1);
+    margin-bottom: 4px;
+  }
+  .timeline-desc {
+    font-size: 12.5px; color: var(--text-3);
+    line-height: 1.6;
+    margin-bottom: 8px;
+  }
+  .timeline-meta {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 11.5px;
+    color: var(--text-3);
+  }
+  .timeline-meta-item {
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+
+  /* calendar widget */
+  .calendar {
+    padding: var(--space-4) var(--space-5);
+  }
+  .calendar-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: var(--space-4);
+  }
+  .calendar-title {
+    font-size: 14px; font-weight: 700;
+  }
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .calendar-dow {
+    text-align: center;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--text-3);
+    padding: 6px 0;
+    text-transform: uppercase;
+  }
+  .calendar-day {
+    aspect-ratio: 1;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12.5px;
+    color: var(--text-2);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    position: relative;
+  }
+  .calendar-day:hover { background: var(--bg-soft); }
+  .calendar-day.muted { color: var(--text-4); }
+  .calendar-day.today {
+    background: var(--primary);
+    color: #fff;
+    font-weight: 700;
+  }
+  .calendar-day.event::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 50%; transform: translateX(-50%);
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--primary);
+  }
+  .calendar-day.today.event::after { background: #fff; }
+  .calendar-day.deadline::after { background: var(--danger); }
+
+  /* events list */
+  .event-row {
+    display: flex; align-items: flex-start; gap: var(--space-3);
+    padding: 12px var(--space-5);
+    border-bottom: 1px solid var(--divider);
+  }
+  .event-row:last-child { border-bottom: none; }
+  .event-row:hover { background: var(--bg-soft); }
+  .event-date-block {
+    width: 56px;
+    text-align: center;
+    flex-shrink: 0;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 6px 4px;
+  }
+  .event-date-block.today {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+  }
+  .event-date-block.danger {
+    background: var(--danger-bg);
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+  .event-date-month {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 1px;
+    opacity: 0.8;
+  }
+  .event-date-day {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .event-info { flex: 1; min-width: 0; }
+  .event-title {
+    font-size: 13.5px; font-weight: 600; color: var(--text-1);
+    margin-bottom: 2px;
+  }
+  .event-meta {
+    font-size: 11.5px; color: var(--text-3);
+    display: flex; align-items: center; gap: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="header"></header>
+  <aside class="sidebar"></aside>
+
+  <main class="main">
+    <div class="page-header">
+      <div class="page-header-top">
+        <div>
+          <div class="page-title">スケジュール</div>
+          <div class="page-subtitle">マイルストーン + フェーズ完了予定 + クライアントとの重要日程</div>
+        </div>
+        <div class="page-spacer"></div>
+        <div class="page-actions">
+          <button class="btn btn-secondary">
+            <i data-lucide="link" class="icon-sm"></i>
+            Google Calendar 連携
+          </button>
+          <button class="btn btn-primary">
+            <i data-lucide="plus" class="icon-sm"></i>
+            予定を追加
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="schedule-grid">
+      <!-- マイルストーンタイムライン -->
+      <div class="card">
+        <div class="card-header">
+          <h2><i data-lucide="milestone" class="icon-sm"></i> マイルストーン</h2>
+          <span class="card-header-meta">完了 4 / 残り 5</span>
+        </div>
+        <div class="card-body" style="padding: var(--space-5) var(--space-6);">
+          <div class="timeline">
+            <div class="timeline-item done">
+              <div class="timeline-date"><i data-lucide="check" class="icon-sm"></i> 4月30日 (水)</div>
+              <div class="timeline-content">
+                <div class="timeline-title">ヒアリング完了</div>
+                <div class="timeline-desc">プロジェクト起点ブリーフ生成 ・ クライアント承認済</div>
+                <div class="timeline-meta">
+                  <span class="timeline-meta-item"><span class="leader-avatar leader-pm" style="width:14px;height:14px;font-size:8px;">PM</span>PM AI</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="timeline-item done">
+              <div class="timeline-date"><i data-lucide="check" class="icon-sm"></i> 5月3日 (土)</div>
+              <div class="timeline-content">
+                <div class="timeline-title">要件定義 v2.0 完了</div>
+                <div class="timeline-desc">クライアントレビュー反映 ・ 認証 Must / DB 連携追加</div>
+                <div class="timeline-meta">
+                  <span class="timeline-meta-item"><span class="leader-avatar leader-pm" style="width:14px;height:14px;font-size:8px;">PM</span>PM AI</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="timeline-item current">
+              <div class="timeline-date"><i data-lucide="loader-2" class="icon-sm"></i> 5月4日 (日) 〜 進行中</div>
+              <div class="timeline-content">
+                <div class="timeline-title">設計フェーズ (アーキ + デザイン)</div>
+                <div class="timeline-desc">並行進行中 ・ アーキ 90% / モック 38%</div>
+                <div class="timeline-meta">
+                  <span class="timeline-meta-item"><span class="leader-avatar leader-arch" style="width:14px;height:14px;font-size:8px;">設</span>設計 AI</span>
+                  <span class="timeline-meta-item"><span class="leader-avatar leader-design" style="width:14px;height:14px;font-size:8px;">デ</span>デザイナー AI</span>
+                  <span class="timeline-meta-item"><span class="badge recommend">進行中</span></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="timeline-item upcoming">
+              <div class="timeline-date"><i data-lucide="calendar" class="icon-sm"></i> 5月8日 (木) 14:00</div>
+              <div class="timeline-content">
+                <div class="timeline-title">アーキ設計 中間レビュー (クライアント)</div>
+                <div class="timeline-desc">山田様 + 高本 + 設計 AI ・ 既存 DB 連携の設計確認</div>
+                <div class="timeline-meta">
+                  <span class="timeline-meta-item"><i data-lucide="map-pin" class="icon-sm"></i>Online</span>
+                  <span class="timeline-meta-item"><i data-lucide="users" class="icon-sm"></i>3 名</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="timeline-item upcoming">
+              <div class="timeline-date"><i data-lucide="circle" class="icon-sm"></i> 5月12日 (月)</div>
+              <div class="timeline-content">
+                <div class="timeline-title">設計フェーズ完了予定</div>
+                <div class="timeline-desc">アーキ + デザイン + API + 機能・タスク分解 まで完了</div>
+                <div class="timeline-meta">
+                  <span class="timeline-meta-item"><i data-lucide="check-circle-2" class="icon-sm"></i>承認ゲート</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="timeline-item upcoming">
+              <div class="timeline-date"><i data-lucide="circle" class="icon-sm"></i> 5月13日 (火) 〜</div>
+              <div class="timeline-content">
+                <div class="timeline-title">実装フェーズ開始</div>
+                <div class="timeline-desc">Claude Code MCP 経由でタスク分散実装</div>
+                <div class="timeline-meta">
+                  <span class="timeline-meta-item"><span class="leader-avatar leader-eng" style="width:14px;height:14px;font-size:8px;">エ</span>エンジニア AI</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="timeline-item upcoming">
+              <div class="timeline-date"><i data-lucide="circle" class="icon-sm"></i> 5月25日 (日)</div>
+              <div class="timeline-content">
+                <div class="timeline-title">テスト + QA フェーズ</div>
+                <div class="timeline-desc">E2E + 受入テスト + コードレビュー</div>
+              </div>
+            </div>
+
+            <div class="timeline-item upcoming">
+              <div class="timeline-date" style="color: var(--danger);"><i data-lucide="flag" class="icon-sm"></i> 5月20日 (火) ・ 納期</div>
+              <div class="timeline-content" style="border-color: var(--danger); background: var(--danger-bg);">
+                <div class="timeline-title" style="color: var(--danger);">本番リリース ★ 納期</div>
+                <div class="timeline-desc" style="color: var(--text-2);">●●株式会社 へ納品 ・ 残 23 日</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右カラム -->
+      <div>
+        <!-- カレンダー -->
+        <div class="card mb-5">
+          <div class="card-header">
+            <h2><i data-lucide="calendar" class="icon-sm"></i> 5月 2026</h2>
+            <div class="flex gap-1">
+              <button class="header-icon-btn"><i data-lucide="chevron-left" class="icon-sm"></i></button>
+              <button class="header-icon-btn"><i data-lucide="chevron-right" class="icon-sm"></i></button>
+            </div>
+          </div>
+          <div class="calendar">
+            <div class="calendar-grid">
+              <div class="calendar-dow">日</div>
+              <div class="calendar-dow">月</div>
+              <div class="calendar-dow">火</div>
+              <div class="calendar-dow">水</div>
+              <div class="calendar-dow">木</div>
+              <div class="calendar-dow">金</div>
+              <div class="calendar-dow">土</div>
+            </div>
+            <div class="calendar-grid">
+              <div class="calendar-day muted">27</div>
+              <div class="calendar-day muted">28</div>
+              <div class="calendar-day muted">29</div>
+              <div class="calendar-day event">30</div>
+              <div class="calendar-day event">1</div>
+              <div class="calendar-day">2</div>
+              <div class="calendar-day event">3</div>
+
+              <div class="calendar-day today event">4</div>
+              <div class="calendar-day">5</div>
+              <div class="calendar-day">6</div>
+              <div class="calendar-day">7</div>
+              <div class="calendar-day event">8</div>
+              <div class="calendar-day">9</div>
+              <div class="calendar-day">10</div>
+
+              <div class="calendar-day">11</div>
+              <div class="calendar-day event">12</div>
+              <div class="calendar-day">13</div>
+              <div class="calendar-day">14</div>
+              <div class="calendar-day">15</div>
+              <div class="calendar-day">16</div>
+              <div class="calendar-day">17</div>
+
+              <div class="calendar-day">18</div>
+              <div class="calendar-day">19</div>
+              <div class="calendar-day deadline">20</div>
+              <div class="calendar-day">21</div>
+              <div class="calendar-day">22</div>
+              <div class="calendar-day">23</div>
+              <div class="calendar-day">24</div>
+
+              <div class="calendar-day event">25</div>
+              <div class="calendar-day">26</div>
+              <div class="calendar-day">27</div>
+              <div class="calendar-day">28</div>
+              <div class="calendar-day">29</div>
+              <div class="calendar-day">30</div>
+              <div class="calendar-day">31</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 今後の予定 -->
+        <div class="card">
+          <div class="card-header">
+            <h2><i data-lucide="list-ordered" class="icon-sm"></i> 今後の予定</h2>
+          </div>
+          <div>
+            <div class="event-row">
+              <div class="event-date-block today">
+                <div class="event-date-month">May</div>
+                <div class="event-date-day">4</div>
+              </div>
+              <div class="event-info">
+                <div class="event-title">設計フェーズ 進行中</div>
+                <div class="event-meta">
+                  <span><i data-lucide="loader-2" class="icon-sm"></i>並行: アーキ + モック</span>
+                </div>
+              </div>
+            </div>
+            <div class="event-row">
+              <div class="event-date-block">
+                <div class="event-date-month">May</div>
+                <div class="event-date-day">8</div>
+              </div>
+              <div class="event-info">
+                <div class="event-title">アーキ中間レビュー MTG</div>
+                <div class="event-meta">
+                  <span><i data-lucide="clock" class="icon-sm"></i>14:00 〜 15:00</span>
+                  <span><i data-lucide="users" class="icon-sm"></i>クライアント</span>
+                </div>
+              </div>
+            </div>
+            <div class="event-row">
+              <div class="event-date-block">
+                <div class="event-date-month">May</div>
+                <div class="event-date-day">12</div>
+              </div>
+              <div class="event-info">
+                <div class="event-title">設計フェーズ完了予定</div>
+                <div class="event-meta">
+                  <span><i data-lucide="check-circle-2" class="icon-sm"></i>承認ゲート</span>
+                </div>
+              </div>
+            </div>
+            <div class="event-row">
+              <div class="event-date-block danger">
+                <div class="event-date-month">May</div>
+                <div class="event-date-day">20</div>
+              </div>
+              <div class="event-info">
+                <div class="event-title">本番リリース (納期)</div>
+                <div class="event-meta">
+                  <span style="color:var(--danger); font-weight:600;"><i data-lucide="flag" class="icon-sm"></i>残 16 日</span>
+                </div>
+              </div>
+            </div>
+            <div class="event-row">
+              <div class="event-date-block">
+                <div class="event-date-month">May</div>
+                <div class="event-date-day">25</div>
+              </div>
+              <div class="event-info">
+                <div class="event-title">QA + 受入テスト</div>
+                <div class="event-meta">
+                  <span><i data-lucide="users" class="icon-sm"></i>クライアント受入</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="./_partials.js"></script>
+<script>renderShell({ active: 'schedule', breadcrumb: 'スケジュール' });</script>
+</body>
+</html>

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADR一覧 — {{PROJECT_NAME}}</title>
+  <style>
+    :root {
+      --color-bg: #ffffff;
+      --color-surface: #f8f9fa;
+      --color-border: #e2e8f0;
+      --color-text: #1e293b;
+      --color-text-muted: #64748b;
+      --color-accent: #4f46e5;
+      --color-accent-light: #eef2ff;
+      --color-accepted: #16a34a;
+      --color-accepted-bg: #f0fdf4;
+      --color-proposed: #d97706;
+      --color-proposed-bg: #fffbeb;
+      --color-deprecated: #64748b;
+      --color-deprecated-bg: #f1f5f9;
+      --color-superseded: #7c3aed;
+      --color-superseded-bg: #faf5ff;
+      --color-arch: #2563eb;
+      --color-tech: #0891b2;
+      --color-process: #059669;
+      --color-security: #dc2626;
+      --color-infra: #7c3aed;
+      --font: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Meiryo", "Yu Gothic", sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: #e2e8f0;
+      color: var(--color-text);
+      font-size: 13px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      background: var(--color-bg);
+      margin: 24px auto;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.14);
+      overflow: hidden;
+    }
+
+    /* Header */
+    .page-header {
+      background: var(--color-accent);
+      color: #fff;
+      padding: 22px 32px;
+    }
+    .page-header h1 { font-size: 18px; font-weight: 700; }
+    .page-header .sub { font-size: 11px; opacity: 0.75; margin-top: 4px; }
+
+    /* Stats bar */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid var(--color-border);
+    }
+    .stat-cell {
+      padding: 12px 16px;
+      border-right: 1px solid var(--color-border);
+      text-align: center;
+    }
+    .stat-cell:last-child { border-right: none; }
+    .stat-cell .val { font-size: 22px; font-weight: 700; line-height: 1; }
+    .stat-cell .lbl { font-size: 10px; color: var(--color-text-muted); margin-top: 3px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .val-accepted { color: var(--color-accepted); }
+    .val-proposed { color: var(--color-proposed); }
+    .val-deprecated { color: var(--color-deprecated); }
+    .val-total { color: var(--color-accent); }
+
+    /* Body */
+    .page-body { padding: 22px 32px 32px; }
+
+    /* Section title */
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: 12px;
+      padding-bottom: 5px;
+      border-bottom: 2px solid var(--color-accent-light);
+    }
+
+    /* Timeline */
+    .timeline {
+      position: relative;
+      padding-left: 28px;
+      margin-bottom: 28px;
+    }
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 9px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--color-border);
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .timeline-dot {
+      position: absolute;
+      left: -23px;
+      top: 14px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 2px var(--color-border);
+      background: var(--color-text-muted);
+    }
+    .timeline-dot.accepted { background: var(--color-accepted); box-shadow: 0 0 0 2px var(--color-accepted); }
+    .timeline-dot.proposed { background: var(--color-proposed); box-shadow: 0 0 0 2px var(--color-proposed); }
+    .timeline-dot.deprecated { background: var(--color-deprecated); box-shadow: 0 0 0 2px var(--color-deprecated); }
+    .timeline-dot.superseded { background: var(--color-superseded); box-shadow: 0 0 0 2px var(--color-superseded); }
+
+    .adr-card {
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: box-shadow 0.15s;
+    }
+    .adr-card:hover { box-shadow: 0 2px 12px rgba(79,70,229,0.1); }
+
+    .adr-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+    }
+    .adr-num {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--color-text-muted);
+      font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+    }
+    .adr-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text);
+      flex: 1;
+    }
+    .adr-date {
+      font-size: 10px;
+      color: var(--color-text-muted);
+      flex-shrink: 0;
+    }
+
+    /* Status badges */
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .status-accepted { background: var(--color-accepted-bg); color: var(--color-accepted); }
+    .status-proposed { background: var(--color-proposed-bg); color: var(--color-proposed); }
+    .status-deprecated { background: var(--color-deprecated-bg); color: var(--color-deprecated); }
+    .status-superseded { background: var(--color-superseded-bg); color: var(--color-superseded); }
+
+    /* Category badges */
+    .cat-badge {
+      display: inline-block;
+      padding: 1px 7px;
+      border-radius: 10px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .cat-arch { background: #eff6ff; color: var(--color-arch); }
+    .cat-tech { background: #ecfeff; color: var(--color-tech); }
+    .cat-process { background: #f0fdf4; color: var(--color-process); }
+    .cat-security { background: #fef2f2; color: var(--color-security); }
+    .cat-infra { background: #faf5ff; color: var(--color-infra); }
+
+    .adr-card-body {
+      padding: 12px 14px;
+      display: none;
+    }
+    .adr-card-body.open { display: block; }
+
+    .adr-section { margin-bottom: 12px; }
+    .adr-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--color-text-muted);
+      margin-bottom: 4px;
+    }
+    .adr-section-content {
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--color-text);
+    }
+
+    /* Alternatives table */
+    .alt-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+    .alt-table th {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      padding: 5px 8px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--color-text-muted);
+    }
+    .alt-table td {
+      border: 1px solid var(--color-border);
+      padding: 6px 8px;
+      vertical-align: top;
+    }
+    .alt-table tr.adopted td { background: #f0fdf4; }
+
+    /* Consequences */
+    .consequences {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .consequence-col {
+      border-radius: 6px;
+      padding: 10px 12px;
+    }
+    .consequence-col.positive { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .consequence-col.negative { background: #fef2f2; border: 1px solid #fecaca; }
+    .consequence-col .col-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .consequence-col.positive .col-title { color: var(--color-accepted); }
+    .consequence-col.negative .col-title { color: var(--color-security); }
+    .consequence-col ul { list-style: none; }
+    .consequence-col ul li {
+      font-size: 11px;
+      padding: 2px 0;
+      display: flex;
+      gap: 5px;
+    }
+    .consequence-col ul li::before { content: "·"; }
+
+    /* Toggle button */
+    .toggle-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--color-accent);
+      padding: 0;
+      font-family: var(--font);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .toggle-icon { transition: transform 0.2s; }
+    .toggle-icon.open { transform: rotate(90deg); }
+
+    /* Index table */
+    .index-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-bottom: 24px;
+    }
+    .index-table th {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      padding: 7px 10px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--color-text-muted);
+    }
+    .index-table td {
+      border: 1px solid var(--color-border);
+      padding: 7px 10px;
+      vertical-align: middle;
+    }
+    .index-table tr:nth-child(even) td { background: #fafafa; }
+
+    /* Footer */
+    .page-footer {
+      border-top: 1px solid var(--color-border);
+      padding: 10px 32px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--color-text-muted);
+      background: var(--color-surface);
+    }
+
+    @media print {
+      body { background: #fff; }
+      .page { margin: 0; box-shadow: none; width: 100%; }
+      .adr-card-body { display: block !important; }
+      .toggle-btn { display: none; }
+      @page { size: A4 portrait; margin: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <h1>ADR一覧 — {{PROJECT_NAME}}</h1>
+    <div class="sub">Architecture Decision Records / 最終更新: {{LAST_UPDATED}}</div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-cell">
+      <div class="val val-total">{{TOTAL_COUNT}}</div>
+      <div class="lbl">Total ADRs</div>
+    </div>
+    <div class="stat-cell">
+      <div class="val val-accepted">{{ACCEPTED_COUNT}}</div>
+      <div class="lbl">承認済み</div>
+    </div>
+    <div class="stat-cell">
+      <div class="val val-proposed">{{PROPOSED_COUNT}}</div>
+      <div class="lbl">提案中</div>
+    </div>
+    <div class="stat-cell">
+      <div class="val val-deprecated">{{DEPRECATED_COUNT}}</div>
+      <div class="lbl">廃止</div>
+    </div>
+  </div>
+
+  <div class="page-body">
+
+    <!-- Index -->
+    <div style="margin-bottom:24px;">
+      <div class="section-title">ADRインデックス</div>
+      <table class="index-table">
+        <thead>
+          <tr>
+            <th style="width:70px">番号</th>
+            <th>タイトル</th>
+            <th style="width:80px">カテゴリ</th>
+            <th style="width:80px">ステータス</th>
+            <th style="width:80px">日付</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{INDEX_ROWS_HTML}}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Timeline -->
+    <div>
+      <div class="section-title">ADR詳細 — タイムライン</div>
+      <div class="timeline">
+        {{ADR_TIMELINE_HTML}}
+      </div>
+    </div>
+
+  </div>
+
+  <div class="page-footer">
+    <span>{{PROJECT_NAME}} — Architecture Decision Records</span>
+    <span>総ADR数: {{TOTAL_COUNT}}件</span>
+    <span>最終更新: {{LAST_UPDATED}}</span>
+  </div>
+
+</div>
+
+<script>
+  // Toggle ADR card details
+  document.querySelectorAll('.adr-card-header').forEach(function(header) {
+    header.addEventListener('click', function() {
+      var card = header.closest('.adr-card');
+      var body = card.querySelector('.adr-card-body');
+      var icon = header.querySelector('.toggle-icon');
+      if (body) {
+        body.classList.toggle('open');
+        if (icon) icon.classList.toggle('open');
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

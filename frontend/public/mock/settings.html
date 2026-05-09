@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>プロジェクト設定 — Build-Factory v1</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./_shared.css" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  .settings-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: var(--space-6);
+  }
+  .settings-nav {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-3);
+    height: fit-content;
+    position: sticky;
+    top: 0;
+  }
+  .settings-nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px;
+    margin: 1px 0;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    color: var(--text-2);
+    cursor: pointer;
+  }
+  .settings-nav-item:hover { background: var(--bg-soft); color: var(--text-1); }
+  .settings-nav-item.active {
+    background: var(--primary-bg);
+    color: var(--primary);
+    font-weight: 600;
+  }
+
+  .settings-section {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-5);
+    overflow: hidden;
+  }
+  .settings-section-header {
+    padding: 14px var(--space-5);
+    border-bottom: 1px solid var(--divider);
+  }
+  .settings-section-title {
+    font-size: 15px; font-weight: 700;
+    color: var(--text-1);
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 4px;
+  }
+  .settings-section-desc {
+    font-size: 12.5px;
+    color: var(--text-3);
+  }
+  .settings-section-body { padding: var(--space-5); }
+
+  .setting-row {
+    display: flex; align-items: center; gap: var(--space-4);
+    padding: var(--space-3) 0;
+    border-bottom: 1px dashed var(--divider);
+  }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-row-info { flex: 1; }
+  .setting-row-title { font-size: 13.5px; font-weight: 600; color: var(--text-1); margin-bottom: 2px; }
+  .setting-row-desc { font-size: 12px; color: var(--text-3); line-height: 1.5; }
+
+  /* toggle */
+  .toggle-switch {
+    width: 40px; height: 22px;
+    background: var(--text-4);
+    border-radius: 999px;
+    position: relative;
+    cursor: pointer;
+    transition: background 200ms;
+    flex-shrink: 0;
+  }
+  .toggle-switch.on { background: var(--primary); }
+  .toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 18px; height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 200ms;
+  }
+  .toggle-switch.on::after { transform: translateX(18px); }
+
+  /* radio cards */
+  .radio-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+  }
+  .radio-card {
+    background: var(--bg-soft);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    cursor: pointer;
+    transition: border-color 120ms, background 120ms;
+  }
+  .radio-card:hover { border-color: var(--primary); }
+  .radio-card.selected {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+  }
+  .radio-card-name {
+    font-size: 13px; font-weight: 700; color: var(--text-1);
+    margin-bottom: 4px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .radio-card-desc {
+    font-size: 11.5px; color: var(--text-3);
+    line-height: 1.5;
+  }
+
+  .danger-zone {
+    background: #FEF2F2;
+    border: 1px solid var(--danger-bg);
+  }
+  .danger-zone .settings-section-title { color: var(--danger); }
+  .danger-zone .setting-row {
+    align-items: flex-start;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="header"></header>
+  <aside class="sidebar"></aside>
+
+  <main class="main">
+    <div class="page-header">
+      <div class="page-header-top">
+        <div>
+          <div class="page-title">プロジェクト設定</div>
+          <div class="page-subtitle">基本情報 / フェーズ制御 / Penpot 連携 / 通知 / アーカイブ</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-layout">
+      <!-- nav -->
+      <nav class="settings-nav">
+        <div class="settings-nav-item active">
+          <i data-lucide="info" class="icon-sm"></i>
+          基本情報
+        </div>
+        <div class="settings-nav-item">
+          <i data-lucide="git-branch" class="icon-sm"></i>
+          フェーズ制御
+        </div>
+        <div class="settings-nav-item">
+          <i data-lucide="palette" class="icon-sm"></i>
+          Penpot 連携
+        </div>
+        <div class="settings-nav-item">
+          <i data-lucide="cpu" class="icon-sm"></i>
+          AI モデル
+        </div>
+        <div class="settings-nav-item">
+          <i data-lucide="bell" class="icon-sm"></i>
+          通知
+        </div>
+        <div class="settings-nav-item">
+          <i data-lucide="key-round" class="icon-sm"></i>
+          API トークン
+        </div>
+        <div class="settings-nav-item">
+          <i data-lucide="archive" class="icon-sm"></i>
+          アーカイブ
+        </div>
+        <div class="settings-nav-item" style="color: var(--danger);">
+          <i data-lucide="alert-triangle" class="icon-sm"></i>
+          危険ゾーン
+        </div>
+      </nav>
+
+      <!-- content -->
+      <div>
+        <!-- 基本情報 -->
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <div class="settings-section-title">
+              <i data-lucide="info"></i>
+              基本情報
+            </div>
+            <div class="settings-section-desc">プロジェクトの名前・クライアント・期限などの基本データ</div>
+          </div>
+          <div class="settings-section-body">
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">プロジェクト名</label>
+                <input class="form-input" value="Build-Factory v1" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">クライアント</label>
+                <input class="form-input" value="●●株式会社" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">概要</label>
+              <textarea class="form-textarea" rows="3">AI-driven Development OS の MVP 構築。ヒアリング〜納品までを 1 つのプラットフォームで管理する。</textarea>
+            </div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">開始日</label>
+                <input class="form-input" type="date" value="2026-04-30" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">納期</label>
+                <input class="form-input" type="date" value="2026-05-20" />
+              </div>
+            </div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">ステータス</label>
+                <select class="form-select">
+                  <option>進行中 (active)</option>
+                  <option>一時停止 (paused)</option>
+                  <option>完了 (done)</option>
+                  <option>アーカイブ (archived)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">予算 (任意)</label>
+                <input class="form-input" value="5,160,000 円" />
+              </div>
+            </div>
+            <div style="display:flex; gap: 8px; margin-top: var(--space-4);">
+              <button class="btn btn-primary">保存</button>
+              <button class="btn btn-ghost">変更を破棄</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- フェーズ制御 -->
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <div class="settings-section-title">
+              <i data-lucide="git-branch"></i>
+              フェーズ制御モード
+            </div>
+            <div class="settings-section-desc">DAG 順序を厳密に守るか、自由に飛ばせるかを設定</div>
+          </div>
+          <div class="settings-section-body">
+            <div class="radio-cards">
+              <div class="radio-card">
+                <div class="radio-card-name">
+                  <i data-lucide="lock" class="icon-sm"></i>
+                  厳格
+                </div>
+                <div class="radio-card-desc">前提フェーズが完了しないと次に進めません。新人 PM や教育用に。</div>
+              </div>
+              <div class="radio-card selected">
+                <div class="radio-card-name">
+                  <i data-lucide="navigation" class="icon-sm"></i>
+                  ガイド (推奨)
+                </div>
+                <div class="radio-card-desc">前提未完了は警告モーダル。理由入力で強制突破可能。通常はこれ。</div>
+              </div>
+              <div class="radio-card">
+                <div class="radio-card-name">
+                  <i data-lucide="zap" class="icon-sm"></i>
+                  自由
+                </div>
+                <div class="radio-card-desc">制限なし。表示のみ。経験者・小規模案件向け。</div>
+              </div>
+            </div>
+
+            <div style="margin-top: var(--space-5);">
+              <div class="setting-row">
+                <div class="setting-row-info">
+                  <div class="setting-row-title">並行進行を許可</div>
+                  <div class="setting-row-desc">並行可能なフェーズ (アーキ + デザイン + API 等) を同時に進められる</div>
+                </div>
+                <div class="toggle-switch on"></div>
+              </div>
+              <div class="setting-row">
+                <div class="setting-row-info">
+                  <div class="setting-row-title">フェーズ完了に PM 承認を必須にする</div>
+                  <div class="setting-row-desc">AI が STEP を全完了してもプロジェクトオーナーの承認なしでは次へ進めない</div>
+                </div>
+                <div class="toggle-switch on"></div>
+              </div>
+              <div class="setting-row">
+                <div class="setting-row-info">
+                  <div class="setting-row-title">強行突破時に理由入力を必須にする</div>
+                  <div class="setting-row-desc">スキップしたフェーズの記録を残す</div>
+                </div>
+                <div class="toggle-switch on"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Penpot 連携 -->
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <div class="settings-section-title">
+              <i data-lucide="palette"></i>
+              Penpot 連携
+            </div>
+            <div class="settings-section-desc">デザイナー AI のモック作成キャンバス連携設定</div>
+          </div>
+          <div class="settings-section-body">
+            <div class="form-group">
+              <label class="form-label">Penpot Workspace</label>
+              <input class="form-input" value="Build-Factory Designs" />
+              <div class="form-help">Penpot 側のワークスペース名と紐付け</div>
+            </div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">Project ID</label>
+                <input class="form-input" value="prj_a1b2c3d4..." />
+              </div>
+              <div class="form-group">
+                <label class="form-label">File ID</label>
+                <input class="form-input" value="fil_x9y8z7..." />
+              </div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-row-info">
+                <div class="setting-row-title">クライアントにモック編集権限を付与</div>
+                <div class="setting-row-desc">通常はコメント権限のみ。チェックすると client ロールでも編集可能になる</div>
+              </div>
+              <div class="toggle-switch"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI モデル -->
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <div class="settings-section-title">
+              <i data-lucide="cpu"></i>
+              AI モデル設定
+            </div>
+            <div class="settings-section-desc">各 AI 社員が使う LLM プロバイダ・モデルを指定</div>
+          </div>
+          <div class="settings-section-body">
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">秘書 AI</label>
+                <select class="form-select">
+                  <option>Claude Opus 4.7 (1M)</option>
+                  <option>Claude Sonnet 4.6</option>
+                  <option>Claude Haiku 4.5</option>
+                  <option>GPT-4o</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">PM AI</label>
+                <select class="form-select">
+                  <option>Claude Sonnet 4.6</option>
+                  <option>Claude Opus 4.7</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">設計 AI</label>
+                <select class="form-select">
+                  <option>Claude Opus 4.7 (1M)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">エンジニア AI (Claude Code 連携)</label>
+                <select class="form-select">
+                  <option>Claude Code (MCP 経由)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 危険ゾーン -->
+        <div class="settings-section danger-zone">
+          <div class="settings-section-header" style="border-color: var(--danger-bg);">
+            <div class="settings-section-title">
+              <i data-lucide="alert-triangle"></i>
+              危険ゾーン
+            </div>
+            <div class="settings-section-desc">取り返しのつかない操作。実行前に十分にご確認ください。</div>
+          </div>
+          <div class="settings-section-body">
+            <div class="setting-row">
+              <div class="setting-row-info">
+                <div class="setting-row-title" style="color: var(--text-1);">プロジェクトをアーカイブ</div>
+                <div class="setting-row-desc">読み取り専用にして一覧から非表示にします。後から復元可能。</div>
+              </div>
+              <button class="btn btn-secondary">アーカイブ</button>
+            </div>
+            <div class="setting-row">
+              <div class="setting-row-info">
+                <div class="setting-row-title" style="color: var(--danger);">プロジェクトを削除</div>
+                <div class="setting-row-desc">タスク・成果物・議事録すべて削除されます。<strong>復元不可。</strong></div>
+              </div>
+              <button class="btn btn-danger">削除</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="./_partials.js"></script>
+<script>renderShell({ active: 'settings', breadcrumb: 'プロジェクト設定' });</script>
+</body>
+</html>

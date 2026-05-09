@@ -1,0 +1,76 @@
+{
+  "skill_name": "functional-breakdown",
+  "description": "要件定義 → 設計分岐の前段で、画面/機能/ロール/エンティティを項目単位で詰めるスキルのテスト",
+  "evals": [
+    {
+      "id": "fb-eval-1",
+      "title": "EC サイト要件から自動展開",
+      "prompt": "要件定義が終わったところです。BtoC の EC サイトで、商品 30 種類くらい、決済は Stripe、レビュー機能あり、管理画面で商品・在庫・注文を管理。会員登録は email + Google ログイン、配送追跡もしたい。今 STEP 1 の自動展開をやってほしい。各種別何件ぐらい出てくるか見たい。",
+      "expected_behavior": [
+        "STEP 1 形式で出力する (会話的前置きなし)",
+        "Screens 表に 8 件以上 (商品一覧/詳細/カート/チェックアウト/会員登録/ログイン/管理ダッシュボード/注文管理 等)",
+        "Features 表に 6 件以上 (認証/カート/決済/レビュー/配送追跡/通知 等)",
+        "Roles 表に最低 3 件 (ゲスト/一般/管理者)",
+        "Entities 草案に 6 件以上 (User/Product/Order/Cart/Review/Payment 等)",
+        "抜け検出セクションに具体的な未確認項目が挙がっている",
+        "STEP 1 末尾で『STEP 2 へ』のメッセージで止まっている"
+      ],
+      "assertions": [
+        {"id": "format_no_preface", "check": "応答冒頭が '##' で始まる (前置き禁止)"},
+        {"id": "screens_count", "check": "Screens 表に 8 件以上"},
+        {"id": "features_count", "check": "Features 表に 6 件以上"},
+        {"id": "auth_in_features", "check": "Features に認証 (auth) が含まれる"},
+        {"id": "payment_in_features", "check": "Features に決済関連が含まれる (Stripe を踏まえた categoryで)"},
+        {"id": "roles_count", "check": "Roles 表に 3 件以上 (guest/user/admin 相当)"},
+        {"id": "entities_count", "check": "Entities 草案に 6 件以上 (User/Product/Order 含む)"},
+        {"id": "gap_detection", "check": "抜け検出セクションが空でなく、要件未明示の項目を具体的に列挙"},
+        {"id": "stops_at_step1", "check": "STEP 1 で止まり STEP 2 を勝手に開始しない"}
+      ]
+    },
+    {
+      "id": "fb-eval-2",
+      "title": "認証機能 (F-001) の深掘り",
+      "prompt": "F-001 の認証機能を STEP 2 で詰めたい。要件は: BtoB SaaS / 法人ユーザー前提 / メール+パス + Google Workspace SSO / 管理者は 2FA 必須 / 退会は 90 日猶予で論理削除。漏れなくチェックリスト出してくれ。",
+      "expected_behavior": [
+        "1 項目スコープで応答 (F-001 のみを扱う)",
+        "現在のドラフト + チェックリスト + 質問 2-3 個の構造",
+        "標準 F チェックリスト 10 項目を全て含む",
+        "auth カテゴリなので追加 8 項目 (CL-AUTH-1〜8) も全て含む",
+        "BtoB / SSO / 管理者 2FA 必須 / 90 日猶予の文脈が反映された AI 推奨案",
+        "質問は重要度高い項目に絞られている (全部聞かない)"
+      ],
+      "assertions": [
+        {"id": "scoped_to_f001", "check": "F-001 のみを扱い、他項目を出していない"},
+        {"id": "has_draft_section", "check": "## 現在のドラフト セクションが存在"},
+        {"id": "has_checklist_section", "check": "## 確認チェックリスト セクションが存在"},
+        {"id": "has_questions_section", "check": "## 私からの質問 セクションが存在"},
+        {"id": "checklist_standard_10", "check": "CL-F-1 から CL-F-10 まで 10 項目全部含む"},
+        {"id": "checklist_auth_8", "check": "CL-AUTH-1 から CL-AUTH-8 まで 8 項目全部含む"},
+        {"id": "context_reflected_sso", "check": "推奨案に SSO (Google Workspace) が反映されている"},
+        {"id": "context_reflected_2fa_admin", "check": "2FA は管理者必須が反映されている"},
+        {"id": "context_reflected_grace", "check": "退会フローに 90 日猶予が反映されている"},
+        {"id": "questions_focused", "check": "質問は 2〜3 個に絞られている"}
+      ]
+    },
+    {
+      "id": "fb-eval-3",
+      "title": "全項目 decided 後の STEP 3 出力",
+      "prompt": "全部の項目 decided になった。STEP 3 で完了サマリーと 4 JSON + ブログ風 HTML 出して。Screens 8件 / Features 7件 / Roles 4件 / Entities 9件 で全部 decided 状態。",
+      "expected_behavior": [
+        "完了サマリーテーブル",
+        "アーキテクチャ設計への引き継ぎ事項セクション",
+        "screens.json / features.json / roles.json / entities.json の 4 形式言及",
+        "ブログ記事風 HTML への参照",
+        "引き継ぎに認証/決済/検索/ロール/エンティティ等のキーが出る",
+        "外部サービス依存の一覧化"
+      ],
+      "assertions": [
+        {"id": "summary_table", "check": "完了サマリーテーブルが含まれる"},
+        {"id": "handoff_section", "check": "## アーキテクチャ設計への引き継ぎ事項 が存在"},
+        {"id": "all_4_json", "check": "screens.json / features.json / roles.json / entities.json の 4 つ全て言及"},
+        {"id": "html_output_mentioned", "check": "ブログ記事風 HTML への言及"},
+        {"id": "handoff_categories", "check": "引き継ぎに認証/ロール/エンティティ規模/外部依存のいずれかが言及される"}
+      ]
+    }
+  ]
+}

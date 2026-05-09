@@ -1,502 +1,305 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import {
-  Workspace,
-  WorkspaceMember,
-  fetchWorkspace,
-  fetchMembers,
-  updateWorkspace,
+  Workspace, fetchWorkspace, fetchWorkspaceSummary, type WorkspaceSummary,
 } from "@/lib/workspaces";
-import { ArrowLeft, Settings, Palette, ListTodo, MessageSquare, Users, Package, Eye } from "lucide-react";
+import { WorkspaceShell } from "@/components/workspace-shell";
+import type { LeaderId } from "@/components/workspace-shell";
+import {
+  DagProgress, AlertStrip,
+  NextActionsBlock, QueueBlock,
+  ActivePhasesBlock, KpiBlock,
+  ArtifactsBlock, ActivityBlock, MembersBlock,
+  type DagPhase, type NextAction, type QueueItem,
+  type PhaseRow, type ArtifactRow, type ActivityItem,
+} from "@/components/workspace-shell/HomeBlocks";
+import { Download, Play } from "lucide-react";
 
-type Tab = "overview" | "design" | "tasks" | "chat" | "artifacts" | "members";
+const SKILL_TO_LEADER: Record<string, { id: LeaderId; label: string }> = {
+  "feature":                  { id: "pm",     label: "PM AI" },
+  "hearing":                  { id: "pm",     label: "PM AI" },
+  "requirements-definition":  { id: "pm",     label: "PM AI" },
+  "proposal":                 { id: "pm",     label: "PM AI" },
+  "estimate":                 { id: "pm",     label: "PM AI" },
+  "acceptance-criteria":      { id: "pm",     label: "PM AI" },
+  "architecture-design":      { id: "arch",   label: "設計 AI" },
+  "tech-stack":               { id: "arch",   label: "設計 AI" },
+  "api-design":               { id: "arch",   label: "設計 AI" },
+  "feature-decomposition":    { id: "arch",   label: "設計 AI" },
+  "task-decomposition":       { id: "arch",   label: "設計 AI" },
+  "design-md":                { id: "design", label: "デザイナー AI" },
+  "ui-mockup":                { id: "design", label: "デザイナー AI" },
+  "frontend-design":          { id: "design", label: "デザイナー AI" },
+  "distributed-dev":          { id: "eng",    label: "エンジニア AI" },
+  "integration":              { id: "eng",    label: "エンジニア AI" },
+  "test-verification":        { id: "qa",     label: "品質 AI" },
+  "code-review":              { id: "qa",     label: "品質 AI" },
+  "release-planning":         { id: "ops",    label: "DevOps AI" },
+  "operations":               { id: "ops",    label: "DevOps AI" },
+  "documentation":            { id: "ops",    label: "DevOps AI" },
+};
+
+function leaderFor(skill: string): { id: LeaderId; label: string } {
+  return SKILL_TO_LEADER[skill] ?? { id: "secretary", label: "秘書 AI" };
+}
 
 /**
- * Workspace ダッシュボード（プロジェクト個別）
- * - タブ: 概要 / Design / タスク / チャット / Artifacts / メンバー
+ * Workspace ホーム (admin / contributor 向けコックピット)
+ * デザイン: Calm Industrial — Build-Factory/docs/DESIGN-SYSTEM.md
+ * モック原本: frontend/public/mock/workspace-home.html
  */
-export default function WorkspaceDetailPage() {
+export default function WorkspaceHomePage() {
   const params = useParams();
   const id = Number(params?.id);
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
-  const [members, setMembers] = useState<WorkspaceMember[]>([]);
-  const [tab, setTab] = useState<Tab>("overview");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!id) return;
     (async () => {
       setLoading(true);
-      const [w, ms] = await Promise.all([fetchWorkspace(id), fetchMembers(id)]);
-      setWorkspace(w);
-      setMembers(ms);
-      setLoading(false);
+      try {
+        const w = await fetchWorkspace(id);
+        setWorkspace(w);
+      } catch {
+        setWorkspace(null);
+      } finally {
+        setLoading(false);
+      }
     })();
   }, [id]);
 
+  // 実データサマリ
+  const { data: summary } = useQuery<WorkspaceSummary>({
+    queryKey: ["workspace-summary", id],
+    queryFn: () => fetchWorkspaceSummary(id),
+    enabled: !!id,
+    refetchInterval: 5000,
+  });
+
+  // モックのデモデータ — 本番接続まではこれで動かす
+  const phases: DagPhase[] = [
+    { id: "hearing",  label: "ヒア",     status: "done" },
+    { id: "req",      label: "要件",     status: "done" },
+    { id: "proposal", label: "提案",     status: "done" },
+    { id: "design",   label: "デザイン", status: "done" },
+    { id: "arch",     label: "アーキ",   status: "in-progress" },
+    { id: "api",      label: "API",     status: "pending" },
+    { id: "feat",     label: "機能分解", status: "pending" },
+    { id: "task",     label: "タスク",   status: "pending" },
+    { id: "impl",     label: "実装",     status: "pending" },
+    { id: "integ",    label: "統合",     status: "pending" },
+    { id: "test",     label: "テスト",   status: "pending" },
+    { id: "review",   label: "レビュー", status: "pending" },
+    { id: "release",  label: "リリース", status: "pending" },
+  ];
+
+  const nextActions: NextAction[] = [
+    {
+      id: 1, leaderId: "arch", leaderLabel: "設計 AI",
+      phase: "アーキテクチャ STEP 4 / 4",
+      title: "アーキテクチャ設計を完了する",
+      reason: "要件定義の最終 STEP が確定済。技術スタック・モジュール構成・ER 図を確定すれば次のフェーズ (API 設計・機能分解) に並行で進めます。",
+      recommend: true,
+    },
+    {
+      id: 2, leaderId: "design", leaderLabel: "デザイナー AI",
+      phase: "モック作成",
+      title: "主要 3 画面のモックを Penpot で起こす",
+      reason: "デザインシステム確定済。アーキ完了を待たずに、主要画面 (ホーム / タスク / 設定) のモックを並行で進められます。",
+      parallel: true,
+    },
+    {
+      id: 3, leaderId: "pm", leaderLabel: "PM AI",
+      phase: "受入条件",
+      title: "受入条件を Gherkin 形式で起こす",
+      reason: "要件定義の機能リスト 12 項目に対し、各機能の受入条件を AC スキルで自動生成できます。",
+      parallel: true,
+    },
+  ];
+
+  const queue: QueueItem[] = [
+    { id: 1, type: "question", title: "予算上限の確認",                   source: "秘書 AI からの質問 ・ ヒアリング",        time: "15分前" },
+    { id: 2, type: "review",   title: "要件定義書 v2.0 のレビュー依頼",   source: "PM AI が完成 ・ 6 項目のチェック",       time: "42分前" },
+    { id: 3, type: "approve",  title: "API 設計書 の承認待ち",            source: "設計 AI が完成 ・ 承認後フェーズ完了",     time: "1時間前" },
+    { id: 4, type: "comment",  title: "クライアント (山田 太郎) のコメント", source: "「モックの導線を確認してほしい」",        time: "3時間前" },
+    { id: 5, type: "question", title: "既存 DB との連携要否",             source: "設計 AI からの質問 ・ アーキ",            time: "昨日" },
+  ];
+
+  // 進行中フェーズ - summary から動的生成
+  const activePhases: PhaseRow[] = (summary?.active_phases ?? []).slice(0, 4).map((p) => {
+    const lead = leaderFor(p.skill_name || "");
+    const total = p.child_total || 1;
+    const done = p.child_done || 0;
+    const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+    return {
+      leaderId: lead.id, leaderLabel: lead.label,
+      phaseName: p.title,
+      step: p.child_total > 0 ? `${done} / ${total} 完了` : `STEP 進行中`,
+      percent, parallel: false,
+    };
+  });
+
+  // 最新成果物 - summary から動的生成
+  const artifacts: ArtifactRow[] = (summary?.recent_artifacts ?? []).slice(0, 5).map((a) => {
+    const tags = (a.category_tags ?? []).map((t) => String(t));
+    let type: ArtifactRow["type"] = "doc";
+    if (a.type === "html" || tags.includes("design"))                 type = "design";
+    else if (tags.includes("arch") || a.title.includes("アーキ"))      type = "arch";
+    else if (a.type === "code" || tags.includes("code"))              type = "code";
+    const ago = new Date(a.updated_at);
+    return {
+      id: a.id, type, title: a.title || "(無題)",
+      version: a.type === "minutes" ? "" : "v1",
+      meta: `${ago.toLocaleString("ja-JP")} / ${tags[0] ?? a.type}`,
+    };
+  });
+
+  const activity: ActivityItem[] = [
+    { id: 1, time: "10分前",   text: <><strong>秘書 AI</strong> がヒアリング STEP 4 を完了</> },
+    { id: 2, time: "42分前",   text: <><strong>PM AI</strong> が要件定義書 v2.0 を出力</> },
+    { id: 3, time: "1時間前",  text: <><strong>設計 AI</strong> がアーキ STEP 3 を完了 → STEP 4 へ</> },
+    { id: 4, time: "2時間前",  text: <><strong>あなた</strong> が要件定義書 v1.0 をレビュー</> },
+    { id: 5, time: "3時間前",  text: <><strong>山田 太郎</strong> がモックにコメント追加</> },
+  ];
+
   if (loading) {
-    return <div className="p-6 text-gray-500">読み込み中…</div>;
+    return (
+      <div className="p-6" style={{ color: "var(--bf-text-3)" }}>読み込み中…</div>
+    );
   }
   if (!workspace) {
-    return <div className="p-6 text-red-500">workspace が見つかりません</div>;
+    return (
+      <div className="p-6" style={{ color: "var(--bf-danger)" }}>workspace が見つかりません</div>
+    );
   }
 
   return (
-    <div className="min-h-full">
-      {/* ヘッダ */}
-      <div className="border-b bg-white">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center gap-3 mb-2">
-            <Link
-              href="/workspaces"
-              className="text-gray-500 hover:text-gray-700"
-              title="Account ダッシュボードへ"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </Link>
-            <span className="text-xs text-gray-500">Build-Factory / Workspace #{workspace.id}</span>
-          </div>
-          <h1 className="text-2xl font-bold">{workspace.name}</h1>
-          {workspace.description && (
-            <p className="text-sm text-gray-600 mt-1">{workspace.description}</p>
-          )}
-        </div>
-
-        {/* タブナビ */}
-        <div className="max-w-6xl mx-auto px-6 flex gap-1 -mb-px overflow-x-auto">
-          <TabButton tab="overview" current={tab} onClick={setTab} icon={<Eye className="w-3.5 h-3.5" />}>
-            概要
-          </TabButton>
-          <TabButton tab="design" current={tab} onClick={setTab} icon={<Palette className="w-3.5 h-3.5" />}>
-            Design
-          </TabButton>
-          <TabButton tab="tasks" current={tab} onClick={setTab} icon={<ListTodo className="w-3.5 h-3.5" />}>
-            タスク
-          </TabButton>
-          <TabButton tab="chat" current={tab} onClick={setTab} icon={<MessageSquare className="w-3.5 h-3.5" />}>
-            チャット
-          </TabButton>
-          <TabButton tab="artifacts" current={tab} onClick={setTab} icon={<Package className="w-3.5 h-3.5" />}>
-            Artifacts
-          </TabButton>
-          <TabButton tab="members" current={tab} onClick={setTab} icon={<Users className="w-3.5 h-3.5" />}>
-            メンバー ({members.length})
-          </TabButton>
-        </div>
-      </div>
-
-      {/* タブ内容 */}
-      <div className="max-w-6xl mx-auto p-6">
-        {tab === "overview" && <OverviewTab workspace={workspace} memberCount={members.length} />}
-        {tab === "design" && <DesignTab workspace={workspace} onUpdate={setWorkspace} />}
-        {tab === "tasks" && <TasksTab workspace={workspace} />}
-        {tab === "chat" && <ChatTab workspace={workspace} />}
-        {tab === "artifacts" && <ArtifactsTab workspace={workspace} />}
-        {tab === "members" && <MembersTab workspace={workspace} members={members} setMembers={setMembers} />}
-      </div>
-    </div>
-  );
-}
-
-function TabButton({
-  tab, current, onClick, icon, children,
-}: {
-  tab: Tab;
-  current: Tab;
-  onClick: (t: Tab) => void;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={() => onClick(tab)}
-      className={`flex items-center gap-1.5 px-3 py-2 text-sm border-b-2 transition ${
-        current === tab
-          ? "border-blue-600 text-blue-600 font-medium"
-          : "border-transparent text-gray-600 hover:text-gray-900"
-      }`}
+    <WorkspaceShell
+      workspaceId={id}
+      workspaceName={workspace.name}
+      progressPercent={summary ? Math.round(summary.completion_rate * 100) : 0}
+      daysLeft={23}
+      active="home"
     >
-      {icon}
-      {children}
-    </button>
-  );
-}
-
-function OverviewTab({ workspace, memberCount }: { workspace: Workspace; memberCount: number }) {
-  return (
-    <div className="space-y-6">
-      <Card title="メタ情報">
-        <dl className="grid grid-cols-2 gap-3 text-sm">
-          <Field label="ID" value={String(workspace.id)} />
-          <Field label="ステータス" value={workspace.status} />
-          <Field label="作成日" value={new Date(workspace.created_at).toLocaleString("ja-JP")} />
-          <Field label="更新日" value={new Date(workspace.updated_at).toLocaleString("ja-JP")} />
-          <Field label="メンバー数" value={String(memberCount)} />
-          <Field label="design_system_ref" value={workspace.design_system_ref || "未設定"} />
-        </dl>
-      </Card>
-
-      <Card title="開発フローの状況（実装中）">
-        <div className="text-sm text-gray-600 space-y-2">
-          <Step title="Phase A: 設計確定" detail="hearing → requirements → architecture → tech-stack → api-design" />
-          <Step title="Phase A: デザイン確定" detail="brand-voice → design-md → frontend-design → ui-mockup" />
-          <Step title="Phase B: 完成モック" detail="Onlook で全画面まとめ生成 + 反復編集" />
-          <Step title="Phase C: タスク分解" detail="feature-decomposition → task-decomposition" />
-          <Step title="Phase D: 実装" detail="Claude Code 3 分離 (Planner / Generator / Evaluator)" />
-        </div>
-      </Card>
-    </div>
-  );
-}
-
-function DesignTab({
-  workspace, onUpdate,
-}: {
-  workspace: Workspace;
-  onUpdate: (w: Workspace) => void;
-}) {
-  const [refValue, setRefValue] = useState(workspace.design_system_ref || "");
-  const [saving, setSaving] = useState(false);
-
-  const save = async () => {
-    setSaving(true);
-    const updated = await updateWorkspace(workspace.id, {
-      design_system_ref: refValue || null as unknown as string,
-    });
-    onUpdate(updated);
-    setSaving(false);
-  };
-
-  return (
-    <div className="space-y-4">
-      <Card title="Design System 参照">
-        <p className="text-xs text-gray-600 mb-3">
-          Open Design 取込みの 129 デザインシステムから 1 つ選んで設定。
-          Onlook 起動時に AI への prompt として渡される。
-        </p>
-        <div className="flex items-center gap-2">
-          <input
-            list="design-system-list"
-            value={refValue}
-            onChange={(e) => setRefValue(e.target.value)}
-            placeholder="例: linear / stripe / vercel / airbnb / notion ..."
-            className="flex-1 rounded border px-3 py-2 text-sm"
-          />
-          <datalist id="design-system-list">
-            {COMMON_DESIGN_SYSTEMS.map((d) => (
-              <option key={d} value={d} />
-            ))}
-          </datalist>
-          <button
-            onClick={save}
-            disabled={saving}
-            className="rounded bg-blue-600 text-white px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50"
-          >
-            {saving ? "保存中…" : "保存"}
-          </button>
-        </div>
-      </Card>
-
-      <Card title="Phase A 設計スキル（手動連鎖・実装中）">
-        <p className="text-xs text-gray-500">
-          brand-voice → design-md → frontend-design → ui-mockup を順に発火する自動連鎖は
-          Iteration 6 で実装予定。現在はチャットから個別に呼び出す形。
-        </p>
-      </Card>
-
-      <OnlookCard workspace={workspace} />
-      <PipelineCard workspaceId={workspace.id} />
-    </div>
-  );
-}
-
-function OnlookCard({ workspace }: { workspace: Workspace }) {
-  const [showHelp, setShowHelp] = useState(false);
-  const meta = (() => {
-    try { return JSON.parse(workspace.project_meta || "{}"); } catch { return {}; }
-  })();
-  const onlookUrl = meta.onlook_url as string | undefined;
-  const designSystem = workspace.design_system_ref;
-
-  return (
-    <div className="rounded-lg border bg-white p-5">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold flex items-center gap-2">
-          🎨 Onlook 連携
-          <span className="text-[10px] rounded-full bg-purple-100 text-purple-700 px-2 py-0.5">
-            Phase 1: ホスト版
-          </span>
-        </h3>
-        <button
-          onClick={() => setShowHelp((v) => !v)}
-          className="text-xs text-blue-600 hover:underline"
-        >
-          {showHelp ? "閉じる" : "使い方"}
-        </button>
-      </div>
-
-      {showHelp && (
-        <div className="mb-3 rounded bg-gray-50 p-3 text-xs text-gray-700 space-y-1.5">
-          <p><strong>1.</strong> 下のボタンで onlook.com を開く（別タブ）</p>
-          <p><strong>2.</strong> Onlook でプロジェクト作成・モック生成</p>
-          <p><strong>3.</strong> 確定したら Next.js プロジェクトを GitHub にエクスポート</p>
-          <p><strong>4.</strong> その GitHub URL を Build-Factory のタスクに紐付け</p>
-          <p className="text-gray-500 mt-2">
-            機密案件で本格運用する時は self-host へ移行（onlook/README.md 参照）
-          </p>
-        </div>
-      )}
-
-      <div className="space-y-2 text-xs">
-        <div className="flex items-center gap-2">
-          <span className="text-gray-500 w-24">design_system:</span>
-          <span className={`rounded px-2 py-0.5 ${designSystem ? "bg-purple-50 text-purple-700" : "bg-gray-100 text-gray-500"}`}>
-            {designSystem || "未設定（上で設定）"}
-          </span>
-        </div>
-        {onlookUrl && (
-          <div className="flex items-center gap-2">
-            <span className="text-gray-500 w-24">onlook URL:</span>
-            <a href={onlookUrl} target="_blank" rel="noopener noreferrer"
-               className="text-blue-600 hover:underline truncate">
-              {onlookUrl}
-            </a>
-          </div>
-        )}
-      </div>
-
-      <div className="mt-4 flex gap-2">
-        <a
-          href={onlookUrl || "https://onlook.com/"}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700"
-        >
-          🎨 Onlook で開く
-        </a>
-        <button
-          onClick={() => {
-            const url = prompt(
-              "このワークスペース用の Onlook プロジェクト URL を貼ってください",
-              onlookUrl || "",
-            );
-            if (url !== null) {
-              const meta2 = { ...meta, onlook_url: url };
-              fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/workspaces/${workspace.id}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ project_meta: meta2 }),
-              }).then(() => location.reload());
-            }
-          }}
-          className="rounded border px-3 py-2 text-sm hover:bg-gray-50"
-        >
-          {onlookUrl ? "URL 編集" : "Onlook URL を登録"}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function PipelineCard({ workspaceId }: { workspaceId: number }) {
-  type Step = {
-    step: number; skill: string; title: string;
-    optional: boolean; owner: string; completed: boolean;
-    artifact_id: string | null;
-  };
-  const [state, setState] = useState<{ steps: Step[]; all_required_done: boolean } | null>(null);
-  const [running, setRunning] = useState<number | null>(null);
-  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001";
-
-  useEffect(() => {
-    fetch(`${API}/api/design-pipeline/${workspaceId}`)
-      .then((r) => r.json())
-      .then(setState)
-      .catch(() => setState(null));
-  }, [workspaceId, API]);
-
-  const runStep = async (step: number) => {
-    setRunning(step);
-    try {
-      const r = await fetch(`${API}/api/design-pipeline/${workspaceId}/step/${step}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      });
-      const result = await r.json();
-      console.log("[pipeline]", result);
-      // 状態再取得
-      const s = await fetch(`${API}/api/design-pipeline/${workspaceId}`).then((r) => r.json());
-      setState(s);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setRunning(null);
-    }
-  };
-
-  return (
-    <div className="rounded-lg border bg-white p-5">
-      <h3 className="text-sm font-semibold mb-3">📐 Phase A デザインパイプライン</h3>
-      {!state && <div className="text-xs text-gray-500">読み込み中…</div>}
-      {state && (
-        <div className="space-y-2">
-          {state.steps.map((s) => (
-            <div key={s.step} className="flex items-center gap-3 text-sm rounded border px-3 py-2">
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
-                s.completed ? "bg-green-500 text-white" :
-                s.optional ? "bg-gray-200 text-gray-500" : "bg-blue-100 text-blue-700"
-              }`}>
-                {s.completed ? "✓" : s.step}
-              </div>
-              <div className="flex-1">
-                <div className="font-medium">{s.title}</div>
-                <div className="text-xs text-gray-500">
-                  {s.skill} · {s.owner}{s.optional && " · 任意"}
-                </div>
-              </div>
-              {s.completed ? (
-                <span className="text-xs text-green-600">完了</span>
-              ) : (
-                <button
-                  onClick={() => runStep(s.step)}
-                  disabled={running !== null}
-                  className="rounded bg-blue-600 text-white px-3 py-1 text-xs hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {running === s.step ? "実行中…" : "実行"}
-                </button>
-              )}
+      {/* Page Header */}
+      <div style={{ marginBottom: "var(--bf-space-8)" }}>
+        <div className="flex items-start gap-6 flex-wrap">
+          <div>
+            <h1
+              style={{
+                fontSize: 22, fontWeight: 700, letterSpacing: "-0.01em",
+                color: "var(--bf-text-1)", marginBottom: 4,
+              }}
+            >
+              {workspace.name}
+            </h1>
+            <div style={{ color: "var(--bf-text-3)", fontSize: 13 }}>
+              {workspace.description ?? "AI-driven Development OS の MVP 構築"}
             </div>
-          ))}
-          <p className="text-xs text-gray-500 mt-2">
-            実行には OPENAI_API_KEY が必要・各ステップは markdown artifact として保存されます
-          </p>
+          </div>
+          <div className="flex-1" />
+          <div className="flex items-center gap-2">
+            <button
+              className="inline-flex items-center gap-1.5 transition-colors"
+              style={{
+                height: 34, padding: "0 14px",
+                background: "var(--bf-bg-elev)", color: "var(--bf-text-1)",
+                border: "1px solid var(--bf-border)",
+                borderRadius: "var(--bf-radius-md)",
+                fontSize: 13, fontWeight: 600,
+              }}
+            >
+              <Download className="w-3.5 h-3.5" />
+              エクスポート
+            </button>
+            <button
+              className="inline-flex items-center gap-1.5 transition-colors"
+              style={{
+                height: 34, padding: "0 14px",
+                background: "var(--bf-primary)", color: "#fff",
+                border: "1px solid transparent",
+                borderRadius: "var(--bf-radius-md)",
+                fontSize: 13, fontWeight: 600,
+              }}
+            >
+              <Play className="w-3.5 h-3.5" />
+              次のアクションを実行
+            </button>
+          </div>
         </div>
-      )}
-    </div>
-  );
-}
 
-function TasksTab({ workspace }: { workspace: Workspace }) {
-  return (
-    <Card title="タスク（実装中）">
-      <p className="text-xs text-gray-500">
-        feature-decomposition / task-decomposition の出力をここに表示します。
-        Claude Code への引き渡しは MCP `bf_get_next_task` 経由。
-      </p>
-    </Card>
-  );
-}
+        <DagProgress
+          phases={phases}
+          currentLabel="アーキテクチャ STEP 4"
+          completed={4}
+          total={13}
+        />
 
-function ChatTab({ workspace }: { workspace: Workspace }) {
-  return (
-    <Card title="AI 社員チャット">
-      <Link
-        href="/secretary"
-        className="inline-flex items-center gap-2 rounded bg-blue-600 text-white px-4 py-2 text-sm hover:bg-blue-700"
+        <AlertStrip>
+          提案・見積フェーズが未実施のまま設計に進行中です。理由:「既存契約あり、見積省略」
+        </AlertStrip>
+      </div>
+
+      {/* Row 1: Next + Queue */}
+      <div
+        className="mb-5"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1.4fr 1fr",
+          gap: "var(--bf-space-5)",
+        }}
       >
-        🎀 PM 秘書（ナナ）と話す
-      </Link>
-      <p className="text-xs text-gray-500 mt-3">
-        他の AI 社員（アーキテクト / エンジニア / レビュー / QA / DevOps / Docs）への切替はチャット画面で。
-      </p>
-    </Card>
-  );
-}
+        <NextActionsBlock actions={nextActions} />
+        <QueueBlock items={queue} />
+      </div>
 
-function ArtifactsTab({ workspace }: { workspace: Workspace }) {
-  return (
-    <Card title="Artifacts">
-      <Link
-        href="/artifacts"
-        className="inline-flex items-center gap-2 rounded bg-blue-600 text-white px-4 py-2 text-sm hover:bg-blue-700"
+      {/* Row 2: Active Phases (2) + KPI (1) */}
+      <div
+        className="mb-5"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr 1fr",
+          gap: "var(--bf-space-5)",
+        }}
       >
-        📦 Artifacts ライブラリ
-      </Link>
-      <p className="text-xs text-gray-500 mt-3">
-        この workspace で生成された artifact のみ後ほどフィルタ表示する予定。
-      </p>
-    </Card>
+        <div style={{ gridColumn: "span 2" }}>
+          <ActivePhasesBlock phases={activePhases} />
+        </div>
+        <KpiBlock
+          taskDone={summary?.task_stats.completed ?? 0}
+          taskTotal={summary?.task_stats.total ?? 0}
+          blockers={summary?.task_stats.blockers ?? 0}
+          daysLeft={23}
+          budgetPercent={35}
+        />
+      </div>
+
+      {/* Row 3: Artifacts / Activity / Members */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr 1fr",
+          gap: "var(--bf-space-5)",
+        }}
+      >
+        <ArtifactsBlock artifacts={artifacts} />
+        <ActivityBlock items={activity} />
+        <MembersBlock
+          online={[
+            { name: "高本 まさと",        role: "admin",  avatar: "MA", bg: "linear-gradient(135deg,#2563EB,#06B6D4)" },
+            { name: "PM AI",              role: "AI",     avatar: "PM", bg: "var(--bf-leader-pm)" },
+            { name: "設計 AI",            role: "AI",     avatar: "設", bg: "var(--bf-leader-arch)" },
+            { name: "デザイナー AI",      role: "AI",     avatar: "デ", bg: "var(--bf-leader-design)" },
+          ]}
+          offline={[
+            { name: "山田 太郎 (client)", lastSeen: "30 分前" },
+          ]}
+        />
+      </div>
+    </WorkspaceShell>
   );
 }
-
-function MembersTab({
-  workspace, members, setMembers,
-}: {
-  workspace: Workspace;
-  members: WorkspaceMember[];
-  setMembers: (ms: WorkspaceMember[]) => void;
-}) {
-  const ROLES = ["admin", "contributor", "viewer", "client"];
-  return (
-    <Card title="Workspace メンバー">
-      <table className="w-full text-sm">
-        <thead className="text-xs text-gray-500 uppercase">
-          <tr>
-            <th className="text-left py-2">User ID</th>
-            <th className="text-left">Role</th>
-            <th className="text-left">招待者</th>
-            <th className="text-left">追加日</th>
-          </tr>
-        </thead>
-        <tbody>
-          {members.map((m) => (
-            <tr key={m.id} className="border-t">
-              <td className="py-2">{m.user_id}</td>
-              <td>
-                <span className={`rounded px-2 py-0.5 text-xs ${
-                  m.role === "admin" ? "bg-red-100 text-red-700" :
-                  m.role === "contributor" ? "bg-blue-100 text-blue-700" :
-                  m.role === "client" ? "bg-purple-100 text-purple-700" :
-                  "bg-gray-100 text-gray-700"
-                }`}>
-                  {m.role}
-                </span>
-              </td>
-              <td className="text-gray-600">{m.invited_by || "-"}</td>
-              <td className="text-gray-500 text-xs">{new Date(m.created_at).toLocaleDateString("ja-JP")}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <p className="text-xs text-gray-500 mt-3">
-        メンバー追加・招待発行は API で可能（UI は Iteration 後半で）。
-      </p>
-    </Card>
-  );
-}
-
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-lg border bg-white p-5">
-      <h3 className="text-sm font-semibold mb-3">{title}</h3>
-      {children}
-    </div>
-  );
-}
-
-function Field({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <dt className="text-xs text-gray-500 uppercase">{label}</dt>
-      <dd className="text-sm mt-0.5">{value}</dd>
-    </div>
-  );
-}
-
-function Step({ title, detail }: { title: string; detail: string }) {
-  return (
-    <div className="rounded border-l-4 border-blue-200 pl-3 py-1.5">
-      <div className="font-medium">{title}</div>
-      <div className="text-xs text-gray-600">{detail}</div>
-    </div>
-  );
-}
-
-const COMMON_DESIGN_SYSTEMS = [
-  "linear", "stripe", "vercel", "airbnb", "notion", "apple", "anthropic",
-  "spotify", "uber", "github", "shopify", "figma", "discord", "slack",
-];

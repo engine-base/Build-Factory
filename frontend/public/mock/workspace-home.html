@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Build-Factory v1 — Workspace Home (Mock)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  :root {
+    --bg-base: #FFFFFF;
+    --bg-app: #F5F7FA;
+    --bg-elev: #FFFFFF;
+    --bg-soft: #F8FAFC;
+    --bg-input: #F8FAFC;
+
+    --border: #E4E8EE;
+    --border-strong: #CBD3DC;
+    --divider: #EEF1F5;
+
+    --text-1: #0F172A;
+    --text-2: #334155;
+    --text-3: #64748B;
+    --text-4: #94A3B8;
+
+    --primary: #004CD9;
+    --primary-hover: #0040B8;
+    --primary-bg: #E8EFFE;
+    --primary-soft: #F2F6FF;
+
+    --success: #15803D;
+    --success-bg: #DCFCE7;
+    --warning: #B45309;
+    --warning-bg: #FEF3C7;
+    --danger: #B91C1C;
+    --danger-bg: #FEE2E2;
+    --info: #0369A1;
+    --info-bg: #E0F2FE;
+    --neutral: #475569;
+    --neutral-bg: #F1F5F9;
+
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 12px;
+
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+
+    --sidebar-w: 264px;
+    --header-h: 56px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-app);
+    color: var(--text-1);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; }
+  a { color: inherit; text-decoration: none; }
+  .icon { width: 16px; height: 16px; stroke-width: 1.75; flex-shrink: 0; }
+  .icon-sm { width: 14px; height: 14px; stroke-width: 1.75; flex-shrink: 0; }
+  .icon-lg { width: 18px; height: 18px; stroke-width: 1.75; flex-shrink: 0; }
+
+  /* ── Layout ─────────────────────────────────── */
+  .app {
+    display: grid;
+    grid-template-columns: var(--sidebar-w) 1fr;
+    grid-template-rows: var(--header-h) 1fr;
+    grid-template-areas:
+      "header header"
+      "sidebar main";
+    height: 100vh;
+  }
+
+  /* ── Header ─────────────────────────────────── */
+  .header {
+    grid-area: header;
+    display: flex;
+    align-items: center;
+    padding: 0 var(--space-6);
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--border);
+    gap: var(--space-6);
+  }
+  .header-logo {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: 700;
+    color: var(--text-1);
+    letter-spacing: -0.01em;
+    font-size: 15px;
+  }
+  .header-logo-mark {
+    width: 24px; height: 24px;
+    background: var(--primary);
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: 13px; letter-spacing: -0.02em;
+  }
+  .header-divider {
+    width: 1px; height: 20px; background: var(--border);
+  }
+  .breadcrumb {
+    display: flex; align-items: center; gap: var(--space-2);
+    color: var(--text-3); font-size: 13px;
+  }
+  .breadcrumb a:hover { color: var(--text-1); }
+  .breadcrumb-current { color: var(--text-1); font-weight: 500; }
+  .header-spacer { flex: 1; }
+  .header-search {
+    display: flex; align-items: center; gap: var(--space-2);
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 6px 10px;
+    color: var(--text-3);
+    width: 280px;
+    font-size: 13px;
+  }
+  .header-search:hover { border-color: var(--border-strong); }
+  .header-search-shortcut {
+    margin-left: auto;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: var(--text-4);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+  .header-actions { display: flex; align-items: center; gap: var(--space-3); }
+  .header-icon-btn {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: var(--radius-md);
+    color: var(--text-3);
+    position: relative;
+  }
+  .header-icon-btn:hover { background: var(--bg-soft); color: var(--text-1); }
+  .header-icon-btn .badge {
+    position: absolute; top: 4px; right: 4px;
+    width: 6px; height: 6px;
+    background: var(--danger);
+    border-radius: 50%;
+  }
+  .header-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2563EB, #06B6D4);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 11px;
+  }
+
+  /* ── Sidebar ────────────────────────────────── */
+  .sidebar {
+    grid-area: sidebar;
+    background: var(--bg-app);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: var(--space-3) 0 var(--space-6);
+  }
+  .sidebar-back {
+    display: flex; align-items: center; gap: var(--space-2);
+    padding: 6px var(--space-4);
+    color: var(--text-3);
+    font-size: 12px;
+    border-radius: var(--radius-md);
+    margin: 0 var(--space-3) var(--space-3);
+  }
+  .sidebar-back:hover { background: var(--bg-elev); color: var(--text-1); }
+
+  .sidebar-project {
+    padding: var(--space-3) var(--space-4);
+    margin: 0 var(--space-3) var(--space-2);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+  }
+  .sidebar-project-title {
+    font-weight: 600; font-size: 13px; color: var(--text-1);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .sidebar-project-meta {
+    display: flex; align-items: center; gap: var(--space-2);
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--text-3);
+  }
+  .sidebar-project-progress {
+    margin-top: 8px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .sidebar-project-progress > span {
+    display: block;
+    height: 100%;
+    background: var(--primary);
+    border-radius: 999px;
+  }
+
+  .sidebar-section-title {
+    margin: var(--space-5) var(--space-5) var(--space-2);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--text-4);
+    text-transform: uppercase;
+  }
+
+  .sidebar-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px var(--space-4);
+    margin: 1px var(--space-3);
+    border-radius: var(--radius-md);
+    color: var(--text-2);
+    font-size: 13px;
+    font-weight: 500;
+    position: relative;
+  }
+  .sidebar-item:hover { background: var(--bg-elev); color: var(--text-1); }
+  .sidebar-item.active {
+    background: var(--primary-bg);
+    color: var(--primary);
+    font-weight: 600;
+  }
+  .sidebar-item.active::before {
+    content: '';
+    position: absolute;
+    left: -12px;
+    top: 6px; bottom: 6px;
+    width: 3px;
+    background: var(--primary);
+    border-radius: 0 2px 2px 0;
+  }
+  .sidebar-item .icon { color: inherit; }
+  .sidebar-item-badge {
+    margin-left: auto;
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 1px 6px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--text-3);
+  }
+  .sidebar-item.active .sidebar-item-badge {
+    background: #fff; border-color: var(--primary-bg); color: var(--primary);
+  }
+  .sidebar-item-badge.alert {
+    background: var(--danger-bg);
+    color: var(--danger);
+    border-color: transparent;
+  }
+
+  .sidebar-leader {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px var(--space-4);
+    margin: 1px var(--space-3);
+    border-radius: var(--radius-md);
+    color: var(--text-2);
+    font-size: 13px;
+    font-weight: 500;
+    position: relative;
+  }
+  .sidebar-leader:hover { background: var(--bg-elev); color: var(--text-1); }
+  .leader-avatar {
+    width: 22px; height: 22px;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-weight: 700; font-size: 10px;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+  }
+  .leader-secretary { background: #6366F1; }
+  .leader-pm { background: #0EA5E9; }
+  .leader-arch { background: #2563EB; }
+  .leader-design { background: #DB2777; }
+  .leader-eng { background: #16A34A; }
+  .leader-qa { background: #CA8A04; }
+  .leader-ops { background: #DC2626; }
+
+  .sidebar-leader-status {
+    margin-left: auto;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+  }
+  .sidebar-leader-status.idle { background: var(--text-4); }
+  .sidebar-leader .chevron { color: var(--text-4); transition: transform 120ms; }
+  .sidebar-leader[aria-expanded="true"] .chevron { transform: rotate(90deg); }
+
+  .sidebar-sub {
+    padding: 2px 0 4px 36px;
+  }
+  .sidebar-sub-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 5px 12px 5px 12px;
+    margin: 1px 12px 1px 0;
+    border-radius: var(--radius-md);
+    font-size: 12.5px;
+    color: var(--text-3);
+  }
+  .sidebar-sub-item:hover { background: var(--bg-elev); color: var(--text-1); }
+  .sidebar-sub-item.done { color: var(--success); }
+  .sidebar-sub-item.active { color: var(--primary); font-weight: 600; }
+  .sidebar-sub-item.locked { color: var(--text-4); }
+  .sidebar-sub-status {
+    width: 14px; height: 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── Main ───────────────────────────────────── */
+  .main {
+    grid-area: main;
+    overflow-y: auto;
+    padding: var(--space-8) var(--space-10);
+  }
+  .page-header { margin-bottom: var(--space-8); }
+  .page-header-top {
+    display: flex; align-items: flex-start; gap: var(--space-6);
+    flex-wrap: wrap;
+  }
+  .page-title {
+    font-size: 22px; font-weight: 700; letter-spacing: -0.01em;
+    color: var(--text-1);
+    margin-bottom: 4px;
+  }
+  .page-subtitle {
+    color: var(--text-3); font-size: 13px;
+  }
+  .page-spacer { flex: 1; }
+  .page-actions {
+    display: flex; align-items: center; gap: var(--space-2);
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 34px;
+    padding: 0 14px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    transition: background 120ms, border-color 120ms, color 120ms;
+    border: 1px solid transparent;
+  }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-secondary {
+    background: var(--bg-elev);
+    color: var(--text-1);
+    border-color: var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--border-strong); background: var(--bg-soft); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-2);
+  }
+  .btn-ghost:hover { background: var(--bg-elev); color: var(--text-1); }
+
+  /* DAG progress */
+  .dag-progress {
+    margin-top: var(--space-5);
+    padding: var(--space-4) var(--space-5);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+  .dag-progress-title {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .dag-progress-title strong { font-size: 13px; color: var(--text-1); }
+  .dag-progress-title span { font-size: 12px; color: var(--text-3); }
+  .dag-progress-bar {
+    display: flex;
+    height: 8px;
+    background: var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+    gap: 2px;
+  }
+  .dag-seg {
+    flex: 1;
+    background: var(--border);
+    transition: background 200ms;
+  }
+  .dag-seg.done { background: var(--success); }
+  .dag-seg.in-progress {
+    background: var(--primary);
+    background-image: linear-gradient(45deg, rgba(255,255,255,0.25) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0.25) 75%, transparent 75%);
+    background-size: 14px 14px;
+    animation: dag-stripe 1.2s linear infinite;
+  }
+  @keyframes dag-stripe {
+    0% { background-position: 0 0; }
+    100% { background-position: 28px 0; }
+  }
+  .dag-labels {
+    display: flex; justify-content: space-between;
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--text-3);
+  }
+  .dag-labels span.current { color: var(--primary); font-weight: 600; }
+  .dag-labels span.done { color: var(--success); }
+
+  .alert-strip {
+    display: flex; align-items: center; gap: var(--space-2);
+    margin-top: var(--space-3);
+    padding: 8px 12px;
+    background: var(--warning-bg);
+    border: 1px solid #FCD34D;
+    border-radius: var(--radius-md);
+    color: var(--warning);
+    font-size: 12.5px;
+    font-weight: 500;
+  }
+
+  /* Grid blocks */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: var(--space-5);
+    margin-bottom: var(--space-5);
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--space-5);
+    margin-bottom: var(--space-5);
+  }
+
+  .card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px var(--space-5);
+    border-bottom: 1px solid var(--divider);
+  }
+  .card-header h2 {
+    display: flex; align-items: center; gap: var(--space-2);
+    font-size: 13px; font-weight: 700; color: var(--text-1);
+    letter-spacing: -0.005em;
+  }
+  .card-header-meta {
+    font-size: 11.5px; color: var(--text-3);
+  }
+  .card-link {
+    font-size: 12px; color: var(--primary); font-weight: 600;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .card-link:hover { color: var(--primary-hover); }
+  .card-body { padding: var(--space-4) var(--space-5); }
+  .card-body.tight { padding: var(--space-2) 0; }
+
+  /* Next action card */
+  .next-action {
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--divider);
+  }
+  .next-action:last-child { border-bottom: none; }
+  .next-action-top {
+    display: flex; align-items: flex-start; gap: var(--space-3);
+  }
+  .next-action-rec {
+    width: 5px; align-self: stretch;
+    background: var(--primary);
+    border-radius: 999px;
+  }
+  .next-action-meta {
+    display: flex; align-items: center; gap: var(--space-2);
+    font-size: 11px;
+    color: var(--text-3);
+    margin-bottom: 4px;
+  }
+  .next-action-leader {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    font-size: 11px; font-weight: 600;
+    color: #fff;
+  }
+  .next-action-title {
+    font-size: 14.5px; font-weight: 600; color: var(--text-1);
+    margin-bottom: 2px;
+    letter-spacing: -0.005em;
+  }
+  .next-action-reason {
+    font-size: 12.5px; color: var(--text-3); margin-bottom: 12px;
+  }
+  .next-action-actions {
+    display: flex; align-items: center; gap: var(--space-2);
+    margin-top: 12px;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    font-size: 11px; font-weight: 600;
+    line-height: 1.5;
+  }
+  .badge.recommend { background: var(--primary-bg); color: var(--primary); }
+  .badge.parallel { background: var(--info-bg); color: var(--info); }
+  .badge.warn { background: var(--warning-bg); color: var(--warning); }
+
+  .parallel-list {
+    margin-top: 6px;
+    display: flex; align-items: center; gap: var(--space-2);
+    font-size: 11.5px; color: var(--text-3);
+    padding-left: 13px;
+  }
+
+  /* Queue list */
+  .queue-list { display: flex; flex-direction: column; }
+  .queue-item {
+    display: flex; align-items: flex-start; gap: var(--space-3);
+    padding: 12px var(--space-5);
+    border-bottom: 1px solid var(--divider);
+  }
+  .queue-item:last-child { border-bottom: none; }
+  .queue-item:hover { background: var(--bg-soft); }
+  .queue-icon {
+    width: 28px; height: 28px;
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .queue-icon.review { background: var(--info-bg); color: var(--info); }
+  .queue-icon.approve { background: var(--success-bg); color: var(--success); }
+  .queue-icon.question { background: var(--warning-bg); color: var(--warning); }
+  .queue-icon.comment { background: var(--neutral-bg); color: var(--neutral); }
+  .queue-content { flex: 1; min-width: 0; }
+  .queue-title {
+    font-size: 13px; font-weight: 500; color: var(--text-1);
+    margin-bottom: 2px;
+  }
+  .queue-meta {
+    font-size: 11.5px; color: var(--text-3);
+  }
+  .queue-time {
+    font-size: 11px; color: var(--text-4);
+    flex-shrink: 0;
+  }
+
+  /* In-progress phases */
+  .phase-row {
+    display: flex; align-items: center; gap: var(--space-3);
+    padding: 10px var(--space-5);
+    border-bottom: 1px solid var(--divider);
+  }
+  .phase-row:last-child { border-bottom: none; }
+  .phase-leader-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11.5px; font-weight: 600;
+    color: var(--text-2);
+    min-width: 110px;
+  }
+  .phase-name { flex: 1; font-size: 13px; color: var(--text-1); font-weight: 500; }
+  .phase-step { font-size: 11.5px; color: var(--text-3); }
+  .phase-progress-mini {
+    width: 60px; height: 4px;
+    background: var(--border);
+    border-radius: 999px; overflow: hidden;
+  }
+  .phase-progress-mini > span {
+    display: block; height: 100%;
+    background: var(--primary);
+  }
+
+  /* KPI */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--divider);
+  }
+  .kpi-cell {
+    padding: var(--space-4) var(--space-5);
+    background: var(--bg-elev);
+  }
+  .kpi-label {
+    font-size: 11px; color: var(--text-3);
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin-bottom: 6px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .kpi-value {
+    font-size: 20px; font-weight: 700; color: var(--text-1);
+    letter-spacing: -0.02em;
+    font-family: 'Inter', sans-serif;
+  }
+  .kpi-value .unit { font-size: 12px; color: var(--text-3); font-weight: 500; margin-left: 3px; }
+  .kpi-trend { font-size: 11px; color: var(--success); margin-top: 2px; }
+  .kpi-trend.down { color: var(--danger); }
+
+  /* Artifacts */
+  .artifact-row {
+    display: flex; align-items: center; gap: var(--space-3);
+    padding: 10px var(--space-5);
+    border-bottom: 1px solid var(--divider);
+  }
+  .artifact-row:last-child { border-bottom: none; }
+  .artifact-row:hover { background: var(--bg-soft); }
+  .artifact-icon {
+    width: 32px; height: 32px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-2);
+    flex-shrink: 0;
+  }
+  .artifact-content { flex: 1; min-width: 0; }
+  .artifact-title {
+    font-size: 13px; font-weight: 500; color: var(--text-1);
+  }
+  .artifact-meta {
+    font-size: 11.5px; color: var(--text-3);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .artifact-version {
+    font-family: 'Inter', monospace;
+    font-size: 10.5px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    color: var(--text-3);
+  }
+
+  /* Activity */
+  .activity-item {
+    display: flex; gap: var(--space-3);
+    padding: 10px var(--space-5);
+    border-bottom: 1px solid var(--divider);
+    font-size: 12.5px;
+  }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-time {
+    font-size: 11px; color: var(--text-4);
+    width: 60px;
+    flex-shrink: 0;
+    padding-top: 1px;
+  }
+  .activity-text { flex: 1; color: var(--text-2); }
+  .activity-text strong { color: var(--text-1); font-weight: 600; }
+
+  /* Members presence */
+  .members-strip {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px var(--space-5);
+  }
+  .member-avatar {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700;
+    color: #fff;
+    margin-left: -6px;
+    position: relative;
+  }
+  .member-avatar:first-child { margin-left: 0; }
+  .member-avatar.user { background: linear-gradient(135deg, #2563EB, #06B6D4); }
+  .member-avatar.client {
+    background: var(--bg-soft);
+    color: var(--text-2);
+    border-color: var(--border);
+    font-weight: 600;
+  }
+  .member-online::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; right: -1px;
+    width: 7px; height: 7px;
+    background: var(--success);
+    border: 1.5px solid #fff;
+    border-radius: 50%;
+  }
+  .members-meta {
+    margin-left: 12px;
+    font-size: 12px;
+    color: var(--text-3);
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-logo">
+      <div class="header-logo-mark">BF</div>
+      Build-Factory
+    </div>
+    <div class="header-divider"></div>
+    <nav class="breadcrumb">
+      <a href="#">Workspaces</a>
+      <i data-lucide="chevron-right" class="icon-sm"></i>
+      <span class="breadcrumb-current">Build-Factory v1</span>
+    </nav>
+
+    <div class="header-spacer"></div>
+
+    <button class="header-search">
+      <i data-lucide="search" class="icon-sm"></i>
+      検索 / コマンドパレット
+      <span class="header-search-shortcut">⌘K</span>
+    </button>
+
+    <div class="header-actions">
+      <button class="header-icon-btn" title="通知">
+        <i data-lucide="bell" class="icon-lg"></i>
+        <span class="badge"></span>
+      </button>
+      <button class="header-icon-btn" title="ヘルプ">
+        <i data-lucide="circle-help" class="icon-lg"></i>
+      </button>
+      <div class="header-avatar">MA</div>
+    </div>
+  </header>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <a href="#" class="sidebar-back">
+      <i data-lucide="arrow-left" class="icon-sm"></i>
+      Workspaces 一覧へ
+    </a>
+
+    <div class="sidebar-project">
+      <div class="sidebar-project-title">Build-Factory v1</div>
+      <div class="sidebar-project-meta">
+        <i data-lucide="building-2" class="icon-sm"></i>
+        ●●株式会社
+      </div>
+      <div class="sidebar-project-progress"><span style="width:45%"></span></div>
+      <div class="sidebar-project-meta" style="justify-content:space-between; margin-top:6px">
+        <span>進捗 45%</span>
+        <span>残 23 日</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section-title">プロジェクト管理</div>
+    <a href="#" class="sidebar-item active">
+      <i data-lucide="layout-dashboard" class="icon"></i>
+      ホーム
+    </a>
+    <a href="#" class="sidebar-item">
+      <i data-lucide="trending-up" class="icon"></i>
+      進捗管理
+    </a>
+    <a href="#" class="sidebar-item">
+      <i data-lucide="check-square-2" class="icon"></i>
+      タスク管理
+      <span class="sidebar-item-badge">12</span>
+    </a>
+    <a href="#" class="sidebar-item">
+      <i data-lucide="calendar" class="icon"></i>
+      スケジュール
+    </a>
+    <a href="#" class="sidebar-item">
+      <i data-lucide="file-text" class="icon"></i>
+      議事録
+    </a>
+    <a href="#" class="sidebar-item">
+      <i data-lucide="bell-ring" class="icon"></i>
+      アラート / 質問
+      <span class="sidebar-item-badge alert">5</span>
+    </a>
+
+    <div class="sidebar-section-title">開発フロー</div>
+    <a href="#" class="sidebar-leader">
+      <span class="leader-avatar leader-secretary">秘</span>
+      秘書 AI
+      <span class="sidebar-leader-status idle"></span>
+    </a>
+    <a href="#" class="sidebar-leader" aria-expanded="true">
+      <span class="leader-avatar leader-pm">PM</span>
+      PM AI
+      <span class="sidebar-leader-status"></span>
+      <i data-lucide="chevron-down" class="icon-sm chevron"></i>
+    </a>
+    <div class="sidebar-sub">
+      <a href="#" class="sidebar-sub-item done">
+        <span>ヒアリング</span>
+        <span class="sidebar-sub-status"><i data-lucide="check-circle-2" class="icon-sm"></i></span>
+      </a>
+      <a href="#" class="sidebar-sub-item done">
+        <span>要件定義</span>
+        <span class="sidebar-sub-status"><i data-lucide="check-circle-2" class="icon-sm"></i></span>
+      </a>
+      <a href="#" class="sidebar-sub-item">
+        <span>提案・見積</span>
+        <span class="sidebar-sub-status"><i data-lucide="circle" class="icon-sm"></i></span>
+      </a>
+      <a href="#" class="sidebar-sub-item">
+        <span>受入条件</span>
+        <span class="sidebar-sub-status"><i data-lucide="circle-dot" class="icon-sm"></i></span>
+      </a>
+    </div>
+
+    <a href="#" class="sidebar-leader" aria-expanded="true">
+      <span class="leader-avatar leader-arch">設</span>
+      設計 AI
+      <span class="sidebar-leader-status"></span>
+      <i data-lucide="chevron-down" class="icon-sm chevron"></i>
+    </a>
+    <div class="sidebar-sub">
+      <a href="#" class="sidebar-sub-item active">
+        <span>アーキテクチャ</span>
+        <span class="sidebar-sub-status"><i data-lucide="loader-2" class="icon-sm"></i></span>
+      </a>
+      <a href="#" class="sidebar-sub-item locked">
+        <span>API 設計</span>
+        <span class="sidebar-sub-status"><i data-lucide="lock" class="icon-sm"></i></span>
+      </a>
+      <a href="#" class="sidebar-sub-item locked">
+        <span>機能分解</span>
+        <span class="sidebar-sub-status"><i data-lucide="lock" class="icon-sm"></i></span>
+      </a>
+      <a href="#" class="sidebar-sub-item locked">
+        <span>タスク分解</span>
+        <span class="sidebar-sub-status"><i data-lucide="lock" class="icon-sm"></i></span>
+      </a>
+    </div>
+
+    <a href="#" class="sidebar-leader">
+      <span class="leader-avatar leader-design">デ</span>
+      デザイナー AI
+      <span class="sidebar-leader-status"></span>
+      <i data-lucide="chevron-right" class="icon-sm chevron"></i>
+    </a>
+    <a href="#" class="sidebar-leader">
+      <span class="leader-avatar leader-eng">エ</span>
+      エンジニア AI
+      <span class="sidebar-leader-status idle"></span>
+      <i data-lucide="chevron-right" class="icon-sm chevron"></i>
+    </a>
+    <a href="#" class="sidebar-leader">
+      <span class="leader-avatar leader-qa">品</span>
+      品質 AI
+      <span class="sidebar-leader-status idle"></span>
+      <i data-lucide="chevron-right" class="icon-sm chevron"></i>
+    </a>
+    <a href="#" class="sidebar-leader">
+      <span class="leader-avatar leader-ops">運</span>
+      DevOps AI
+      <span class="sidebar-leader-status idle"></span>
+      <i data-lucide="chevron-right" class="icon-sm chevron"></i>
+    </a>
+
+    <div class="sidebar-section-title">管理</div>
+    <a href="#" class="sidebar-item">
+      <i data-lucide="users" class="icon"></i>
+      メンバー / 権限
+    </a>
+    <a href="#" class="sidebar-item">
+      <i data-lucide="share-2" class="icon"></i>
+      共有設定
+    </a>
+    <a href="#" class="sidebar-item">
+      <i data-lucide="settings" class="icon"></i>
+      プロジェクト設定
+    </a>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="page-header">
+      <div class="page-header-top">
+        <div>
+          <div class="page-title">Build-Factory v1</div>
+          <div class="page-subtitle">●●株式会社 / AI-driven Development OS の MVP 構築</div>
+        </div>
+        <div class="page-spacer"></div>
+        <div class="page-actions">
+          <button class="btn btn-secondary">
+            <i data-lucide="download" class="icon-sm"></i>
+            エクスポート
+          </button>
+          <button class="btn btn-primary">
+            <i data-lucide="play" class="icon-sm"></i>
+            次のアクションを実行
+          </button>
+        </div>
+      </div>
+
+      <div class="dag-progress">
+        <div class="dag-progress-title">
+          <strong>プロジェクト進捗</strong>
+          <span>4 / 13 フェーズ完了 ・ 現在: アーキテクチャ STEP 4</span>
+        </div>
+        <div class="dag-progress-bar">
+          <span class="dag-seg done" title="ヒアリング"></span>
+          <span class="dag-seg done" title="要件定義"></span>
+          <span class="dag-seg done" title="提案・見積"></span>
+          <span class="dag-seg done" title="デザインシステム"></span>
+          <span class="dag-seg in-progress" title="アーキテクチャ"></span>
+          <span class="dag-seg" title="API 設計"></span>
+          <span class="dag-seg" title="機能分解"></span>
+          <span class="dag-seg" title="タスク分解"></span>
+          <span class="dag-seg" title="実装引き継ぎ"></span>
+          <span class="dag-seg" title="統合"></span>
+          <span class="dag-seg" title="テスト戦略"></span>
+          <span class="dag-seg" title="レビュー"></span>
+          <span class="dag-seg" title="リリース"></span>
+        </div>
+        <div class="dag-labels">
+          <span class="done">ヒアリング</span>
+          <span class="done">要件</span>
+          <span class="done">提案</span>
+          <span class="done">デザイン</span>
+          <span class="current">アーキ</span>
+          <span>API</span>
+          <span>機能分解</span>
+          <span>タスク</span>
+          <span>実装</span>
+          <span>統合</span>
+          <span>テスト</span>
+          <span>レビュー</span>
+          <span>リリース</span>
+        </div>
+      </div>
+
+      <div class="alert-strip">
+        <i data-lucide="alert-triangle" class="icon-sm"></i>
+        提案・見積フェーズが未実施のまま設計に進行中です。理由:「既存契約あり、見積省略」
+      </div>
+    </div>
+
+    <!-- Row 1: Next + Queue -->
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <h2><i data-lucide="zap" class="icon-sm"></i> 次のアクション</h2>
+          <span class="card-header-meta">AI 提案 (3 件)</span>
+        </div>
+
+        <div class="next-action">
+          <div class="next-action-top">
+            <div class="next-action-rec"></div>
+            <div style="flex:1">
+              <div class="next-action-meta">
+                <span class="next-action-leader leader-arch">設計 AI</span>
+                <span>アーキテクチャ STEP 4 / 4</span>
+                <span class="badge recommend">推奨</span>
+              </div>
+              <div class="next-action-title">アーキテクチャ設計を完了する</div>
+              <div class="next-action-reason">要件定義の最終 STEP が確定済。技術スタック・モジュール構成・ER 図を確定すれば 次のフェーズ (API 設計・機能分解) に並行で進めます。</div>
+              <div class="next-action-actions">
+                <button class="btn btn-primary">
+                  <i data-lucide="play" class="icon-sm"></i>
+                  AI に進めてもらう
+                </button>
+                <button class="btn btn-secondary">
+                  <i data-lucide="pen-line" class="icon-sm"></i>
+                  自分で編集
+                </button>
+                <button class="btn btn-ghost">
+                  <i data-lucide="skip-forward" class="icon-sm"></i>
+                  スキップ
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="next-action">
+          <div class="next-action-top">
+            <div class="next-action-rec" style="background:var(--info)"></div>
+            <div style="flex:1">
+              <div class="next-action-meta">
+                <span class="next-action-leader leader-design">デザイナー AI</span>
+                <span>モック作成</span>
+                <span class="badge parallel">並行可</span>
+              </div>
+              <div class="next-action-title">主要 3 画面のモックを Penpot で起こす</div>
+              <div class="next-action-reason">デザインシステム確定済。アーキ完了を待たずに、主要画面 (ホーム / タスク / 設定) のモックを並行で進められます。</div>
+              <div class="next-action-actions">
+                <button class="btn btn-secondary">
+                  <i data-lucide="play" class="icon-sm"></i>
+                  並行で開始
+                </button>
+                <button class="btn btn-ghost">後で</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="next-action">
+          <div class="next-action-top">
+            <div class="next-action-rec" style="background:var(--info)"></div>
+            <div style="flex:1">
+              <div class="next-action-meta">
+                <span class="next-action-leader leader-pm">PM AI</span>
+                <span>受入条件</span>
+                <span class="badge parallel">並行可</span>
+              </div>
+              <div class="next-action-title">受入条件を Gherkin 形式で起こす</div>
+              <div class="next-action-reason">要件定義の機能リスト 12 項目に対し、各機能の受入条件を AC スキルで自動生成できます。</div>
+              <div class="next-action-actions">
+                <button class="btn btn-secondary">
+                  <i data-lucide="play" class="icon-sm"></i>
+                  並行で開始
+                </button>
+                <button class="btn btn-ghost">後で</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2><i data-lucide="inbox" class="icon-sm"></i> 自分待ち</h2>
+          <span class="card-header-meta">5 件</span>
+        </div>
+
+        <div class="queue-list">
+          <a class="queue-item" href="#">
+            <div class="queue-icon question">
+              <i data-lucide="circle-help" class="icon-sm"></i>
+            </div>
+            <div class="queue-content">
+              <div class="queue-title">予算上限の確認</div>
+              <div class="queue-meta">秘書 AI からの質問 ・ ヒアリング</div>
+            </div>
+            <div class="queue-time">15分前</div>
+          </a>
+
+          <a class="queue-item" href="#">
+            <div class="queue-icon review">
+              <i data-lucide="file-search" class="icon-sm"></i>
+            </div>
+            <div class="queue-content">
+              <div class="queue-title">要件定義書 v2.0 のレビュー依頼</div>
+              <div class="queue-meta">PM AI が完成 ・ 6 項目のチェック</div>
+            </div>
+            <div class="queue-time">42分前</div>
+          </a>
+
+          <a class="queue-item" href="#">
+            <div class="queue-icon approve">
+              <i data-lucide="check-circle-2" class="icon-sm"></i>
+            </div>
+            <div class="queue-content">
+              <div class="queue-title">API 設計書 の承認待ち</div>
+              <div class="queue-meta">設計 AI が完成 ・ 承認後フェーズ完了</div>
+            </div>
+            <div class="queue-time">1時間前</div>
+          </a>
+
+          <a class="queue-item" href="#">
+            <div class="queue-icon comment">
+              <i data-lucide="message-square" class="icon-sm"></i>
+            </div>
+            <div class="queue-content">
+              <div class="queue-title">クライアント (山田 太郎) からのコメント</div>
+              <div class="queue-meta">「モックの導線を確認してほしい」</div>
+            </div>
+            <div class="queue-time">3時間前</div>
+          </a>
+
+          <a class="queue-item" href="#">
+            <div class="queue-icon question">
+              <i data-lucide="circle-help" class="icon-sm"></i>
+            </div>
+            <div class="queue-content">
+              <div class="queue-title">既存 DB との連携要否</div>
+              <div class="queue-meta">設計 AI からの質問 ・ アーキ</div>
+            </div>
+            <div class="queue-time">昨日</div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: In-Progress + KPI + Members -->
+    <div class="grid-3">
+      <div class="card" style="grid-column: span 2;">
+        <div class="card-header">
+          <h2><i data-lucide="activity" class="icon-sm"></i> 進行中フェーズ</h2>
+          <span class="card-header-meta">3 件並行</span>
+        </div>
+        <div class="card-body tight">
+          <div class="phase-row">
+            <div class="phase-leader-tag">
+              <span class="leader-avatar leader-arch" style="width:18px;height:18px;font-size:9px;">設</span>
+              設計 AI
+            </div>
+            <div class="phase-name">アーキテクチャ <span class="phase-step">/ STEP 4 of 4</span></div>
+            <div class="phase-progress-mini"><span style="width:90%"></span></div>
+            <span class="badge recommend" style="margin-left:8px">90%</span>
+          </div>
+          <div class="phase-row">
+            <div class="phase-leader-tag">
+              <span class="leader-avatar leader-design" style="width:18px;height:18px;font-size:9px;">デ</span>
+              デザイナー AI
+            </div>
+            <div class="phase-name">モック作成 <span class="phase-step">/ 3 of 8 画面</span></div>
+            <div class="phase-progress-mini"><span style="width:38%"></span></div>
+            <span class="badge parallel" style="margin-left:8px">38%</span>
+          </div>
+          <div class="phase-row">
+            <div class="phase-leader-tag">
+              <span class="leader-avatar leader-pm" style="width:18px;height:18px;font-size:9px;">PM</span>
+              PM AI
+            </div>
+            <div class="phase-name">受入条件 <span class="phase-step">/ 機能 5 of 12</span></div>
+            <div class="phase-progress-mini"><span style="width:42%"></span></div>
+            <span class="badge parallel" style="margin-left:8px">42%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2><i data-lucide="bar-chart-3" class="icon-sm"></i> KPI</h2>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi-cell">
+            <div class="kpi-label"><i data-lucide="check-square-2" class="icon-sm"></i> タスク完了</div>
+            <div class="kpi-value">12<span class="unit">/ 30</span></div>
+            <div class="kpi-trend">+3 今週</div>
+          </div>
+          <div class="kpi-cell">
+            <div class="kpi-label"><i data-lucide="alert-octagon" class="icon-sm"></i> ブロッカー</div>
+            <div class="kpi-value">2<span class="unit">件</span></div>
+            <div class="kpi-trend down">-1 昨日</div>
+          </div>
+          <div class="kpi-cell">
+            <div class="kpi-label"><i data-lucide="clock" class="icon-sm"></i> 残日数</div>
+            <div class="kpi-value">23<span class="unit">日</span></div>
+          </div>
+          <div class="kpi-cell">
+            <div class="kpi-label"><i data-lucide="wallet" class="icon-sm"></i> 予算消化</div>
+            <div class="kpi-value">35<span class="unit">%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 3: Artifacts + Activity + Members -->
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-header">
+          <h2><i data-lucide="folder-open" class="icon-sm"></i> 最新の成果物</h2>
+          <a href="#" class="card-link">全て <i data-lucide="arrow-right" class="icon-sm"></i></a>
+        </div>
+        <div class="card-body tight">
+          <a class="artifact-row" href="#">
+            <div class="artifact-icon"><i data-lucide="file-text" class="icon-sm"></i></div>
+            <div class="artifact-content">
+              <div class="artifact-title">要件定義書</div>
+              <div class="artifact-meta">
+                <span class="artifact-version">v2.0</span>
+                <span>42 分前 / PM AI</span>
+              </div>
+            </div>
+          </a>
+          <a class="artifact-row" href="#">
+            <div class="artifact-icon"><i data-lucide="layers" class="icon-sm"></i></div>
+            <div class="artifact-content">
+              <div class="artifact-title">アーキテクチャ設計書</div>
+              <div class="artifact-meta">
+                <span class="artifact-version">v1.1</span>
+                <span>2 時間前 / 設計 AI</span>
+              </div>
+            </div>
+          </a>
+          <a class="artifact-row" href="#">
+            <div class="artifact-icon"><i data-lucide="palette" class="icon-sm"></i></div>
+            <div class="artifact-content">
+              <div class="artifact-title">デザインモック (Penpot)</div>
+              <div class="artifact-meta">
+                <span class="artifact-version">v1</span>
+                <span>3 時間前 / デザイナー AI</span>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2><i data-lucide="history" class="icon-sm"></i> 最近の動き</h2>
+          <a href="#" class="card-link">全件 <i data-lucide="arrow-right" class="icon-sm"></i></a>
+        </div>
+        <div class="card-body tight">
+          <div class="activity-item">
+            <div class="activity-time">10分前</div>
+            <div class="activity-text"><strong>秘書 AI</strong> がヒアリング STEP 4 を完了</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-time">42分前</div>
+            <div class="activity-text"><strong>PM AI</strong> が要件定義書 v2.0 を出力</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-time">1時間前</div>
+            <div class="activity-text"><strong>設計 AI</strong> がアーキ STEP 3 を完了 → STEP 4 へ</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-time">2時間前</div>
+            <div class="activity-text"><strong>あなた</strong> が要件定義書 v1.0 をレビュー</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-time">3時間前</div>
+            <div class="activity-text"><strong>山田 太郎</strong> がモックにコメント追加</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2><i data-lucide="users" class="icon-sm"></i> メンバー</h2>
+          <a href="#" class="card-link">招待 <i data-lucide="user-plus" class="icon-sm"></i></a>
+        </div>
+        <div class="card-body" style="padding: 14px var(--space-5);">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
+            <div class="member-avatar user member-online" title="まさと (admin)">MA</div>
+            <div class="member-avatar client" title="山田 太郎 (client)">山</div>
+            <div class="member-avatar leader-pm member-online">PM</div>
+            <div class="member-avatar leader-arch member-online">設</div>
+            <div class="member-avatar leader-design member-online">デ</div>
+            <div class="member-avatar leader-secretary">秘</div>
+            <div class="members-meta">+ 4</div>
+          </div>
+          <div style="font-size:12px; color:var(--text-3); line-height:1.7;">
+            <div style="display:flex; justify-content:space-between;"><span>あなた (admin)</span><span style="color:var(--success)">オンライン</span></div>
+            <div style="display:flex; justify-content:space-between;"><span>山田 太郎 (client)</span><span>30 分前</span></div>
+            <div style="display:flex; justify-content:space-between;"><span>AI 社員 7 体</span><span>稼働中</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  lucide.createIcons();
+</script>
+</body>
+</html>

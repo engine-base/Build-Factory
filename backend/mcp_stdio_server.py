@@ -560,173 +560,305 @@ async def package_skill(name: str) -> str:
         return json.dumps({"error": str(e)}, ensure_ascii=False)
 
 
+
 # ════════════════════════════════════════════════════════════════════
 # Build-Factory 開発フロー連携 MCP Tools (`bf_*`)
 # ────────────────────────────────────────────────────────────────────
 # Claude Code から呼び出されて、Build-Factory の workspace / task /
 # 仕様書 を取得・進捗を書き戻す。
-# Anthropic 公式 3 分離パターン (Planner / Generator / Evaluator) と
-# Build-Factory の AI 社員チームを橋渡しする。
+# 実装は REST API (localhost:8001) を経由するため Postgres / SQLite
+# どちらの環境でも単一ソース・単一 status 値で動作する。
+#
+# status 値: pending / in_progress / blocked_question / blocked_dependency
+#            / review_needed / completed / failed / cancelled
 # ════════════════════════════════════════════════════════════════════
+
+import os
+import urllib.request as _urlreq
+import urllib.parse as _urlparse
+import urllib.error as _urlerr
+
+BF_API_BASE = os.environ.get("BF_API_BASE", "http://localhost:8001")
+
+
+def _bf_request(method: str, path: str, body: dict | None = None, timeout: float = 15.0) -> dict | list:
+    url = f"{BF_API_BASE}{path}"
+    data = json.dumps(body).encode("utf-8") if body is not None else None
+    req = _urlreq.Request(
+        url,
+        data=data,
+        method=method,
+        headers={"Content-Type": "application/json"} if data else {},
+    )
+    try:
+        with _urlreq.urlopen(req, timeout=timeout) as r:
+            raw = r.read().decode("utf-8")
+            return json.loads(raw) if raw else {}
+    except _urlerr.HTTPError as e:
+        body_text = e.read().decode("utf-8", errors="ignore")
+        try:
+            return {"error": json.loads(body_text)}
+        except Exception:
+            return {"error": body_text or str(e)}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def _ok(payload) -> str:
+    return json.dumps(payload, ensure_ascii=False, indent=2, default=str)
+
 
 @mcp.tool()
 async def bf_list_workspaces(account_id: int = 1) -> str:
     """
     Build-Factory に登録された workspace（プロジェクト）一覧を返す。
-    account_id の既定は 1 (ENGINE BASE)。
     Claude Code はこれで「今どのプロジェクトに居るか」を選ぶ。
     """
-    try:
-        from services import workspace_service as ws
-        items = await ws.list_workspaces_by_account(account_id)
-        return json.dumps([
-            {"id": w["id"], "name": w["name"], "status": w["status"], "description": w.get("description")}
-            for w in items
-        ], ensure_ascii=False, indent=2)
-    except Exception as e:
-        return json.dumps({"error": str(e)}, ensure_ascii=False)
+    res = _bf_request("GET", f"/api/workspaces?account_id={account_id}")
+    return _ok(res)
 
 
 @mcp.tool()
 async def bf_get_workspace(workspace_id: int) -> str:
-    """指定 workspace の詳細（project_meta / design_system_ref / status 等）を返す。"""
-    try:
-        from services import workspace_service as ws
-        w = await ws.get_workspace(workspace_id)
-        if not w:
-            return json.dumps({"error": "workspace not found"}, ensure_ascii=False)
-        return json.dumps(w, ensure_ascii=False, indent=2)
-    except Exception as e:
-        return json.dumps({"error": str(e)}, ensure_ascii=False)
+    """指定 workspace の詳細（design_system_ref / status 等）を返す。"""
+    return _ok(_bf_request("GET", f"/api/workspaces/{workspace_id}"))
 
 
 @mcp.tool()
-async def bf_list_tasks(workspace_id: int, status: str = "pending") -> str:
+async def bf_list_projects(status: str = "") -> str:
     """
-    workspace のタスク一覧。Claude Code の Planner が「次にやるべきタスク」を選ぶ時に使う。
-    status: pending / running / done / failed
+    Build-Factory のプロジェクト（タスクの親）一覧を返す。
+    status: 未指定 / active / completed
     """
-    try:
-        con = sqlite3.connect(DB_PATH)
-        con.row_factory = sqlite3.Row
-        rows = con.execute(
-            """SELECT id, title, description, assignee_employee_id, status, priority,
-                      created_at, started_at, completed_at
-               FROM tasks WHERE project_id = ? AND status = ?
-               ORDER BY priority DESC, id ASC""",
-            (workspace_id, status),
-        ).fetchall()
-        con.close()
-        return json.dumps([dict(r) for r in rows], ensure_ascii=False, indent=2)
-    except Exception as e:
-        return json.dumps({"error": str(e)}, ensure_ascii=False)
+    qs = f"?status={_urlparse.quote(status)}" if status else ""
+    return _ok(_bf_request("GET", f"/api/projects{qs}"))
 
 
 @mcp.tool()
-async def bf_get_next_task(workspace_id: int) -> str:
+async def bf_list_tasks(project_id: int, status: str = "") -> str:
     """
-    指定 workspace で「次にやるべきタスク」を 1 件返す。
-    Claude Code の Planner が呼び出す典型的な入口。
-    優先度順 → 作成日順で 1 件取得。
+    プロジェクトのタスク一覧。Claude Code Planner が「次にやるべきタスク」を選ぶ時に使う。
+    status: pending / in_progress / blocked_question / blocked_dependency
+            / review_needed / completed / failed / cancelled
     """
-    try:
-        con = sqlite3.connect(DB_PATH)
-        con.row_factory = sqlite3.Row
-        row = con.execute(
-            """SELECT id, title, description, assignee_employee_id,
-                      status, priority, created_at
-               FROM tasks
-               WHERE project_id = ? AND status IN ('pending', 'running')
-               ORDER BY priority DESC, id ASC LIMIT 1""",
-            (workspace_id,),
-        ).fetchone()
-        con.close()
-        if not row:
-            return json.dumps({"message": "no pending tasks"}, ensure_ascii=False)
-        return json.dumps(dict(row), ensure_ascii=False, indent=2)
-    except Exception as e:
-        return json.dumps({"error": str(e)}, ensure_ascii=False)
+    params = {"project_id": project_id}
+    if status:
+        params["status"] = status
+    qs = "?" + _urlparse.urlencode(params)
+    return _ok(_bf_request("GET", f"/api/tasks{qs}"))
+
+
+@mcp.tool()
+async def bf_get_next_task(project_id: int) -> str:
+    """
+    プロジェクト内の「次にやるべきタスク」を 1 件返す。
+    優先度: 1) blocked 解除済 in_progress → 2) pending (level 浅い順) → 3) review_needed
+    """
+    tasks = _bf_request("GET", f"/api/tasks?project_id={project_id}&limit=200")
+    if isinstance(tasks, dict) and "error" in tasks:
+        return _ok(tasks)
+    if not isinstance(tasks, list) or not tasks:
+        return _ok({"message": "no tasks"})
+
+    # 親 (level=0) は実装対象から除外
+    actionable = [t for t in tasks if t.get("level", 0) > 0 or t.get("skill_name") != "feature"]
+
+    in_prog = [t for t in actionable if t.get("status") == "in_progress"]
+    if in_prog:
+        return _ok(in_prog[0])
+
+    pending = [t for t in actionable if t.get("status") == "pending"]
+    pending.sort(key=lambda x: (x.get("level", 0), x.get("order_index", 0), x.get("id", 0)))
+    if pending:
+        return _ok(pending[0])
+
+    review = [t for t in actionable if t.get("status") == "review_needed"]
+    if review:
+        return _ok(review[0])
+
+    return _ok({"message": "no actionable tasks"})
 
 
 @mcp.tool()
 async def bf_get_spec(task_id: int) -> str:
     """
-    タスクの仕様書パッケージを返す。
-    Claude Code の Planner / Generator が「このタスクで何を作るか」を理解する核心情報。
+    タスクの完全な spec bundle を返す（Claude Code Planner / Generator の入口）。
 
-    含まれるもの:
-      - タスク本体（title / description / 受け入れ基準）
-      - 関連 artifact（モック HTML / 設計書 / API 定義）
-      - 関連スキル（SKILL.md パス一覧）
-      - workspace 全体のデザイン参照
+    含まれる情報:
+      - task: タイトル / 説明 / status / skill_name / level
+      - project: 親プロジェクト
+      - workspace: 紐付く workspace と design_system_ref
+      - design_md_excerpt: DESIGN.md 抜粋
+      - related_artifacts: モック HTML / 設計書 / 実装方法など
+      - related_skills: task.skill_name (bf_load_skill で SKILL.md 全文を取得可)
+      - acceptance_criteria: description から自動抽出した checklist
+      - siblings: 兄弟タスク（実装順序の判断材料）
+      - children: 配下のサブタスク
+    """
+    return _ok(_bf_request("GET", f"/api/tasks/{task_id}/handoff"))
+
+
+@mcp.tool()
+async def bf_get_task(task_id: int) -> str:
+    """単一タスクの詳細（task / children / questions）を返す。"""
+    return _ok(_bf_request("GET", f"/api/tasks/{task_id}"))
+
+
+@mcp.tool()
+async def bf_update_task(
+    task_id: int,
+    status: str = "",
+    title: str = "",
+    description: str = "",
+    skill_name: str = "",
+    parent_task_id: int = -1,
+    assigned_to: int = -1,
+    result: str = "",
+) -> str:
+    """
+    タスクを部分更新する。空文字 / -1 のフィールドは未指定として無視する。
+    Claude Code が実装中にタスクの説明や担当を更新する場合に使う。
+
+    Args:
+        task_id:        対象タスク ID
+        status:         pending / in_progress / blocked_question /
+                        blocked_dependency / review_needed / completed /
+                        failed / cancelled
+        title:          タスクタイトル更新
+        description:    タスク説明更新
+        skill_name:     使用スキル更新
+        parent_task_id: 親タスク変更 (0 で親解除、-1 で未指定)
+        assigned_to:    担当 AI 社員 ID 更新 (-1 で未指定)
+        result:         実装結果テキスト
+    """
+    body: dict = {}
+    if status: body["status"] = status
+    if title: body["title"] = title
+    if description: body["description"] = description
+    if skill_name: body["skill_name"] = skill_name
+    if parent_task_id >= 0: body["parent_task_id"] = parent_task_id
+    if assigned_to >= 0: body["assigned_to"] = assigned_to
+    if result: body["result"] = result
+    if not body:
+        return _ok({"error": "no fields to update"})
+    return _ok(_bf_request("PATCH", f"/api/tasks/{task_id}", body))
+
+
+@mcp.tool()
+async def bf_post_progress(task_id: int, message: str, status: str = "in_progress") -> str:
+    """
+    タスクの進捗を Build-Factory に書き戻す。
+    Claude Code が Planner / Generator / Evaluator の各ステップ完了時に呼ぶ。
+
+    Args:
+        task_id: 対象タスク ID
+        message: 進捗メッセージ（自動的に result に追記される）
+        status:  in_progress / review_needed / completed / failed
+    """
+    # 1. status 更新
+    update_res = _bf_request("PATCH", f"/api/tasks/{task_id}", {"status": status})
+    if isinstance(update_res, dict) and "error" in update_res:
+        return _ok(update_res)
+    # 2. 結果追記 (既存 result に append)
+    cur = _bf_request("GET", f"/api/tasks/{task_id}")
+    cur_result = ""
+    if isinstance(cur, dict) and cur.get("task"):
+        cur_result = cur["task"].get("result") or ""
+    new_result = (cur_result + ("\n\n" if cur_result else "") + f"[{status}] {message}")[:8000]
+    _bf_request("PATCH", f"/api/tasks/{task_id}", {"result": new_result})
+    return _ok({"task_id": task_id, "status": status, "logged": True})
+
+
+@mcp.tool()
+async def bf_attach_artifact(
+    task_id: int, type: str, title: str, data_json: str, category_tag: str = "task-output",
+) -> str:
+    """
+    タスクに成果物（モック HTML / 実装方法 MD / 設計書 / KPI カードなど）を登録する。
+
+    Args:
+        task_id:    対象タスク ID
+        type:       artifact 種別 (markdown / html / list / kanban / table /
+                    kpi-card / chart / code / implementation-plan 等)
+        title:      表示タイトル
+        data_json:  artifact データ (JSON 文字列)
+        category_tag: 分類ラベル (task-output / spec / implementation / mock 等)
     """
     try:
-        con = sqlite3.connect(DB_PATH)
-        con.row_factory = sqlite3.Row
-        task = con.execute(
-            "SELECT * FROM tasks WHERE id = ?", (task_id,)
-        ).fetchone()
-        if not task:
-            con.close()
-            return json.dumps({"error": "task not found"}, ensure_ascii=False)
-        task = dict(task)
+        data = json.loads(data_json) if data_json else {}
+    except Exception:
+        data = {"text": data_json}
 
-        # workspace 参照
-        ws_id = task.get("project_id")
-        ws_row = con.execute(
-            "SELECT * FROM workspaces WHERE id = ?", (ws_id,)
-        ).fetchone() if ws_id else None
-        workspace = dict(ws_row) if ws_row else {}
+    body = {
+        "task_id": task_id,
+        "type": type,
+        "title": title,
+        "data": data,
+        "category_tags": [category_tag],
+    }
+    res = _bf_request("POST", "/api/artifacts", body)
+    return _ok(res)
 
-        # 関連 artifact (workspace_id 紐付け・最新 5 件)
-        art_rows = con.execute(
-            """SELECT id, type, title, data, category_tags, created_at
-               FROM artifacts
-               WHERE workspace_id = ? AND is_archived = 0
-               ORDER BY updated_at DESC LIMIT 5""",
-            (ws_id,),
-        ).fetchall() if ws_id else []
-        artifacts = [dict(r) for r in art_rows]
 
-        # design_system_ref がセットされていれば DESIGN.md 取得
-        design_ref = workspace.get("design_system_ref") if workspace else None
-        design_md = ""
-        if design_ref:
-            from pathlib import Path
-            ds_path = Path(__file__).resolve().parent.parent / "data" / "design-systems" / design_ref / "DESIGN.md"
-            if ds_path.exists():
-                design_md = ds_path.read_text(encoding="utf-8", errors="ignore")[:8000]
+@mcp.tool()
+async def bf_attach_implementation(task_id: int, title: str, markdown: str) -> str:
+    """
+    タスクに『実装方法 Markdown』を artifact として登録する便利ツール。
+    Claude Code が「このタスクをこう実装する予定」を Build-Factory 側に書き戻す時に使う。
 
-        con.close()
-        return json.dumps({
-            "task": task,
-            "workspace": {
-                "id": workspace.get("id"),
-                "name": workspace.get("name"),
-                "design_system_ref": design_ref,
-            },
-            "design_md_excerpt": design_md,
-            "related_artifacts": artifacts,
-            "related_skills": [],  # 将来: task に紐付くスキル
-        }, ensure_ascii=False, indent=2, default=str)
-    except Exception as e:
-        return json.dumps({"error": str(e)}, ensure_ascii=False)
+    Args:
+        task_id:  対象タスク ID
+        title:    実装方法のタイトル（例: "認証 API 実装方針"）
+        markdown: 実装方針本文（受入条件・採用ライブラリ・テスト戦略・参照ファイル等）
+    """
+    body = {
+        "task_id": task_id,
+        "type": "markdown",
+        "title": title,
+        "data": {"text": markdown},
+        "category_tags": ["implementation"],
+    }
+    res = _bf_request("POST", "/api/artifacts", body)
+    return _ok(res)
+
+
+@mcp.tool()
+async def bf_request_review(task_id: int, summary: str = "") -> str:
+    """
+    タスクのレビューを Build-Factory レビュアー AI（リン）に依頼する。
+    Claude Code Evaluator が PASS した後の高位レビュー用。
+    """
+    # 1. status を review_needed に
+    _bf_request("PATCH", f"/api/tasks/{task_id}", {"status": "review_needed"})
+    # 2. レビュー依頼を artifact として登録
+    body = {
+        "task_id": task_id,
+        "type": "markdown",
+        "title": f"レビュー依頼: task #{task_id}",
+        "data": {"text": summary or f"task #{task_id} のレビュー依頼"},
+        "category_tags": ["review-request"],
+    }
+    art = _bf_request("POST", "/api/artifacts", body)
+    return _ok({"task_id": task_id, "status": "review_needed", "artifact": art})
+
+
+@mcp.tool()
+async def bf_get_review_feedback(task_id: int) -> str:
+    """指定タスクに対するレビュー artifact 一覧を返す。"""
+    res = _bf_request("GET", f"/api/tasks/{task_id}/handoff")
+    if isinstance(res, dict):
+        arts = res.get("related_artifacts", [])
+        review_arts = [a for a in arts if "review" in str(a.get("category_tags", "")).lower()]
+        return _ok(review_arts or arts)
+    return _ok(res)
 
 
 @mcp.tool()
 async def bf_load_skill(name: str) -> str:
     """
     SKILL.md 全文を返す。Claude Code が当該スキルの指示に従って実装する時に使う。
-    Build-Factory のスキル取り込み (Open Design 由来含む) はこれで参照可能。
     """
-    try:
-        from services import skill_manager as sm
-        s = await sm.get_skill(name)
-        if not s:
-            return json.dumps({"error": f"skill '{name}' not found"}, ensure_ascii=False)
-        return s.get("skill_md_full") or json.dumps(s, ensure_ascii=False)
-    except Exception as e:
-        return json.dumps({"error": str(e)}, ensure_ascii=False)
+    return _ok(_bf_request("GET", f"/api/skills/{_urlparse.quote(name)}"))
 
 
 @mcp.tool()
@@ -735,156 +867,7 @@ async def bf_list_design_systems() -> str:
     Build-Factory に取り込まれている design-system 一覧を返す。
     workspace の design_system_ref に設定する候補を選ぶ時に使う。
     """
-    try:
-        con = sqlite3.connect(DB_PATH)
-        con.row_factory = sqlite3.Row
-        rows = con.execute(
-            "SELECT title, summary FROM knowledge_base WHERE category = 'design-system' ORDER BY title"
-        ).fetchall()
-        con.close()
-        return json.dumps([dict(r) for r in rows], ensure_ascii=False, indent=2)
-    except Exception as e:
-        return json.dumps({"error": str(e)}, ensure_ascii=False)
-
-
-@mcp.tool()
-async def bf_post_progress(task_id: int, message: str, status: str = "running") -> str:
-    """
-    タスクの進捗を Build-Factory に書き戻す。
-    Claude Code が Planner / Generator / Evaluator の各ステップ完了時に呼ぶ。
-    status: running / done / failed
-    """
-    try:
-        con = sqlite3.connect(DB_PATH)
-        if status == "done":
-            con.execute(
-                "UPDATE tasks SET status='done', completed_at=datetime('now','localtime') WHERE id=?",
-                (task_id,),
-            )
-        elif status == "failed":
-            con.execute(
-                "UPDATE tasks SET status='failed', completed_at=datetime('now','localtime') WHERE id=?",
-                (task_id,),
-            )
-        else:
-            con.execute(
-                "UPDATE tasks SET status='running', started_at=COALESCE(started_at, datetime('now','localtime')) WHERE id=?",
-                (task_id,),
-            )
-        con.execute(
-            """INSERT INTO conversation_log
-               (channel, with_employee, role, message)
-               VALUES (?, NULL, 'system', ?)""",
-            (f"bf_task_{task_id}", f"[progress] {message[:1000]}"),
-        )
-        con.commit()
-        con.close()
-        return json.dumps({"task_id": task_id, "status": status, "logged": True}, ensure_ascii=False)
-    except Exception as e:
-        return json.dumps({"error": str(e)}, ensure_ascii=False)
-
-
-@mcp.tool()
-async def bf_attach_artifact(
-    task_id: int, type: str, title: str, data_json: str, category_tag: str = "task-output",
-) -> str:
-    """
-    タスクの成果物を Build-Factory の artifact として登録する。
-    type: list / kanban / table / kpi-card / markdown / chart 他 15 種
-
-    Args:
-        task_id:    対象タスク
-        type:       view 種別
-        title:      表示タイトル
-        data_json:  artifact データ (JSON 文字列)
-        category_tag: カテゴリラベル
-    """
-    try:
-        from services import artifact_service as art
-        try:
-            data = json.loads(data_json) if data_json else {}
-        except Exception:
-            data = {"text": data_json}
-
-        # task → workspace_id 取得
-        con = sqlite3.connect(DB_PATH)
-        row = con.execute("SELECT project_id FROM tasks WHERE id = ?", (task_id,)).fetchone()
-        ws_id = row[0] if row else None
-        con.close()
-
-        result = await art.create_artifact(
-            type=type, title=title, data=data,
-            category_tags=[category_tag],
-            thread_id=None,
-            employee_id=None,
-            created_by=f"claude-code:task_{task_id}",
-            actor=f"claude-code:task_{task_id}",
-        )
-        # workspace_id を後付け（artifact_service が拡張対応するまでの暫定）
-        if ws_id:
-            con = sqlite3.connect(DB_PATH)
-            con.execute(
-                "UPDATE artifacts SET workspace_id = ? WHERE id = ?",
-                (ws_id, result["id"]),
-            )
-            con.commit()
-            con.close()
-        return json.dumps({"artifact_id": result["id"], "type": type, "title": title}, ensure_ascii=False)
-    except Exception as e:
-        return json.dumps({"error": str(e)}, ensure_ascii=False)
-
-
-@mcp.tool()
-async def bf_request_review(task_id: int, summary: str = "") -> str:
-    """
-    タスクのレビューを Build-Factory レビュアー AI（リン）に依頼する。
-    Claude Code Evaluator が PASS した後の「高位レビュー」用。
-    壁打ちループの起点。
-    """
-    try:
-        con = sqlite3.connect(DB_PATH)
-        con.row_factory = sqlite3.Row
-        # タスク情報取得
-        task = con.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
-        if not task:
-            con.close()
-            return json.dumps({"error": "task not found"}, ensure_ascii=False)
-
-        # reviews テーブルに pending エントリ作成
-        con.execute(
-            """INSERT INTO reviews
-               (pr_id, reviewer_employee_id, verdict, summary, findings_json)
-               VALUES (NULL, 4, 'pending', ?, '[]')""",
-            (summary or f"task #{task_id} のレビュー依頼",),
-        )
-        review_id = con.execute("SELECT last_insert_rowid()").fetchone()[0]
-        con.commit()
-        con.close()
-        return json.dumps({
-            "review_id": review_id,
-            "task_id": task_id,
-            "status": "pending",
-            "message": "レビュー AI（リン）が壁打ちループを開始します。bf_get_review_feedback で結果取得可。",
-        }, ensure_ascii=False)
-    except Exception as e:
-        return json.dumps({"error": str(e)}, ensure_ascii=False)
-
-
-@mcp.tool()
-async def bf_get_review_feedback(review_id: int) -> str:
-    """レビュー AI のフィードバック結果を取得する。pending の場合は status のみ。"""
-    try:
-        con = sqlite3.connect(DB_PATH)
-        con.row_factory = sqlite3.Row
-        row = con.execute(
-            "SELECT * FROM reviews WHERE id = ?", (review_id,)
-        ).fetchone()
-        con.close()
-        if not row:
-            return json.dumps({"error": "review not found"}, ensure_ascii=False)
-        return json.dumps(dict(row), ensure_ascii=False, indent=2)
-    except Exception as e:
-        return json.dumps({"error": str(e)}, ensure_ascii=False)
+    return _ok(_bf_request("GET", "/api/knowledge/list?category=design-system"))
 
 
 if __name__ == "__main__":

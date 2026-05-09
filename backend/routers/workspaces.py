@@ -154,6 +154,154 @@ async def create_invitation(workspace_id: int, body: InvitationCreate):
     )
 
 
+# ── workspace ↔ project 連携 / タスクサマリ ─────────────
+
+@router.get("/{workspace_id}/tasks")
+async def list_workspace_tasks(workspace_id: int, status: Optional[str] = None):
+    """
+    Workspace 配下のタスク一覧。projects.workspace_id 経由で集約。
+    workspace_id に紐付く project が無ければ自動作成。
+    """
+    from db import async_db as adb
+    from pathlib import Path as _P
+    DB = _P(__file__).resolve().parents[2] / "data" / "db" / "build.db"
+
+    async with adb.connect(DB) as db:
+        db.row_factory = adb.Row
+        # workspace に紐付く project を取得 (or 作成)
+        rows = await db.execute_fetchall(
+            "SELECT id, title FROM projects WHERE workspace_id=? ORDER BY id LIMIT 1",
+            (workspace_id,),
+        )
+        if not rows:
+            # workspace 名と一致する project があればリンク
+            ws_rows = await db.execute_fetchall(
+                "SELECT name, description FROM workspaces WHERE id=?", (workspace_id,)
+            )
+            if not ws_rows:
+                raise HTTPException(404, "workspace not found")
+            ws_name = ws_rows[0]["name"]
+            ws_desc = ws_rows[0]["description"]
+            match = await db.execute_fetchall(
+                "SELECT id FROM projects WHERE title=? AND workspace_id IS NULL LIMIT 1",
+                (ws_name,),
+            )
+            if match:
+                proj_id = match[0]["id"]
+                await db.execute(
+                    "UPDATE projects SET workspace_id=? WHERE id=?",
+                    (workspace_id, proj_id),
+                )
+            else:
+                # 新規作成
+                cur = await db.execute(
+                    """INSERT INTO projects (title, description, status, workspace_id, initiated_by)
+                       VALUES (?, ?, 'active', ?, 'auto-bootstrap') RETURNING id""",
+                    (ws_name, ws_desc, workspace_id),
+                )
+                row = await cur.fetchone()
+                proj_id = row["id"]
+            await db.commit()
+        else:
+            proj_id = rows[0]["id"]
+
+        # タスク取得
+        cond = "WHERE t.project_id=?"
+        params: list = [proj_id]
+        if status:
+            cond += " AND t.status=?"
+            params.append(status)
+        task_rows = await db.execute_fetchall(
+            f"""SELECT t.*, e.display_name as assignee_name
+                FROM tasks t
+                LEFT JOIN ai_employee_config e ON e.id=t.assigned_to
+                {cond}
+                ORDER BY t.level, t.order_index, t.id""",
+            tuple(params),
+        )
+        tasks = [dict(r) for r in task_rows]
+
+    return {"project_id": proj_id, "tasks": tasks, "total": len(tasks)}
+
+
+@router.get("/{workspace_id}/summary")
+async def workspace_summary(workspace_id: int):
+    """
+    Workspace ダッシュボード向けサマリ。
+    タスク件数 / 完了率 / ブロッカー数 / 進行中フェーズ / 直近 artifact 等。
+    """
+    from db import async_db as adb
+    from pathlib import Path as _P
+    DB = _P(__file__).resolve().parents[2] / "data" / "db" / "build.db"
+
+    async with adb.connect(DB) as db:
+        db.row_factory = adb.Row
+
+        # workspace 詳細
+        ws_rows = await db.execute_fetchall(
+            "SELECT id, name, description, status FROM workspaces WHERE id=?",
+            (workspace_id,),
+        )
+        if not ws_rows:
+            raise HTTPException(404, "workspace not found")
+        workspace = dict(ws_rows[0])
+
+        # 紐付く project (なければ summary は 0 件で返す)
+        proj_rows = await db.execute_fetchall(
+            "SELECT id, title, status FROM projects WHERE workspace_id=? LIMIT 1",
+            (workspace_id,),
+        )
+        project = dict(proj_rows[0]) if proj_rows else None
+
+        # タスク統計
+        task_stats = {"total": 0, "completed": 0, "in_progress": 0, "pending": 0, "blockers": 0}
+        active_phases: list = []
+        if project:
+            stat_rows = await db.execute_fetchall(
+                """SELECT status, COUNT(*) as n FROM tasks WHERE project_id=? GROUP BY status""",
+                (project["id"],),
+            )
+            for r in stat_rows:
+                task_stats["total"] += r["n"]
+                if r["status"] == "completed":         task_stats["completed"]   += r["n"]
+                elif r["status"] == "in_progress":     task_stats["in_progress"] += r["n"]
+                elif r["status"] == "pending":         task_stats["pending"]     += r["n"]
+                elif r["status"] in ("blocked_question", "blocked_dependency"):
+                    task_stats["blockers"] += r["n"]
+
+            # 進行中フェーズ (level=0 + status=in_progress, または skill_name=feature)
+            active_rows = await db.execute_fetchall(
+                """SELECT id, title, skill_name, status,
+                        (SELECT COUNT(*) FROM tasks c WHERE c.parent_task_id=t.id) AS child_total,
+                        (SELECT COUNT(*) FROM tasks c WHERE c.parent_task_id=t.id AND c.status='completed') AS child_done
+                   FROM tasks t
+                   WHERE project_id=? AND status='in_progress'
+                   ORDER BY t.level, t.order_index, t.id LIMIT 5""",
+                (project["id"],),
+            )
+            active_phases = [dict(r) for r in active_rows]
+
+        # workspace 関連の最新 artifact (上位 5)
+        art_rows = await db.execute_fetchall(
+            """SELECT id, type, title, category_tags, updated_at
+               FROM artifacts
+               WHERE workspace_id=? AND is_archived=0
+               ORDER BY updated_at DESC LIMIT 5""",
+            (workspace_id,),
+        )
+        artifacts = [dict(r) for r in art_rows]
+
+    completion_rate = (task_stats["completed"] / task_stats["total"]) if task_stats["total"] > 0 else 0.0
+    return {
+        "workspace": workspace,
+        "project": project,
+        "task_stats": task_stats,
+        "completion_rate": round(completion_rate, 3),
+        "active_phases": active_phases,
+        "recent_artifacts": artifacts,
+    }
+
+
 # 招待受諾は accounts router 兄弟として配置（router 切り出し）
 invitations_router = APIRouter(prefix="/api/invitations", tags=["invitations"])
 

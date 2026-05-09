@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>メンバー / 権限 — Build-Factory v1</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./_shared.css" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  .role-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .role-admin { background: var(--danger-bg); color: var(--danger); }
+  .role-contributor { background: var(--primary-bg); color: var(--primary); }
+  .role-viewer { background: var(--neutral-bg); color: var(--neutral); }
+  .role-client { background: var(--info-bg); color: var(--info); }
+  .role-ai { background: var(--success-bg); color: var(--success); }
+
+  .access-matrix {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .access-matrix th, .access-matrix td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--divider);
+    font-size: 12.5px;
+    text-align: center;
+  }
+  .access-matrix th {
+    background: var(--bg-soft);
+    font-weight: 600;
+    color: var(--text-3);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+  .access-matrix th:first-child, .access-matrix td:first-child {
+    text-align: left;
+    font-weight: 500;
+    color: var(--text-1);
+  }
+  .access-matrix tr:hover td { background: var(--bg-soft); }
+  .access-icon { display: inline-flex; }
+  .access-allowed { color: var(--success); }
+  .access-readonly { color: var(--info); }
+  .access-denied { color: var(--text-4); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="header"></header>
+  <aside class="sidebar"></aside>
+
+  <main class="main">
+    <div class="page-header">
+      <div class="page-header-top">
+        <div>
+          <div class="page-title">メンバー / 権限</div>
+          <div class="page-subtitle">プロジェクト参加者・AI 社員・ロール別アクセス権限</div>
+        </div>
+        <div class="page-spacer"></div>
+        <div class="page-actions">
+          <button class="btn btn-secondary">
+            <i data-lucide="link" class="icon-sm"></i>
+            招待リンクを発行
+          </button>
+          <button class="btn btn-primary">
+            <i data-lucide="user-plus" class="icon-sm"></i>
+            メンバー招待
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 人間メンバー -->
+    <div class="card mb-5">
+      <div class="card-header">
+        <h2><i data-lucide="users" class="icon-sm"></i> 人間メンバー</h2>
+        <span class="card-header-meta">3 名</span>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th style="width:280px;">メンバー</th>
+            <th style="width:120px;">ロール</th>
+            <th>担当範囲</th>
+            <th style="width:130px;">最終アクセス</th>
+            <th style="width:80px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="member-avatar user member-online">MA</div>
+                <div>
+                  <div style="font-weight:600;">高本 まさと</div>
+                  <div style="font-size:11.5px; color:var(--text-3);">info@engine-base.com</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="role-badge role-admin">admin</span></td>
+            <td style="font-size:12.5px; color:var(--text-3);">プロジェクト全権 / クライアント窓口</td>
+            <td style="font-size:12px; color:var(--text-3);">オンライン</td>
+            <td><button class="header-icon-btn"><i data-lucide="more-horizontal" class="icon-sm"></i></button></td>
+          </tr>
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="member-avatar" style="background:#16A34A;">SK</div>
+                <div>
+                  <div style="font-weight:600;">佐藤 健太</div>
+                  <div style="font-size:11.5px; color:var(--text-3);">sato@engine-base.com</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="role-badge role-contributor">contributor</span></td>
+            <td style="font-size:12.5px; color:var(--text-3);">エンジニア / 実装担当</td>
+            <td style="font-size:12px; color:var(--text-3);">2 時間前</td>
+            <td><button class="header-icon-btn"><i data-lucide="more-horizontal" class="icon-sm"></i></button></td>
+          </tr>
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="member-avatar client">山</div>
+                <div>
+                  <div style="font-weight:600;">山田 太郎</div>
+                  <div style="font-size:11.5px; color:var(--text-3);">yamada@example.co.jp</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="role-badge role-client">client</span></td>
+            <td style="font-size:12.5px; color:var(--text-3);">●●株式会社 / 発注元担当</td>
+            <td style="font-size:12px; color:var(--text-3);">30 分前</td>
+            <td><button class="header-icon-btn"><i data-lucide="more-horizontal" class="icon-sm"></i></button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- AI 社員 -->
+    <div class="card mb-5">
+      <div class="card-header">
+        <h2><i data-lucide="bot" class="icon-sm"></i> AI 社員 (大分類リーダー)</h2>
+        <span class="card-header-meta">7 体</span>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th style="width:280px;">AI 社員</th>
+            <th style="width:120px;">ロール</th>
+            <th>担当スキル</th>
+            <th style="width:130px;">ナレッジフォルダ</th>
+            <th style="width:80px;">状態</th>
+            <th style="width:80px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="leader-avatar leader-secretary" style="width:32px;height:32px;font-size:13px;">秘</div>
+                <div>
+                  <div style="font-weight:600;">秘書 AI</div>
+                  <div style="font-size:11.5px; color:var(--text-3);">PM 全体ハブ ・ 振り分け担当</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="role-badge role-ai">秘書</span></td>
+            <td style="font-size:12px;"><code style="font-size:11px;">secretary</code></td>
+            <td style="font-size:11.5px; color:var(--text-3);">共通 / 全社</td>
+            <td><span style="color: var(--text-4); font-size: 12px;">待機</span></td>
+            <td><button class="header-icon-btn"><i data-lucide="more-horizontal" class="icon-sm"></i></button></td>
+          </tr>
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="leader-avatar leader-pm" style="width:32px;height:32px;font-size:13px;">PM</div>
+                <div>
+                  <div style="font-weight:600;">PM AI</div>
+                  <div style="font-size:11.5px; color:var(--text-3);">ヒアリング → 要件 → 提案</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="role-badge role-ai">リーダー</span></td>
+            <td style="font-size:12px;"><code style="font-size:11px;">hearing, requirements-definition, proposal, estimate, acceptance-criteria</code></td>
+            <td style="font-size:11.5px; color:var(--text-3);">PM領域</td>
+            <td><span style="color: var(--success); font-size: 12px;">稼働中</span></td>
+            <td><button class="header-icon-btn"><i data-lucide="more-horizontal" class="icon-sm"></i></button></td>
+          </tr>
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="leader-avatar leader-arch" style="width:32px;height:32px;font-size:13px;">設</div>
+                <div>
+                  <div style="font-weight:600;">設計 AI</div>
+                  <div style="font-size:11.5px; color:var(--text-3);">アーキ / API / 機能・タスク分解</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="role-badge role-ai">リーダー</span></td>
+            <td style="font-size:12px;"><code style="font-size:11px;">architecture-design, tech-stack, api-design, feature-decomposition, task-decomposition</code></td>
+            <td style="font-size:11.5px; color:var(--text-3);">設計領域</td>
+            <td><span style="color: var(--success); font-size: 12px;">稼働中</span></td>
+            <td><button class="header-icon-btn"><i data-lucide="more-horizontal" class="icon-sm"></i></button></td>
+          </tr>
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="leader-avatar leader-design" style="width:32px;height:32px;font-size:13px;">デ</div>
+                <div>
+                  <div style="font-weight:600;">デザイナー AI</div>
+                  <div style="font-size:11.5px; color:var(--text-3);">DESIGN.md + Penpot モック</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="role-badge role-ai">リーダー</span></td>
+            <td style="font-size:12px;"><code style="font-size:11px;">design-md, ui-mockup</code></td>
+            <td style="font-size:11.5px; color:var(--text-3);">デザイン領域</td>
+            <td><span style="color: var(--success); font-size: 12px;">稼働中</span></td>
+            <td><button class="header-icon-btn"><i data-lucide="more-horizontal" class="icon-sm"></i></button></td>
+          </tr>
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="leader-avatar leader-eng" style="width:32px;height:32px;font-size:13px;">エ</div>
+                <div>
+                  <div style="font-weight:600;">エンジニア AI</div>
+                  <div style="font-size:11.5px; color:var(--text-3);">実装引き継ぎ / 統合</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="role-badge role-ai">リーダー</span></td>
+            <td style="font-size:12px;"><code style="font-size:11px;">distributed-dev, integration</code></td>
+            <td style="font-size:11.5px; color:var(--text-3);">実装領域</td>
+            <td><span style="color: var(--text-4); font-size: 12px;">待機</span></td>
+            <td><button class="header-icon-btn"><i data-lucide="more-horizontal" class="icon-sm"></i></button></td>
+          </tr>
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="leader-avatar leader-qa" style="width:32px;height:32px;font-size:13px;">品</div>
+                <div>
+                  <div style="font-weight:600;">品質 AI</div>
+                  <div style="font-size:11.5px; color:var(--text-3);">テスト戦略 + コードレビュー</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="role-badge role-ai">リーダー</span></td>
+            <td style="font-size:12px;"><code style="font-size:11px;">test-verification, code-review, e2e-testing</code></td>
+            <td style="font-size:11.5px; color:var(--text-3);">品質領域</td>
+            <td><span style="color: var(--text-4); font-size: 12px;">待機</span></td>
+            <td><button class="header-icon-btn"><i data-lucide="more-horizontal" class="icon-sm"></i></button></td>
+          </tr>
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="leader-avatar leader-ops" style="width:32px;height:32px;font-size:13px;">運</div>
+                <div>
+                  <div style="font-weight:600;">DevOps AI</div>
+                  <div style="font-size:11.5px; color:var(--text-3);">リリース / 運用 / ドキュメント</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="role-badge role-ai">リーダー</span></td>
+            <td style="font-size:12px;"><code style="font-size:11px;">release-planning, delivery, operations, support-response, documentation</code></td>
+            <td style="font-size:11.5px; color:var(--text-3);">運用領域</td>
+            <td><span style="color: var(--text-4); font-size: 12px;">待機</span></td>
+            <td><button class="header-icon-btn"><i data-lucide="more-horizontal" class="icon-sm"></i></button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ロール別アクセス権限 -->
+    <div class="card">
+      <div class="card-header">
+        <h2><i data-lucide="shield-check" class="icon-sm"></i> ロール別アクセス権限</h2>
+        <button class="btn btn-secondary btn-sm">
+          <i data-lucide="pen-line" class="icon-sm"></i>
+          編集
+        </button>
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="access-matrix">
+          <thead>
+            <tr>
+              <th>機能 / 画面</th>
+              <th>admin</th>
+              <th>contributor</th>
+              <th>viewer</th>
+              <th>client</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ホーム</td>
+              <td><i data-lucide="check-circle-2" class="icon-sm access-allowed"></i></td>
+              <td><i data-lucide="check-circle-2" class="icon-sm access-allowed"></i></td>
+              <td><i data-lucide="eye" class="icon-sm access-readonly"></i></td>
+              <td><i data-lucide="eye" class="icon-sm access-readonly"></i> 限定版</td>
+            </tr>
+            <tr>
+              <td>進捗管理 (DAG / ガント)</td>
+              <td><i data-lucide="check-circle-2" class="icon-sm access-allowed"></i></td>
+              <td><i data-lucide="check-circle-2" class="icon-sm access-allowed"></i></td>
+              <td><i data-lucide="eye" class="icon-sm access-readonly"></i></td>
+              <td><i data-lucide="eye" class="icon-sm access-readonly"></i></td>
+            </tr>
+            <tr>
+              <td>タスク管理 (Kanban)</td>
+              <td><i data-lucide="check-circle-2" class="icon-sm access-allowed"></i></td>
+              <td><i data-lucide="check-circle-2" class="icon-sm access-allowed"></i></td>
+              <td><i data-lucide="eye" class="icon-sm access-readonly"></i></td>
+              <td><i data-lucide="x-circle" class="icon-sm access-denied"></i></td>
+            </tr>
+            <tr>
+              <td>AI 大分類チャット</td>
+              <td><i data-lucide="check-circle-2" class="icon-sm access-allowed"></i> 全 AI</td>
+              <td><i data-lucide="check-circle-2" class="icon-sm access-allowed"></i> 全 AI</td>
+              <td><i data-lucide="x-circle" class="icon-sm access-denied"></i></td>
+              <td><i data-lucide="check-circle-2" class="icon-sm access-allowed"></i> 秘書のみ</td>
+            </tr>
+            <tr>
+              <td>各フェーズ作業 (実行)</td>
+              <td><i data-lucide="check-circle-2" class="icon-sm access-allowed"></i></td>
+              <td><i data-lucide="check-circle-2" class="icon-sm access-allowed"></i></td>
+              <td><i data-lucide="x-circle" class="icon-sm access-denied"></i></td>
+              <td><i data-lucide="x-circle" class="icon-sm access-denied"></i></td>
+            </tr>
+            <tr>
+              <td>デザインモック (Penpot)</td>
+              <td><i data-lucide="check-circle-2" class="icon-sm access-allowed"></i></td>
+              <td><i data-lucide="check-circle-2" class="icon-sm access-allowed"></i></td>
+              <td><i data-lucide="eye" class="icon-sm access-readonly"></i></td>
+              <td><i data-lucide="message-square" class="icon-sm access-readonly"></i> コメント可</td>
+            </tr>
+            <tr>
+              <td>議事録</td>
+              <td><i data-lucide="check-circle-2" class="icon-sm access-allowed"></i></td>
+              <td><i data-lucide="check-circle-2" class="icon-sm access-allowed"></i></td>
+              <td><i data-lucide="eye" class="icon-sm access-readonly"></i></td>
+              <td><i data-lucide="eye" class="icon-sm access-readonly"></i></td>
+            </tr>
+            <tr>
+              <td>アラート / 質問</td>
+              <td><i data-lucide="check-circle-2" class="icon-sm access-allowed"></i></td>
+              <td><i data-lucide="check-circle-2" class="icon-sm access-allowed"></i></td>
+              <td><i data-lucide="x-circle" class="icon-sm access-denied"></i></td>
+              <td><i data-lucide="check-circle-2" class="icon-sm access-allowed"></i> 自分宛のみ</td>
+            </tr>
+            <tr>
+              <td>メンバー管理</td>
+              <td><i data-lucide="check-circle-2" class="icon-sm access-allowed"></i> 招待・編集</td>
+              <td><i data-lucide="eye" class="icon-sm access-readonly"></i></td>
+              <td><i data-lucide="eye" class="icon-sm access-readonly"></i></td>
+              <td><i data-lucide="eye" class="icon-sm access-readonly"></i> 自分のみ</td>
+            </tr>
+            <tr>
+              <td>共有設定</td>
+              <td><i data-lucide="check-circle-2" class="icon-sm access-allowed"></i></td>
+              <td><i data-lucide="x-circle" class="icon-sm access-denied"></i></td>
+              <td><i data-lucide="x-circle" class="icon-sm access-denied"></i></td>
+              <td><i data-lucide="x-circle" class="icon-sm access-denied"></i></td>
+            </tr>
+            <tr>
+              <td>プロジェクト設定</td>
+              <td><i data-lucide="check-circle-2" class="icon-sm access-allowed"></i></td>
+              <td><i data-lucide="x-circle" class="icon-sm access-denied"></i></td>
+              <td><i data-lucide="x-circle" class="icon-sm access-denied"></i></td>
+              <td><i data-lucide="x-circle" class="icon-sm access-denied"></i></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="display:flex; gap: var(--space-4); padding: var(--space-3) var(--space-5); font-size: 11.5px; color: var(--text-3); border-top: 1px solid var(--divider);">
+        <span style="display:inline-flex; align-items:center; gap:4px;"><i data-lucide="check-circle-2" class="icon-sm access-allowed"></i> 編集可能</span>
+        <span style="display:inline-flex; align-items:center; gap:4px;"><i data-lucide="eye" class="icon-sm access-readonly"></i> 閲覧のみ</span>
+        <span style="display:inline-flex; align-items:center; gap:4px;"><i data-lucide="x-circle" class="icon-sm access-denied"></i> アクセス不可</span>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="./_partials.js"></script>
+<script>renderShell({ active: 'members', breadcrumb: 'メンバー / 権限' });</script>
+</body>
+</html>

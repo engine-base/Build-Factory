@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>Build-Factory モック一覧</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./_shared.css" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  body { padding: var(--space-12); }
+  .container { max-width: 1080px; margin: 0 auto; }
+  .hero { margin-bottom: var(--space-12); }
+  .hero h1 {
+    font-size: 32px; font-weight: 700; letter-spacing: -0.02em;
+    color: var(--text-1);
+    margin-bottom: var(--space-2);
+  }
+  .hero p { color: var(--text-3); font-size: 15px; max-width: 680px; line-height: 1.6; }
+
+  .section-title {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-4);
+    margin: var(--space-8) 0 var(--space-4);
+  }
+
+  .mock-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-4);
+  }
+  .mock-card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    transition: border-color 120ms, transform 120ms;
+    display: block;
+  }
+  .mock-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-1px);
+  }
+  .mock-card-header {
+    display: flex; align-items: center; gap: var(--space-3);
+    margin-bottom: var(--space-3);
+  }
+  .mock-icon {
+    width: 36px; height: 36px;
+    background: var(--primary-bg);
+    color: var(--primary);
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mock-icon.client { background: var(--info-bg); color: var(--info); }
+  .mock-icon.flow { background: var(--success-bg); color: var(--success); }
+  .mock-icon.admin { background: var(--neutral-bg); color: var(--neutral); }
+  .mock-icon.aux { background: var(--warning-bg); color: var(--warning); }
+  .mock-card-title { font-size: 15px; font-weight: 700; color: var(--text-1); }
+  .mock-card-desc { font-size: 12.5px; color: var(--text-3); line-height: 1.6; }
+  .mock-card-meta {
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px dashed var(--border);
+    font-size: 11px;
+    color: var(--text-4);
+    display: flex; align-items: center; gap: 6px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="hero">
+    <h1>Build-Factory IA モック一覧</h1>
+    <p>Workspace 内 IA の最終モック集。SmartHR ベース + Lucide アイコン + 絵文字なし、全 13 画面で構成。</p>
+  </div>
+
+  <div class="section-title">プロジェクト管理</div>
+  <div class="mock-grid">
+    <a class="mock-card" href="./workspace-home.html">
+      <div class="mock-card-header">
+        <div class="mock-icon"><i data-lucide="layout-dashboard"></i></div>
+        <div class="mock-card-title">ホーム (admin / contributor)</div>
+      </div>
+      <div class="mock-card-desc">プロジェクトコックピット。次のアクション / 自分待ち / 進行状況 / KPI / 成果物 / 動き / メンバー。</div>
+      <div class="mock-card-meta"><i data-lucide="layers" class="icon-sm"></i> 9 ブロック</div>
+    </a>
+    <a class="mock-card" href="./progress.html">
+      <div class="mock-card-header">
+        <div class="mock-icon"><i data-lucide="trending-up"></i></div>
+        <div class="mock-card-title">進捗管理</div>
+      </div>
+      <div class="mock-card-desc">DAG ビジュアル + ガントチャート + フェーズ毎の成果物バージョン履歴。</div>
+      <div class="mock-card-meta"><i data-lucide="git-branch" class="icon-sm"></i> 13 フェーズ</div>
+    </a>
+    <a class="mock-card" href="./tasks.html">
+      <div class="mock-card-header">
+        <div class="mock-icon"><i data-lucide="check-square-2"></i></div>
+        <div class="mock-card-title">タスク管理</div>
+      </div>
+      <div class="mock-card-desc">機能/画面別 Kanban + ステータス別切替 + 詳細 Drawer + MCP 引き継ぎ Markdown。</div>
+      <div class="mock-card-meta"><i data-lucide="kanban" class="icon-sm"></i> 既実装の再スタイル</div>
+    </a>
+    <a class="mock-card" href="./schedule.html">
+      <div class="mock-card-header">
+        <div class="mock-icon aux"><i data-lucide="calendar"></i></div>
+        <div class="mock-card-title">スケジュール</div>
+      </div>
+      <div class="mock-card-desc">マイルストーン + フェーズ完了予定 + クライアントとの重要日程。</div>
+    </a>
+    <a class="mock-card" href="./minutes.html">
+      <div class="mock-card-header">
+        <div class="mock-icon aux"><i data-lucide="file-text"></i></div>
+        <div class="mock-card-title">議事録</div>
+      </div>
+      <div class="mock-card-desc">クライアントとのやり取り議事録一覧 + 詳細表示 + 編集・タグ。</div>
+    </a>
+    <a class="mock-card" href="./alerts.html">
+      <div class="mock-card-header">
+        <div class="mock-icon aux"><i data-lucide="bell-ring"></i></div>
+        <div class="mock-card-title">アラート / 質問</div>
+      </div>
+      <div class="mock-card-desc">人間決裁待ち通知センター。質問 / 承認 / レビュー / コメント。</div>
+    </a>
+  </div>
+
+  <div class="section-title">開発フロー (AI 大分類)</div>
+  <div class="mock-grid">
+    <a class="mock-card" href="./leader-pm.html">
+      <div class="mock-card-header">
+        <div class="mock-icon flow"><i data-lucide="clipboard-list"></i></div>
+        <div class="mock-card-title">PM ライン (代表)</div>
+      </div>
+      <div class="mock-card-desc">リーダーチャット + フェーズ別作業エリア + スキル STEP 実行 UI + 成果物履歴。</div>
+      <div class="mock-card-meta"><i data-lucide="user" class="icon-sm"></i> 4 フェーズ配下</div>
+    </a>
+  </div>
+
+  <div class="section-title">クライアント / 新規</div>
+  <div class="mock-grid">
+    <a class="mock-card" href="./client-home.html">
+      <div class="mock-card-header">
+        <div class="mock-icon client"><i data-lucide="user-check"></i></div>
+        <div class="mock-card-title">クライアントホーム (C)</div>
+      </div>
+      <div class="mock-card-desc">簡易進捗バー + 自分宛タスク + コメント + 制限されたアクセス。</div>
+    </a>
+    <a class="mock-card" href="./new-project.html">
+      <div class="mock-card-header">
+        <div class="mock-icon client"><i data-lucide="plus-circle"></i></div>
+        <div class="mock-card-title">新規プロジェクト (B)</div>
+      </div>
+      <div class="mock-card-desc">必ずヒアリングから始まる導入 UI。資料インポート / テンプレ選択も。</div>
+    </a>
+  </div>
+
+  <div class="section-title">管理</div>
+  <div class="mock-grid">
+    <a class="mock-card" href="./members.html">
+      <div class="mock-card-header">
+        <div class="mock-icon admin"><i data-lucide="users"></i></div>
+        <div class="mock-card-title">メンバー / 権限</div>
+      </div>
+      <div class="mock-card-desc">メンバーテーブル + ロール badge + 招待 + ロール別権限マトリクス。</div>
+    </a>
+    <a class="mock-card" href="./settings.html">
+      <div class="mock-card-header">
+        <div class="mock-icon admin"><i data-lucide="settings"></i></div>
+        <div class="mock-card-title">プロジェクト設定</div>
+      </div>
+      <div class="mock-card-desc">基本情報 / フェーズ制御モード / Penpot 連携 / 通知 / アーカイブ。</div>
+    </a>
+  </div>
+</div>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

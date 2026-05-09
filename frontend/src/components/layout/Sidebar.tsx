@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard, MessageSquare, FileText, Users, TrendingUp,
   Bot, CheckSquare, BookOpen, ScrollText, Wifi, Cpu, FolderOpen, ListTodo, Sparkles, Package, LayoutGrid,
+  Building2,
 } from "lucide-react";
 
 const AI_NAV = [
@@ -20,12 +21,15 @@ const AI_NAV = [
   { href: "/documents",    label: "資料・添付",       icon: FolderOpen },
   { href: "/logs",         label: "実行ログ",         icon: ScrollText },
   { href: "/channels",     label: "チャンネル",       icon: Wifi },
+  { href: "/settings/account", label: "会社設定",     icon: Building2 },
+  { href: "/settings/references", label: "参考資料",   icon: FileText },
 ];
 
 
 export function Sidebar() {
   const pathname = usePathname();
 
+  // 全 hooks を先に呼ぶ (React rules of hooks: 条件で hook をスキップしない)
   const { data: pendingCount = 0 } = useQuery({
     queryKey: ["approval-count"],
     queryFn: async () => {
@@ -36,6 +40,18 @@ export function Sidebar() {
     },
     refetchInterval: 15000,
   });
+
+  // 全 hooks を呼んだあとで非表示判定 (React rules of hooks 違反を回避)
+  // /workspaces/[id]/designs/[did]/editor は Penpot iframe の全画面 UI を出すため Sidebar 非表示
+  const isFullscreenEditor =
+    !!pathname &&
+    /^\/workspaces\/\d+\/designs\/\d+\/editor(\/|$)/.test(pathname);
+  // /workspaces/[id] 配下は WorkspaceShell が独自サイドバーを持つためアカウントサイドバー非表示
+  const isInsideWorkspace =
+    !!pathname && /^\/workspaces\/\d+(\/|$)/.test(pathname);
+  if (isFullscreenEditor || isInsideWorkspace) {
+    return null;
+  }
 
   return (
     <aside

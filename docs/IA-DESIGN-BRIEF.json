@@ -1,0 +1,200 @@
+{
+  "project_name": "Build-Factory Workspace IA",
+  "project_type": "受託開発 OS / SaaS / 社内ツール",
+  "created_at": "2026-05-04",
+  "client": "ENGINE BASE (内製)",
+  "owner": "高本まさと",
+
+  "goal": {
+    "surface_request": "Workspace 内 IA を整備したい (サイドバーが現状アカウント機能と混在している)",
+    "underlying_need": "Workspace に入った瞬間にプロジェクト用の世界に切り替わり、何をすべきかが一目で分かる UX を提供したい",
+    "essential_goal": "受託開発の全フェーズ (ヒア → 要件 → 設計 → 実装 → QA → 納品) を AI 駆動 + 手動切替で一元管理し、クライアント / 開発エンジニア / 管理メンバーの 3 者共有を実現する",
+    "success_quantitative": "Workspace 入室から 3 クリック以内で次のアクション / 自分待ちを把握。Claude Code MCP に bf_get_spec で完全な仕様 bundle を渡せる",
+    "success_qualitative": "クライアントを招待しても迷わず承認・コメント・モック確認できる。BF を使う PM は別 SaaS と併用不要"
+  },
+
+  "constraints": {
+    "deadline": null,
+    "budget": "内製、追加金銭コストなし (BlockNote MIT)",
+    "team_size": 1,
+    "tech_stack_constraints": [
+      "Next.js 15 + React 19",
+      "FastAPI + asyncpg + Postgres (Supabase)",
+      "Penpot self-host (AGPL volume override only)",
+      "OSS は MIT/Apache/ISC のみ (GPL/AGPL 不可)"
+    ],
+    "existing_systems": [
+      "Penpot iframe (ja_jp 完全翻訳済)",
+      "MCP server (bf_* tools)",
+      "AI 社員 8 体 (DB 登録済、要再構成)",
+      "Kanban + Drawer + handoff Markdown (実装済)"
+    ]
+  },
+
+  "ia_decisions": {
+    "sidebar_structure": {
+      "section_count": 3,
+      "sections": [
+        {
+          "name": "プロジェクト管理",
+          "items": ["ホーム", "進捗管理", "タスク管理", "スケジュール", "議事録", "アラート / 質問"]
+        },
+        {
+          "name": "開発フロー",
+          "items": [
+            { "leader": "秘書 AI", "id": "secretary", "color": "#6366F1" },
+            { "leader": "PM AI", "id": "pm", "color": "#0EA5E9", "phases": ["hearing", "requirements-definition", "proposal", "estimate", "acceptance-criteria"] },
+            { "leader": "設計 AI", "id": "arch", "color": "#2563EB", "phases": ["architecture-design", "tech-stack", "api-design", "feature-decomposition", "task-decomposition"] },
+            { "leader": "デザイナー AI", "id": "design", "color": "#DB2777", "phases": ["design-md", "ui-mockup"] },
+            { "leader": "エンジニア AI", "id": "eng", "color": "#16A34A", "phases": ["distributed-dev", "integration"] },
+            { "leader": "品質 AI", "id": "qa", "color": "#CA8A04", "phases": ["test-verification", "code-review", "e2e-testing"] },
+            { "leader": "DevOps AI", "id": "ops", "color": "#DC2626", "phases": ["release-planning", "delivery", "operations", "support-response", "documentation"] }
+          ]
+        },
+        {
+          "name": "管理",
+          "items": ["メンバー / 権限", "共有設定", "プロジェクト設定"]
+        }
+      ]
+    },
+    "phase_dag": {
+      "edges": [
+        ["hearing", "requirements-definition"],
+        ["requirements-definition", "architecture-design"],
+        ["requirements-definition", "design-md"],
+        ["requirements-definition", "api-design"],
+        ["requirements-definition", "proposal"],
+        ["requirements-definition", "acceptance-criteria"],
+        ["architecture-design", "feature-decomposition"],
+        ["api-design", "feature-decomposition"],
+        ["feature-decomposition", "task-decomposition"],
+        ["design-md", "ui-mockup"],
+        ["ui-mockup", "distributed-dev"],
+        ["task-decomposition", "distributed-dev"],
+        ["distributed-dev", "integration"],
+        ["integration", "test-verification"],
+        ["test-verification", "code-review"],
+        ["code-review", "release-planning"],
+        ["release-planning", "delivery"],
+        ["delivery", "operations"]
+      ],
+      "control_modes": ["strict", "guide_default", "free"],
+      "default_mode": "guide",
+      "skip_requires_reason": true,
+      "completion_criteria": "ai_all_steps_done AND pm_approved",
+      "must_not_skip": ["hearing", "requirements-definition", "acceptance-criteria", "code-review"]
+    },
+    "roles": {
+      "admin":       { "can_invite": true, "can_edit_settings": true, "can_archive": true, "scope": "all" },
+      "contributor": { "can_invite": false, "can_edit_settings": false, "scope": "all_except_settings" },
+      "viewer":      { "can_invite": false, "can_edit_settings": false, "scope": "read_only" },
+      "client":      { "scope": "limited", "visible_pages": ["home_simplified", "progress_readonly", "alerts_self", "design_mock_comment", "members_self"] }
+    }
+  },
+
+  "design_system": {
+    "name": "Calm Industrial",
+    "blend": { "smarthr": 70, "linear": 15, "esa": 10, "magic_moment": 5 },
+    "tokens_file": "frontend/public/mock/_shared.css",
+    "documentation": "Build-Factory/docs/DESIGN-SYSTEM.md",
+    "principles": [
+      "Tonal Hierarchy (5 backgrounds + 4 text levels)",
+      "Border Over Shadow (1px borders, no box-shadow)",
+      "Compact but Breathable",
+      "Semantic Tokens",
+      "No Emoji, Lucide Only"
+    ],
+    "primary": "#004CD9",
+    "fonts": ["Inter", "Noto Sans JP"]
+  },
+
+  "screens_completed_as_mock": [
+    "index.html",
+    "workspace-home.html",
+    "leader-pm.html",
+    "progress.html",
+    "tasks.html",
+    "client-home.html",
+    "new-project.html",
+    "members.html",
+    "minutes.html",
+    "alerts.html",
+    "schedule.html",
+    "settings.html"
+  ],
+
+  "oss_adoption": {
+    "confirmed": [
+      { "name": "BlockNote", "license": "MIT", "purpose": "議事録 / 要件定義 / 仕様書 リッチエディタ" }
+    ],
+    "existing": ["Lucide", "shadcn/ui", "TanStack Query", "TanStack Table", "Next.js"],
+    "later_when_needed": [
+      { "name": "cmdk", "purpose": "コマンドパレット (Cmd+K)" },
+      { "name": "@dnd-kit", "purpose": "Kanban ドラッグ強化" },
+      { "name": "React Flow", "purpose": "DAG ビジュアル (進捗画面)" },
+      { "name": "frappe-gantt", "purpose": "ガントチャート" }
+    ],
+    "rejected": [
+      { "name": "GSAP Standard", "reason": "商用 SaaS で別ライセンス必要" },
+      { "name": "GPL/AGPL libs", "reason": "公開義務" }
+    ]
+  },
+
+  "implementation_priority": {
+    "must": [
+      "1. globals.css に Calm Industrial トークン適用",
+      "2. WorkspaceShell コンポーネント (Sidebar + Header)",
+      "3. Workspace ホーム画面 (コックピット)",
+      "4. 進捗管理画面 (DAG + ガント)",
+      "5. タスク管理画面 (既存 Kanban を新シェルに統合)",
+      "6. AI 大分類画面 (PM ライン代表 + 他 6 ライン展開)",
+      "7. 議事録画面 + BlockNote 導入"
+    ],
+    "should": [
+      "メンバー / 権限画面",
+      "アラート / 質問画面",
+      "スケジュール画面",
+      "設定画面",
+      "新規プロジェクト画面",
+      "クライアントホーム画面"
+    ],
+    "could": [
+      "コマンドパレット (cmdk)",
+      "@dnd-kit による Kanban ドラッグ強化",
+      "React Flow による DAG ビジュアル"
+    ]
+  },
+
+  "stakeholders": [
+    { "role": "admin", "name": "高本まさと", "involvement": "high", "concerns": "プロジェクト全権・最終決裁・クライアント窓口" },
+    { "role": "contributor", "name": "開発エンジニア", "involvement": "medium", "concerns": "実装担当・タスク受領" },
+    { "role": "client", "name": "クライアント", "involvement": "medium", "concerns": "進捗確認・承認・モックコメント・質問回答" },
+    { "role": "ai_employee", "name": "AI 社員 7 体", "involvement": "high", "concerns": "各フェーズ自走・成果物生成・PM へのレポート" }
+  ],
+
+  "unresolved": [
+    { "question": "デザイナー AI の Penpot 自動操作 API 範囲", "importance": "high", "resolve_in": "architecture-design" },
+    { "question": "BlockNote ドキュメント永続化方式 (DB スキーマ / S3)", "importance": "high", "resolve_in": "architecture-design" },
+    { "question": "共有リンク発行のセキュリティ要件 (期限 / 認証)", "importance": "medium", "resolve_in": "requirements-definition" },
+    { "question": "AI 社員 LLM モデル選定とコスト見積", "importance": "medium", "resolve_in": "tech-stack" },
+    { "question": "アカウント横断 ナレッジ vs プロジェクト固有ナレッジの境界", "importance": "medium", "resolve_in": "requirements-definition" }
+  ],
+
+  "risks": [
+    { "risk": "BlockNote ドキュメント永続化の工数膨張", "impact": "high", "probability": "high", "mitigation": "MVP は localStorage / JSON 保存、後で DB 化" },
+    { "risk": "11 画面を一気に実装すると工数オーバー", "impact": "high", "probability": "high", "mitigation": "ホーム + 進捗 + タスクを優先、他は段階的" },
+    { "risk": "既存 /workspaces/[id]/page.tsx タブ置換の破壊的変更", "impact": "medium", "probability": "high", "mitigation": "旧ページをバックアップ、新シェルを別ルートで先行" },
+    { "risk": "client ロール権限制御の漏れ", "impact": "medium", "probability": "medium", "mitigation": "実装時にロールベース表示の検証ケースを書く" }
+  ],
+
+  "next_skill": "implementation_direct",
+  "next_steps": [
+    "globals.css に Calm Industrial トークン統合",
+    "WorkspaceShell コンポーネント新規作成",
+    "Workspace ホーム実装",
+    "進捗管理画面実装",
+    "既存 tasks/page.tsx を新シェルに統合",
+    "BlockNote 導入で議事録画面",
+    "残り画面を順次実装"
+  ]
+}

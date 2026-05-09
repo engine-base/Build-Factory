@@ -107,6 +107,68 @@ export async function fetchWorkspace(id: number): Promise<Workspace> {
   return r.json();
 }
 
+/* ── Workspace summary (project + tasks 統計 + active phases) ─────── */
+
+export interface WorkspaceTaskStats {
+  total: number;
+  completed: number;
+  in_progress: number;
+  pending: number;
+  blockers: number;
+}
+
+export interface ActivePhase {
+  id: number;
+  title: string;
+  skill_name: string;
+  status: string;
+  child_total: number;
+  child_done: number;
+}
+
+export interface RecentArtifact {
+  id: string;
+  type: string;
+  title: string;
+  category_tags?: string[];
+  updated_at: string;
+}
+
+export interface WorkspaceSummary {
+  workspace: { id: number; name: string; description: string | null; status: string };
+  project: { id: number; title: string; status: string } | null;
+  task_stats: WorkspaceTaskStats;
+  completion_rate: number;
+  active_phases: ActivePhase[];
+  recent_artifacts: RecentArtifact[];
+}
+
+export async function fetchWorkspaceSummary(id: number): Promise<WorkspaceSummary> {
+  const r = await fetch(`${BASE}/api/workspaces/${id}/summary`);
+  return r.json();
+}
+
+export interface WorkspaceTask {
+  id: number;
+  project_id: number;
+  parent_task_id: number | null;
+  title: string;
+  description: string | null;
+  assigned_to: number | null;
+  assignee_name: string | null;
+  skill_name: string;
+  status: string;
+  result: string | null;
+  level: number;
+  created_at: string;
+}
+
+export async function fetchWorkspaceTasks(id: number, status?: string): Promise<{ project_id: number; tasks: WorkspaceTask[]; total: number }> {
+  const qs = status ? `?status=${encodeURIComponent(status)}` : "";
+  const r = await fetch(`${BASE}/api/workspaces/${id}/tasks${qs}`);
+  return r.json();
+}
+
 export async function createWorkspace(body: {
   account_id: number;
   name: string;

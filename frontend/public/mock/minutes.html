@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>議事録 — Build-Factory v1</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./_shared.css" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  .minutes-layout {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: var(--space-5);
+    height: calc(100vh - var(--header-h) - 160px);
+  }
+  .minutes-list {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .minutes-list-header {
+    padding: 12px var(--space-4);
+    border-bottom: 1px solid var(--divider);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .minutes-list-body {
+    flex: 1;
+    overflow-y: auto;
+  }
+  .minutes-item {
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--divider);
+    cursor: pointer;
+  }
+  .minutes-item:hover { background: var(--bg-soft); }
+  .minutes-item.active {
+    background: var(--primary-bg);
+    border-left: 3px solid var(--primary);
+  }
+  .minutes-item-title {
+    font-size: 13.5px; font-weight: 600;
+    color: var(--text-1);
+    margin-bottom: 4px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .minutes-item-meta {
+    font-size: 11.5px;
+    color: var(--text-3);
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 6px;
+  }
+  .minutes-item-snippet {
+    font-size: 12px;
+    color: var(--text-2);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .minutes-item-tags {
+    display: flex; gap: 4px; margin-top: 8px;
+  }
+  .minutes-tag {
+    font-size: 10.5px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    color: var(--text-3);
+  }
+
+  .minutes-detail {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .minutes-detail-header {
+    padding: var(--space-5) var(--space-6);
+    border-bottom: 1px solid var(--divider);
+  }
+  .minutes-detail-title {
+    font-size: 18px; font-weight: 700;
+    color: var(--text-1);
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+  .minutes-detail-meta {
+    display: flex; align-items: center; gap: var(--space-3);
+    font-size: 12.5px;
+    color: var(--text-3);
+    flex-wrap: wrap;
+  }
+  .minutes-detail-meta-item {
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .minutes-detail-actions {
+    display: flex; gap: 6px; margin-top: var(--space-3);
+  }
+
+  .minutes-detail-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-6);
+  }
+  .minutes-section {
+    margin-bottom: var(--space-6);
+  }
+  .minutes-section h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-1);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--primary);
+    display: inline-block;
+  }
+  .minutes-section ul {
+    margin-left: 20px;
+    color: var(--text-2);
+    font-size: 13.5px;
+    line-height: 1.8;
+  }
+  .minutes-section p {
+    color: var(--text-2);
+    font-size: 13.5px;
+    line-height: 1.7;
+    margin-bottom: 10px;
+  }
+
+  .action-item-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    margin-bottom: 6px;
+  }
+  .action-item-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .action-item-text {
+    flex: 1; font-size: 13px; color: var(--text-1);
+  }
+  .action-item-due {
+    font-size: 11.5px; color: var(--text-3);
+    margin-top: 4px;
+  }
+  .action-item-status {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="header"></header>
+  <aside class="sidebar"></aside>
+
+  <main class="main">
+    <div class="page-header">
+      <div class="page-header-top">
+        <div>
+          <div class="page-title">議事録</div>
+          <div class="page-subtitle">クライアント MTG / 内部レビュー / AI 出力レビューの記録</div>
+        </div>
+        <div class="page-spacer"></div>
+        <div class="page-actions">
+          <button class="btn btn-secondary">
+            <i data-lucide="upload" class="icon-sm"></i>
+            音声から作成
+          </button>
+          <button class="btn btn-primary">
+            <i data-lucide="plus" class="icon-sm"></i>
+            新規議事録
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="minutes-layout">
+      <!-- list -->
+      <div class="minutes-list">
+        <div class="minutes-list-header">
+          <input class="form-input" placeholder="議事録を検索..." style="font-size: 12.5px; height: 34px;" />
+          <div class="flex gap-2">
+            <button class="btn btn-secondary btn-sm" style="flex:1;">全て</button>
+            <button class="btn btn-ghost btn-sm" style="flex:1;">クライアント</button>
+            <button class="btn btn-ghost btn-sm" style="flex:1;">内部</button>
+          </div>
+        </div>
+        <div class="minutes-list-body">
+          <div class="minutes-item active">
+            <div class="minutes-item-title">
+              <i data-lucide="users" class="icon-sm"></i>
+              要件定義レビュー MTG (5/3)
+            </div>
+            <div class="minutes-item-meta">
+              <span><i data-lucide="user" class="icon-sm"></i> 山田 太郎</span>
+              <span>5/3 14:00 〜 15:00</span>
+            </div>
+            <div class="minutes-item-snippet">機能要件の優先順位を再整理。認証機能を Must、レポート機能を Should に変更。クライアントから既存 DB 連携の要望あり。</div>
+            <div class="minutes-item-tags">
+              <span class="minutes-tag">クライアント</span>
+              <span class="minutes-tag">要件定義</span>
+            </div>
+          </div>
+
+          <div class="minutes-item">
+            <div class="minutes-item-title">
+              <i data-lucide="users" class="icon-sm"></i>
+              キックオフ MTG (5/1)
+            </div>
+            <div class="minutes-item-meta">
+              <span><i data-lucide="user" class="icon-sm"></i> 山田 太郎</span>
+              <span>5/1 10:00 〜 11:00</span>
+            </div>
+            <div class="minutes-item-snippet">プロジェクト全体像の合意。納期は 6/30 を目標、予算 500 万、フェーズごとに承認ゲートを置く方針で合意。</div>
+            <div class="minutes-item-tags">
+              <span class="minutes-tag">クライアント</span>
+              <span class="minutes-tag">キックオフ</span>
+            </div>
+          </div>
+
+          <div class="minutes-item">
+            <div class="minutes-item-title">
+              <i data-lucide="bot" class="icon-sm"></i>
+              アーキ設計レビュー (内部)
+            </div>
+            <div class="minutes-item-meta">
+              <span><i data-lucide="user" class="icon-sm"></i> 設計 AI</span>
+              <span>5/3 16:00</span>
+            </div>
+            <div class="minutes-item-snippet">PostgreSQL + FastAPI + Next.js 構成で確定。認証は Supabase Auth、Penpot は self-host。</div>
+            <div class="minutes-item-tags">
+              <span class="minutes-tag">内部</span>
+              <span class="minutes-tag">アーキ</span>
+            </div>
+          </div>
+
+          <div class="minutes-item">
+            <div class="minutes-item-title">
+              <i data-lucide="message-square" class="icon-sm"></i>
+              ヒアリング (4/30)
+            </div>
+            <div class="minutes-item-meta">
+              <span><i data-lucide="user" class="icon-sm"></i> 山田 太郎</span>
+              <span>4/30 13:00 〜 14:30</span>
+            </div>
+            <div class="minutes-item-snippet">プロジェクトの背景・ゴール・予算・期限を整理。秘書 AI が hearing スキルでヒアリングを実施し、ブリーフ生成。</div>
+            <div class="minutes-item-tags">
+              <span class="minutes-tag">クライアント</span>
+              <span class="minutes-tag">ヒアリング</span>
+            </div>
+          </div>
+
+          <div class="minutes-item">
+            <div class="minutes-item-title">
+              <i data-lucide="bot" class="icon-sm"></i>
+              提案書レビュー (内部)
+            </div>
+            <div class="minutes-item-meta">
+              <span><i data-lucide="user" class="icon-sm"></i> PM AI</span>
+              <span>5/2 11:00</span>
+            </div>
+            <div class="minutes-item-snippet">提案書ドラフトのチェック。価格構成案 A (フェーズ別単価) で確定、月額継続オプションは要望次第。</div>
+            <div class="minutes-item-tags">
+              <span class="minutes-tag">内部</span>
+              <span class="minutes-tag">提案</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- detail -->
+      <div class="minutes-detail">
+        <div class="minutes-detail-header">
+          <div class="minutes-detail-title">要件定義レビュー MTG</div>
+          <div class="minutes-detail-meta">
+            <span class="minutes-detail-meta-item"><i data-lucide="calendar" class="icon-sm"></i> 5月3日 (土) 14:00 〜 15:00</span>
+            <span class="minutes-detail-meta-item"><i data-lucide="map-pin" class="icon-sm"></i> Online (Google Meet)</span>
+            <span class="minutes-detail-meta-item"><i data-lucide="users" class="icon-sm"></i> 4 名 / 山田 太郎、高本 まさと、PM AI、設計 AI</span>
+            <span class="badge recommend">クライアント</span>
+          </div>
+          <div class="minutes-detail-actions">
+            <button class="btn btn-secondary btn-sm"><i data-lucide="pen-line" class="icon-sm"></i>編集</button>
+            <button class="btn btn-secondary btn-sm"><i data-lucide="share-2" class="icon-sm"></i>共有</button>
+            <button class="btn btn-secondary btn-sm"><i data-lucide="download" class="icon-sm"></i>PDF</button>
+            <button class="btn btn-ghost btn-sm"><i data-lucide="archive" class="icon-sm"></i>アーカイブ</button>
+          </div>
+        </div>
+
+        <div class="minutes-detail-body">
+          <div class="minutes-section">
+            <h3>1. アジェンダ</h3>
+            <ul>
+              <li>要件定義書 v1.0 のクライアントレビュー</li>
+              <li>機能要件の優先順位調整</li>
+              <li>非機能要件 (セキュリティ・パフォーマンス) の確認</li>
+              <li>次フェーズ (アーキ + デザイン) のスケジュール</li>
+            </ul>
+          </div>
+
+          <div class="minutes-section">
+            <h3>2. 主な決定事項</h3>
+            <ul>
+              <li><strong>認証機能を Must に格上げ</strong> — 当初 Should だったが、運用初日から必要との認識で変更</li>
+              <li><strong>レポート機能を v1 スコープから外す</strong> — 設計が複雑化するため Phase 2 に</li>
+              <li><strong>既存 DB との連携を新規追加</strong> — 山田様より「移行コスト最小化のため必須」</li>
+              <li><strong>納期は 6/30 で確定</strong>、予算 500 万円維持</li>
+            </ul>
+          </div>
+
+          <div class="minutes-section">
+            <h3>3. アクションアイテム</h3>
+            <div class="action-item-row">
+              <div class="action-item-num">1</div>
+              <div class="action-item-text">
+                既存 DB のスキーマ詳細を山田様より受領
+                <div class="action-item-due">担当: 山田 太郎 ・ 期限: 5/8</div>
+              </div>
+              <span class="action-item-status badge recommend">未着手</span>
+            </div>
+            <div class="action-item-row">
+              <div class="action-item-num">2</div>
+              <div class="action-item-text">
+                要件定義書を v2.0 に更新 (認証 Must / レポート除外 / DB 連携追加)
+                <div class="action-item-due">担当: PM AI ・ 期限: 5/4</div>
+              </div>
+              <span class="action-item-status badge success">完了</span>
+            </div>
+            <div class="action-item-row">
+              <div class="action-item-num">3</div>
+              <div class="action-item-text">
+                アーキ設計に既存 DB 連携を組み込み
+                <div class="action-item-due">担当: 設計 AI ・ 期限: 5/8</div>
+              </div>
+              <span class="action-item-status badge parallel">進行中</span>
+            </div>
+          </div>
+
+          <div class="minutes-section">
+            <h3>4. 議論ハイライト</h3>
+            <p><strong>山田様:</strong>「既存の社内システムが Oracle で動いているので、データ移行よりも参照連携の方が現実的。リードオンリーで良いから繋がせてほしい。」</p>
+            <p><strong>高本:</strong>「分かりました。読み取り専用 API として実装します。Oracle 側のスキーマを後で共有いただければ設計 AI で仕様化します。」</p>
+            <p><strong>PM AI:</strong>「セキュリティ要件として VPN / IP ホワイトリストの方針を確認させてください。」</p>
+            <p><strong>山田様:</strong>「VPN 接続前提で。アクセス IP は弊社情シスに確認の上、後日連絡します。」</p>
+          </div>
+
+          <div class="minutes-section">
+            <h3>5. 次回 MTG</h3>
+            <p>5/8 (木) 14:00 ・ アーキ設計 + DB 連携の中間レビュー ・ 山田様 + 高本 + 設計 AI</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="./_partials.js"></script>
+<script>renderShell({ active: 'minutes', breadcrumb: '議事録' });</script>
+</body>
+</html>

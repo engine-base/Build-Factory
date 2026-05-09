@@ -1,0 +1,933 @@
+{
+  "_meta": {
+    "version": "2.0.0",
+    "last_updated": "2026-04-17",
+    "description": "ENGINE BASE 技術スタック知識ベース v2。習熟度・実績・推奨ユースケース・互換性マトリクスを含む。tech-stack スキルが参照する。"
+  },
+
+  "frontend": [
+    {
+      "id": "nextjs",
+      "name": "Next.js",
+      "version": "15 (App Router)",
+      "language": "TypeScript",
+      "engine_base_proficiency": 5,
+      "tags": ["Web", "SaaS", "EC", "コーポレート", "管理画面", "BtoB"],
+      "best_for": ["フルスタックWebアプリ", "EC", "SaaS", "SEOが必要なサービス"],
+      "pros": ["SSR/SSG/ISR を柔軟に使い分けられる", "Vercel との相性が最高", "エコシステムが最大級", "ENGINE BASE の最も得意な技術"],
+      "cons": ["学習コストが高め", "小規模コーポレートには over-spec になりがち"],
+      "pairs_well_with": ["supabase", "neon", "clerk", "better_auth", "drizzle", "prisma", "stripe", "resend", "vercel", "cloudflare_pages", "convex", "upstash_redis"],
+      "monthly_cost_estimate": "無料〜¥10,000（Vercel Pro）",
+      "notes": "ENGINE BASE の第一推奨フロントエンド。どのバックエンドとも相性が良い。"
+    },
+    {
+      "id": "nuxtjs",
+      "name": "Nuxt.js",
+      "version": "3",
+      "language": "TypeScript / Vue",
+      "engine_base_proficiency": 3,
+      "tags": ["Web", "SaaS", "コーポレート"],
+      "best_for": ["Vueが好みのクライアント", "日本のエンジニアチームへの引き渡し"],
+      "pros": ["Vueベースで日本のエンジニアに馴染みやすい", "Next.jsと同等の機能"],
+      "cons": ["Next.jsよりエコシステムが小さい", "ENGINE BASE の習熟度はNext.jsより低い"],
+      "pairs_well_with": ["supabase", "neon", "vercel", "netlify"],
+      "monthly_cost_estimate": "無料〜¥5,000",
+      "notes": "クライアントがVueを指定した場合に選択。通常はNext.jsを推奨。"
+    },
+    {
+      "id": "astro",
+      "name": "Astro",
+      "version": "4+",
+      "language": "TypeScript",
+      "engine_base_proficiency": 3,
+      "tags": ["コーポレート", "メディア", "ブログ", "LP"],
+      "best_for": ["コンテンツ中心サイト", "マーケティングサイト", "高速LP"],
+      "pros": ["デフォルトゼロJS・Core Web Vitals 最高", "Markdown/MDXネイティブ", "React/Vue/Svelteを混在可"],
+      "cons": ["インタラクティブ機能が多いアプリには向かない"],
+      "pairs_well_with": ["microcms", "contentful", "sanity", "vercel", "netlify", "cloudflare_pages"],
+      "monthly_cost_estimate": "無料〜¥3,000",
+      "notes": "コーポレートサイト・メディアサイトの高速化に最適。"
+    },
+    {
+      "id": "react_spa",
+      "name": "React (SPA / Vite)",
+      "language": "TypeScript",
+      "engine_base_proficiency": 4,
+      "tags": ["管理画面", "ダッシュボード", "社内ツール"],
+      "best_for": ["SEO不要の管理画面", "社内ツール"],
+      "pros": ["管理画面・ダッシュボードに最適", "ルーティング自由"],
+      "cons": ["SEOが必要なサービスには不向き"],
+      "pairs_well_with": ["supabase", "firebase", "convex"],
+      "monthly_cost_estimate": "無料〜¥3,000",
+      "notes": "管理画面・社内ツール専用。一般向けはNext.jsを使う。"
+    },
+    {
+      "id": "remix",
+      "name": "Remix",
+      "language": "TypeScript",
+      "engine_base_proficiency": 2,
+      "tags": ["Web", "フォーム重視", "エッジ"],
+      "best_for": ["フォーム・データ入力が多いWebアプリ", "Cloudflare Workers ターゲット"],
+      "pros": ["フォーム処理が非常に優れている", "Cloudflare Workers との相性が抜群"],
+      "cons": ["Next.jsよりコミュニティが小さい", "ENGINE BASE の習熟度は低い"],
+      "pairs_well_with": ["cloudflare_workers_d1", "turso", "upstash_redis"],
+      "monthly_cost_estimate": "無料〜¥3,000",
+      "notes": "エッジ特化・フォーム重視案件で検討。通常はNext.jsを推奨。"
+    }
+  ],
+
+  "backend_baas": [
+    {
+      "id": "supabase",
+      "name": "Supabase",
+      "type": "BaaS（PostgreSQL + 認証 + ストレージ + リアルタイム）",
+      "engine_base_proficiency": 5,
+      "tags": ["BaaS", "PostgreSQL", "認証", "ストレージ", "リアルタイム", "オールインワン"],
+      "best_for": ["MVP", "中規模SaaS", "EC", "BtoB業務ツール", "モバイルバックエンド"],
+      "pros": [
+        "DB+認証+ストレージ+リアルタイムが一体で最速スタート",
+        "PostgreSQL フルパワーを使える（Row Level Security, Edge Functions）",
+        "Next.js / Flutter との公式SDK が充実",
+        "無料枠 2プロジェクト",
+        "ENGINE BASE の最も得意な BaaS"
+      ],
+      "cons": [
+        "DB・認証・ストレージを分けて使いたい場合は over-spec",
+        "超大規模（月1000万リクエスト+）は専用構成を検討",
+        "Neon に比べ DB のコールドスタートが遅い場合あり"
+      ],
+      "pairs_well_with": ["nextjs", "nuxtjs", "flutter", "flutterflow", "prisma", "drizzle", "stripe", "resend"],
+      "monthly_cost_estimate": "無料〜$25/月（Pro）",
+      "not_good_with": ["cloudflare_workers_d1（DB層が競合）", "firebase（役割重複）"],
+      "notes": "ENGINE BASE の第一推奨バックエンド。認証・ストレージも一緒に必要な場合はほぼSupabase一択。"
+    },
+    {
+      "id": "firebase",
+      "name": "Firebase",
+      "type": "BaaS（NoSQL + 認証 + ストレージ + リアルタイム）",
+      "engine_base_proficiency": 4,
+      "tags": ["BaaS", "リアルタイム", "NoSQL", "モバイル"],
+      "best_for": ["リアルタイムアプリ", "チャット", "ライブ系", "シンプルなモバイルバックエンド"],
+      "pros": ["Firestore リアルタイム同期が得意", "Google エコシステム連携（Analytics, Crashlytics等）", "FCM プッシュ通知がネイティブ"],
+      "cons": ["NoSQL（Firestore）は複雑なクエリ不可", "コスト設計を誤ると高額", "SQL系操作が不便"],
+      "pairs_well_with": ["flutter", "react_native", "react_spa"],
+      "monthly_cost_estimate": "無料〜変動（Spark無料 / Blaze従量制）",
+      "notes": "リアルタイム通信・プッシュ通知が中心でSQL不要な場合に選択。通常はSupabaseを推奨。"
+    },
+    {
+      "id": "convex",
+      "name": "Convex",
+      "type": "BaaS（リアクティブDB + 関数 + リアルタイム）",
+      "engine_base_proficiency": 2,
+      "tags": ["BaaS", "リアルタイム", "TypeScript", "新世代"],
+      "best_for": ["リアルタイムコラボ系アプリ", "Notionライクなツール", "TypeScript統一バックエンド"],
+      "pros": [
+        "TypeScript で DB スキーマ・クエリ・バックエンド関数をフルタイプセーフに書ける",
+        "リアルタイム同期が超簡単（Firebaseより型安全）",
+        "Next.jsとの統合が洗練されている"
+      ],
+      "cons": ["学習コストあり（独自パラダイム）", "日本語ドキュメントが少ない", "ENGINE BASE の習熟度は現在低い"],
+      "pairs_well_with": ["nextjs", "react_spa", "clerk"],
+      "monthly_cost_estimate": "無料〜$25/月",
+      "notes": "リアルタイム要件が強くTypeScript統一環境が必要な場合に検討。Supabaseより新しいパラダイム。"
+    },
+    {
+      "id": "pocketbase",
+      "name": "PocketBase",
+      "type": "セルフホスト型 BaaS（SQLite + 認証 + ストレージ）",
+      "engine_base_proficiency": 2,
+      "tags": ["セルフホスト", "シンプル", "小規模", "SQLite"],
+      "best_for": ["小規模社内ツール", "低コスト重視", "VPS1台で完結したい"],
+      "pros": ["単一バイナリで動作（Go製）", "超低コスト（VPS ¥600/月〜）", "管理UIが内蔵"],
+      "cons": ["大規模スケールに向かない", "エコシステムが小さい", "ENGINE BASE の習熟度は低い"],
+      "pairs_well_with": ["nextjs", "react_spa", "fly_io", "railway"],
+      "monthly_cost_estimate": "¥600〜¥3,000（VPS代のみ）",
+      "notes": "超低コスト重視の小規模内部ツール向け。Supabaseが over-spec な場合に検討。"
+    },
+    {
+      "id": "fastapi",
+      "name": "FastAPI (Python)",
+      "type": "カスタム API サーバー",
+      "engine_base_proficiency": 4,
+      "tags": ["API", "Python", "AI/ML", "非同期"],
+      "best_for": ["AI/ML連携", "データ処理API", "Python既存資産活用"],
+      "pros": ["OpenAI/LangChain等AIライブラリとの統合が容易", "非同期対応で高パフォーマンス", "自動OpenAPI仕様書生成"],
+      "cons": ["インフラ管理が必要", "認証・ストレージは別途実装"],
+      "pairs_well_with": ["nextjs", "neon", "supabase", "upstash_redis", "railway", "gcp_cloud_run"],
+      "monthly_cost_estimate": "¥0〜¥5,000（Railway / Render）",
+      "notes": "AI機能を多用する場合に使用。Next.js + FastAPI + Neon/Supabase の組み合わせが多い。"
+    },
+    {
+      "id": "node_fastify",
+      "name": "Node.js + Fastify（または Hono）",
+      "type": "カスタム API サーバー",
+      "engine_base_proficiency": 4,
+      "tags": ["API", "Node.js", "TypeScript", "高速", "エッジ"],
+      "best_for": ["大規模API", "TypeScript統一", "エッジデプロイ"],
+      "pros": ["TypeScript統一", "高パフォーマンス", "Hono はエッジ（Cloudflare Workers）にも対応"],
+      "cons": ["BaaSと比べ設計・管理コストが高い"],
+      "pairs_well_with": ["nextjs", "neon", "supabase", "upstash_redis", "railway", "cloudflare_workers_d1"],
+      "monthly_cost_estimate": "¥3,000〜¥20,000",
+      "notes": "Honoを使うとNext.jsと同一コードベースでCloudflare Workersにもデプロイ可能。"
+    },
+    {
+      "id": "laravel",
+      "name": "Laravel (PHP)",
+      "type": "カスタム API / フルスタック",
+      "engine_base_proficiency": 3,
+      "tags": ["PHP", "EC", "日本市場", "レガシー連携"],
+      "best_for": ["日本市場向けEC", "既存PHPシステムとの連携"],
+      "pros": ["日本のエンジニア採用が容易", "EC-CUBEなど日本固有システムとの親和性"],
+      "cons": ["モダンフロントとの統合に工数", "ENGINE BASE での習熟度は低め"],
+      "pairs_well_with": ["mysql_planetscale", "aws", "sakura_vps"],
+      "monthly_cost_estimate": "¥1,000〜¥10,000",
+      "notes": "既存PHPシステム連携がある場合のみ選択。"
+    }
+  ],
+
+  "database": [
+    {
+      "id": "supabase_postgres",
+      "name": "PostgreSQL（Supabase 内蔵）",
+      "engine_base_proficiency": 5,
+      "tags": ["RDB", "SQL", "Supabaseセット"],
+      "best_for": ["Supabase を使うすべてのプロジェクト"],
+      "pros": ["Supabaseと一体・RLS が使える", "本番品質PostgreSQL"],
+      "cons": ["Supabase を使わない場合は選択不可"],
+      "pairs_well_with": ["supabase", "prisma", "drizzle"],
+      "notes": "Supabase選択時は自動的にこれになる。"
+    },
+    {
+      "id": "neon",
+      "name": "Neon",
+      "type": "サーバーレス PostgreSQL",
+      "engine_base_proficiency": 3,
+      "tags": ["RDB", "SQL", "サーバーレス", "ブランチ機能", "コスト最適"],
+      "best_for": [
+        "DBだけ欲しくて認証・ストレージは別で使う場合（Clerk + Neon など）",
+        "開発・ステージング・本番で DB をブランチ管理したい場合",
+        "Supabase より安くPostgreSQLを使いたい場合",
+        "エッジ/サーバーレス環境でコネクションプール最適化が必要な場合"
+      ],
+      "pros": [
+        "サーバーレスでコールドスタートが速い（Supabase より）",
+        "DB ブランチ機能：ステージング用にDBを瞬時に複製できる",
+        "Drizzle / Prisma との相性が抜群",
+        "Vercel Postgres の実体（Vercel + Next.js との統合がネイティブ）",
+        "無料枠：0.5GB / プロジェクト数無制限"
+      ],
+      "cons": [
+        "認証・ストレージ・リアルタイムは別途用意が必要（Clerk + Cloudflare R2 など）",
+        "Supabase のオールインワン感はない"
+      ],
+      "pairs_well_with": ["nextjs", "clerk", "better_auth", "drizzle", "prisma", "vercel", "hono_node_fastify"],
+      "not_good_with": ["firebase（役割重複なし・組み合わせは可能だが冗長）"],
+      "monthly_cost_estimate": "無料〜$19/月",
+      "notes": "「DBだけ切り出してサービスごとに使いたい」「Supabaseはいらない機能が多い」という場合に Neon が最適。Next.js + Neon + Drizzle + Clerk は 2025-2026 年の人気スタック。"
+    },
+    {
+      "id": "turso",
+      "name": "Turso（SQLite at the Edge）",
+      "type": "エッジ分散 SQLite",
+      "engine_base_proficiency": 2,
+      "tags": ["SQLite", "エッジ", "超低レイテンシ", "Cloudflare"],
+      "best_for": ["Cloudflare Workers / エッジ環境での低レイテンシDB", "グローバル展開が必要なアプリ"],
+      "pros": ["エッジに近いDBで超低レイテンシ", "SQLite なので単純クエリは非常に高速"],
+      "cons": ["複雑なJOIN・大量データには向かない", "日本語情報が少ない"],
+      "pairs_well_with": ["remix", "cloudflare_workers_d1", "drizzle"],
+      "monthly_cost_estimate": "無料〜$29/月",
+      "notes": "Cloudflare Workers + Remix など完全エッジ構成で検討。通常は Neon か Supabase を推奨。"
+    },
+    {
+      "id": "upstash_redis",
+      "name": "Upstash Redis",
+      "type": "サーバーレス Redis（KV / キャッシュ / Rate Limiting）",
+      "engine_base_proficiency": 3,
+      "tags": ["キャッシュ", "レート制限", "セッション", "サーバーレス"],
+      "best_for": ["APIキャッシュ", "レート制限", "セッション管理", "ジョブキュー"],
+      "pros": ["サーバーレスで従量課金", "Next.js との統合が簡単（@upstash/redis）", "Vercel Edge Functions と相性◎"],
+      "cons": ["主DBとしては不向き（補助DB・キャッシュとして使う）"],
+      "pairs_well_with": ["nextjs", "neon", "supabase", "vercel", "cloudflare_pages"],
+      "monthly_cost_estimate": "無料〜$10/月",
+      "notes": "Neon / Supabase の補助として組み合わせるケースが多い（キャッシュ・レート制限）。"
+    },
+    {
+      "id": "planetscale",
+      "name": "PlanetScale（MySQL Serverless）",
+      "type": "サーバーレス MySQL",
+      "engine_base_proficiency": 2,
+      "tags": ["MySQL", "Serverless", "スケーラブル"],
+      "best_for": ["大規模MySQL案件", "GitOps DB管理"],
+      "pros": ["水平スケール容易", "GitOps でスキーマ管理"],
+      "cons": ["外部キー制約非サポート", "無料プラン廃止（2024〜）"],
+      "pairs_well_with": ["nextjs", "prisma"],
+      "monthly_cost_estimate": "$39/月〜",
+      "notes": "基本的にNeon / Supabaseを推奨。MySQL固執がある大規模案件のみ検討。"
+    },
+    {
+      "id": "mongodb_atlas",
+      "name": "MongoDB Atlas",
+      "type": "クラウド NoSQL",
+      "engine_base_proficiency": 2,
+      "tags": ["NoSQL", "ドキュメントDB", "柔軟スキーマ"],
+      "best_for": ["スキーマが頻繁に変わる", "ドキュメント型データ（JSON構造）"],
+      "pros": ["スキーマレスで柔軟", "Mongooseとの相性"],
+      "cons": ["RDBより集計・JOIN が複雑", "ENGINE BASE の習熟度低"],
+      "monthly_cost_estimate": "無料〜$57/月",
+      "notes": "特別な理由がない限り PostgreSQL（Neon / Supabase）を推奨。"
+    }
+  ],
+
+  "orm": [
+    {
+      "id": "drizzle",
+      "name": "Drizzle ORM",
+      "language": "TypeScript",
+      "engine_base_proficiency": 4,
+      "tags": ["ORM", "TypeScript", "型安全", "軽量", "エッジ対応"],
+      "best_for": ["Next.js + Neon 構成", "エッジ環境", "軽量・高速なORM"],
+      "pros": [
+        "型安全で SQL に近い書き方ができる（学習コスト低）",
+        "Neon / Supabase / Turso / PlanetScale すべてに対応",
+        "バンドルサイズが Prisma の 1/10 以下（エッジに最適）",
+        "マイグレーション管理が Prisma より直感的"
+      ],
+      "cons": ["Prismaより機能が少ない（複雑なリレーション管理など）"],
+      "pairs_well_with": ["neon", "supabase_postgres", "turso", "nextjs", "cloudflare_workers_d1"],
+      "notes": "Next.js + Neon 構成なら Drizzle が第一推奨。軽量・高速・エッジ対応。"
+    },
+    {
+      "id": "prisma",
+      "name": "Prisma ORM",
+      "language": "TypeScript",
+      "engine_base_proficiency": 4,
+      "tags": ["ORM", "TypeScript", "型安全", "多機能"],
+      "best_for": ["複雑なリレーション", "大規模プロジェクト", "チーム開発"],
+      "pros": [
+        "スキーマ定義が直感的で読みやすい",
+        "Prisma Studio（GUI）でDB確認できる",
+        "PostgreSQL / MySQL / MongoDB 全対応"
+      ],
+      "cons": [
+        "バンドルサイズが大きい（エッジ環境に不向き）",
+        "Prisma 5 から Accelerate が必要なケース増加"
+      ],
+      "pairs_well_with": ["neon", "supabase_postgres", "planetscale", "mongodb_atlas", "nextjs"],
+      "notes": "大規模・チーム開発ではPrisma、軽量・エッジ重視ではDrizzleを選ぶ。"
+    }
+  ],
+
+  "hosting": [
+    {
+      "id": "vercel",
+      "name": "Vercel",
+      "engine_base_proficiency": 5,
+      "tags": ["フロントエンド", "Next.js", "Edge Functions", "CI/CD"],
+      "best_for": ["Next.js", "静的サイト", "エッジ関数"],
+      "pros": ["Next.js と最高の相性（開発元が同じ）", "ゼロコンフィグデプロイ", "Edge Functions / Middleware が強力"],
+      "cons": ["バックエンド単体のホスティングには不向き", "トラフィック多いと高コスト"],
+      "pairs_well_with": ["nextjs", "neon", "supabase", "upstash_redis", "clerk"],
+      "monthly_cost_estimate": "無料〜$20/月（Pro）",
+      "notes": "Next.jsプロジェクトはほぼVercel一択。"
+    },
+    {
+      "id": "cloudflare_pages",
+      "name": "Cloudflare Pages + Workers",
+      "engine_base_proficiency": 3,
+      "tags": ["エッジ", "フロントエンド", "API", "超低コスト", "グローバル"],
+      "best_for": ["エッジで動かしたい", "超低コスト", "グローバルレイテンシ重視"],
+      "pros": [
+        "Workers（API）+ Pages（フロント）+ D1（SQLite DB）+ R2（ストレージ）が一体",
+        "無料枠が超充実（Workers 10万リクエスト/日無料）",
+        "グローバル CDN で最速配信"
+      ],
+      "cons": ["Node.js API と完全互換ではない（Workersの制約）", "設定が複雑になりがち"],
+      "pairs_well_with": ["nextjs（OpenNext経由）", "remix", "astro", "drizzle", "turso"],
+      "monthly_cost_estimate": "無料〜$5/月（Workers Paid）",
+      "notes": "コスト最小・グローバル展開重視の場合に強力な選択肢。D1（SQLite）をDrizzleで操作する構成が増加中。"
+    },
+    {
+      "id": "cloudflare_workers_d1",
+      "name": "Cloudflare D1（SQLite on Workers）",
+      "engine_base_proficiency": 2,
+      "tags": ["SQLite", "エッジDB", "Cloudflare"],
+      "best_for": ["Cloudflare Workers 環境でのDB"],
+      "pros": ["Workers と同一エコシステム・超低コスト"],
+      "cons": ["SQLiteの制約（大規模・複雑クエリ不向き）"],
+      "pairs_well_with": ["cloudflare_pages", "remix", "drizzle", "turso"],
+      "monthly_cost_estimate": "無料〜$5/月",
+      "notes": "Cloudflare構成を選んだ場合のDB層。大規模案件はNeonを推奨。"
+    },
+    {
+      "id": "railway",
+      "name": "Railway",
+      "engine_base_proficiency": 4,
+      "tags": ["バックエンド", "フルスタック", "コンテナ", "簡単デプロイ"],
+      "best_for": ["FastAPI / Node.js APIサーバー", "バックエンド単体ホスト", "DBホスト"],
+      "pros": ["GitOps デプロイが簡単", "PostgreSQL / Redis / MySQL 内蔵", "コンテナ対応"],
+      "cons": ["Vercelより認知度低い", "大規模は高コスト"],
+      "pairs_well_with": ["nextjs", "fastapi", "node_fastify", "pocketbase"],
+      "monthly_cost_estimate": "¥600〜¥5,000",
+      "notes": "FastAPI/Node.js系カスタムバックエンドの第一選択。"
+    },
+    {
+      "id": "fly_io",
+      "name": "Fly.io",
+      "engine_base_proficiency": 2,
+      "tags": ["コンテナ", "グローバル", "フルスタック", "PocketBase"],
+      "best_for": ["PocketBase デプロイ", "グローバル分散が必要なコンテナ", "Elixir/Go など"],
+      "pros": ["グローバルにコンテナを分散デプロイ可能", "PostgreSQL も付属"],
+      "cons": ["設定が複雑", "ENGINE BASE の習熟度は低い"],
+      "pairs_well_with": ["pocketbase", "node_fastify"],
+      "monthly_cost_estimate": "¥600〜¥5,000",
+      "notes": "PocketBase を使う場合の推奨ホスト。それ以外は Railway を優先。"
+    },
+    {
+      "id": "render",
+      "name": "Render",
+      "engine_base_proficiency": 3,
+      "tags": ["バックエンド", "無料枠", "MVP"],
+      "best_for": ["MVP・プロトタイプ・小規模API"],
+      "pros": ["無料枠あり", "設定が簡単"],
+      "cons": ["無料枠はスリープあり（コールドスタート遅い）"],
+      "pairs_well_with": ["fastapi", "node_fastify", "pocketbase"],
+      "monthly_cost_estimate": "無料〜¥2,000",
+      "notes": "MVPや検証フェーズで使う。本番はRailwayに移行推奨。"
+    },
+    {
+      "id": "netlify",
+      "name": "Netlify",
+      "engine_base_proficiency": 4,
+      "tags": ["静的サイト", "JAMstack", "フロントエンド"],
+      "best_for": ["静的サイト", "Astroサイト"],
+      "pros": ["静的サイトに最適", "フォーム機能内蔵"],
+      "cons": ["Next.jsはVercelが最適"],
+      "pairs_well_with": ["astro", "nuxtjs"],
+      "monthly_cost_estimate": "無料〜$19/月",
+      "notes": "Astroなど非Next.jsフロントに適用。"
+    },
+    {
+      "id": "aws",
+      "name": "AWS（ECS / Amplify / RDS）",
+      "engine_base_proficiency": 3,
+      "tags": ["大規模", "エンタープライズ", "フルコントロール"],
+      "best_for": ["大規模SaaS", "エンタープライズ", "コンプライアンス要件あり"],
+      "pros": ["フルコントロール", "国内リージョン（ap-northeast-1）"],
+      "cons": ["設定コストが高い", "コストが読みにくい"],
+      "monthly_cost_estimate": "¥5,000〜",
+      "notes": "200万円以上の大規模案件またはコンプライアンス要件がある場合に選択。"
+    },
+    {
+      "id": "gcp_cloud_run",
+      "name": "GCP Cloud Run",
+      "engine_base_proficiency": 3,
+      "tags": ["コンテナ", "サーバーレス", "AI/ML"],
+      "best_for": ["AI/ML（Vertex AI連携）", "コンテナベースAPI"],
+      "pros": ["サーバーレスでスケール容易", "Vertex AI / BigQuery との親和性"],
+      "monthly_cost_estimate": "¥0〜¥10,000（従量制）",
+      "notes": "AI/MLでGCPサービスを多用する場合に選択。"
+    }
+  ],
+
+  "auth": [
+    {
+      "id": "supabase_auth",
+      "name": "Supabase Auth",
+      "engine_base_proficiency": 5,
+      "tags": ["認証", "メール", "OAuth", "MFA", "RLS連携"],
+      "best_for": ["Supabaseを使うすべてのプロジェクト"],
+      "pros": ["Supabaseと完全統合・RLSとの連携が容易", "無料枠大"],
+      "cons": ["UIは自前実装が必要"],
+      "pairs_well_with": ["supabase", "nextjs", "flutter"],
+      "notes": "Supabase使用時はこれが第一選択。"
+    },
+    {
+      "id": "clerk",
+      "name": "Clerk",
+      "engine_base_proficiency": 4,
+      "tags": ["認証", "Next.js", "UIコンポーネント", "マルチテナント"],
+      "best_for": ["Next.jsプロジェクト", "認証UIを即座に作りたい", "マルチテナントSaaS"],
+      "pros": ["認証UIが既製品（サインイン/サインアップ画面込み）", "マルチテナント管理が容易", "Next.jsとの統合が最高"],
+      "cons": ["月額コストあり（1万MAU以上から課金）", "Neon/PlanetScaleとの連携に一手間"],
+      "pairs_well_with": ["nextjs", "neon", "drizzle", "vercel"],
+      "monthly_cost_estimate": "無料〜$25/月",
+      "notes": "Next.js + Neon 構成で認証UIを早く作りたい場合の第一推奨。"
+    },
+    {
+      "id": "better_auth",
+      "name": "Better Auth",
+      "engine_base_proficiency": 2,
+      "tags": ["認証", "オープンソース", "TypeScript", "セルフホスト"],
+      "best_for": ["Clerkのコストを下げたい", "認証をコントロールしたい", "TypeScript統一"],
+      "pros": ["完全オープンソース・無料", "TypeScript ネイティブ・型安全", "Neon / Drizzle との相性◎"],
+      "cons": ["Clerkよりセットアップに時間がかかる", "ENGINE BASE の習熟度は現在低い"],
+      "pairs_well_with": ["nextjs", "neon", "drizzle", "prisma"],
+      "monthly_cost_estimate": "無料",
+      "notes": "Clerkの代替OSSとして2025年から注目。長期コスト重視の案件で検討価値あり。"
+    },
+    {
+      "id": "firebase_auth",
+      "name": "Firebase Auth",
+      "engine_base_proficiency": 4,
+      "tags": ["認証", "OAuth", "LINE", "モバイル"],
+      "best_for": ["Firebase使用プロジェクト", "LINEログインが必要な日本向けアプリ"],
+      "pros": ["LINEログイン対応", "Google/Apple サインイン", "モバイルSDKが充実"],
+      "cons": ["Firebase以外との組み合わせはやや面倒"],
+      "pairs_well_with": ["firebase", "flutter", "react_native"],
+      "notes": "LINE認証などが必要な日本向けBtoC アプリに向く。"
+    },
+    {
+      "id": "auth_js",
+      "name": "Auth.js（NextAuth v5）",
+      "engine_base_proficiency": 3,
+      "tags": ["認証", "オープンソース", "Next.js", "OAuth"],
+      "best_for": ["シンプルなOAuth認証", "コストゼロで認証したい"],
+      "pros": ["無料・オープンソース", "GitHubなどOAuthプロバイダー多数対応"],
+      "cons": ["カスタマイズが複雑", "Better Auth の方が現代的"],
+      "pairs_well_with": ["nextjs", "neon", "supabase_postgres"],
+      "notes": "シンプルなGitHub/Googleログインだけなら選択肢。複雑な認証はClerkを推奨。"
+    }
+  ],
+
+  "payment": [
+    {
+      "id": "stripe",
+      "name": "Stripe",
+      "engine_base_proficiency": 5,
+      "tags": ["決済", "サブスク", "国際対応"],
+      "best_for": ["SaaS課金", "EC決済", "サブスクリプション"],
+      "pros": ["開発者体験が最高", "サブスク・従量課金・都度払い全対応", "Next.jsとの統合が容易"],
+      "cons": ["手数料3.6%（国内）", "日本独自の決済方法はKomojuに劣る"],
+      "pairs_well_with": ["nextjs", "supabase", "neon"],
+      "transaction_fee": "3.6%（国内）/ 3.9%（海外）",
+      "notes": "ENGINE BASE の標準決済。SaaS・サブスクはほぼStripe一択。"
+    },
+    {
+      "id": "payjp",
+      "name": "PAY.JP",
+      "engine_base_proficiency": 3,
+      "tags": ["決済", "日本市場", "クレジットカード"],
+      "best_for": ["日本市場専用・コスト重視"],
+      "transaction_fee": "3.0%〜",
+      "notes": "日本市場専用・コスト重視の場合に選択。"
+    },
+    {
+      "id": "komoju",
+      "name": "KOMOJU",
+      "engine_base_proficiency": 2,
+      "tags": ["決済", "コンビニ払い", "銀行振込", "日本市場"],
+      "best_for": ["コンビニ払い・銀行振込が必要なEC"],
+      "notes": "コンビニ払い等が必須要件の場合のみ選択。"
+    }
+  ],
+
+  "notification_email": [
+    {
+      "id": "resend",
+      "name": "Resend",
+      "engine_base_proficiency": 4,
+      "tags": ["メール", "トランザクションメール", "React Email"],
+      "best_for": ["トランザクションメール", "通知メール"],
+      "pros": ["Next.js/React と最良の統合", "React Email でHTMLメールを型安全に作成", "無料3000通/月"],
+      "pairs_well_with": ["nextjs", "neon", "supabase"],
+      "monthly_cost_estimate": "無料〜$20/月",
+      "notes": "Next.jsプロジェクトのトランザクションメール標準。"
+    },
+    {
+      "id": "sendgrid",
+      "name": "SendGrid",
+      "engine_base_proficiency": 3,
+      "tags": ["メール", "大量配信"],
+      "best_for": ["大量配信（月1万通+）"],
+      "notes": "大量配信が必要な場合に選択。"
+    },
+    {
+      "id": "line_messaging_api",
+      "name": "LINE Messaging API",
+      "engine_base_proficiency": 4,
+      "tags": ["LINE", "通知", "日本市場"],
+      "best_for": ["日本ユーザー向け通知・チャット"],
+      "notes": "日本向けBtoC アプリで通知をLINEで送りたい場合に選択。"
+    }
+  ],
+
+  "storage": [
+    {
+      "id": "supabase_storage",
+      "name": "Supabase Storage",
+      "engine_base_proficiency": 5,
+      "tags": ["ストレージ", "S3互換"],
+      "best_for": ["Supabaseを使う場合のファイル管理"],
+      "pairs_well_with": ["supabase"],
+      "notes": "Supabase使用時はこれが最も簡単。"
+    },
+    {
+      "id": "cloudflare_r2",
+      "name": "Cloudflare R2",
+      "engine_base_proficiency": 3,
+      "tags": ["ストレージ", "S3互換", "無料帯域"],
+      "best_for": ["低コストでS3互換ストレージ", "Cloudflare構成での静的ファイル"],
+      "pros": ["転送料金ゼロ（S3より大幅に安い）", "S3互換API"],
+      "pairs_well_with": ["cloudflare_pages", "nextjs", "neon"],
+      "monthly_cost_estimate": "無料〜（10GB無料）",
+      "notes": "Supabase Storageを使わない場合の低コスト代替。Next.js + Neon + Clerk + R2 の構成で人気。"
+    },
+    {
+      "id": "aws_s3",
+      "name": "AWS S3",
+      "engine_base_proficiency": 3,
+      "tags": ["ストレージ", "大規模", "標準"],
+      "best_for": ["大規模ファイル管理", "AWS構成"],
+      "notes": "AWS構成全体を採用する大規模案件向け。"
+    }
+  ],
+
+  "cms": [
+    {
+      "id": "microcms",
+      "name": "microCMS",
+      "engine_base_proficiency": 4,
+      "tags": ["ヘッドレスCMS", "日本語", "API"],
+      "best_for": ["日本語コンテンツ管理"],
+      "pairs_well_with": ["nextjs", "astro"],
+      "monthly_cost_estimate": "無料〜¥9,900/月",
+      "notes": "日本語コンテンツ管理の第一推奨。"
+    },
+    {
+      "id": "contentful",
+      "name": "Contentful",
+      "engine_base_proficiency": 3,
+      "tags": ["ヘッドレスCMS", "多言語", "大規模"],
+      "best_for": ["多言語対応コンテンツ管理"],
+      "monthly_cost_estimate": "無料〜$300/月",
+      "notes": "多言語対応が必要な場合に選択。"
+    },
+    {
+      "id": "sanity",
+      "name": "Sanity",
+      "engine_base_proficiency": 3,
+      "tags": ["ヘッドレスCMS", "柔軟", "リアルタイム"],
+      "best_for": ["高度なコンテンツ構造"],
+      "monthly_cost_estimate": "無料〜$99/月",
+      "notes": "複雑なコンテンツ構造が必要な場合に選択。"
+    }
+  ],
+
+  "nocode_lowcode": [
+    {
+      "id": "bubble",
+      "name": "Bubble",
+      "engine_base_proficiency": 5,
+      "type": "No-code",
+      "tags": ["Webアプリ", "ノーコード", "MVP", "複雑なロジック"],
+      "best_for": ["複雑なWebアプリをノーコードで", "予算〜100万のWebアプリMVP"],
+      "pros": ["ENGINE BASE の最も得意なノーコードツール", "複雑なロジック対応"],
+      "cons": ["独自技術でエンジニア引き継ぎ困難", "大規模・高負荷に不向き"],
+      "monthly_cost_estimate": "$29〜$349/月",
+      "notes": "ノーコードWebアプリの第一推奨。ENGINE BASE の実績多数。"
+    },
+    {
+      "id": "flutterflow",
+      "name": "FlutterFlow",
+      "engine_base_proficiency": 5,
+      "type": "Low-code",
+      "tags": ["モバイルアプリ", "ローコード", "Flutter"],
+      "best_for": ["iOS/Androidアプリをローコードで"],
+      "pros": ["FlutterコードをエクスポートしてエンジニアへKO渡せる", "Supabase連携◎"],
+      "cons": ["複雑なカスタムロジックはDart記述が必要"],
+      "monthly_cost_estimate": "$30〜$70/月",
+      "notes": "モバイルアプリのノーコード/ローコード開発の第一推奨。"
+    },
+    {
+      "id": "adalo",
+      "name": "Adalo",
+      "engine_base_proficiency": 4,
+      "type": "No-code",
+      "tags": ["モバイルアプリ", "ノーコード", "シンプル"],
+      "best_for": ["シンプルなモバイルアプリ", "予算〜50万"],
+      "monthly_cost_estimate": "$36〜$200/月",
+      "notes": "FlutterFlowより簡単だがシンプルなアプリ向け。"
+    },
+    {
+      "id": "kintone",
+      "name": "kintone",
+      "engine_base_proficiency": 4,
+      "type": "No-code",
+      "tags": ["BtoB", "業務ツール", "ノーコード", "日本製"],
+      "best_for": ["BtoB業務管理ツール", "社内システム"],
+      "monthly_cost_estimate": "¥1,500/ユーザー/月",
+      "notes": "BtoB社内業務ツールで迅速なシステム化が必要な場合に選択。"
+    },
+    {
+      "id": "studio",
+      "name": "Studio",
+      "engine_base_proficiency": 4,
+      "type": "No-code",
+      "tags": ["コーポレートサイト", "LP", "デザイン重視"],
+      "best_for": ["デザイン重視のコーポレートサイト・LP"],
+      "monthly_cost_estimate": "¥3,000〜¥30,000/月",
+      "notes": "デザイン重視コーポレートサイト・LPのノーコード第一推奨。"
+    },
+    {
+      "id": "wix",
+      "name": "Wix",
+      "engine_base_proficiency": 3,
+      "type": "No-code",
+      "tags": ["コーポレートサイト", "シンプル"],
+      "best_for": ["予算が非常に限られたコーポレートサイト"],
+      "monthly_cost_estimate": "¥1,500〜¥5,000/月",
+      "notes": "予算が最低限の案件のみ。通常はStudioを推奨。"
+    },
+    {
+      "id": "xano",
+      "name": "Xano",
+      "engine_base_proficiency": 3,
+      "type": "No-code",
+      "tags": ["バックエンド", "API", "ノーコード", "Bubble連携"],
+      "best_for": ["Bubbleのバックエンド強化"],
+      "monthly_cost_estimate": "$29〜$99/月",
+      "notes": "Bubbleプロジェクトでバックエンドが複雑化した場合に採用。"
+    }
+  ],
+
+  "mobile": [
+    {
+      "id": "flutter",
+      "name": "Flutter",
+      "language": "Dart",
+      "engine_base_proficiency": 4,
+      "tags": ["モバイル", "クロスプラットフォーム"],
+      "best_for": ["iOS/Android両対応", "コード納品案件"],
+      "pairs_well_with": ["supabase", "firebase", "stripe"],
+      "notes": "ENGINE BASE のモバイル開発標準技術。"
+    },
+    {
+      "id": "react_native",
+      "name": "React Native（Expo）",
+      "language": "TypeScript",
+      "engine_base_proficiency": 3,
+      "tags": ["モバイル", "クロスプラットフォーム"],
+      "best_for": ["フロントがTypeScript統一環境でDartを避けたい場合"],
+      "pairs_well_with": ["supabase", "neon", "clerk"],
+      "notes": "TypeScript統一チーム向け。通常はFlutterを推奨。"
+    }
+  ],
+
+  "stack_compatibility": {
+    "description": "相性の良い組み合わせパターン。tech-stackスキルがSTEP 3で候補を提示する際に参照する。",
+    "proven_combinations": [
+      {
+        "id": "nextjs_supabase_vercel",
+        "name": "Next.js + Supabase + Vercel",
+        "nickname": "ENGINE BASE 標準スタック",
+        "components": {
+          "frontend": "Next.js 15",
+          "backend": "Supabase（DB + Auth + Storage + Realtime）",
+          "orm": "不要（Supabase Client で直接操作）",
+          "auth": "Supabase Auth",
+          "hosting": "Vercel",
+          "email": "Resend",
+          "payment": "Stripe"
+        },
+        "compatibility_score": 5,
+        "engine_base_proficiency": 5,
+        "best_for": ["WebアプリMVP", "EC", "SaaS", "BtoB業務ツール"],
+        "monthly_infra_min": 0,
+        "monthly_infra_max": 15000,
+        "why_works": "Supabase が DB・認証・ストレージをオールインワンで提供し、Vercel が Next.js を最高に動かす。公式SDKが揃っており、ほぼゼロコンフィグで動く。ENGINE BASE が最も実績のある構成。",
+        "watch_out": "Supabase のリアルタイム機能をフル活用しないなら over-spec。DB だけ欲しいなら Neon が安い。"
+      },
+      {
+        "id": "nextjs_neon_clerk_drizzle_vercel",
+        "name": "Next.js + Neon + Clerk + Drizzle + Vercel",
+        "nickname": "モダンスタック 2025",
+        "components": {
+          "frontend": "Next.js 15",
+          "backend": "Neon（サーバーレス PostgreSQL のみ）",
+          "orm": "Drizzle ORM",
+          "auth": "Clerk（認証UIコンポーネント込み）",
+          "hosting": "Vercel",
+          "storage": "Cloudflare R2",
+          "email": "Resend",
+          "payment": "Stripe"
+        },
+        "compatibility_score": 5,
+        "engine_base_proficiency": 3,
+        "best_for": ["SaaS", "マルチテナント", "認証UIを素早く整えたい", "サーバーレス最適化重視"],
+        "monthly_infra_min": 3000,
+        "monthly_infra_max": 20000,
+        "why_works": "各サービスを「最もそれが得意なもの」に分けた構成。Neonは高速サーバーレスPostgreSQL、Clerkは認証UI込みですぐ使える、DrizzleはNext.js + Neonとの相性が最高。2025年のモダンStack。",
+        "watch_out": "Supabase より管理するサービス数が増える（Neon + Clerk + R2）。小規模MVPならSupabase一本の方が速い。"
+      },
+      {
+        "id": "nextjs_supabase_neon_hybrid",
+        "name": "Next.js + Supabase（Auth/Storage）+ Neon（DB）",
+        "nickname": "ハイブリッドスタック",
+        "components": {
+          "frontend": "Next.js 15",
+          "backend": "Supabase（Auth + Storage のみ）+ Neon（DB本体）",
+          "orm": "Drizzle または Prisma",
+          "hosting": "Vercel"
+        },
+        "compatibility_score": 3,
+        "engine_base_proficiency": 3,
+        "best_for": ["DB のスケールをNeonで管理しつつ認証/ストレージはSupabaseを使いたい"],
+        "monthly_infra_min": 5000,
+        "monthly_infra_max": 25000,
+        "why_works": "理論上は可能。ただし管理が複雑になるため特別な理由がない限り推奨しない。",
+        "watch_out": "SupabaseのRLSはSupabase DB前提なので、Neonに変えると使えなくなる。通常は Supabase 一本か Neon 一本を推奨。"
+      },
+      {
+        "id": "nextjs_cloudflare_d1_drizzle",
+        "name": "Next.js（OpenNext）+ Cloudflare Workers + D1 + Drizzle",
+        "nickname": "エッジ特化スタック",
+        "components": {
+          "frontend": "Next.js 15（OpenNext経由でCFデプロイ）",
+          "backend": "Cloudflare Workers",
+          "database": "Cloudflare D1（SQLite）",
+          "orm": "Drizzle ORM",
+          "storage": "Cloudflare R2",
+          "auth": "Better Auth または Clerk"
+        },
+        "compatibility_score": 4,
+        "engine_base_proficiency": 2,
+        "best_for": ["超低コスト運用", "グローバル低レイテンシ", "無料枠での本番運用"],
+        "monthly_infra_min": 0,
+        "monthly_infra_max": 3000,
+        "why_works": "Cloudflare のエコシステム（Workers + D1 + R2）で全てを完結。インフラ費用が極めて安い。",
+        "watch_out": "D1（SQLite）は大規模・複雑クエリに向かない。ENGINE BASE の習熟度が現在低いため学習コストがかかる。"
+      },
+      {
+        "id": "bubble_xano_stripe",
+        "name": "Bubble + Xano + Stripe",
+        "nickname": "ノーコードWebアプリ標準",
+        "components": {
+          "frontend": "Bubble",
+          "backend": "Xano（複雑なAPIロジック）",
+          "payment": "Stripe（Bubble Plugin）"
+        },
+        "compatibility_score": 5,
+        "engine_base_proficiency": 5,
+        "best_for": ["ノーコードWebアプリ", "予算〜100万", "MVP高速開発"],
+        "monthly_infra_min": 3000,
+        "monthly_infra_max": 30000,
+        "why_works": "BubbleのUIと簡単なデータ処理 + Xanoの複雑APIロジックを分離する最もスケーラブルなノーコード構成。ENGINE BASE の実績多数。",
+        "watch_out": "エンジニア引き継ぎが難しい。長期でコード開発に移行予定なら最初からNext.js構成を推奨。"
+      },
+      {
+        "id": "flutterflow_supabase",
+        "name": "FlutterFlow + Supabase",
+        "nickname": "ノーコードモバイル標準",
+        "components": {
+          "frontend": "FlutterFlow",
+          "backend": "Supabase",
+          "auth": "Supabase Auth",
+          "notifications": "Firebase Cloud Messaging（FCM）"
+        },
+        "compatibility_score": 5,
+        "engine_base_proficiency": 5,
+        "best_for": ["iOS/Androidアプリ", "ローコード", "Flutter出力でエンジニア引き継ぎ可"],
+        "monthly_infra_min": 4000,
+        "monthly_infra_max": 15000,
+        "why_works": "FlutterFlowとSupabaseは公式連携があり、設定ほぼゼロで繋がる。FlutterコードをエクスポートしてエンジニアへKO渡しも可能。ENGINE BASE の実績多数。"
+      },
+      {
+        "id": "nextjs_fastapi_supabase",
+        "name": "Next.js + FastAPI + Supabase",
+        "nickname": "AI/ML連携標準スタック",
+        "components": {
+          "frontend": "Next.js 15",
+          "backend": "FastAPI（AIロジック・データ処理）",
+          "database": "Supabase PostgreSQL（+ pgvector）",
+          "auth": "Supabase Auth",
+          "hosting_frontend": "Vercel",
+          "hosting_backend": "Railway",
+          "ai": "OpenAI API / Google Gemini"
+        },
+        "compatibility_score": 5,
+        "engine_base_proficiency": 4,
+        "best_for": ["AI/ML連携アプリ", "RAG・ベクトル検索", "データ処理パイプライン"],
+        "monthly_infra_min": 5000,
+        "monthly_infra_max": 30000,
+        "why_works": "AIライブラリはPythonが圧倒的に充実。FastAPIでAIロジックを処理しSupabase（pgvector対応）にベクトルDB込みで管理、Next.jsがフロントを担当する黄金構成。"
+      }
+    ],
+    "avoid_combinations": [
+      {
+        "combo": "Supabase DB + Prisma（Supabase Client との競合）",
+        "reason": "Supabase は専用クライアントがある。Prisma を使うとRLSが効かなくなるケースがある。Supabase を使うなら Supabase Client か Drizzle（Supabase対応）を使う。"
+      },
+      {
+        "combo": "Firebase + Supabase（役割重複）",
+        "reason": "両方ともDB・認証・ストレージを持つ。どちらか一方に統一する。"
+      },
+      {
+        "combo": "Cloudflare Workers + Prisma",
+        "reason": "PrismaはEdge環境では動作に制限がある（バンドルサイズ・接続方式の問題）。Cloudflare環境ではDrizzleを使う。"
+      },
+      {
+        "combo": "Vercel + 重いバックエンド（SQLiteファイルなど）",
+        "reason": "Vercelはサーバーレス。永続的なファイルシステムを持たない。DBは必ず外部サービスを使う。"
+      }
+    ]
+  },
+
+  "stack_presets": {
+    "description": "プロジェクト種別別の推奨スタックプリセット",
+    "presets": [
+      {
+        "id": "web_mvp_standard",
+        "name": "WebアプリMVP標準",
+        "description": "〜150万、3ヶ月以内のWebアプリMVP",
+        "primary": "nextjs_supabase_vercel",
+        "alternative": "nextjs_neon_clerk_drizzle_vercel",
+        "nocode": "bubble_xano_stripe",
+        "monthly_infra_cost": "¥0〜¥15,000"
+      },
+      {
+        "id": "ec_standard",
+        "name": "ECサイト標準",
+        "description": "物販・デジタル商品販売",
+        "primary": "nextjs_supabase_vercel",
+        "monthly_infra_cost": "¥3,000〜¥15,000"
+      },
+      {
+        "id": "ai_app",
+        "name": "AI/ML連携アプリ",
+        "description": "OpenAI/Gemini等のAI機能を中心とするアプリ",
+        "primary": "nextjs_fastapi_supabase",
+        "monthly_infra_cost": "¥5,000〜¥30,000"
+      },
+      {
+        "id": "nocode_web",
+        "name": "ノーコードWebアプリ",
+        "description": "〜100万、ノーコードで高速MVP",
+        "primary": "bubble_xano_stripe",
+        "monthly_infra_cost": "¥3,000〜¥30,000"
+      },
+      {
+        "id": "nocode_mobile",
+        "name": "ノーコード/ローコードモバイル",
+        "description": "iOS/Androidアプリをローコードで",
+        "primary": "flutterflow_supabase",
+        "monthly_infra_cost": "¥4,000〜¥15,000"
+      },
+      {
+        "id": "ultra_low_cost",
+        "name": "超低コスト構成",
+        "description": "インフラ費用を限界まで下げたい",
+        "primary": "nextjs_cloudflare_d1_drizzle",
+        "monthly_infra_cost": "¥0〜¥3,000",
+        "notes": "ENGINE BASE の習熟度が現在低いため学習コスト考慮が必要"
+      },
+      {
+        "id": "btob_saas",
+        "name": "BtoB SaaS・マルチテナント",
+        "description": "マルチテナントSaaS・業務管理ツール",
+        "primary": "nextjs_neon_clerk_drizzle_vercel",
+        "alternative": "nextjs_supabase_vercel",
+        "monthly_infra_cost": "¥10,000〜¥50,000"
+      }
+    ]
+  }
+}

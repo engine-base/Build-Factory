@@ -37,6 +37,8 @@ class ArtifactCreate(BaseModel):
     category_tags: Optional[list[str]] = None
     thread_id: Optional[int] = None
     employee_id: Optional[int] = None
+    task_id: Optional[int] = None
+    workspace_id: Optional[int] = None
 
 
 class ArtifactUpdate(BaseModel):
@@ -60,6 +62,7 @@ async def list_artifacts(
     type: Optional[str] = None,
     pinned_only: bool = False,
     thread_id: Optional[int] = None,
+    workspace_id: Optional[int] = None,
     include_archived: bool = False,
     limit: int = 50,
     user_id: str = "masato",
@@ -69,6 +72,8 @@ async def list_artifacts(
         pinned_only=pinned_only, thread_id=thread_id,
         include_archived=include_archived, limit=limit,
     )
+    if workspace_id is not None:
+        items = [a for a in items if a.get("workspace_id") == workspace_id]
     return {"artifacts": items, "total": len(items)}
 
 
@@ -82,15 +87,52 @@ async def get_artifact(artifact_id: str):
 
 @router.post("")
 async def create_artifact(body: ArtifactCreate):
+    from db import async_db as adb
+    from pathlib import Path as _P
+    DB = _P(__file__).resolve().parents[2] / "data" / "db" / "build.db"
+
+    actor = "user:masato"
+    created_by = "user"
+
+    # task_id 指定時 → workspace_id を解決
+    ws_id = body.workspace_id
+    if body.task_id and ws_id is None:
+        async with adb.connect(DB) as db:
+            db.row_factory = adb.Row
+            rows = await db.execute_fetchall(
+                """SELECT t.project_id, w.id AS workspace_id
+                   FROM tasks t
+                   LEFT JOIN projects p ON p.id = t.project_id
+                   LEFT JOIN workspaces w ON w.name = p.title
+                   WHERE t.id = ?""",
+                (body.task_id,),
+            )
+            if rows:
+                ws_id = rows[0]["workspace_id"]
+        actor = f"claude-code:task_{body.task_id}"
+        created_by = f"claude-code:task_{body.task_id}"
+
     try:
-        return await art.create_artifact(
+        result = await art.create_artifact(
             type=body.type, title=body.title, data=body.data,
             category_tags=body.category_tags,
             thread_id=body.thread_id, employee_id=body.employee_id,
-            created_by="user", actor="user:masato",
+            created_by=created_by, actor=actor,
         )
     except ValueError as e:
         raise HTTPException(400, str(e))
+
+    # workspace_id を後付け
+    if ws_id and result.get("id"):
+        async with adb.connect(DB) as db:
+            await db.execute(
+                "UPDATE artifacts SET workspace_id = ? WHERE id = ?",
+                (ws_id, result["id"]),
+            )
+            await db.commit()
+        result["workspace_id"] = ws_id
+
+    return result
 
 
 @router.patch("/{artifact_id}")

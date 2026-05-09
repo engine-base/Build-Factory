@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>進捗管理 — Build-Factory v1</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./_shared.css" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  /* DAG view */
+  .dag-canvas {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    margin-bottom: var(--space-5);
+    overflow-x: auto;
+  }
+  .dag-row {
+    display: flex; align-items: center; gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    min-width: 1400px;
+  }
+  .dag-row:last-child { margin-bottom: 0; }
+  .dag-leader-tag {
+    width: 100px;
+    flex-shrink: 0;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11.5px; font-weight: 600;
+    color: var(--text-2);
+  }
+  .dag-phase-list {
+    display: flex; align-items: center; gap: 8px; flex: 1;
+  }
+  .dag-node {
+    flex-shrink: 0;
+    min-width: 130px;
+    padding: 10px 12px;
+    background: var(--bg-elev);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 12px;
+    color: var(--text-2);
+    cursor: pointer;
+    position: relative;
+  }
+  .dag-node:hover { border-color: var(--primary); }
+  .dag-node.done {
+    background: var(--success-bg);
+    border-color: var(--success);
+    color: var(--success);
+  }
+  .dag-node.in-progress {
+    background: var(--primary-bg);
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  .dag-node.locked {
+    opacity: 0.45;
+  }
+  .dag-node-name { font-weight: 600; font-size: 12.5px; }
+  .dag-node-meta {
+    margin-top: 4px;
+    font-size: 10.5px;
+    opacity: 0.8;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .dag-arrow {
+    color: var(--text-4);
+    flex-shrink: 0;
+  }
+
+  /* gantt */
+  .gantt {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: var(--space-5);
+  }
+  .gantt-header {
+    padding: 14px var(--space-5);
+    border-bottom: 1px solid var(--divider);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .gantt-row {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    border-bottom: 1px solid var(--divider);
+  }
+  .gantt-row:last-child { border-bottom: none; }
+  .gantt-row.header {
+    background: var(--bg-soft);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .gantt-label {
+    padding: 12px var(--space-5);
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px;
+    color: var(--text-1);
+    border-right: 1px solid var(--divider);
+    font-weight: 500;
+  }
+  .gantt-track {
+    position: relative;
+    padding: 12px 0;
+    height: 44px;
+  }
+  .gantt-bar {
+    position: absolute;
+    top: 12px; bottom: 12px;
+    background: var(--primary);
+    border-radius: 4px;
+    display: flex; align-items: center;
+    padding: 0 8px;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .gantt-bar.done { background: var(--success); }
+  .gantt-bar.in-progress {
+    background: var(--primary);
+    background-image: linear-gradient(45deg, rgba(255,255,255,0.18) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.18) 75%, transparent 75%);
+    background-size: 14px 14px;
+  }
+  .gantt-bar.planned { background: var(--bg-soft); border: 1.5px dashed var(--border-strong); color: var(--text-3); }
+  .gantt-grid {
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(to right, var(--divider) 1px, transparent 1px);
+    background-size: 14.28% 100%; /* 7 weeks */
+    pointer-events: none;
+  }
+  .gantt-today {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: var(--danger);
+    pointer-events: none;
+  }
+  .gantt-today::after {
+    content: '今日';
+    position: absolute;
+    top: -10px;
+    left: 4px;
+    background: var(--danger);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  /* artifact history table */
+  .table-actions {
+    display: flex; align-items: center; gap: var(--space-2);
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="header"></header>
+  <aside class="sidebar"></aside>
+
+  <main class="main">
+    <div class="page-header">
+      <div class="page-header-top">
+        <div>
+          <div class="page-title">進捗管理</div>
+          <div class="page-subtitle">DAG ビジュアル + ガントチャート + フェーズ毎の成果物履歴</div>
+        </div>
+        <div class="page-spacer"></div>
+        <div class="page-actions">
+          <button class="btn btn-secondary">
+            <i data-lucide="filter" class="icon-sm"></i>
+            フィルタ
+          </button>
+          <button class="btn btn-secondary">
+            <i data-lucide="download" class="icon-sm"></i>
+            エクスポート
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAG -->
+    <div class="card mb-5">
+      <div class="card-header">
+        <h2><i data-lucide="git-branch" class="icon-sm"></i> フェーズ DAG</h2>
+        <span class="card-header-meta">完了 4 / 進行中 3 / 未着手 6</span>
+      </div>
+      <div class="dag-canvas">
+        <div class="dag-row">
+          <div class="dag-leader-tag">
+            <span class="leader-avatar leader-pm" style="width:18px;height:18px;font-size:9px;">PM</span>
+            PM ライン
+          </div>
+          <div class="dag-phase-list">
+            <div class="dag-node done">
+              <div class="dag-node-name">ヒアリング</div>
+              <div class="dag-node-meta"><i data-lucide="check-circle-2" class="icon-sm"></i>2日前</div>
+            </div>
+            <i data-lucide="chevron-right" class="dag-arrow icon-sm"></i>
+            <div class="dag-node done">
+              <div class="dag-node-name">要件定義</div>
+              <div class="dag-node-meta"><i data-lucide="check-circle-2" class="icon-sm"></i>42分前</div>
+            </div>
+            <i data-lucide="chevron-right" class="dag-arrow icon-sm"></i>
+            <div class="dag-node in-progress">
+              <div class="dag-node-name">提案・見積</div>
+              <div class="dag-node-meta"><i data-lucide="loader-2" class="icon-sm"></i>STEP 3/5</div>
+            </div>
+            <i data-lucide="chevron-right" class="dag-arrow icon-sm"></i>
+            <div class="dag-node">
+              <div class="dag-node-name">受入条件</div>
+              <div class="dag-node-meta"><i data-lucide="circle-dot" class="icon-sm"></i>並行可</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dag-row">
+          <div class="dag-leader-tag">
+            <span class="leader-avatar leader-arch" style="width:18px;height:18px;font-size:9px;">設</span>
+            設計 ライン
+          </div>
+          <div class="dag-phase-list">
+            <div class="dag-node in-progress">
+              <div class="dag-node-name">アーキテクチャ</div>
+              <div class="dag-node-meta"><i data-lucide="loader-2" class="icon-sm"></i>STEP 4/4 ・ 90%</div>
+            </div>
+            <i data-lucide="chevron-right" class="dag-arrow icon-sm"></i>
+            <div class="dag-node">
+              <div class="dag-node-name">API 設計</div>
+              <div class="dag-node-meta"><i data-lucide="circle" class="icon-sm"></i>未着手</div>
+            </div>
+            <i data-lucide="chevron-right" class="dag-arrow icon-sm"></i>
+            <div class="dag-node locked">
+              <div class="dag-node-name">機能分解</div>
+              <div class="dag-node-meta"><i data-lucide="lock" class="icon-sm"></i>API 完了後</div>
+            </div>
+            <i data-lucide="chevron-right" class="dag-arrow icon-sm"></i>
+            <div class="dag-node locked">
+              <div class="dag-node-name">タスク分解</div>
+              <div class="dag-node-meta"><i data-lucide="lock" class="icon-sm"></i>機能分解後</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dag-row">
+          <div class="dag-leader-tag">
+            <span class="leader-avatar leader-design" style="width:18px;height:18px;font-size:9px;">デ</span>
+            デザイン ライン
+          </div>
+          <div class="dag-phase-list">
+            <div class="dag-node done">
+              <div class="dag-node-name">デザインシステム</div>
+              <div class="dag-node-meta"><i data-lucide="check-circle-2" class="icon-sm"></i>1日前</div>
+            </div>
+            <i data-lucide="chevron-right" class="dag-arrow icon-sm"></i>
+            <div class="dag-node in-progress">
+              <div class="dag-node-name">モック作成</div>
+              <div class="dag-node-meta"><i data-lucide="loader-2" class="icon-sm"></i>3/8 画面</div>
+            </div>
+            <i data-lucide="chevron-right" class="dag-arrow icon-sm"></i>
+            <div class="dag-node">
+              <div class="dag-node-name">デザインレビュー</div>
+              <div class="dag-node-meta"><i data-lucide="circle" class="icon-sm"></i>並行可</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dag-row">
+          <div class="dag-leader-tag">
+            <span class="leader-avatar leader-eng" style="width:18px;height:18px;font-size:9px;">エ</span>
+            エンジニア
+          </div>
+          <div class="dag-phase-list">
+            <div class="dag-node locked">
+              <div class="dag-node-name">実装引き継ぎ</div>
+              <div class="dag-node-meta"><i data-lucide="lock" class="icon-sm"></i>タスク分解後</div>
+            </div>
+            <i data-lucide="chevron-right" class="dag-arrow icon-sm"></i>
+            <div class="dag-node locked">
+              <div class="dag-node-name">統合</div>
+              <div class="dag-node-meta"><i data-lucide="lock" class="icon-sm"></i>実装後</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dag-row">
+          <div class="dag-leader-tag">
+            <span class="leader-avatar leader-qa" style="width:18px;height:18px;font-size:9px;">品</span>
+            品質 ライン
+          </div>
+          <div class="dag-phase-list">
+            <div class="dag-node locked">
+              <div class="dag-node-name">テスト戦略</div>
+              <div class="dag-node-meta"><i data-lucide="lock" class="icon-sm"></i>統合後</div>
+            </div>
+            <i data-lucide="chevron-right" class="dag-arrow icon-sm"></i>
+            <div class="dag-node locked">
+              <div class="dag-node-name">レビュー</div>
+              <div class="dag-node-meta"><i data-lucide="lock" class="icon-sm"></i>テスト後</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dag-row">
+          <div class="dag-leader-tag">
+            <span class="leader-avatar leader-ops" style="width:18px;height:18px;font-size:9px;">運</span>
+            DevOps
+          </div>
+          <div class="dag-phase-list">
+            <div class="dag-node locked">
+              <div class="dag-node-name">リリース計画</div>
+              <div class="dag-node-meta"><i data-lucide="lock" class="icon-sm"></i>レビュー後</div>
+            </div>
+            <i data-lucide="chevron-right" class="dag-arrow icon-sm"></i>
+            <div class="dag-node locked">
+              <div class="dag-node-name">運用</div>
+              <div class="dag-node-meta"><i data-lucide="lock" class="icon-sm"></i>リリース後</div>
+            </div>
+            <i data-lucide="chevron-right" class="dag-arrow icon-sm"></i>
+            <div class="dag-node locked">
+              <div class="dag-node-name">ドキュメント</div>
+              <div class="dag-node-meta"><i data-lucide="lock" class="icon-sm"></i>各フェーズ並行</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gantt -->
+    <div class="card mb-5">
+      <div class="card-header">
+        <h2><i data-lucide="bar-chart-horizontal" class="icon-sm"></i> ガントチャート</h2>
+        <div class="card-header-meta">
+          <select class="form-select" style="height:30px; font-size:12px; width:auto;">
+            <option>4月17日 〜 6月5日 (7週)</option>
+            <option>2か月</option>
+            <option>3か月</option>
+          </select>
+        </div>
+      </div>
+      <div class="gantt-row header">
+        <div class="gantt-label">フェーズ</div>
+        <div class="gantt-track" style="height: 36px;">
+          <div class="gantt-grid"></div>
+          <div style="position:absolute; inset:0; display:flex; align-items:center; padding: 0 var(--space-3); justify-content:space-between; font-size:10.5px; color:var(--text-3); font-weight:500;">
+            <span>4/17</span><span>4/24</span><span>5/1</span><span>5/8</span><span>5/15</span><span>5/22</span><span>5/29</span>
+          </div>
+        </div>
+      </div>
+      <div class="gantt-row">
+        <div class="gantt-label">
+          <span class="leader-avatar leader-pm" style="width:18px;height:18px;font-size:9px;">PM</span>
+          ヒアリング
+        </div>
+        <div class="gantt-track">
+          <div class="gantt-grid"></div>
+          <div class="gantt-bar done" style="left:0; width:8%;">100%</div>
+          <div class="gantt-today" style="left: 47%;"></div>
+        </div>
+      </div>
+      <div class="gantt-row">
+        <div class="gantt-label">
+          <span class="leader-avatar leader-pm" style="width:18px;height:18px;font-size:9px;">PM</span>
+          要件定義
+        </div>
+        <div class="gantt-track">
+          <div class="gantt-grid"></div>
+          <div class="gantt-bar done" style="left:8%; width:18%;">100%</div>
+          <div class="gantt-today" style="left: 47%;"></div>
+        </div>
+      </div>
+      <div class="gantt-row">
+        <div class="gantt-label">
+          <span class="leader-avatar leader-pm" style="width:18px;height:18px;font-size:9px;">PM</span>
+          提案・見積
+        </div>
+        <div class="gantt-track">
+          <div class="gantt-grid"></div>
+          <div class="gantt-bar in-progress" style="left:26%; width:14%;">60%</div>
+          <div class="gantt-today" style="left: 47%;"></div>
+        </div>
+      </div>
+      <div class="gantt-row">
+        <div class="gantt-label">
+          <span class="leader-avatar leader-design" style="width:18px;height:18px;font-size:9px;">デ</span>
+          デザインシステム
+        </div>
+        <div class="gantt-track">
+          <div class="gantt-grid"></div>
+          <div class="gantt-bar done" style="left:26%; width:10%;">100%</div>
+          <div class="gantt-today" style="left: 47%;"></div>
+        </div>
+      </div>
+      <div class="gantt-row">
+        <div class="gantt-label">
+          <span class="leader-avatar leader-arch" style="width:18px;height:18px;font-size:9px;">設</span>
+          アーキテクチャ
+        </div>
+        <div class="gantt-track">
+          <div class="gantt-grid"></div>
+          <div class="gantt-bar in-progress" style="left:36%; width:14%;">90%</div>
+          <div class="gantt-today" style="left: 47%;"></div>
+        </div>
+      </div>
+      <div class="gantt-row">
+        <div class="gantt-label">
+          <span class="leader-avatar leader-design" style="width:18px;height:18px;font-size:9px;">デ</span>
+          モック作成
+        </div>
+        <div class="gantt-track">
+          <div class="gantt-grid"></div>
+          <div class="gantt-bar in-progress" style="left:40%; width:18%;">38%</div>
+          <div class="gantt-today" style="left: 47%;"></div>
+        </div>
+      </div>
+      <div class="gantt-row">
+        <div class="gantt-label">
+          <span class="leader-avatar leader-arch" style="width:18px;height:18px;font-size:9px;">設</span>
+          API 設計
+        </div>
+        <div class="gantt-track">
+          <div class="gantt-grid"></div>
+          <div class="gantt-bar planned" style="left:50%; width:14%;">予定</div>
+          <div class="gantt-today" style="left: 47%;"></div>
+        </div>
+      </div>
+      <div class="gantt-row">
+        <div class="gantt-label">
+          <span class="leader-avatar leader-arch" style="width:18px;height:18px;font-size:9px;">設</span>
+          機能分解 + タスク分解
+        </div>
+        <div class="gantt-track">
+          <div class="gantt-grid"></div>
+          <div class="gantt-bar planned" style="left:64%; width:14%;">予定</div>
+          <div class="gantt-today" style="left: 47%;"></div>
+        </div>
+      </div>
+      <div class="gantt-row">
+        <div class="gantt-label">
+          <span class="leader-avatar leader-eng" style="width:18px;height:18px;font-size:9px;">エ</span>
+          実装 + 統合
+        </div>
+        <div class="gantt-track">
+          <div class="gantt-grid"></div>
+          <div class="gantt-bar planned" style="left:68%; width:24%;">予定</div>
+          <div class="gantt-today" style="left: 47%;"></div>
+        </div>
+      </div>
+      <div class="gantt-row">
+        <div class="gantt-label">
+          <span class="leader-avatar leader-qa" style="width:18px;height:18px;font-size:9px;">品</span>
+          QA + レビュー
+        </div>
+        <div class="gantt-track">
+          <div class="gantt-grid"></div>
+          <div class="gantt-bar planned" style="left:80%; width:14%;">予定</div>
+          <div class="gantt-today" style="left: 47%;"></div>
+        </div>
+      </div>
+      <div class="gantt-row">
+        <div class="gantt-label">
+          <span class="leader-avatar leader-ops" style="width:18px;height:18px;font-size:9px;">運</span>
+          リリース
+        </div>
+        <div class="gantt-track">
+          <div class="gantt-grid"></div>
+          <div class="gantt-bar planned" style="left:92%; width:8%;">予定</div>
+          <div class="gantt-today" style="left: 47%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Artifact history -->
+    <div class="card">
+      <div class="card-header">
+        <h2><i data-lucide="folder-tree" class="icon-sm"></i> フェーズ別 成果物履歴</h2>
+        <div class="table-actions">
+          <input class="form-input" placeholder="成果物検索..." style="height:30px;font-size:12px;width:200px" />
+          <button class="btn btn-secondary btn-sm">
+            <i data-lucide="filter" class="icon-sm"></i>
+            フィルタ
+          </button>
+        </div>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th style="width: 200px;">フェーズ</th>
+            <th>成果物</th>
+            <th style="width: 80px;">バージョン</th>
+            <th style="width: 140px;">担当 AI</th>
+            <th style="width: 140px;">最終更新</th>
+            <th style="width: 100px;">ステータス</th>
+            <th style="width: 60px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="leader-avatar leader-pm" style="width:18px;height:18px;font-size:9px;display:inline-flex;margin-right:6px;vertical-align:middle">PM</span>ヒアリング</td>
+            <td>プロジェクト起点ブリーフ</td>
+            <td><code>v1</code></td>
+            <td>PM AI</td>
+            <td>2 日前</td>
+            <td><span class="badge success">承認済</span></td>
+            <td><i data-lucide="external-link" class="icon-sm"></i></td>
+          </tr>
+          <tr>
+            <td><span class="leader-avatar leader-pm" style="width:18px;height:18px;font-size:9px;display:inline-flex;margin-right:6px;vertical-align:middle">PM</span>要件定義</td>
+            <td>要件定義書</td>
+            <td><code>v2.0</code></td>
+            <td>PM AI</td>
+            <td>42 分前</td>
+            <td><span class="badge recommend">レビュー中</span></td>
+            <td><i data-lucide="external-link" class="icon-sm"></i></td>
+          </tr>
+          <tr>
+            <td><span class="leader-avatar leader-pm" style="width:18px;height:18px;font-size:9px;display:inline-flex;margin-right:6px;vertical-align:middle">PM</span>要件定義</td>
+            <td>要件定義書 (旧版)</td>
+            <td><code>v1.0</code></td>
+            <td>PM AI</td>
+            <td>3 時間前</td>
+            <td><span class="badge neutral">アーカイブ</span></td>
+            <td><i data-lucide="external-link" class="icon-sm"></i></td>
+          </tr>
+          <tr>
+            <td><span class="leader-avatar leader-arch" style="width:18px;height:18px;font-size:9px;display:inline-flex;margin-right:6px;vertical-align:middle">設</span>アーキテクチャ</td>
+            <td>アーキ設計書 + ER 図</td>
+            <td><code>v1.1</code></td>
+            <td>設計 AI</td>
+            <td>2 時間前</td>
+            <td><span class="badge parallel">作成中</span></td>
+            <td><i data-lucide="external-link" class="icon-sm"></i></td>
+          </tr>
+          <tr>
+            <td><span class="leader-avatar leader-design" style="width:18px;height:18px;font-size:9px;display:inline-flex;margin-right:6px;vertical-align:middle">デ</span>デザインシステム</td>
+            <td>DESIGN.md + プレビュー HTML</td>
+            <td><code>v1.0</code></td>
+            <td>デザイナー AI</td>
+            <td>1 日前</td>
+            <td><span class="badge success">承認済</span></td>
+            <td><i data-lucide="external-link" class="icon-sm"></i></td>
+          </tr>
+          <tr>
+            <td><span class="leader-avatar leader-design" style="width:18px;height:18px;font-size:9px;display:inline-flex;margin-right:6px;vertical-align:middle">デ</span>モック作成</td>
+            <td>主要 8 画面モック (Penpot)</td>
+            <td><code>v1</code></td>
+            <td>デザイナー AI</td>
+            <td>3 時間前</td>
+            <td><span class="badge parallel">3/8 作成中</span></td>
+            <td><i data-lucide="external-link" class="icon-sm"></i></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+<script src="./_partials.js"></script>
+<script>
+  renderShell({ active: 'progress', breadcrumb: '進捗管理' });
+</script>
+</body>
+</html>

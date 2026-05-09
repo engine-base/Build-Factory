@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>価格設計 — デザインモック (Build-Factory)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #004CD9;
+  --primary-bg: #E8EFFF;
+  --primary-soft: #F4F7FF;
+  --success: #16A34A;
+  --success-bg: #DCFCE7;
+  --warning: #F59E0B;
+  --warning-bg: #FEF3C7;
+  --danger: #DC2626;
+  --danger-bg: #FEE2E2;
+  --purple: #7C3AED;
+  --purple-bg: #F3E8FF;
+  --orange: #F97316;
+  --orange-bg: #FFEDD5;
+
+  --text-1: #0F172A;
+  --text-2: #334155;
+  --text-3: #64748B;
+  --text-4: #94A3B8;
+  --bg: #F5F7FA;
+  --bg-elev: #FFFFFF;
+  --border: #E4E8EE;
+  --divider: #EEF1F5;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text-1);
+  line-height: 1.65;
+  font-feature-settings: "palt";
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ====== layout ====== */
+.shell {
+  display: grid;
+  grid-template-columns: 240px 1fr 380px;
+  gap: 16px;
+  padding: 16px;
+  min-height: 100vh;
+}
+
+/* ====== left: STEP progress ====== */
+.steps {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  height: fit-content;
+}
+.steps-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-4);
+  margin-bottom: 12px;
+}
+.step-row {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 150ms;
+  margin-bottom: 4px;
+}
+.step-row:hover { background: var(--primary-soft); }
+.step-row.active { background: var(--primary-bg); }
+.step-row .icon {
+  flex-shrink: 0;
+  width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
+}
+.step-row.done .icon::before {
+  content: "";
+  width: 16px; height: 16px;
+  background: var(--success);
+  border-radius: 50%;
+  position: relative;
+  display: block;
+}
+.step-row.done .icon::after {
+  content: "✓";
+  position: absolute;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  margin-top: 1px;
+  margin-left: 4px;
+}
+.step-row.active .icon::before {
+  content: "";
+  width: 14px; height: 14px;
+  background: var(--primary);
+  border-radius: 50%;
+  border: 3px solid var(--primary-bg);
+  box-shadow: 0 0 0 2px var(--primary);
+  display: block;
+}
+.step-row.todo .icon::before {
+  content: "";
+  width: 14px; height: 14px;
+  border: 2px solid var(--text-4);
+  border-radius: 50%;
+  display: block;
+}
+.step-row .body { flex: 1; min-width: 0; }
+.step-row .title { font-size: 12.5px; font-weight: 600; color: var(--text-1); }
+.step-row .status { font-size: 10.5px; color: var(--text-3); margin-top: 2px; }
+
+/* ====== center ====== */
+.center {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 800px;
+}
+.tab-row {
+  display: flex;
+  border-bottom: 1px solid var(--divider);
+  background: #FAFBFD;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tab-row::-webkit-scrollbar { display: none; }
+.tab {
+  padding: 12px 18px;
+  border: none;
+  background: transparent;
+  border-right: 1px solid var(--divider);
+  border-bottom: 2px solid transparent;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-3);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 150ms;
+}
+.tab:hover { color: var(--text-1); background: #fff; }
+.tab.active {
+  color: var(--primary);
+  background: #fff;
+  border-bottom-color: var(--primary);
+  font-weight: 700;
+}
+.tab .num {
+  display: inline-block;
+  width: 18px; height: 18px;
+  background: var(--text-4);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 4px;
+  margin-right: 6px;
+  text-align: center;
+  line-height: 18px;
+}
+.tab.active .num { background: var(--primary); }
+
+.action-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 18px;
+  background: #FAFBFD;
+  border-bottom: 1px solid var(--divider);
+}
+.action-bar .label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+.action-bar .step-tag {
+  display: inline-block;
+  font-size: 10.5px;
+  color: var(--text-4);
+  background: #fff;
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-left: 8px;
+}
+.action-bar .downloads {
+  display: flex; gap: 4px;
+}
+.dl-btn {
+  font-size: 11px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 6px;
+  color: var(--text-3);
+  cursor: pointer;
+  font-weight: 600;
+  font-family: inherit;
+}
+.dl-btn:hover { color: var(--primary); border-color: var(--primary); }
+
+.tab-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px;
+  background: #fff;
+}
+
+/* ====== generic content cards ====== */
+.section { margin-bottom: 32px; }
+.section:last-child { margin-bottom: 0; }
+.section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-1);
+  margin-bottom: 14px;
+  padding-left: 12px;
+  border-left: 3px solid var(--primary);
+}
+
+/* ====== Hero card (推奨見積) ====== */
+.hero-rec {
+  background: linear-gradient(135deg, var(--primary) 0%, #1A5FE0 100%);
+  border-radius: 16px;
+  padding: 32px 36px;
+  color: #fff;
+  margin-bottom: 28px;
+  box-shadow: 0 4px 16px rgba(0,76,217,0.15);
+}
+.hero-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 10px;
+}
+.hero-amount {
+  font-size: 56px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+.hero-amount .yen { font-size: 28px; font-weight: 600; opacity: 0.85; margin-left: 4px; }
+.hero-amount .tax { font-size: 13px; font-weight: 500; opacity: 0.7; margin-left: 8px; vertical-align: middle; }
+.hero-meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.2);
+}
+.hero-meta-item .key {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.65);
+  margin-bottom: 4px;
+}
+.hero-meta-item .val {
+  font-size: 18px;
+  font-weight: 700;
+}
+.hero-meta-item .sub {
+  font-size: 11.5px;
+  color: rgba(255,255,255,0.7);
+  margin-top: 2px;
+}
+
+/* ====== Range bar (3 軸視覚化) ====== */
+.range-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin-bottom: 20px;
+}
+.range-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.range-bar {
+  position: relative;
+  height: 56px;
+  margin: 30px 0 50px;
+}
+.range-track {
+  position: absolute;
+  inset: 22px 0;
+  background: linear-gradient(90deg, #DC2626 0%, #F59E0B 35%, #16A34A 65%, #7C3AED 100%);
+  border-radius: 6px;
+}
+.range-marker {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 56px;
+  background: var(--text-2);
+}
+.range-marker.cost { left: 18%; }
+.range-marker.market { left: 50%; }
+.range-marker.value { left: 78%; }
+.range-marker.recommended {
+  width: 4px;
+  background: var(--primary);
+  box-shadow: 0 0 0 4px rgba(0,76,217,0.18);
+  left: 64%;
+}
+.range-marker .pin-label {
+  position: absolute;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.range-marker .pin-amount {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-1);
+  white-space: nowrap;
+  background: #fff;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.range-marker.recommended .pin-amount {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+  font-size: 14px;
+  font-weight: 800;
+}
+.range-marker.recommended .pin-label { color: var(--primary); font-weight: 800; }
+
+/* ====== Stat cards ====== */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  position: relative;
+  border-left: 4px solid var(--primary);
+}
+.stat-card.cost { border-left-color: #2563EB; }
+.stat-card.tools { border-left-color: #06B6D4; }
+.stat-card.outsource { border-left-color: var(--orange); }
+.stat-card.total { border-left-color: var(--success); background: var(--success-bg); }
+.stat-card .key {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-4);
+  margin-bottom: 6px;
+}
+.stat-card .num {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-1);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+.stat-card .num .yen { font-size: 14px; font-weight: 600; opacity: 0.7; margin-left: 2px; }
+.stat-card .sub {
+  font-size: 11.5px;
+  color: var(--text-3);
+  margin-top: 4px;
+}
+
+/* ====== Feature工数 table ====== */
+.feature-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: 12.5px;
+  margin-bottom: 16px;
+}
+.feature-table thead th {
+  background: #F8FAFC;
+  color: var(--text-3);
+  font-weight: 700;
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--divider);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.feature-table td {
+  padding: 10px 14px;
+  border-top: 1px solid var(--divider);
+  vertical-align: middle;
+}
+.feature-table tbody tr:first-child td { border-top: none; }
+.feature-table tbody tr:hover td { background: var(--primary-soft); }
+.feature-table .id-code {
+  font-family: 'SF Mono', 'Courier New', monospace;
+  font-size: 11px;
+  background: var(--primary-bg);
+  color: var(--primary);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  display: inline-block;
+}
+.feature-table .effort {
+  font-weight: 700;
+  color: var(--text-1);
+  text-align: right;
+  white-space: nowrap;
+}
+.feature-table .effort .unit { font-size: 11px; color: var(--text-4); margin-left: 2px; font-weight: 500; }
+.feature-table tfoot td {
+  background: var(--primary-bg);
+  font-weight: 700;
+  color: var(--primary);
+  border-top: 2px solid var(--primary);
+}
+.feature-table tfoot .effort { color: var(--primary); font-size: 14px; }
+
+.note {
+  font-size: 11.5px;
+  color: var(--text-3);
+  background: var(--primary-soft);
+  border-left: 3px solid var(--primary);
+  padding: 10px 14px;
+  border-radius: 0 6px 6px 0;
+  margin-top: 10px;
+}
+
+/* ====== Competitor compare ====== */
+.compete {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.compete-row {
+  display: grid;
+  grid-template-columns: 200px 1fr 110px;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.compete-row.us {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+.compete-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+.compete-name .tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--primary);
+  color: #fff;
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-left: 6px;
+}
+.compete-bar-wrap {
+  position: relative;
+  height: 8px;
+  background: #EEF1F5;
+  border-radius: 4px;
+}
+.compete-bar {
+  position: absolute;
+  height: 100%;
+  background: linear-gradient(90deg, var(--text-4) 0%, var(--text-2) 100%);
+  border-radius: 4px;
+}
+.compete-row.us .compete-bar {
+  background: linear-gradient(90deg, var(--primary) 0%, #1A5FE0 100%);
+}
+.compete-amount {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-2);
+  text-align: right;
+  white-space: nowrap;
+}
+.compete-row.us .compete-amount { color: var(--primary); }
+
+/* ====== ROI cards ====== */
+.roi-flex {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.roi-card {
+  padding: 20px 22px;
+  border-radius: 12px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+}
+.roi-card.benefit { border-color: var(--success); background: var(--success-bg); }
+.roi-card.payback { border-color: var(--purple); background: var(--purple-bg); }
+.roi-card .label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 8px;
+}
+.roi-card .num {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-1);
+  letter-spacing: -0.01em;
+}
+.roi-card.benefit .num { color: var(--success); }
+.roi-card.payback .num { color: var(--purple); }
+.roi-card .num .unit { font-size: 14px; font-weight: 600; opacity: 0.7; margin-left: 4px; }
+.roi-card .breakdown {
+  font-size: 11.5px;
+  color: var(--text-3);
+  margin-top: 10px;
+  line-height: 1.7;
+}
+
+/* ====== Reasoning chips ====== */
+.reasoning {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.reason-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.reason-icon {
+  flex-shrink: 0;
+  width: 32px; height: 32px;
+  background: var(--primary-bg);
+  color: var(--primary);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+.reason-body { flex: 1; }
+.reason-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-1);
+  margin-bottom: 4px;
+}
+.reason-detail {
+  font-size: 12px;
+  color: var(--text-3);
+  line-height: 1.6;
+}
+
+/* ====== Right: chat ====== */
+.chat {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: fit-content;
+  max-height: calc(100vh - 32px);
+}
+.chat-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--divider);
+  background: #FAFBFD;
+}
+.chat-head .dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; }
+.chat-head .name { font-size: 12.5px; font-weight: 700; color: var(--text-1); }
+.chat-head .step-tag {
+  margin-left: auto;
+  font-size: 10.5px;
+  color: var(--text-4);
+  background: #fff;
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.chat-msgs {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+.divider-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0;
+}
+.divider-step .line { flex: 1; height: 1px; background: var(--divider); }
+.divider-step .label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-4);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: #FAFBFD;
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.msg { margin-bottom: 10px; display: flex; }
+.msg.ai { justify-content: flex-start; }
+.msg.user { justify-content: flex-end; }
+.msg .bubble {
+  max-width: 85%;
+  padding: 9px 13px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+.msg.ai .bubble {
+  background: #F4F6FA;
+  color: var(--text-1);
+}
+.msg.user .bubble {
+  background: var(--primary);
+  color: #fff;
+}
+.chat-input {
+  padding: 12px;
+  border-top: 1px solid var(--divider);
+  background: #FAFBFD;
+  display: flex;
+  gap: 6px;
+}
+.chat-input input {
+  flex: 1;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 12.5px;
+  background: #fff;
+}
+.chat-input input:focus { outline: 2px solid var(--primary); outline-offset: -1px; border-color: var(--primary); }
+.chat-input button {
+  height: 36px;
+  padding: 0 14px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ====== Hidden tab content panels ====== */
+.panel { display: none; }
+.panel.active { display: block; animation: fadeIn 250ms; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ====== STEP completion footer ====== */
+.complete-bar {
+  padding: 12px 18px;
+  border-top: 1px solid var(--divider);
+  background: #FAFBFD;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.btn-complete {
+  height: 34px;
+  padding: 0 16px;
+  background: var(--success);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ===== LEFT: STEP プログレス ===== -->
+  <aside class="steps">
+    <div class="steps-label">PHASE 3 / 価格設計</div>
+    <div class="step-row done">
+      <div class="icon"></div>
+      <div class="body">
+        <div class="title">STEP 1 原価試算</div>
+        <div class="status">確定</div>
+      </div>
+    </div>
+    <div class="step-row done">
+      <div class="icon"></div>
+      <div class="body">
+        <div class="title">STEP 2 市場相場・価値試算</div>
+        <div class="status">確定</div>
+      </div>
+    </div>
+    <div class="step-row active">
+      <div class="icon"></div>
+      <div class="body">
+        <div class="title">STEP 3 推奨レンジ・採用案</div>
+        <div class="status">進行中</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== CENTER: IDE タブ ===== -->
+  <main class="center">
+
+    <div class="tab-row">
+      <button class="tab" data-tab="cost"><span class="num">1</span>原価試算</button>
+      <button class="tab" data-tab="market"><span class="num">2</span>市場相場</button>
+      <button class="tab" data-tab="value"><span class="num">3</span>価値試算</button>
+      <button class="tab active" data-tab="recommended"><span class="num">4</span>推奨レンジ・採用案</button>
+    </div>
+
+    <div class="action-bar">
+      <div>
+        <span class="label" id="tabLabel">推奨レンジ・採用案</span>
+        <span class="step-tag">STEP 3</span>
+      </div>
+      <div class="downloads">
+        <button class="dl-btn">▾ HTML</button>
+        <button class="dl-btn">▾ MD</button>
+        <button class="dl-btn">▾ JSON</button>
+      </div>
+    </div>
+
+    <div class="tab-content">
+
+      <!-- ============ TAB: 推奨レンジ・採用案 (active) ============ -->
+      <div class="panel active" id="panel-recommended">
+
+        <!-- HERO -->
+        <div class="hero-rec">
+          <div class="hero-label">推奨見積金額</div>
+          <div class="hero-amount">320<span class="yen">万円</span><span class="tax">税抜</span></div>
+          <div class="hero-meta">
+            <div class="hero-meta-item">
+              <div class="key">粗利率</div>
+              <div class="val">48%</div>
+              <div class="sub">利益 154 万円</div>
+            </div>
+            <div class="hero-meta-item">
+              <div class="key">競合相対</div>
+              <div class="val">71%</div>
+              <div class="sub">中堅 Web 制作 350 万円基準</div>
+            </div>
+            <div class="hero-meta-item">
+              <div class="key">投資回収</div>
+              <div class="val">6.4 か月</div>
+              <div class="sub">月 50 万円効果想定</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 軸サマリー (Range Bar) -->
+        <div class="range-card">
+          <div class="range-title">3 軸サマリー — コスト下限・競合中央・価値上限</div>
+          <div class="range-bar">
+            <div class="range-track"></div>
+
+            <div class="range-marker cost">
+              <div class="pin-amount">237 万</div>
+              <div class="pin-label">コスト下限<br>(粗利 30%)</div>
+            </div>
+            <div class="range-marker market">
+              <div class="pin-amount">350 万</div>
+              <div class="pin-label">競合中央</div>
+            </div>
+            <div class="range-marker recommended">
+              <div class="pin-amount">320 万 ★ 推奨</div>
+              <div class="pin-label">採用案</div>
+            </div>
+            <div class="range-marker value">
+              <div class="pin-amount">560 万</div>
+              <div class="pin-label">価値上限<br>(1 年回収)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 採用根拠 -->
+        <div class="section">
+          <div class="section-title">採用根拠</div>
+          <div class="reasoning">
+            <div class="reason-row">
+              <div class="reason-icon">①</div>
+              <div class="reason-body">
+                <div class="reason-title">粗利 40% を確保しつつ競合中央の中間値で着地</div>
+                <div class="reason-detail">コスト下限 (粗利 40% 確保) 277 万円と競合中央 350 万円の中間値で 320 万円。値下げ余地も残しつつ確実な利益を確保。</div>
+              </div>
+            </div>
+            <div class="reason-row">
+              <div class="reason-icon">②</div>
+              <div class="reason-body">
+                <div class="reason-title">顧客の 6 か月以内回収条件を満たす</div>
+                <div class="reason-detail">月 50 万円の効果想定で 6.4 か月で投資回収。短期 ROI が見えるため社内稟議が通りやすい。</div>
+              </div>
+            </div>
+            <div class="reason-row">
+              <div class="reason-icon">③</div>
+              <div class="reason-body">
+                <div class="reason-title">AI 速度感の優位を価格に転嫁</div>
+                <div class="reason-detail">中堅 Web 制作の 71% で同等品質を提供。短納期 (1-2 か月) を強みとして打ち出せる。</div>
+              </div>
+            </div>
+            <div class="reason-row">
+              <div class="reason-icon">④</div>
+              <div class="reason-body">
+                <div class="reason-title">値引きバッファ</div>
+                <div class="reason-detail">290 万円まで下げても粗利 30% 確保可能。営業ネゴ時の最終ライン。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 見積書フェーズへの引き継ぎ -->
+        <div class="section">
+          <div class="section-title">見積書フェーズへの引き継ぎ事項</div>
+          <table class="feature-table">
+            <tbody>
+              <tr><td style="width:200px;color:var(--text-3);font-weight:600;">構築費</td><td><strong>320 万円</strong> (税抜)</td></tr>
+              <tr><td style="color:var(--text-3);font-weight:600;">月額保守</td><td>月 5 万円</td></tr>
+              <tr><td style="color:var(--text-3);font-weight:600;">支払条件</td><td>着手金 30% / 中間 30% / 検収後 40%</td></tr>
+              <tr><td style="color:var(--text-3);font-weight:600;">値引き戦略</td><td>290 万円まで OK・それ以下は要相談</td></tr>
+              <tr><td style="color:var(--text-3);font-weight:600;">オプション</td><td>SEO 月 3 万 / 広告運用 月 5 万 / 追加開発 1 時間 1.5 万</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============ TAB: 原価試算 ============ -->
+      <div class="panel" id="panel-cost">
+
+        <div class="stat-grid">
+          <div class="stat-card cost">
+            <div class="key">人件費</div>
+            <div class="num">123<span class="yen">万円</span></div>
+            <div class="sub">高本 60 人日 + AI 90 人日 + 外注 30 人日</div>
+          </div>
+          <div class="stat-card tools">
+            <div class="key">ツール・インフラ</div>
+            <div class="num">6<span class="yen">万円</span></div>
+            <div class="sub">構築期 (4 か月)</div>
+          </div>
+          <div class="stat-card outsource">
+            <div class="key">外注費</div>
+            <div class="num">37<span class="yen">万円</span></div>
+            <div class="sub">デザイン 25 万 + 移行スクリプト 12 万</div>
+          </div>
+          <div class="stat-card total">
+            <div class="key">合計コスト (下限)</div>
+            <div class="num">166<span class="yen">万円</span></div>
+            <div class="sub">粗利 40% で 277 万・粗利 30% で 237 万</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">機能別工数試算 (合計 90 人日)</div>
+          <table class="feature-table">
+            <thead>
+              <tr><th style="width:80px;">機能 ID</th><th>機能名</th><th>内訳</th><th style="width:100px;">工数</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><span class="id-code">F001</span></td><td>認証・会員管理 (eKYC 連携)</td><td>登録 / ログイン / 管理者承認</td><td class="effort">6<span class="unit">人日</span></td></tr>
+              <tr><td><span class="id-code">F002</span></td><td>商品カタログ・検索</td><td>一覧 / 絞り込み / 全文検索 / ページネーション</td><td class="effort">8<span class="unit">人日</span></td></tr>
+              <tr><td><span class="id-code">F003</span></td><td>商品詳細・レコメンド</td><td>詳細 UI + 好み連動レコメンド</td><td class="effort">5<span class="unit">人日</span></td></tr>
+              <tr><td><span class="id-code">F004</span></td><td>カート・購入・決済 (Stripe)</td><td>カート / Checkout / Webhook / 二重課金防止</td><td class="effort">7<span class="unit">人日</span></td></tr>
+              <tr><td><span class="id-code">F005</span></td><td>サブスクリプション (定期便)</td><td>Stripe Subscription + スキップ/解約</td><td class="effort">10<span class="unit">人日</span></td></tr>
+              <tr><td><span class="id-code">F006</span></td><td>BtoB 申込・与信 (Paid 連携)</td><td>申込フォーム + 書類 + 与信フロー</td><td class="effort">8<span class="unit">人日</span></td></tr>
+              <tr><td><span class="id-code">F007</span></td><td>BtoB 専用ダッシュボード</td><td>一括発注 + 専用価格</td><td class="effort">6<span class="unit">人日</span></td></tr>
+              <tr><td><span class="id-code">F008</span></td><td>顧客マイページ</td><td>注文履歴 / 好み登録 / 定期便管理</td><td class="effort">5<span class="unit">人日</span></td></tr>
+              <tr><td><span class="id-code">F009</span></td><td>管理: 商品・在庫</td><td>CRUD + Shippinno 同期 + 安全在庫アラート</td><td class="effort">8<span class="unit">人日</span></td></tr>
+              <tr><td><span class="id-code">F010</span></td><td>管理: 受注・出荷</td><td>ステータス管理 + CSV エクスポート</td><td class="effort">5<span class="unit">人日</span></td></tr>
+              <tr><td><span class="id-code">F011</span></td><td>管理: 顧客・与信審査</td><td>BtoB 申込 + 与信判断</td><td class="effort">4<span class="unit">人日</span></td></tr>
+              <tr><td><span class="id-code">F012-14</span></td><td>メール / レビュー / クーポン</td><td>計 3 機能</td><td class="effort">6<span class="unit">人日</span></td></tr>
+              <tr><td colspan="2" style="color:var(--text-3);font-style:italic;">設計 / テスト / デプロイ / ドキュメント</td><td>共通工数</td><td class="effort">12<span class="unit">人日</span></td></tr>
+            </tbody>
+            <tfoot>
+              <tr><td colspan="3" style="text-align:right;font-weight:700;">合計</td><td class="effort">90<span class="unit">人日</span></td></tr>
+            </tfoot>
+          </table>
+          <div class="note">人件費単価: 高本 1.2 万円/日 / AI 社員 0.3 万円/日 / 外注 0.8 万円/日</div>
+        </div>
+      </div>
+
+      <!-- ============ TAB: 市場相場 ============ -->
+      <div class="panel" id="panel-market">
+
+        <div class="section">
+          <div class="section-title">競合相場 (類似案件・食品 EC + BtoB 連携)</div>
+          <div class="compete">
+            <div class="compete-row">
+              <div class="compete-name">中堅 Web 制作会社</div>
+              <div class="compete-bar-wrap"><div class="compete-bar" style="width:75%;"></div></div>
+              <div class="compete-amount">350 〜 600 万円</div>
+            </div>
+            <div class="compete-row">
+              <div class="compete-name">Shopify Plus 構築会社</div>
+              <div class="compete-bar-wrap"><div class="compete-bar" style="width:50%;"></div></div>
+              <div class="compete-amount">250 〜 400 万円</div>
+            </div>
+            <div class="compete-row">
+              <div class="compete-name">フルスタックフリーランス</div>
+              <div class="compete-bar-wrap"><div class="compete-bar" style="width:38%;"></div></div>
+              <div class="compete-amount">180 〜 350 万円</div>
+            </div>
+            <div class="compete-row us">
+              <div class="compete-name">Build-Factory<span class="tag">自社</span></div>
+              <div class="compete-bar-wrap"><div class="compete-bar" style="width:55%;"></div></div>
+              <div class="compete-amount">280 〜 350 万円</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">自社ポジション</div>
+          <div class="stat-grid">
+            <div class="stat-card">
+              <div class="key">強み</div>
+              <div class="num" style="font-size:14px;">短納期 + AI 反復</div>
+              <div class="sub">通常 3-6 か月 → 1-2 か月</div>
+            </div>
+            <div class="stat-card">
+              <div class="key">弱み</div>
+              <div class="num" style="font-size:14px;">大型ブランディング</div>
+              <div class="sub">複雑カスタマイズ実績不足</div>
+            </div>
+            <div class="stat-card total">
+              <div class="key">ポジション</div>
+              <div class="num" style="font-size:18px;">中堅の 65-75%</div>
+              <div class="sub">同等品質を提供</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ TAB: 価値試算 ============ -->
+      <div class="panel" id="panel-value">
+        <div class="section">
+          <div class="section-title">顧客 ROI 試算</div>
+          <div class="roi-flex">
+            <div class="roi-card benefit">
+              <div class="label">月次効果</div>
+              <div class="num">42 〜 67<span class="unit">万円/月</span></div>
+              <div class="breakdown">
+                ・BtoB 機会損失回復: 25-50 万<br>
+                ・運用工数削減: 9 万<br>
+                ・在庫管理自動化: 8 万
+              </div>
+            </div>
+            <div class="roi-card payback">
+              <div class="label">年間効果</div>
+              <div class="num">504 〜 804<span class="unit">万円/年</span></div>
+              <div class="breakdown">
+                ・1 年回収許容: 350-560 万円<br>
+                ・6 か月回収: 250-400 万円<br>
+                ・予算 70-80%: 210-400 万円
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">価値ベースの価格上限</div>
+          <div class="stat-grid">
+            <div class="stat-card cost">
+              <div class="key">1 年回収許容</div>
+              <div class="num">350-560<span class="yen">万円</span></div>
+              <div class="sub">年間効果の 70%</div>
+            </div>
+            <div class="stat-card outsource">
+              <div class="key">6 か月回収</div>
+              <div class="num">250-400<span class="yen">万円</span></div>
+              <div class="sub">半年効果ベース</div>
+            </div>
+            <div class="stat-card total">
+              <div class="key">価値上限 (推奨)</div>
+              <div class="num">350<span class="yen">万円</span></div>
+              <div class="sub">1 年回収 + 予算 70%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 完了バー -->
+    <div class="complete-bar">
+      <button class="btn-complete">✓ STEP 3 を完了</button>
+    </div>
+  </main>
+
+  <!-- ===== RIGHT: チャット ===== -->
+  <aside class="chat">
+    <div class="chat-head">
+      <span class="dot"></span>
+      <span class="name">PM AI 社員 (価格設計)</span>
+      <span class="step-tag">STEP 3</span>
+    </div>
+    <div class="chat-msgs">
+      <div class="divider-step"><div class="line"></div><div class="label">STEP 1</div><div class="line"></div></div>
+      <div class="msg ai"><div class="bubble">STEP 1 を始めます。要件定義から 14 機能を読み取り、機能別工数を初期試算しました。F001 認証は 6 人日と見積もっていますが、eKYC 連携は経験がありますか?</div></div>
+      <div class="msg user"><div class="bubble">eKYC は経験あります。今回は不要です。</div></div>
+
+      <div class="divider-step"><div class="line"></div><div class="label">STEP 2</div><div class="line"></div></div>
+      <div class="msg ai"><div class="bubble">市場相場を調査しました。中堅 Web 制作で 350-600 万円、Shopify 系で 250-400 万円が中心です。Build-Factory のポジションは中堅の 65-75% で 230-260 万円がベース。価値試算では月 42-67 万の ROI なので、1 年回収で 350-560 万まで許容できます。</div></div>
+      <div class="msg user"><div class="bubble">わかりました。価値上限は 350 万あたりで考えましょう。</div></div>
+
+      <div class="divider-step"><div class="line"></div><div class="label">STEP 3</div><div class="line"></div></div>
+      <div class="msg ai"><div class="bubble">推奨レンジを 280-350 万円とし、採用案として <strong>320 万円</strong> を提案します。粗利 48%・競合 71%・回収 6.4 か月のバランスが取れます。値引きバッファは 290 万まで。これで進めますか?</div></div>
+    </div>
+    <div class="chat-input">
+      <input placeholder="STEP 3 の回答や質問を入力…" />
+      <button>送信</button>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+const tabs = document.querySelectorAll('.tab');
+const panels = document.querySelectorAll('.panel');
+const labelEl = document.getElementById('tabLabel');
+const labels = { cost: '原価試算', market: '市場相場', value: '価値試算', recommended: '推奨レンジ・採用案' };
+tabs.forEach(t => {
+  t.addEventListener('click', () => {
+    tabs.forEach(x => x.classList.remove('active'));
+    panels.forEach(p => p.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-' + t.dataset.tab).classList.add('active');
+    labelEl.textContent = labels[t.dataset.tab];
+  });
+});
+</script>
+</body>
+</html>

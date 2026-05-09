@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>PM AI ライン — Build-Factory v1</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./_shared.css" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  /* PM ライン専用スタイル */
+  .leader-hero {
+    display: flex; gap: var(--space-4);
+    padding: var(--space-5) var(--space-6);
+    background: linear-gradient(135deg, #F2F6FF 0%, #E8EFFE 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-6);
+    align-items: center;
+  }
+  .leader-avatar-lg {
+    width: 56px; height: 56px;
+    border-radius: var(--radius-md);
+    background: var(--leader-pm, #0EA5E9);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 22px;
+    letter-spacing: -0.02em;
+  }
+  .leader-info h1 {
+    font-size: 20px; font-weight: 700; letter-spacing: -0.01em;
+    color: var(--text-1);
+    margin-bottom: 4px;
+  }
+  .leader-info p {
+    font-size: 13px; color: var(--text-3);
+  }
+  .leader-info .skills {
+    display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;
+  }
+  .skill-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 11px; font-weight: 500;
+    color: var(--text-2);
+  }
+
+  /* phase tabs */
+  .phase-tabs {
+    display: flex; gap: 4px;
+    margin-bottom: var(--space-5);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 4px;
+    width: fit-content;
+  }
+  .phase-tab {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 500;
+    color: var(--text-3);
+    cursor: pointer;
+  }
+  .phase-tab:hover { background: var(--bg-soft); }
+  .phase-tab.active { background: var(--primary-bg); color: var(--primary); font-weight: 600; }
+  .phase-tab .status-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--text-4);
+  }
+  .phase-tab.done .status-dot { background: var(--success); }
+  .phase-tab.active .status-dot { background: var(--primary); }
+
+  /* layout: work area + chat */
+  .work-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: var(--space-5);
+  }
+
+  /* phase work area */
+  .phase-work {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .phase-work-header {
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--divider);
+    display: flex; align-items: center; gap: var(--space-3);
+  }
+  .phase-work-title { font-size: 15px; font-weight: 700; flex: 1; }
+  .phase-work-body { padding: var(--space-5); }
+
+  .step-list {
+    margin-bottom: var(--space-6);
+  }
+  .step-row {
+    display: flex; align-items: flex-start; gap: var(--space-3);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--divider);
+  }
+  .step-row:last-child { border-bottom: none; }
+  .step-num {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    color: var(--text-3);
+    flex-shrink: 0;
+  }
+  .step-num.done { background: var(--success); border-color: var(--success); color: #fff; }
+  .step-num.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .step-content { flex: 1; }
+  .step-title {
+    font-size: 13.5px; font-weight: 600; color: var(--text-1);
+    margin-bottom: 2px;
+  }
+  .step-desc { font-size: 12px; color: var(--text-3); margin-bottom: 6px; }
+  .step-meta { font-size: 11px; color: var(--text-4); }
+
+  /* current step output preview */
+  .output-block {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+  .output-block-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: var(--space-3);
+  }
+  .output-block-title {
+    font-size: 12px; font-weight: 700; color: var(--text-2);
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .output-content {
+    font-size: 13px; line-height: 1.7; color: var(--text-1);
+    white-space: pre-wrap;
+  }
+
+  /* artifacts list */
+  .artifact-list-row {
+    display: flex; align-items: center; gap: var(--space-3);
+    padding: 10px var(--space-5);
+    border-bottom: 1px solid var(--divider);
+  }
+  .artifact-list-row:last-child { border-bottom: none; }
+  .artifact-list-row:hover { background: var(--bg-soft); }
+  .artifact-row-icon {
+    width: 32px; height: 32px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-2);
+    flex-shrink: 0;
+  }
+
+  /* chat panel */
+  .chat-panel {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    height: calc(100vh - var(--header-h) - 220px);
+    min-height: 500px;
+  }
+  .chat-header {
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--divider);
+    display: flex; align-items: center; gap: var(--space-3);
+  }
+  .chat-header-info { flex: 1; }
+  .chat-header-title { font-size: 14px; font-weight: 700; }
+  .chat-header-status {
+    font-size: 11px; color: var(--success);
+    display: flex; align-items: center; gap: 4px;
+  }
+  .chat-status-dot {
+    width: 6px; height: 6px; background: var(--success); border-radius: 50%;
+  }
+  .chat-messages {
+    flex: 1;
+    padding: var(--space-4) var(--space-5);
+    overflow-y: auto;
+    background: var(--bg-soft);
+  }
+  .chat-msg {
+    display: flex; gap: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+  .chat-msg.user { flex-direction: row-reverse; }
+  .chat-msg-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 10px;
+  }
+  .chat-msg-bubble {
+    max-width: 80%;
+    padding: 10px 14px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .chat-msg.user .chat-msg-bubble {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+  .chat-msg-meta {
+    font-size: 10.5px;
+    color: var(--text-4);
+    margin-top: 4px;
+  }
+  .chat-input {
+    padding: var(--space-3) var(--space-4);
+    border-top: 1px solid var(--border);
+    display: flex; gap: var(--space-2);
+    background: var(--bg-elev);
+  }
+  .chat-input textarea {
+    flex: 1;
+    padding: 10px 12px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    resize: none;
+    height: 60px;
+    outline: none;
+  }
+  .chat-input textarea:focus {
+    border-color: var(--primary);
+    background: #fff;
+  }
+  .chat-suggestion {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    padding: 0 var(--space-4) var(--space-3);
+    background: var(--bg-elev);
+  }
+  .chat-suggest-btn {
+    padding: 4px 10px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 11.5px;
+    color: var(--text-2);
+  }
+  .chat-suggest-btn:hover { border-color: var(--primary); color: var(--primary); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="header"></header>
+  <aside class="sidebar"></aside>
+
+  <main class="main">
+    <div class="leader-hero">
+      <div class="leader-avatar-lg" style="background:#0EA5E9">PM</div>
+      <div class="leader-info" style="flex:1">
+        <h1>PM AI ライン</h1>
+        <p>クライアントとの対話・要件整理・受入条件の定義を担当。秘書 AI からの委任で動く。</p>
+        <div class="skills">
+          <span class="skill-chip"><i data-lucide="circle-check" class="icon-sm"></i>hearing</span>
+          <span class="skill-chip"><i data-lucide="circle-check" class="icon-sm"></i>requirements-definition</span>
+          <span class="skill-chip"><i data-lucide="circle" class="icon-sm"></i>proposal</span>
+          <span class="skill-chip"><i data-lucide="circle" class="icon-sm"></i>estimate</span>
+          <span class="skill-chip"><i data-lucide="circle" class="icon-sm"></i>acceptance-criteria</span>
+          <span class="skill-chip"><i data-lucide="circle" class="icon-sm"></i>meeting-minutes</span>
+        </div>
+      </div>
+      <div style="text-align: right;">
+        <div style="font-size: 11px; color: var(--text-3); margin-bottom: 4px;">担当 AI 設定</div>
+        <button class="btn btn-secondary btn-sm">
+          <i data-lucide="user-cog" class="icon-sm"></i>
+          編集
+        </button>
+      </div>
+    </div>
+
+    <div class="phase-tabs">
+      <a href="#" class="phase-tab done">
+        <span class="status-dot"></span>
+        ヒアリング
+      </a>
+      <a href="#" class="phase-tab done">
+        <span class="status-dot"></span>
+        要件定義
+      </a>
+      <a href="#" class="phase-tab active">
+        <span class="status-dot"></span>
+        提案・見積
+      </a>
+      <a href="#" class="phase-tab">
+        <span class="status-dot"></span>
+        受入条件
+      </a>
+    </div>
+
+    <div class="work-grid">
+      <!-- 作業エリア -->
+      <div>
+        <div class="phase-work mb-5">
+          <div class="phase-work-header">
+            <div class="phase-work-title">提案・見積 (proposal スキル)</div>
+            <span class="badge recommend">進行中</span>
+            <button class="btn btn-secondary btn-sm">
+              <i data-lucide="settings-2" class="icon-sm"></i>
+              スキル設定
+            </button>
+          </div>
+
+          <div class="phase-work-body">
+            <div class="step-list">
+              <div class="step-row">
+                <div class="step-num done"><i data-lucide="check" class="icon-sm"></i></div>
+                <div class="step-content">
+                  <div class="step-title">STEP 1: クライアント情報の整理</div>
+                  <div class="step-desc">企業規模・業界・予算感・競合の確認。</div>
+                  <div class="step-meta">完了 ・ 1 時間前</div>
+                </div>
+              </div>
+              <div class="step-row">
+                <div class="step-num done"><i data-lucide="check" class="icon-sm"></i></div>
+                <div class="step-content">
+                  <div class="step-title">STEP 2: スコープ整理</div>
+                  <div class="step-desc">機能・非機能要件 / 工数見積 / マイルストーン。</div>
+                  <div class="step-meta">完了 ・ 45 分前</div>
+                </div>
+              </div>
+              <div class="step-row">
+                <div class="step-num active">3</div>
+                <div class="step-content">
+                  <div class="step-title">STEP 3: 価格設計 (進行中)</div>
+                  <div class="step-desc">フェーズ別単価 / 一括 / 月額継続 / 成果報酬の選定。</div>
+                  <div class="step-meta">PM AI が作業中…</div>
+                </div>
+              </div>
+              <div class="step-row">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                  <div class="step-title">STEP 4: 提案書作成</div>
+                  <div class="step-desc">エグゼクティブサマリー / スコープ / 価格 / 納期 / 体制。</div>
+                </div>
+              </div>
+              <div class="step-row">
+                <div class="step-num">5</div>
+                <div class="step-content">
+                  <div class="step-title">STEP 5: クライアントレビュー依頼</div>
+                  <div class="step-desc">提案書を共有 → コメント受領 → 必要なら改訂。</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="output-block">
+              <div class="output-block-header">
+                <span class="output-block-title">STEP 3 中間出力 (PM AI 生成中)</span>
+                <span class="badge parallel">最終出力前</span>
+              </div>
+              <div class="output-content">## 価格構成案 (案 A: フェーズ別単価)
+
+| フェーズ | 工数 | 単価 | 小計 |
+|---|---|---|---|
+| ヒアリング | 8h | ¥15,000 | ¥120,000 |
+| 要件定義 | 32h | ¥15,000 | ¥480,000 |
+| 設計 (アーキ + デザイン) | 60h | ¥18,000 | ¥1,080,000 |
+| 実装 | 240h | ¥12,000 | ¥2,880,000 |
+| QA + リリース | 40h | ¥15,000 | ¥600,000 |
+| **合計** | **380h** | | **¥5,160,000** |
+
+※ クライアント既存の Slack / GitHub / Notion 環境を前提とし、追加の DevOps 構築費は別途見積。
+※ 月次定例 MTG (60min) は実費 ¥30,000 にて提供。</div>
+            </div>
+
+            <div class="flex gap-2">
+              <button class="btn btn-primary">
+                <i data-lucide="play" class="icon-sm"></i>
+                STEP 3 を完了させる
+              </button>
+              <button class="btn btn-secondary">
+                <i data-lucide="pen-line" class="icon-sm"></i>
+                出力を編集
+              </button>
+              <button class="btn btn-ghost">
+                <i data-lucide="rotate-ccw" class="icon-sm"></i>
+                やり直す
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 成果物履歴 -->
+        <div class="card">
+          <div class="card-header">
+            <h2><i data-lucide="folder-open" class="icon-sm"></i> 成果物履歴 (PM ライン)</h2>
+            <a href="#" class="card-link">全て<i data-lucide="arrow-right" class="icon-sm"></i></a>
+          </div>
+          <div class="card-body tight">
+            <a href="#" class="artifact-list-row">
+              <div class="artifact-row-icon"><i data-lucide="file-text" class="icon-sm"></i></div>
+              <div style="flex:1">
+                <div style="font-size:13px; font-weight:500;">要件定義書</div>
+                <div style="font-size:11.5px; color:var(--text-3);">v2.0 ・ 42 分前 ・ PM AI が要件定義スキルで生成</div>
+              </div>
+              <span class="badge success">最新</span>
+            </a>
+            <a href="#" class="artifact-list-row">
+              <div class="artifact-row-icon"><i data-lucide="file-text" class="icon-sm"></i></div>
+              <div style="flex:1">
+                <div style="font-size:13px; font-weight:500;">要件定義書</div>
+                <div style="font-size:11.5px; color:var(--text-3);">v1.0 ・ 3 時間前 ・ レビュー済</div>
+              </div>
+            </a>
+            <a href="#" class="artifact-list-row">
+              <div class="artifact-row-icon"><i data-lucide="message-square" class="icon-sm"></i></div>
+              <div style="flex:1">
+                <div style="font-size:13px; font-weight:500;">ヒアリング議事録</div>
+                <div style="font-size:11.5px; color:var(--text-3);">v1 ・ 昨日 ・ クライアント確認済</div>
+              </div>
+            </a>
+            <a href="#" class="artifact-list-row">
+              <div class="artifact-row-icon"><i data-lucide="briefcase" class="icon-sm"></i></div>
+              <div style="flex:1">
+                <div style="font-size:13px; font-weight:500;">プロジェクト起点ブリーフ</div>
+                <div style="font-size:11.5px; color:var(--text-3);">v1 ・ 2 日前 ・ ヒアリング出力</div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- チャット -->
+      <div class="chat-panel">
+        <div class="chat-header">
+          <div class="leader-avatar leader-pm" style="width:32px;height:32px;font-size:12px;">PM</div>
+          <div class="chat-header-info">
+            <div class="chat-header-title">PM AI</div>
+            <div class="chat-header-status">
+              <span class="chat-status-dot"></span>
+              提案・見積を作業中
+            </div>
+          </div>
+          <button class="header-icon-btn"><i data-lucide="more-horizontal" class="icon"></i></button>
+        </div>
+
+        <div class="chat-messages">
+          <div class="chat-msg">
+            <div class="chat-msg-avatar leader-pm">PM</div>
+            <div>
+              <div class="chat-msg-bubble">こんにちは、PM AI です。要件定義書 v2.0 が完成したので、続けて提案・見積に入ります。価格設計は &quot;フェーズ別単価&quot; と &quot;一括&quot; どちらの形式が良いですか？</div>
+              <div class="chat-msg-meta">1 時間前</div>
+            </div>
+          </div>
+          <div class="chat-msg user">
+            <div class="chat-msg-avatar" style="background:linear-gradient(135deg,#2563EB,#06B6D4)">MA</div>
+            <div>
+              <div class="chat-msg-bubble">フェーズ別単価でお願いします。クライアントが途中で止まる可能性もあるので。</div>
+              <div class="chat-msg-meta">55 分前</div>
+            </div>
+          </div>
+          <div class="chat-msg">
+            <div class="chat-msg-avatar leader-pm">PM</div>
+            <div>
+              <div class="chat-msg-bubble">承知しました。フェーズ別単価で構成します。アーキ・デザインは別フェーズに分けますか？それとも「設計」一括にしますか？</div>
+              <div class="chat-msg-meta">53 分前</div>
+            </div>
+          </div>
+          <div class="chat-msg user">
+            <div class="chat-msg-avatar" style="background:linear-gradient(135deg,#2563EB,#06B6D4)">MA</div>
+            <div>
+              <div class="chat-msg-bubble">設計は一括でいいです。デザインだけ別出しすると複雑になりそう。</div>
+              <div class="chat-msg-meta">52 分前</div>
+            </div>
+          </div>
+          <div class="chat-msg">
+            <div class="chat-msg-avatar leader-pm">PM</div>
+            <div>
+              <div class="chat-msg-bubble">了解です。STEP 3 の中間出力を上のエリアに表示しています。確認の上「STEP 3 を完了させる」で次に進みます。</div>
+              <div class="chat-msg-meta">5 分前</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-suggestion">
+          <button class="chat-suggest-btn">価格を 10% 下げて</button>
+          <button class="chat-suggest-btn">月額継続案も追加</button>
+          <button class="chat-suggest-btn">見積の根拠を出して</button>
+        </div>
+
+        <div class="chat-input">
+          <textarea placeholder="PM AI に話しかける…"></textarea>
+          <button class="btn btn-primary">
+            <i data-lucide="send" class="icon-sm"></i>
+            送信
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="./_partials.js"></script>
+<script>
+  renderShell({ active: 'pm', breadcrumb: 'PM AI ライン' });
+</script>
+</body>
+</html>

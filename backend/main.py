@@ -34,9 +34,20 @@ from routers.skill_creator import router as skill_creator_router
 from routers.artifacts import router as artifacts_router
 from routers.accounts import router as accounts_router
 from routers.workspaces import router as workspaces_router, invitations_router
+from routers.hearing import router as hearing_router
+from routers.requirements import router as requirements_router
+from routers.pricing_design import router as pricing_design_router
+from routers.proposal import router as proposal_router
+from routers.estimate import router as estimate_router
+from routers.account_settings import router as account_settings_router
+from routers.uploads import router as uploads_router
+from routers.template_builder import router as template_builder_router
 from routers.design_pipeline import router as design_pipeline_router
 from routers.reviewer import router as reviewer_router
 from routers.knowledge_search import router as knowledge_search_router
+from routers.design_frames import router as design_frames_router
+from routers.design_mocks import router as design_mocks_router
+from routers.references import router as references_router
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 
@@ -120,9 +131,20 @@ app.include_router(artifacts_router)
 app.include_router(accounts_router)
 app.include_router(workspaces_router)
 app.include_router(invitations_router)
+app.include_router(hearing_router)
+app.include_router(requirements_router)
+app.include_router(pricing_design_router)
+app.include_router(proposal_router)
+app.include_router(estimate_router)
+app.include_router(account_settings_router)
+app.include_router(uploads_router)
+app.include_router(template_builder_router)
 app.include_router(design_pipeline_router)
 app.include_router(reviewer_router)
 app.include_router(knowledge_search_router)
+app.include_router(design_frames_router)
+app.include_router(design_mocks_router)
+app.include_router(references_router)
 
 
 @app.get("/health")

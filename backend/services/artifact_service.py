@@ -39,6 +39,10 @@ VIEW_TYPES = {
     "form":        ["flow"],
     "slide":       ["design"],
     "mindmap":     ["flow"],
+    "minutes":          ["document"],   # BlockNote 議事録
+    "spec":             ["document"],   # 仕様書 (BlockNote)
+    "implementation":   ["document"],   # 実装方針 MD
+    "html":             ["document"],   # HTML 成果物 (要件定義書 / DESIGN プレビュー等)
 }
 
 CATEGORIES = {
@@ -229,7 +233,7 @@ async def update_artifact(
         await db.execute(
             """UPDATE artifacts
                SET title=?, data=?, category_tags=?,
-                   updated_at=datetime('now','localtime')
+                   updated_at=NOW()
                WHERE id=?""",
             (new_title,
              json.dumps(new_data, ensure_ascii=False),
@@ -261,7 +265,7 @@ async def pin_artifact(artifact_id: str, user_id: str = DEFAULT_USER_ID,
         pins.remove(user_id)
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute(
-            "UPDATE artifacts SET pinned_by=?, updated_at=datetime('now','localtime') WHERE id=?",
+            "UPDATE artifacts SET pinned_by=?, updated_at=NOW() WHERE id=?",
             (json.dumps(pins, ensure_ascii=False), artifact_id),
         )
         await _record_event(db, artifact_id, f"user:{user_id}",
@@ -276,7 +280,7 @@ async def archive_artifact(artifact_id: str,
                            actor: str = "user:" + DEFAULT_USER_ID) -> dict:
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute(
-            "UPDATE artifacts SET is_archived=1, updated_at=datetime('now','localtime') WHERE id=?",
+            "UPDATE artifacts SET is_archived=1, updated_at=NOW() WHERE id=?",
             (artifact_id,),
         )
         await _record_event(db, artifact_id, actor, "archive", {})

@@ -72,6 +72,75 @@
   --eb-surface-variant: #F9FAFB;
   --font-noto: 'Noto Sans JP', sans-serif;
   --font-inter: 'Inter', sans-serif;
+
+  /* === Calm Industrial — Build-Factory Workspace IA Design Tokens (2026-05) === */
+  /* 詳細: Build-Factory/docs/DESIGN-SYSTEM.md */
+
+  /* Background hierarchy (light → soft → app) */
+  --bf-bg-base:    #FFFFFF;
+  --bf-bg-elev:    #FFFFFF;
+  --bf-bg-soft:    #F8FAFC;
+  --bf-bg-app:     #F5F7FA;
+  --bf-bg-input:   #F8FAFC;
+
+  /* Text hierarchy (4 levels) */
+  --bf-text-1:     #0F172A;
+  --bf-text-2:     #334155;
+  --bf-text-3:     #64748B;
+  --bf-text-4:     #94A3B8;
+
+  /* Borders / dividers */
+  --bf-border:        #E4E8EE;
+  --bf-border-strong: #CBD3DC;
+  --bf-divider:       #EEF1F5;
+
+  /* Brand */
+  --bf-primary:       #004CD9;
+  --bf-primary-hover: #0040B8;
+  --bf-primary-bg:    #E8EFFE;
+  --bf-primary-soft:  #F2F6FF;
+
+  /* Semantic (fg + bg pairs) */
+  --bf-success:    #15803D;
+  --bf-success-bg: #DCFCE7;
+  --bf-warning:    #B45309;
+  --bf-warning-bg: #FEF3C7;
+  --bf-danger:     #B91C1C;
+  --bf-danger-bg:  #FEE2E2;
+  --bf-info:       #0369A1;
+  --bf-info-bg:    #E0F2FE;
+  --bf-neutral:    #475569;
+  --bf-neutral-bg: #F1F5F9;
+
+  /* Radius */
+  --bf-radius-sm: 4px;
+  --bf-radius-md: 6px;
+  --bf-radius-lg: 8px;
+  --bf-radius-xl: 12px;
+
+  /* Spacing (8px scale) */
+  --bf-space-1: 4px;
+  --bf-space-2: 8px;
+  --bf-space-3: 12px;
+  --bf-space-4: 16px;
+  --bf-space-5: 20px;
+  --bf-space-6: 24px;
+  --bf-space-8: 32px;
+  --bf-space-10: 40px;
+  --bf-space-12: 48px;
+
+  /* Shell dimensions */
+  --bf-sidebar-w: 264px;
+  --bf-header-h:  56px;
+
+  /* AI 大分類 colors */
+  --bf-leader-secretary: #6366F1;
+  --bf-leader-pm:        #0EA5E9;
+  --bf-leader-arch:      #2563EB;
+  --bf-leader-design:    #DB2777;
+  --bf-leader-eng:       #16A34A;
+  --bf-leader-qa:        #CA8A04;
+  --bf-leader-ops:       #DC2626;
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);

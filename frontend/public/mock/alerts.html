@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>アラート / 質問 — Build-Factory v1</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./_shared.css" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  .filter-tabs {
+    display: flex; gap: 4px; margin-bottom: var(--space-5);
+    border-bottom: 1px solid var(--border);
+  }
+  .filter-tab {
+    padding: 10px 16px;
+    font-size: 13px; font-weight: 500; color: var(--text-3);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .filter-tab:hover { color: var(--text-1); }
+  .filter-tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    font-weight: 600;
+  }
+  .filter-tab .count {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 1px 6px;
+    font-size: 11px;
+    color: var(--text-3);
+  }
+  .filter-tab.active .count {
+    background: var(--primary-bg);
+    color: var(--primary);
+    border-color: var(--primary-bg);
+  }
+
+  .alert-row {
+    display: flex; gap: var(--space-4);
+    padding: var(--space-4) var(--space-5);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 120ms;
+  }
+  .alert-row:hover { border-color: var(--primary); }
+  .alert-row.urgent { border-left: 4px solid var(--danger); }
+  .alert-row.normal { border-left: 4px solid var(--primary); }
+  .alert-row.read {
+    opacity: 0.65;
+  }
+
+  .alert-icon {
+    width: 38px; height: 38px;
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .alert-icon.question { background: var(--warning-bg); color: var(--warning); }
+  .alert-icon.review { background: var(--info-bg); color: var(--info); }
+  .alert-icon.approve { background: var(--success-bg); color: var(--success); }
+  .alert-icon.comment { background: var(--neutral-bg); color: var(--neutral); }
+  .alert-icon.block { background: var(--danger-bg); color: var(--danger); }
+
+  .alert-content { flex: 1; min-width: 0; }
+  .alert-content-top {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 4px;
+  }
+  .alert-title {
+    font-size: 14px; font-weight: 600; color: var(--text-1);
+    flex: 1;
+  }
+  .alert-source {
+    font-size: 12px; color: var(--text-3);
+    margin-bottom: 8px;
+  }
+  .alert-source-from { color: var(--text-2); font-weight: 500; }
+  .alert-message {
+    font-size: 12.5px; color: var(--text-2);
+    line-height: 1.6;
+    background: var(--bg-soft);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    margin-bottom: 10px;
+  }
+  .alert-actions { display: flex; gap: 6px; }
+  .alert-time {
+    font-size: 11.5px; color: var(--text-4);
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="header"></header>
+  <aside class="sidebar"></aside>
+
+  <main class="main">
+    <div class="page-header">
+      <div class="page-header-top">
+        <div>
+          <div class="page-title">アラート / 質問</div>
+          <div class="page-subtitle">人間決裁が必要な通知センター。質問 / レビュー / 承認 / ブロッカー</div>
+        </div>
+        <div class="page-spacer"></div>
+        <div class="page-actions">
+          <button class="btn btn-secondary">
+            <i data-lucide="check-check" class="icon-sm"></i>
+            全て既読にする
+          </button>
+          <button class="btn btn-secondary">
+            <i data-lucide="bell-off" class="icon-sm"></i>
+            通知設定
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-tabs">
+      <span class="filter-tab active">全て<span class="count">5</span></span>
+      <span class="filter-tab">質問<span class="count">2</span></span>
+      <span class="filter-tab">レビュー依頼<span class="count">1</span></span>
+      <span class="filter-tab">承認待ち<span class="count">1</span></span>
+      <span class="filter-tab">コメント<span class="count">1</span></span>
+      <span class="filter-tab">ブロッカー<span class="count">0</span></span>
+    </div>
+
+    <div>
+      <div class="alert-row urgent">
+        <div class="alert-icon question"><i data-lucide="circle-help"></i></div>
+        <div class="alert-content">
+          <div class="alert-content-top">
+            <div class="alert-title">予算上限の確認</div>
+            <span class="badge danger">優先</span>
+          </div>
+          <div class="alert-source">
+            <span class="alert-source-from">秘書 AI</span> から ・ ヒアリング STEP 4 ・ プロジェクト管理
+          </div>
+          <div class="alert-message">
+            プロジェクト全体の予算上限を確定させたいです。クライアントとのすり合わせで「500 万円程度」とありましたが、上振れの許容幅を教えてください (10% / 20% / 30%)。
+          </div>
+          <div class="alert-actions">
+            <button class="btn btn-primary btn-sm">回答する</button>
+            <button class="btn btn-secondary btn-sm">クライアントに確認</button>
+            <button class="btn btn-ghost btn-sm">後で</button>
+          </div>
+        </div>
+        <div class="alert-time">15分前</div>
+      </div>
+
+      <div class="alert-row normal">
+        <div class="alert-icon review"><i data-lucide="file-search"></i></div>
+        <div class="alert-content">
+          <div class="alert-content-top">
+            <div class="alert-title">要件定義書 v2.0 のレビュー依頼</div>
+          </div>
+          <div class="alert-source">
+            <span class="alert-source-from">PM AI</span> から ・ 要件定義 STEP 6 完了
+          </div>
+          <div class="alert-message">
+            要件定義書 v2.0 が完成しました。6 項目 (機能要件 / 非機能要件 / 画面 / データ / リスク / 未確認事項) のチェックをお願いします。承認後、設計フェーズが本格化します。
+          </div>
+          <div class="alert-actions">
+            <button class="btn btn-primary btn-sm">レビューを開く</button>
+            <button class="btn btn-secondary btn-sm">差し戻し</button>
+          </div>
+        </div>
+        <div class="alert-time">42分前</div>
+      </div>
+
+      <div class="alert-row normal">
+        <div class="alert-icon approve"><i data-lucide="check-circle-2"></i></div>
+        <div class="alert-content">
+          <div class="alert-content-top">
+            <div class="alert-title">API 設計書 の承認待ち</div>
+          </div>
+          <div class="alert-source">
+            <span class="alert-source-from">設計 AI</span> から ・ API 設計フェーズ完了
+          </div>
+          <div class="alert-message">
+            API 設計書の作成が完了しました。承認後、機能分解 + タスク分解フェーズへ進みます。エンドポイント数: 24 個 / 認証スキーム: JWT / レスポンス形式: JSON。
+          </div>
+          <div class="alert-actions">
+            <button class="btn btn-primary btn-sm">承認</button>
+            <button class="btn btn-secondary btn-sm">確認してから</button>
+            <button class="btn btn-ghost btn-sm">差し戻し</button>
+          </div>
+        </div>
+        <div class="alert-time">1時間前</div>
+      </div>
+
+      <div class="alert-row normal">
+        <div class="alert-icon comment"><i data-lucide="message-square"></i></div>
+        <div class="alert-content">
+          <div class="alert-content-top">
+            <div class="alert-title">クライアントからのコメント</div>
+            <span class="badge recommend">山田 太郎</span>
+          </div>
+          <div class="alert-source">
+            ●●株式会社 山田 太郎 様 ・ デザインモック (3 画面) について
+          </div>
+          <div class="alert-message">
+            「モックを拝見しました。全体的に良い感じです。1 点、ホーム画面の右側カラムの導線が分かりづらい気がします。タスク一覧へのリンクをもう少し目立つ位置に置けないでしょうか？」
+          </div>
+          <div class="alert-actions">
+            <button class="btn btn-primary btn-sm">返信</button>
+            <button class="btn btn-secondary btn-sm">モックを開く</button>
+            <button class="btn btn-secondary btn-sm">デザイナー AI に修正依頼</button>
+          </div>
+        </div>
+        <div class="alert-time">3時間前</div>
+      </div>
+
+      <div class="alert-row read">
+        <div class="alert-icon question"><i data-lucide="circle-help"></i></div>
+        <div class="alert-content">
+          <div class="alert-content-top">
+            <div class="alert-title">既存 DB との連携要否</div>
+            <span class="badge neutral">回答済</span>
+          </div>
+          <div class="alert-source">
+            <span class="alert-source-from">設計 AI</span> から ・ アーキ STEP 3
+          </div>
+          <div class="alert-message">
+            既存の社内 Oracle DB との連携は読み取り専用で。VPN + IP ホワイトリスト経由で接続します。スキーマ詳細を山田様から後日受領予定。
+          </div>
+        </div>
+        <div class="alert-time">昨日</div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="./_partials.js"></script>
+<script>renderShell({ active: 'alerts', breadcrumb: 'アラート / 質問' });</script>
+</body>
+</html>

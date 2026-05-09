@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>タスク管理 — Build-Factory v1</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./_shared.css" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  .toolbar {
+    display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;
+    margin-bottom: var(--space-5);
+  }
+  .toggle-group {
+    display: flex;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 3px;
+  }
+  .toggle-btn {
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-3);
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .toggle-btn:hover { color: var(--text-1); }
+  .toggle-btn.active {
+    background: var(--primary-bg);
+    color: var(--primary);
+  }
+
+  .kanban {
+    display: flex; gap: var(--space-3);
+    overflow-x: auto;
+    padding-bottom: var(--space-4);
+  }
+  .kanban-col {
+    flex-shrink: 0;
+    width: 320px;
+    background: var(--bg-app);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    display: flex; flex-direction: column;
+    max-height: calc(100vh - 240px);
+  }
+  .kanban-col-header {
+    padding: 12px var(--space-4);
+    border-bottom: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .kanban-col-title-row {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .kanban-col-title {
+    font-weight: 600; font-size: 13px; color: var(--text-1);
+    flex: 1;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .kanban-col-count {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-3);
+    padding: 1px 7px;
+  }
+  .kanban-col-progress {
+    height: 4px;
+    background: var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+    display: flex;
+    gap: 1px;
+  }
+  .kanban-col-progress span {
+    background: var(--success);
+  }
+  .kanban-col-progress span.in-progress { background: var(--primary); }
+  .kanban-col-progress span.pending { background: var(--text-4); }
+
+  .kanban-col-meta {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-3);
+  }
+
+  .kanban-col-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-3);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+
+  .task-card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    cursor: grab;
+    transition: border-color 120ms, transform 120ms;
+  }
+  .task-card:hover {
+    border-color: var(--primary);
+  }
+  .task-card-id {
+    font-family: 'Inter', monospace;
+    font-size: 10px;
+    color: var(--text-4);
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 5px;
+    display: inline-block;
+  }
+  .task-card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-1);
+    line-height: 1.4;
+    margin: 6px 0;
+  }
+  .task-card-meta {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    font-size: 11px;
+  }
+  .task-card-skill {
+    font-family: 'Inter', monospace;
+    font-size: 10.5px;
+    background: var(--info-bg);
+    color: var(--info);
+    border-radius: 3px;
+    padding: 1px 5px;
+  }
+  .task-card-status-pill {
+    padding: 1px 6px;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 600;
+    display: inline-flex; align-items: center; gap: 3px;
+  }
+
+  .task-card-footer {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--divider);
+    font-size: 11px;
+    color: var(--text-3);
+  }
+  .task-card-assignee {
+    margin-left: auto;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+
+  /* feature column = parent task accent */
+  .col-feature .kanban-col-title { color: var(--primary); }
+  .col-feature { border-color: #DDE5F5; }
+
+  .empty-state {
+    padding: var(--space-6) var(--space-4);
+    text-align: center;
+    color: var(--text-4);
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="header"></header>
+  <aside class="sidebar"></aside>
+
+  <main class="main">
+    <div class="page-header">
+      <div class="page-header-top">
+        <div>
+          <div class="page-title">タスク管理</div>
+          <div class="page-subtitle">機能/画面別 Kanban + ステータス別切替 + Claude Code MCP 引き継ぎ</div>
+        </div>
+        <div class="page-spacer"></div>
+        <div class="page-actions">
+          <button class="btn btn-secondary">
+            <i data-lucide="filter" class="icon-sm"></i>
+            フィルタ
+          </button>
+          <button class="btn btn-primary">
+            <i data-lucide="plus" class="icon-sm"></i>
+            タスク追加
+          </button>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="toggle-group">
+          <button class="toggle-btn active">
+            <i data-lucide="folder-tree" class="icon-sm"></i>
+            機能/画面別
+          </button>
+          <button class="toggle-btn">
+            <i data-lucide="list-checks" class="icon-sm"></i>
+            ステータス別
+          </button>
+        </div>
+        <div class="toggle-group">
+          <button class="toggle-btn active">
+            <i data-lucide="kanban" class="icon-sm"></i>
+            Kanban
+          </button>
+          <button class="toggle-btn">
+            <i data-lucide="list" class="icon-sm"></i>
+            ツリー
+          </button>
+          <button class="toggle-btn">
+            <i data-lucide="bar-chart-horizontal" class="icon-sm"></i>
+            ガント
+          </button>
+        </div>
+        <div style="margin-left:auto; display:flex; gap:6px; align-items:center;">
+          <input class="form-input" placeholder="タスク検索..." style="height:32px; width:240px; font-size:12.5px;" />
+          <button class="btn btn-secondary btn-sm"><i data-lucide="user" class="icon-sm"></i>担当 AI</button>
+          <button class="btn btn-secondary btn-sm"><i data-lucide="tag" class="icon-sm"></i>スキル</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="kanban">
+      <!-- 認証機能 -->
+      <div class="kanban-col col-feature">
+        <div class="kanban-col-header">
+          <div class="kanban-col-title-row">
+            <div class="kanban-col-title">
+              <i data-lucide="folder" class="icon-sm"></i>
+              認証機能
+            </div>
+            <span class="kanban-col-count">5</span>
+          </div>
+          <div class="kanban-col-meta">
+            <span><span class="badge recommend">進行中</span></span>
+            <span>3/5 完了</span>
+          </div>
+          <div class="kanban-col-progress">
+            <span style="flex:3"></span>
+            <span class="in-progress" style="flex:1"></span>
+            <span class="pending" style="flex:1"></span>
+          </div>
+        </div>
+        <div class="kanban-col-body">
+          <div class="task-card" draggable="true">
+            <span class="task-card-id">#11</span>
+            <div class="task-card-title">DB スキーマ設計 (users)</div>
+            <div class="task-card-meta">
+              <span class="task-card-status-pill" style="background:var(--success-bg); color:var(--success);">
+                <i data-lucide="check-circle-2" class="icon-sm"></i>完了
+              </span>
+              <span class="task-card-skill">architecture-design</span>
+            </div>
+            <div class="task-card-footer">
+              <i data-lucide="git-commit" class="icon-sm"></i>
+              v1.2 リリース済
+              <span class="task-card-assignee">
+                <span class="leader-avatar leader-arch" style="width:14px;height:14px;font-size:8px;">設</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="task-card" draggable="true" style="border-left: 3px solid var(--primary);">
+            <span class="task-card-id">#12</span>
+            <div class="task-card-title">POST /api/auth/register 実装</div>
+            <div class="task-card-meta">
+              <span class="task-card-status-pill" style="background:var(--primary-bg); color:var(--primary);">
+                <i data-lucide="loader-2" class="icon-sm"></i>進行中
+              </span>
+              <span class="task-card-skill">api-design</span>
+            </div>
+            <div class="task-card-footer">
+              <i data-lucide="check-square-2" class="icon-sm"></i>
+              受入条件 2/3
+              <span class="task-card-assignee">
+                <span class="leader-avatar leader-eng" style="width:14px;height:14px;font-size:8px;">エ</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="task-card" draggable="true">
+            <span class="task-card-id">#13</span>
+            <div class="task-card-title">POST /api/auth/login 実装</div>
+            <div class="task-card-meta">
+              <span class="task-card-status-pill" style="background:var(--neutral-bg); color:var(--neutral);">
+                <i data-lucide="circle" class="icon-sm"></i>未着手
+              </span>
+              <span class="task-card-skill">api-design</span>
+            </div>
+            <div class="task-card-footer">
+              <i data-lucide="users" class="icon-sm"></i>
+              依存: #11
+              <span class="task-card-assignee">
+                <span class="leader-avatar leader-eng" style="width:14px;height:14px;font-size:8px;">エ</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="task-card" draggable="true">
+            <span class="task-card-id">#14</span>
+            <div class="task-card-title">ログイン画面 UI</div>
+            <div class="task-card-meta">
+              <span class="task-card-status-pill" style="background:var(--neutral-bg); color:var(--neutral);">
+                <i data-lucide="circle" class="icon-sm"></i>未着手
+              </span>
+              <span class="task-card-skill">frontend-design</span>
+            </div>
+            <div class="task-card-footer">
+              <i data-lucide="palette" class="icon-sm"></i>
+              モック待ち
+              <span class="task-card-assignee">
+                <span class="leader-avatar leader-design" style="width:14px;height:14px;font-size:8px;">デ</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="task-card" draggable="true" style="border-left: 3px solid var(--success);">
+            <span class="task-card-id">#15</span>
+            <div class="task-card-title">受入条件: メール重複チェック</div>
+            <div class="task-card-meta">
+              <span class="task-card-status-pill" style="background:var(--success-bg); color:var(--success);">
+                <i data-lucide="check-circle-2" class="icon-sm"></i>完了
+              </span>
+              <span class="task-card-skill">acceptance-criteria</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ダッシュボード画面 -->
+      <div class="kanban-col col-feature">
+        <div class="kanban-col-header">
+          <div class="kanban-col-title-row">
+            <div class="kanban-col-title">
+              <i data-lucide="folder" class="icon-sm"></i>
+              ダッシュボード画面
+            </div>
+            <span class="kanban-col-count">4</span>
+          </div>
+          <div class="kanban-col-meta">
+            <span><span class="badge parallel">並行可</span></span>
+            <span>1/4 完了</span>
+          </div>
+          <div class="kanban-col-progress">
+            <span style="flex:1"></span>
+            <span class="in-progress" style="flex:1"></span>
+            <span class="pending" style="flex:2"></span>
+          </div>
+        </div>
+        <div class="kanban-col-body">
+          <div class="task-card" draggable="true">
+            <span class="task-card-id">#21</span>
+            <div class="task-card-title">画面 wireframe (Penpot)</div>
+            <div class="task-card-meta">
+              <span class="task-card-status-pill" style="background:var(--info-bg); color:var(--info);">
+                <i data-lucide="alert-circle" class="icon-sm"></i>確認待ち
+              </span>
+              <span class="task-card-skill">ui-mockup</span>
+            </div>
+            <div class="task-card-footer">
+              <i data-lucide="palette" class="icon-sm"></i>
+              v1 / 確認待ち
+              <span class="task-card-assignee">
+                <span class="leader-avatar leader-design" style="width:14px;height:14px;font-size:8px;">デ</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="task-card" draggable="true" style="border-left: 3px solid var(--primary);">
+            <span class="task-card-id">#22</span>
+            <div class="task-card-title">GET /api/dashboard/kpi 実装</div>
+            <div class="task-card-meta">
+              <span class="task-card-status-pill" style="background:var(--primary-bg); color:var(--primary);">
+                <i data-lucide="loader-2" class="icon-sm"></i>進行中
+              </span>
+              <span class="task-card-skill">api-design</span>
+            </div>
+          </div>
+
+          <div class="task-card" draggable="true">
+            <span class="task-card-id">#23</span>
+            <div class="task-card-title">ダッシュボード React 実装</div>
+            <div class="task-card-meta">
+              <span class="task-card-status-pill" style="background:var(--neutral-bg); color:var(--neutral);">
+                <i data-lucide="circle" class="icon-sm"></i>未着手
+              </span>
+              <span class="task-card-skill">frontend-design</span>
+            </div>
+          </div>
+
+          <div class="task-card" draggable="true" style="border-left: 3px solid var(--success);">
+            <span class="task-card-id">#24</span>
+            <div class="task-card-title">KPI キャッシュ実装 (30s)</div>
+            <div class="task-card-meta">
+              <span class="task-card-status-pill" style="background:var(--success-bg); color:var(--success);">
+                <i data-lucide="check-circle-2" class="icon-sm"></i>完了
+              </span>
+              <span class="task-card-skill">api-design</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- タスク管理画面 (Kanban) -->
+      <div class="kanban-col col-feature">
+        <div class="kanban-col-header">
+          <div class="kanban-col-title-row">
+            <div class="kanban-col-title">
+              <i data-lucide="folder" class="icon-sm"></i>
+              タスク管理画面 (Kanban)
+            </div>
+            <span class="kanban-col-count">4</span>
+          </div>
+          <div class="kanban-col-meta">
+            <span><span class="badge recommend">進行中</span></span>
+            <span>3/4 完了</span>
+          </div>
+          <div class="kanban-col-progress">
+            <span style="flex:3"></span>
+            <span class="in-progress" style="flex:1"></span>
+          </div>
+        </div>
+        <div class="kanban-col-body">
+          <div class="task-card" draggable="true" style="border-left: 3px solid var(--success);">
+            <span class="task-card-id">#31</span>
+            <div class="task-card-title">Kanban コンポーネント</div>
+            <div class="task-card-meta">
+              <span class="task-card-status-pill" style="background:var(--success-bg); color:var(--success);">
+                <i data-lucide="check-circle-2" class="icon-sm"></i>完了
+              </span>
+              <span class="task-card-skill">frontend-design</span>
+            </div>
+          </div>
+          <div class="task-card" draggable="true" style="border-left: 3px solid var(--success);">
+            <span class="task-card-id">#32</span>
+            <div class="task-card-title">タスク詳細 Drawer</div>
+            <div class="task-card-meta">
+              <span class="task-card-status-pill" style="background:var(--success-bg); color:var(--success);">
+                <i data-lucide="check-circle-2" class="icon-sm"></i>完了
+              </span>
+              <span class="task-card-skill">frontend-design</span>
+            </div>
+          </div>
+          <div class="task-card" draggable="true" style="border-left: 3px solid var(--success);">
+            <span class="task-card-id">#33</span>
+            <div class="task-card-title">PATCH /api/tasks/{id} 拡張</div>
+            <div class="task-card-meta">
+              <span class="task-card-status-pill" style="background:var(--success-bg); color:var(--success);">
+                <i data-lucide="check-circle-2" class="icon-sm"></i>完了
+              </span>
+              <span class="task-card-skill">api-design</span>
+            </div>
+          </div>
+          <div class="task-card" draggable="true" style="border-left: 3px solid var(--primary);">
+            <span class="task-card-id">#34</span>
+            <div class="task-card-title">MCP ハンドオフ Markdown 生成</div>
+            <div class="task-card-meta">
+              <span class="task-card-status-pill" style="background:var(--primary-bg); color:var(--primary);">
+                <i data-lucide="loader-2" class="icon-sm"></i>進行中
+              </span>
+              <span class="task-card-skill">task-decomposition</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Penpot 連携 (完了) -->
+      <div class="kanban-col col-feature">
+        <div class="kanban-col-header">
+          <div class="kanban-col-title-row">
+            <div class="kanban-col-title">
+              <i data-lucide="folder-check" class="icon-sm"></i>
+              Penpot 連携
+            </div>
+            <span class="kanban-col-count">2</span>
+          </div>
+          <div class="kanban-col-meta">
+            <span><span class="badge success">完了</span></span>
+            <span>2/2 完了</span>
+          </div>
+          <div class="kanban-col-progress">
+            <span style="flex:1"></span>
+          </div>
+        </div>
+        <div class="kanban-col-body">
+          <div class="task-card" draggable="true" style="border-left: 3px solid var(--success);">
+            <span class="task-card-id">#41</span>
+            <div class="task-card-title">nginx sub_filter 設定</div>
+            <div class="task-card-meta">
+              <span class="task-card-status-pill" style="background:var(--success-bg); color:var(--success);">
+                <i data-lucide="check-circle-2" class="icon-sm"></i>完了
+              </span>
+              <span class="task-card-skill">deployment-patterns</span>
+            </div>
+          </div>
+          <div class="task-card" draggable="true" style="border-left: 3px solid var(--success);">
+            <span class="task-card-id">#42</span>
+            <div class="task-card-title">ja_jp 翻訳ファイル生成</div>
+            <div class="task-card-meta">
+              <span class="task-card-status-pill" style="background:var(--success-bg); color:var(--success);">
+                <i data-lucide="check-circle-2" class="icon-sm"></i>完了
+              </span>
+              <span class="task-card-skill">tech-stack</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 未分類 -->
+      <div class="kanban-col">
+        <div class="kanban-col-header">
+          <div class="kanban-col-title-row">
+            <div class="kanban-col-title" style="color: var(--text-3);">
+              <i data-lucide="folder" class="icon-sm"></i>
+              未分類
+            </div>
+            <span class="kanban-col-count">1</span>
+          </div>
+        </div>
+        <div class="kanban-col-body">
+          <div class="task-card" draggable="true">
+            <span class="task-card-id">#99</span>
+            <div class="task-card-title">既存システム連携 質問</div>
+            <div class="task-card-meta">
+              <span class="task-card-status-pill" style="background:var(--warning-bg); color:var(--warning);">
+                <i data-lucide="circle-help" class="icon-sm"></i>質問待ち
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="./_partials.js"></script>
+<script>
+  renderShell({ active: 'tasks', breadcrumb: 'タスク管理' });
+</script>
+</body>
+</html>

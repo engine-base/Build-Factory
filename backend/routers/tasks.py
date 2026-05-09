@@ -175,9 +175,13 @@ async def get_task(task_id: int):
 
 
 class TaskUpdate(BaseModel):
-    status:      Optional[str] = None
-    result:      Optional[str] = None
-    assigned_to: Optional[int] = None
+    status:         Optional[str] = None
+    result:         Optional[str] = None
+    assigned_to:    Optional[int] = None
+    parent_task_id: Optional[int] = None
+    title:          Optional[str] = None
+    description:    Optional[str] = None
+    skill_name:     Optional[str] = None
 
 
 @router.patch("/tasks/{task_id}")
@@ -186,13 +190,34 @@ async def update_task(task_id: int, body: TaskUpdate):
     if body.status:
         updates.append("status=?"); params.append(body.status)
         if body.status == "in_progress":
-            updates.append("started_at=datetime('now','localtime')")
+            updates.append("started_at=NOW()")
         elif body.status in ("completed", "failed"):
-            updates.append("completed_at=datetime('now','localtime')")
+            updates.append("completed_at=NOW()")
     if body.result is not None:
         updates.append("result=?"); params.append(body.result)
     if body.assigned_to is not None:
         updates.append("assigned_to=?"); params.append(body.assigned_to)
+    if body.parent_task_id is not None:
+        # 0 / null で親解除
+        new_parent = body.parent_task_id if body.parent_task_id > 0 else None
+        updates.append("parent_task_id=?"); params.append(new_parent)
+        # 親のレベル + 1 に再計算
+        if new_parent is not None:
+            async with aiosqlite.connect(DB_PATH) as db:
+                db.row_factory = aiosqlite.Row
+                rows = await db.execute_fetchall(
+                    "SELECT level FROM tasks WHERE id=?", (new_parent,)
+                )
+                if rows:
+                    updates.append("level=?"); params.append((rows[0]["level"] or 0) + 1)
+        else:
+            updates.append("level=?"); params.append(0)
+    if body.title is not None:
+        updates.append("title=?"); params.append(body.title)
+    if body.description is not None:
+        updates.append("description=?"); params.append(body.description)
+    if body.skill_name is not None:
+        updates.append("skill_name=?"); params.append(body.skill_name)
 
     if not updates:
         raise HTTPException(400)
@@ -274,3 +299,135 @@ async def pending_questions():
                ORDER BY q.created_at"""
         )
     return [dict(r) for r in rows]
+
+
+# ── Claude Code 引き継ぎ用 spec bundle ────────────────────────────────
+
+def _extract_acceptance_criteria(description: Optional[str]) -> list[str]:
+    if not description:
+        return []
+    out: list[str] = []
+    in_ac = False
+    for raw in description.splitlines():
+        line = raw.strip()
+        low = line.lower()
+        is_header = (
+            "受入条件" in line
+            or "受け入れ条件" in line
+            or low.startswith("acceptance criteria")
+            or low.startswith("ac:")
+            or low in ("ac", "## ac", "# ac")
+        )
+        if is_header:
+            in_ac = True
+            continue
+        if in_ac:
+            if line.startswith("##") or line == "":
+                if out:
+                    break
+                continue
+            if line.startswith(("-", "*", "•")):
+                out.append(line.lstrip("-*• ").strip())
+    return out
+
+
+@router.get("/tasks/{task_id}/handoff")
+async def get_task_handoff(task_id: int):
+    """
+    Claude Code MCP 引き継ぎ用の完全な spec bundle を返す。
+    Drawer の `引き継ぎ` タブと bf_get_spec が同じ shape を共有。
+    """
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+
+        task_rows = await db.execute_fetchall(
+            """SELECT t.*, e.display_name as assignee_name
+               FROM tasks t
+               LEFT JOIN ai_employee_config e ON e.id=t.assigned_to
+               WHERE t.id=?""",
+            (task_id,),
+        )
+        if not task_rows:
+            raise HTTPException(404, "task not found")
+        task = dict(task_rows[0])
+
+        # 親プロジェクト
+        project: dict = {}
+        if task.get("project_id"):
+            proj_rows = await db.execute_fetchall(
+                "SELECT * FROM projects WHERE id=?", (task["project_id"],)
+            )
+            if proj_rows:
+                project = dict(proj_rows[0])
+
+        # 兄弟タスク (同じ parent を持つ)
+        siblings = []
+        if task.get("parent_task_id"):
+            sib_rows = await db.execute_fetchall(
+                """SELECT id, title, status, skill_name
+                   FROM tasks
+                   WHERE parent_task_id=? AND id<>?
+                   ORDER BY order_index, id""",
+                (task["parent_task_id"], task_id),
+            )
+            siblings = [dict(r) for r in sib_rows]
+
+        # 子タスク
+        child_rows = await db.execute_fetchall(
+            """SELECT id, title, status, skill_name
+               FROM tasks WHERE parent_task_id=? ORDER BY order_index, id""",
+            (task_id,),
+        )
+        children = [dict(r) for r in child_rows]
+
+        # workspace 連携: project_meta 経由 or 名前一致
+        workspace: dict = {}
+        ws_rows = await db.execute_fetchall(
+            """SELECT id, name, description, design_system_ref
+               FROM workspaces
+               WHERE name=? LIMIT 1""",
+            (project.get("title", ""),),
+        )
+        if ws_rows:
+            workspace = dict(ws_rows[0])
+
+        # 関連 artifact (workspace 紐付け)
+        artifacts: list[dict] = []
+        if workspace.get("id"):
+            art_rows = await db.execute_fetchall(
+                """SELECT id, type, title, category_tags, created_at
+                   FROM artifacts
+                   WHERE workspace_id=? AND is_archived=0
+                   ORDER BY updated_at DESC LIMIT 10""",
+                (workspace["id"],),
+            )
+            artifacts = [dict(r) for r in art_rows]
+
+        # design_system_ref 経由で DESIGN.md
+        design_md = ""
+        ds_ref = workspace.get("design_system_ref")
+        if ds_ref:
+            ds_path = (
+                Path(__file__).resolve().parents[2]
+                / "data" / "design-systems" / ds_ref / "DESIGN.md"
+            )
+            if ds_path.exists():
+                design_md = ds_path.read_text(encoding="utf-8", errors="ignore")[:8000]
+
+    acceptance = _extract_acceptance_criteria(task.get("description"))
+
+    return {
+        "task": task,
+        "project": project,
+        "workspace": {
+            "id": workspace.get("id"),
+            "name": workspace.get("name"),
+            "design_system_ref": ds_ref,
+        },
+        "design_md_excerpt": design_md,
+        "related_artifacts": artifacts,
+        "related_skills": [{"name": task["skill_name"]}] if task.get("skill_name") else [],
+        "acceptance_criteria": acceptance,
+        "siblings": siblings,
+        "children": children,
+    }
