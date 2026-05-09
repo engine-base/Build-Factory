@@ -1,0 +1,213 @@
+{
+  "project_name": "Build-Factory",
+  "version": "2.0",
+  "created_at": "2026-05-09",
+  "previous_brief": "docs/PROJECT_BRIEF.md (v1, 2026-05-01)",
+  "client": "高本まさと <info@engine-base.com>",
+  "project_type": "SaaS Web アプリ（開発工場 OS）",
+  "branch": "claude/project-overview-planning-McQUW",
+  "concept": "企画から納品までの全工程を 1 環境で完璧に進めるプロジェクト管理 OS。AI 社員（スキル装備）が主実行者、人間は決裁と微調整、Claude Code + サブエージェントで実装まで完結する。",
+  "design_principle": "決めるのは人間 / 準備・実行・管理・品質保証は AI チーム",
+  "goal": {
+    "surface_request": "Build-Factory の実装計画を改めて整理し、コンセプトから再設計したい",
+    "underlying_need": "1 人で 10 案件並走しても破綻しない開発体制を作り、SaaS 商用化したい",
+    "essential_goal": "ヒアリング → 要件定義 → 設計 → タスク分解 → 実装 → テスト → 進捗管理 → 納品 までを 1 つの Web アプリで完璧に進められる開発工場 OS を構築する",
+    "success_definition": {
+      "quantitative": [
+        "自社 1 案件を Build-Factory + Claude Code で End-to-End 完走（要件投入 → 納品）",
+        "1 人で 10 案件を破綻なく並走",
+        "AI 出力差し戻し率 80% → 20% 以下",
+        "1 タスクあたり Token コストが workspace 上限内に収まる",
+        "SaaS マルチテナント・認証・権限が商用提供レベル"
+      ],
+      "qualitative": [
+        "「もう手放せない」と感じる",
+        "情報過多にならない（progressive disclosure / role-based view）",
+        "監視担当が「確認するだけで OK」と言える",
+        "短期に早く回り、長期で負債を残さない"
+      ]
+    }
+  },
+  "constraints": {
+    "deadline": "とにかく早く・ただし楽な道に逃げず長期で楽になる確実な作り",
+    "budget": "実装層 LLM = 各自プラン消費 / チャット層 = 自社 API + BYOK 2 系統 / 観測 = self-host で低コスト",
+    "team_size": 1,
+    "team_strategy": "Build-Factory 自体を Build-Factory + Claude Code で開発（dogfooding）",
+    "tech_stack_constraints": [
+      "自作回避・OSS / SaaS / SDK / ライブラリ最大活用",
+      "商用利用可ライセンスのみ（Apache 2.0 / MIT / BSD / Elastic 2.0）",
+      "AGPL は SaaS 提供時の伝染リスクで原則不採用",
+      "DB = Supabase Postgres",
+      "認証 = Supabase Auth",
+      "Frontend = Next.js 15 + shadcn/ui + React Flow + GrapesJS Studio SDK",
+      "Backend = FastAPI（既存継続）+ Supabase クライアント",
+      "観測 = Langfuse self-host",
+      "AI 社員 = BMAD ペルソナ + Anthropic Agent Teams + 既存 96 スキル ハイブリッド"
+    ],
+    "existing_systems": [
+      "Build-Factory bootstrap（FastAPI 8001 + Next.js 3001 + 96 スキル）— 流用",
+      "company-dashboard — 当面切り離し（将来追加可能性）",
+      "現プロジェクトのデザイン感 — 継続 + 作り込み"
+    ],
+    "data_protection": "account_id / workspace_id を全テーブル必須・Supabase RLS で強制・OpenFGA で fine-grained 権限（Phase 2）",
+    "ui_principle": "情報過多回避（progressive disclosure / role-based view）"
+  },
+  "requirements": {
+    "must": [
+      {"id": "M-1",  "title": "Supabase 基盤移行（SQLite → Postgres + Auth + RLS）", "phase": "1"},
+      {"id": "M-2",  "title": "既存 96 スキル整理（使うものだけ残す）", "phase": "1"},
+      {"id": "M-3",  "title": "AI 社員ハイブリッド統合（BMAD + Anthropic Agent Teams + 既存）", "phase": "1"},
+      {"id": "M-4",  "title": "account / workspace / workspace_members 階層", "phase": "1"},
+      {"id": "M-5",  "title": "ヒアリング → 仕様書 HTML 出力パイプライン", "phase": "1"},
+      {"id": "M-6",  "title": "機能・タスク分解 + acceptance-criteria", "phase": "1"},
+      {"id": "M-7",  "title": "多 view タスク管理（Kanban + List + DAG / React Flow）", "phase": "1"},
+      {"id": "M-8",  "title": "プロジェクト・フェーズ管理基盤", "phase": "1"},
+      {"id": "M-9",  "title": "依存グラフ + 基本伝搬", "phase": "1"},
+      {"id": "M-10a", "title": "MCP サーバー（データ流通：bf_get_spec / bf_post_progress / bf_attach_artifact / bf_request_review 等）", "phase": "1"},
+      {"id": "M-10b", "title": "Claude Code セッション・スポナー（▶︎ 再生ボタン）", "phase": "1"},
+      {"id": "M-10c", "title": "並列セッション・マネージャ（swarm + 親子昇格 + circuit breaker）", "phase": "1"},
+      {"id": "M-10d", "title": "WebSocket セッション・ストリーミング UI（swarm グリッド）", "phase": "1"},
+      {"id": "M-11", "title": "リーダー AI 壁打ちループ（Anthropic Agent Teams Plan / Gen / Eval）", "phase": "1"},
+      {"id": "M-12", "title": "赤線リスト + 自動停止（主要 5 項目）", "phase": "1"},
+      {"id": "M-13", "title": "GitHub 連携（PR 作成 + HTML diff 注釈レビュー）", "phase": "1"},
+      {"id": "M-14", "title": "Slack 通知（片方向：失敗 / 赤線 / 進捗）", "phase": "1"},
+      {"id": "M-15", "title": "HTML レポート全種（仕様 / 進捗 / レビュー / 納品物）", "phase": "1"},
+      {"id": "M-16", "title": "Obsidian ナレッジ母艦連携（最小：単方向 export）", "phase": "1"},
+      {"id": "M-17", "title": "Langfuse self-host（観測 + コスト把握）", "phase": "1"},
+      {"id": "M-18", "title": "監査ログ + バックアップ", "phase": "1"},
+      {"id": "M-19", "title": "既存 Build-Factory bootstrap の振り分け実行", "phase": "1"}
+    ],
+    "should": [
+      {"id": "S-1",  "title": "クライアント / メンバー招待 + タブ ON/OFF", "phase": "1.5"},
+      {"id": "S-2",  "title": "Slack 双方向 + Claude Desktop MCP 連携", "phase": "1.5"},
+      {"id": "S-3",  "title": "GrapesJS Studio SDK 統合（HTML/CSS GUI 編集）", "phase": "1.5"},
+      {"id": "S-4",  "title": "Obsidian Headless Sync 双方向", "phase": "1.5"},
+      {"id": "S-5",  "title": "impact-analysis + task-propagation スキル（既存実装影響分析）", "phase": "1.5"},
+      {"id": "S-6",  "title": "BYOK 設定 UI", "phase": "1.5"},
+      {"id": "S-7",  "title": "AI モデル / プロンプトバージョン管理", "phase": "1.5"},
+      {"id": "S-8",  "title": "通知 / アラートフル（停滞・依存破綻含む）", "phase": "1.5"},
+      {"id": "S-9",  "title": "ナレッジ自動キュレーション", "phase": "1.5"},
+      {"id": "S-10", "title": "crash detection / circuit breaker 完成", "phase": "1.5"}
+    ],
+    "could": [
+      {"id": "C-1", "title": "OpenFGA 細粒度権限", "phase": "2"},
+      {"id": "C-2", "title": "AI 評価基盤（壁打ち精度 eval）", "phase": "2"},
+      {"id": "C-3", "title": "デプロイ連携アダプタ（Vercel / Netlify / Coolify / Cloud Run / 自前 SSH）", "phase": "2"},
+      {"id": "C-4", "title": "テンプレート / Boilerplate", "phase": "2"},
+      {"id": "C-5", "title": "E2E Playwright MCP 統合", "phase": "2"},
+      {"id": "C-6", "title": "Stripe / Lemon Squeezy 課金", "phase": "3"},
+      {"id": "C-7", "title": "SaaS マルチテナント本格化（SLA / 障害自動監視）", "phase": "3"},
+      {"id": "C-8", "title": "多言語 UI / モバイル最適化", "phase": "3"},
+      {"id": "C-9", "title": "テンプレート Marketplace（コミュニティ共有）", "phase": "3+"}
+    ],
+    "wont": [
+      {"id": "W-1", "title": "ローカル LLM の SaaS 提供", "reason": "self-host モードに限定"},
+      {"id": "W-2", "title": "AI 自身による要件発生", "reason": "信用毀損リスク"},
+      {"id": "W-3", "title": "クライアントが UI を直接編集", "reason": "権限管理過剰複雑化"},
+      {"id": "W-4", "title": "Build-Factory が直接本番デプロイ", "reason": "必ず人間承認"},
+      {"id": "W-5", "title": "Claude Code 以外の実装エンジン", "reason": "スコープ拡大（Phase 3 で評価）"},
+      {"id": "W-6", "title": "モバイルアプリ版", "reason": "Web 完結"},
+      {"id": "W-7", "title": "Onlook / Open Design 統合", "reason": "仕様書 HTML + GrapesJS で代替"},
+      {"id": "W-8", "title": "案件種別ごとのテンプレート機能", "reason": "汎用設計 + ユーザー作成テンプレで対応"}
+    ]
+  },
+  "stakeholders": [
+    {"role": "高本まさと（最終決裁・主ユーザ）", "involvement": "high", "expectations": "10 案件並走 / SaaS 商用化 / もう手放せない", "concerns": "自分のリソースが詰まる事故"},
+    {"role": "監視担当（将来）", "involvement": "medium", "expectations": "チェックだけで品質担保", "concerns": "AI ミスを見逃す責任"},
+    {"role": "クライアント（受託案件先）", "involvement": "medium", "expectations": "進捗が見える / コメント反映が早い / 招待で参加", "concerns": "内部 AI に任せて品質低下"},
+    {"role": "SaaS 顧客（将来）", "involvement": "low_to_high", "expectations": "自社開発 OS として利用", "concerns": "データ分離 / SLA / セキュリティ"},
+    {"role": "AI 社員（実体は LLM + スキル）", "involvement": "high_executor", "expectations": "自領域で漏れなく実行", "concerns": "ハルシネーション"},
+    {"role": "Claude Code（外部実装エンジン）", "involvement": "high_executor", "expectations": "与えられた仕様で正確に実装", "concerns": "仕様の曖昧さ"},
+    {"role": "OSS / SaaS 提供元", "involvement": "low", "expectations": "安定提供", "concerns": "ライセンス変更 / メンテ停止 / 破壊的変更"},
+    {"role": "company-dashboard", "involvement": "decoupled", "expectations": "当面切り離し・将来追加可能性", "concerns": "UI 整理 / データ重複回避"}
+  ],
+  "mvp_concept": "Phase 1（MVP）= 22 Must 項目を全実装し、自社 1 案件を要件投入から納品まで Build-Factory + Claude Code で End-to-End 完走できる状態。タスクカードの ▶︎ 再生で Claude Code セッションが起動 / 複数同時 ▶︎ で並列 swarm 実行も可能 / リーダー AI が壁打ち / Supabase + Slack + GitHub + Obsidian + Langfuse まで揃う。クライアント招待も Phase 1 から組み込み。",
+  "phases": {
+    "phase_1": {
+      "label": "MVP（自社利用）",
+      "duration_target": "とにかく早く・ただし長期負債ゼロを優先",
+      "scope": "22 Must（M-1〜M-19）全実装",
+      "goal": "自社 1 案件を End-to-End 完走"
+    },
+    "phase_1_5": {
+      "label": "社内拡張",
+      "duration_target": "Phase 1 動作確認後すぐ",
+      "scope": "10 Should（S-1〜S-10）",
+      "goal": "社内 / 業務委託メンバー 2-3 人で複数案件並走"
+    },
+    "phase_2": {
+      "label": "β 試用",
+      "duration_target": "Phase 1.5 安定後",
+      "scope": "Could C-1〜C-5（権限 / eval / デプロイ連携 / テンプレ / E2E）",
+      "goal": "1-2 社の協力先で受託案件を流す"
+    },
+    "phase_3": {
+      "label": "商用 SaaS",
+      "duration_target": "β 評価通過後",
+      "scope": "Could C-6〜C-9（課金 / SLA / i18n / Marketplace）",
+      "goal": "商用提供開始"
+    }
+  },
+  "risks": [
+    {"id": "R-1",  "risk": "Supabase 移行中の DB 不整合", "impact": "high", "mitigation": "dual-write 期間 + 検証スクリプト + 段階移行"},
+    {"id": "R-2",  "risk": "LLM ハルシネーション", "impact": "high", "mitigation": "多層検証 + リーダー壁打ち + 監視担当チェック"},
+    {"id": "R-3",  "risk": "各自 Claude Pro/Max プラン上限", "impact": "medium", "mitigation": "観測で見える化 + 上限近接で自動 throttle + UI 警告"},
+    {"id": "R-4",  "risk": "BMAD upstream の破壊的変更", "impact": "medium", "mitigation": "思想流用 + 自前統合（fork しない・思想だけ採用）"},
+    {"id": "R-5",  "risk": "Anthropic Agent Teams API 変更", "impact": "medium", "mitigation": "バージョン固定 + 抽象化レイヤー"},
+    {"id": "R-6",  "risk": "GrapesJS Studio SDK 商用ライセンス費", "impact": "medium", "mitigation": "MIT 版で開始 + Studio SDK は Phase 1.5 評価後採用"},
+    {"id": "R-7",  "risk": "Supabase ベンダーロックイン", "impact": "medium", "mitigation": "標準 SQL 維持 + RLS は portable に書く"},
+    {"id": "R-8",  "risk": "1 人開発の負荷（Phase 1 が 22 項目で多め）", "impact": "high", "mitigation": "Build-Factory 自体を Build-Factory + Claude Code で開発（dogfooding）"},
+    {"id": "R-9",  "risk": "Claude Code MCP 連携の不安定さ", "impact": "medium", "mitigation": "公式 SDK 準拠 + stub フォールバック"},
+    {"id": "R-10", "risk": "機密情報の workspace 横断リーク", "impact": "high", "mitigation": "RLS + 機密ラベル + 監査ログ + AI 取得時フィルタ"},
+    {"id": "R-11", "risk": "カバレッジ無限ループ", "impact": "medium", "mitigation": "「3 ターン改善なしで人間エスカ」ルール"},
+    {"id": "R-12", "risk": "依存グラフが複雑化して UI 破綻", "impact": "medium", "mitigation": "React Flow + 階層折りたたみ + フェーズ別表示"},
+    {"id": "R-13", "risk": "フェーズ管理が現場で使われない", "impact": "medium", "mitigation": "Phase 1 で自社案件 dogfooding して即改善"},
+    {"id": "R-14", "risk": "OSS のライセンス変更（特に AI 系の急進化）", "impact": "medium", "mitigation": "Apache 2.0 / MIT 限定採用 + 代替候補リスト常備"}
+  ],
+  "existing_bootstrap_disposition": {
+    "keep_as_is": [
+      "services/artifact_service.py", "services/output_processor.py", "services/orchestrator_graph.py",
+      "services/slot_state.py", "services/slot_extractor.py",
+      "services/skill_manager.py", "services/skill_detector.py",
+      "services/observability.py", "services/long_term_memory.py", "services/conversation_memory.py",
+      "ai_agents/secretary_agent.py",
+      "routers/artifacts.py", "routers/chat.py", "routers/skills.py", "routers/skill_creator.py",
+      "routers/threads.py", "routers/workspaces.py", "routers/accounts.py",
+      "frontend/src/components/artifacts/", "frontend/src/components/chat/"
+    ],
+    "modify": [
+      "routers/employees.py + ai_system.py → BMAD ペルソナ統合",
+      "routers/mcp_server.py → Anthropic Agent Teams 連携 + 5 ツール最小化",
+      "services/reviewer_loop.py → Plan/Gen/Eval 分離パターンに刷新",
+      "backend/db/ → SQLite → Supabase Postgres 移行",
+      "routers/approval.py → 赤線リスト統合",
+      "routers/design_pipeline.py + design_frames.py + design_mocks.py → GrapesJS 連携に刷新（Phase 1.5）"
+    ],
+    "new": [
+      "phase-management スキル + UI",
+      "dependency-graph スキル + React Flow UI",
+      "routers/phases.py + routers/dependencies.py",
+      "phases / phase_gates / dependencies スキーマ",
+      "HTML レポート生成パイプライン（共通テンプレ + Tailwind）",
+      "Supabase 移行スクリプト",
+      "claude-code-handoff スキル",
+      "code-review-loop スキル"
+    ],
+    "archive": [
+      "routers/pricing_design.py", "routers/estimate.py", "routers/proposal.py",
+      "routers/records.py", "routers/documents.py",
+      "routers/browser_use.py",
+      "services/sales_service.py", "services/briefing_service.py",
+      "services/penpot_client.py", "services/obsidian_vault_sync.py（旧版・Headless Sync で置換）"
+    ]
+  },
+  "next_skills": [
+    "requirements-definition",
+    "architecture-design",
+    "tech-stack",
+    "functional-breakdown",
+    "feature-decomposition",
+    "task-decomposition",
+    "distributed-dev"
+  ]
+}

@@ -1,0 +1,257 @@
+{
+  "meta": {
+    "project": "Build-Factory v2",
+    "created_at": "2026-05-09",
+    "skill_version": "hearing 1.0",
+    "hearing_rounds": 4,
+    "previous_hearing": "docs/hearing/2026-05-01_hearing_log.md",
+    "previous_brief": "docs/PROJECT_BRIEF.md (v1)"
+  },
+  "context": {
+    "industry": "BtoB SaaS / 開発支援 / プロジェクト管理 OS",
+    "client_type": "個人事業（株式会社 ENGINE BASE 1 名運営・SaaS 商用化前提）",
+    "project_trigger": "v1 PROJECT_BRIEF（2026-05-01）作成後 1 週間で『コンセプトを根本から変えたい』と再考。HTML 出力 / OSS 最大活用 / タスク再生並列実行 / Supabase 統一など、設計の根幹に関わる方針転換が必要になった。"
+  },
+  "decision_log": [
+    {
+      "id": "D-1",
+      "decision": "v1 PROJECT_BRIEF を白紙化、コンセプトを再定義",
+      "reason": "v1 のコンセプト『決めるのは人間 / AI が実行』は設計思想に過ぎない。本質は『企画から納品まで 1 環境で完結』",
+      "alternatives": ["v1 を継承して差分", "完全廃棄して 0 から"],
+      "hypothesis_confirmed": true,
+      "decided_at": "2026-05-09"
+    },
+    {
+      "id": "D-2",
+      "decision": "Onlook / Open Design を不採用",
+      "reason": "仕様書 → HTML/CSS で完璧再現 + GrapesJS GUI 編集に置き換える方針へ転換。Anthropic Claude Code チーム（Thariq Shihipar）の HTML 出力主流に追随",
+      "alternatives": ["Onlook self-host 継続", "Open Design 資産のみ流用"],
+      "hypothesis_confirmed": true,
+      "decided_at": "2026-05-09"
+    },
+    {
+      "id": "D-3",
+      "decision": "出力フォーマット = HTML + Markdown ハイブリッド（HTML デフォルト）",
+      "reason": "情報密度・共有性・読まれやすさ・双方向 UI（slider / drag-drop / copy-as-prompt）が moat",
+      "alternatives": ["Markdown のみ", "HTML のみ"],
+      "hypothesis_confirmed": true,
+      "decided_at": "2026-05-09"
+    },
+    {
+      "id": "D-4",
+      "decision": "タスク ▶︎ 再生 + 並列実行 + swarm view を Phase 1 から実装",
+      "reason": "Hermes Specify + Vibeyard swarm を Web 化。これがコア UX",
+      "alternatives": ["カンバンのみで pull 型", "並列は Phase 1.5"],
+      "hypothesis_confirmed": true,
+      "decided_at": "2026-05-09"
+    },
+    {
+      "id": "D-5",
+      "decision": "自作回避・OSS / SaaS / SDK / ライブラリ最大活用",
+      "reason": "開発スピード + 保守負担削減 + 1 人開発の制約",
+      "alternatives": ["全て自作"],
+      "hypothesis_confirmed": true,
+      "decided_at": "2026-05-09"
+    },
+    {
+      "id": "D-6",
+      "decision": "商用利用可ライセンス（Apache 2.0 / MIT / BSD / Elastic 2.0）のみ採用",
+      "reason": "SaaS 商用化前提・AGPL は伝染リスク",
+      "alternatives": ["AGPL も含めて柔軟採用"],
+      "hypothesis_confirmed": true,
+      "decided_at": "2026-05-09"
+    },
+    {
+      "id": "D-7",
+      "decision": "実装層 LLM = 各自 Claude Pro/Max プラン",
+      "reason": "Build-Factory 側 API コスト最小化・SaaS 限界利益向上・各自プラン使い放題のメリット活用",
+      "alternatives": ["全て自社 API 課金", "全て BYOK"],
+      "hypothesis_confirmed": true,
+      "decided_at": "2026-05-09"
+    },
+    {
+      "id": "D-8",
+      "decision": "チャット層 LLM = 自社提供 API + BYOK の 2 系統",
+      "reason": "ユーザー柔軟性 + 自社で初期体験を確実に提供",
+      "alternatives": ["BYOK のみ", "自社 API のみ"],
+      "hypothesis_confirmed": true,
+      "decided_at": "2026-05-09"
+    },
+    {
+      "id": "D-9",
+      "decision": "ローカル LLM（Ollama 等）は SaaS では不提供（self-host モードのみ）",
+      "reason": "スコープ絞り込み・SaaS の品質保証範囲を絞る",
+      "alternatives": ["SaaS でもローカル LLM 切替対応"],
+      "hypothesis_confirmed": true,
+      "decided_at": "2026-05-09"
+    },
+    {
+      "id": "D-10",
+      "decision": "認証 = Supabase Auth",
+      "reason": "DB と統一 / RLS で multi-tenant 強制 / 無料枠厚い / Stripe 統合容易",
+      "alternatives": ["Clerk", "Better Auth", "NextAuth"],
+      "hypothesis_confirmed": true,
+      "decided_at": "2026-05-09"
+    },
+    {
+      "id": "D-11",
+      "decision": "DB = Supabase Postgres（SQLite から移行）",
+      "reason": "SaaS 化に必要 / RLS が moat / Realtime / Storage / Edge Functions が一気に揃う",
+      "alternatives": ["SQLite + Litestream", "PlanetScale", "Neon"],
+      "hypothesis_confirmed": true,
+      "decided_at": "2026-05-09"
+    },
+    {
+      "id": "D-12",
+      "decision": "AI 社員 = BMAD ペルソナ + Anthropic Agent Teams + 既存 96 スキル ハイブリッド",
+      "reason": "BMAD（46.7k stars）の BA/PM/Architect/Dev/QA 構造が我々の AI 社員と完全一致 / Anthropic Agent Teams（公式・Opus 4.6+・Feb 2026）でサブエージェント分離 / 既存スキル資産を活かす",
+      "alternatives": ["BMAD 完全採用", "Anthropic Agent Teams 主軸", "Ruflo（旧 claude-flow）主軸", "完全自前"],
+      "hypothesis_confirmed": true,
+      "decided_at": "2026-05-09"
+    },
+    {
+      "id": "D-13",
+      "decision": "デプロイ環境 = 連携アダプタ式（複数選択可）",
+      "reason": "ユーザー自由度確保（Vercel / Netlify / Coolify / Cloud Run / 自前 SSH 等）",
+      "alternatives": ["Vercel 固定", "self-host Coolify 固定"],
+      "hypothesis_confirmed": true,
+      "decided_at": "2026-05-09"
+    },
+    {
+      "id": "D-14",
+      "decision": "ナレッジ母艦 = Obsidian",
+      "reason": "まさとさん既存運用との統合 / Headless Sync が成熟 / GitHub 双方向 sync も実用化",
+      "alternatives": ["Notion", "自前ナレッジ DB", "Mem0 のみ"],
+      "hypothesis_confirmed": true,
+      "decided_at": "2026-05-09"
+    },
+    {
+      "id": "D-15",
+      "decision": "観測 = Langfuse self-host（MIT）",
+      "reason": "コスト最小（5M spans/day で月 $50-80）・MIT・Eval / バージョン管理機能あり",
+      "alternatives": ["Phoenix（Elastic 2.0）", "Helicone（プロキシ）", "OpenLLMetry + 任意 backend"],
+      "hypothesis_confirmed": true,
+      "decided_at": "2026-05-09"
+    },
+    {
+      "id": "D-16",
+      "decision": "プロジェクト・フェーズ管理 + 依存グラフ + 影響分析 = moat",
+      "reason": "Linear / Jira / Notion / BMAD にもない領域。プロジェクトが生き物として進化することを前提にした設計",
+      "alternatives": ["シンプルなカンバンのみ", "Linear 互換"],
+      "hypothesis_confirmed": true,
+      "decided_at": "2026-05-09"
+    },
+    {
+      "id": "D-17",
+      "decision": "既存 Build-Factory bootstrap は流用、現プロジェクトのデザイン感継続",
+      "reason": "短期速度 / 既存資産活用 / デザイン気に入っている",
+      "alternatives": ["完全 0 から作り直し"],
+      "hypothesis_confirmed": true,
+      "decided_at": "2026-05-09"
+    },
+    {
+      "id": "D-18",
+      "decision": "company-dashboard は当面切り離し（将来追加可能性は残す）",
+      "reason": "情報過多回避・Build-Factory 本丸に集中・将来必要なら吸収可能な設計に",
+      "alternatives": ["完全吸収", "並走継続", "完全廃止"],
+      "hypothesis_confirmed": true,
+      "decided_at": "2026-05-09"
+    },
+    {
+      "id": "D-19",
+      "decision": "クライアント招待 UI / タブ ON/OFF を Phase 1 から組み込む",
+      "reason": "受託案件で外部に見せる必要が早期に発生する想定",
+      "alternatives": ["Phase 1.5 後ろ倒し", "Phase 2 後ろ倒し"],
+      "hypothesis_confirmed": true,
+      "decided_at": "2026-05-09"
+    },
+    {
+      "id": "D-20",
+      "decision": "Phase 1 Must = 22 項目（▶︎ 再生 + 並列 swarm まで含む・後ろ倒さない）",
+      "reason": "『楽な道に逃げない・長期で楽になる確実な作り』方針に従い、moat（▶︎ + swarm）を最初から組み込む",
+      "alternatives": ["18 項目に絞る（GitHub / Obsidian / Langfuse / バックアップ / swarm を 1.5 後ろ倒し）"],
+      "hypothesis_confirmed": true,
+      "decided_at": "2026-05-09"
+    }
+  ],
+  "hearing_patterns": [
+    {
+      "pattern_name": "コンセプト・脱皮型ヒアリング",
+      "applicable_to": "既存プロジェクトの構想を根本から再設計したい場合",
+      "description": "前回ブリーフを白紙前提として進める / 仮説を全面的に提示してユーザーに反証してもらう / コンセプトと設計思想を明確に分離する"
+    },
+    {
+      "pattern_name": "OSS 最大活用マッピング",
+      "applicable_to": "1 人 / 少人数開発で OSS 最大活用を制約に据える場合",
+      "description": "機能要件ごとに OSS / SaaS 候補を 2-3 個並べて提示 / ライセンス（商用利用可）を明示 / 既存実装との接続点を一緒に整理"
+    },
+    {
+      "pattern_name": "Phase 1 vs 1.5 ライン引き",
+      "applicable_to": "全機能必要 + 早く + 確実 + 自作回避 のトレードオフがある場合",
+      "description": "MVP の最小ラインを『1 案件 End-to-End 完走』で固定 / 各機能を『これがなければリリースしない理由』で再評価 / ユーザー判断で Phase 1 / 1.5 / 2 / 3 に振り分け"
+    },
+    {
+      "pattern_name": "外部参照リンクの内容代替確認",
+      "applicable_to": "ユーザーが X / Twitter 等の認証必要なリンクを参照させた場合",
+      "description": "WebFetch で 402 を確認後、ユーザーに本文を直接シェア依頼 / 受け取った内容を要約して合意形成 / リサーチ結果と統合"
+    }
+  ],
+  "unresolved": [
+    {"id": 1,  "question": "Phase 1 Must 22 項目の各タスク見積もり工数", "importance": "high",   "resolve_in": "task-decomposition"},
+    {"id": 2,  "question": "BMAD のどの部分を取り込むか（fork / 思想 / 完全採用）", "importance": "high",   "resolve_in": "architecture-design"},
+    {"id": 3,  "question": "Anthropic Agent Teams の最新 API 仕様確認", "importance": "high",   "resolve_in": "architecture-design"},
+    {"id": 4,  "question": "GrapesJS Studio SDK の商用ライセンス費用", "importance": "medium", "resolve_in": "tech-stack"},
+    {"id": 5,  "question": "Supabase 移行時の既存 SQLite データ取り扱い", "importance": "high",   "resolve_in": "architecture-design"},
+    {"id": 6,  "question": "リーダー AI 壁打ちの『3 ターン』の具体実装", "importance": "medium", "resolve_in": "feature-decomposition"},
+    {"id": 7,  "question": "並列セッション数の現実的上限（プラン別）", "importance": "medium", "resolve_in": "tech-stack"},
+    {"id": 8,  "question": "クライアント招待 UI のメール文面 / 招待 URL 設計", "importance": "low",    "resolve_in": "feature-decomposition"},
+    {"id": 9,  "question": "Obsidian Headless Sync の Phase 1 簡易代替（単方向）の実装", "importance": "medium", "resolve_in": "architecture-design"},
+    {"id": 10, "question": "削除する既存 router / service の最終リスト", "importance": "high",   "resolve_in": "feature-decomposition"}
+  ],
+  "research": {
+    "research_date": "2026-05-09",
+    "sources": [
+      {"url": "https://openalternative.co/alternatives/claude-code", "title": "10+ Best Open Source Claude Code Alternatives in 2026"},
+      {"url": "https://claudefa.st/blog/tools/orchestrators/multi-agent-orchestrators", "title": "Claude Multi-Agent: 6 Frameworks vs ClaudeFast"},
+      {"url": "https://github.com/bradAGI/awesome-cli-coding-agents", "title": "Awesome CLI Coding Agents directory"},
+      {"url": "https://github.com/ruvnet/ruflo", "title": "Ruflo (旧 claude-flow) - 31.1k stars - MCP 87 ツール"},
+      {"url": "https://github.com/bmad-code-org/BMAD-METHOD", "title": "BMAD Method - 46.7k stars - 5 ペルソナ実装"},
+      {"url": "https://hermes-agent.nousresearch.com/docs/", "title": "Hermes Agent Documentation - Nous Research - MIT"},
+      {"url": "https://github.com/elirantutia/vibeyard", "title": "Vibeyard - Electron-based AI coding agent IDE"},
+      {"url": "https://www.marktechpost.com/2026/05/08/9-best-ai-tools-for-spec-driven-development-in-2026-kiro-bmad-gsd-and-more-compare/", "title": "9 Best AI Tools for Spec-Driven Development 2026"},
+      {"url": "https://trybuildpilot.com/479-supabase-auth-vs-clerk-vs-nextauth-2026", "title": "Supabase Auth vs Clerk vs NextAuth (2026)"},
+      {"url": "https://starterpick.com/blog/better-auth-clerk-nextauth-saas-showdown-2026", "title": "Better Auth vs Clerk vs NextAuth (2026)"},
+      {"url": "https://www.pkgpulse.com/guides/openfga-vs-permify-vs-spicedb-zanzibar-authorization-2026", "title": "OpenFGA vs Permify vs SpiceDB (2026)"},
+      {"url": "https://www.permit.io/blog/top-open-source-authorization-tools-for-enterprises-in-2026", "title": "Top Open-Source Authorization Tools 2026"},
+      {"url": "https://laminar.sh/article/langfuse-alternatives-2026", "title": "Langfuse Alternatives 2026"},
+      {"url": "https://servercompass.app/blog/best-self-hosted-paas-platforms-2026", "title": "Best Self-Hosted PaaS Platforms 2026"},
+      {"url": "https://github.com/coollabsio/coolify", "title": "Coolify - 自己ホスト型 Vercel 代替"},
+      {"url": "https://github.com/GrapesJS/grapesjs", "title": "GrapesJS - 自由オープンソース Web Builder Framework"},
+      {"url": "https://github.com/givanz/VvvebJs", "title": "VvvebJs - vanilla JS drag&drop builder - Apache 2.0"},
+      {"url": "https://www.webpronews.com/obsidians-headless-sync-how-a-note-taking-app-is-quietly-building-infrastructure-for-developers-and-power-users/", "title": "Obsidian Headless Sync"},
+      {"url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/kanban-tutorial", "title": "Hermes Agent Kanban Tutorial（ユーザー提示）"}
+    ],
+    "findings": [
+      "BMAD Method（46.7k stars・MIT・v6.6.0 2026-04 安定）が BA/PM/Architect/Dev/QA の 5 ペルソナ構造を実装済み。Build-Factory の AI 社員と完全一致。fork ではなく『思想 + 既存スキル統合』方針が現実的",
+      "Anthropic Agent Teams が 2026-02 に Opus 4.6+ で公式リリース。Plan / Gen / Eval 分離パターンの公式実装で、Build-Factory 内のリーダー AI 壁打ちループと統合可能",
+      "Ruflo（旧 claude-flow・31.1k stars）は MCP 87 ツールを持ち、複雑だが機能豊富。今回は採用せず参考に留める判断",
+      "Hermes Agent（Nous Research・MIT・2026-02）は Kanban 6 列構造（Triage/Todo/Ready/InProgress/Blocked/Done）+ 親子昇格 + circuit breaker + Specify/Nudge dispatcher の思想が秀逸。Build-Factory の M-10c 設計に流用",
+      "Vibeyard は Electron 製で SaaS 化には不向きだが、swarm モード / 並列セッション管理 / コスト追跡 / AI 準備度スコアの思想は Web 化して採用",
+      "認証は Clerk が DX トップだが、Supabase 全体採用との統一性で Supabase Auth を選択。RLS で multi-tenant 強制が moat になる",
+      "RBAC は Phase 1 では Supabase RLS で十分・Phase 2 で OpenFGA（Auth0/Okta・Zanzibar）を必要箇所に補完。AuthZEN 仕様 Final Approved（2026-01）でベンダーロックインが緩和",
+      "観測は Langfuse self-host（MIT）が低コスト第一候補。OpenLLMetry を instrumentation に使うとベンダー切替が容易",
+      "PaaS は Coolify（OSS 最豊富）と Dokploy（軽量モダン・Docker Swarm + Traefik）が二強。Build-Factory はデプロイ非依存（連携アダプタ式）にして両方サポート",
+      "GUI 編集は GrapesJS Studio SDK（embed 設計済 + 商用サポート）が第一候補。VvvebJs は軽量代替として残す",
+      "Obsidian Headless Sync（公式 npm CLI）が Phase 1.5 で導入予定。Phase 1 は file export / GitHub bidirectional で代替可",
+      "Anthropic Claude Code チームの Thariq Shihipar が HTML 出力の優位性を主張（情報密度・読まれやすさ・双方向 UI）。我々の出力フォーマット方針と完全一致"
+    ]
+  },
+  "next_actions": [
+    "requirements-definition スキルで M-1〜M-19 の要件を詳細化",
+    "architecture-design スキルで Supabase 移行 + AI 社員ハイブリッド統合の技術設計",
+    "tech-stack スキルで OSS 候補の最終選定（BMAD / Anthropic Agent Teams / GrapesJS / 等）",
+    "functional-breakdown スキルで画面・機能・ロール権限・エンティティ草案",
+    "feature-decomposition + task-decomposition で Phase 1 を実装単位に分解",
+    "distributed-dev で各タスクを Claude Code が単独実装できるパッケージに変換"
+  ]
+}
