@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ER 図 v1.0 — Build-Factory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:true,theme:'base',themeVariables:{primaryColor:'#1a6648',primaryTextColor:'#fff',lineColor:'#1a6648',fontFamily:'Noto Sans JP'}});</script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; scroll-behavior: smooth; }
+body { font-family: "Noto Sans JP", -apple-system, sans-serif; background: #f0f2f5; color: #1a1a1a; line-height: 1.7; font-feature-settings: "palt"; }
+.layout { display: flex; min-height: 100vh; }
+.sidebar { width: 230px; flex-shrink: 0; background: #1a6648; position: fixed; top: 0; left: 0; bottom: 0; overflow-y: auto; z-index: 100; }
+.sidebar-logo { padding: 20px 18px 14px; border-bottom: 1px solid rgba(255,255,255,0.12); }
+.sidebar-logo .doc-badge { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.5); display: block; margin-bottom: 4px; }
+.sidebar-logo .doc-title { font-size: 11px; font-weight: 600; color: #fff; line-height: 1.4; }
+.sidebar-logo .doc-version { font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 6px; }
+.toc { padding: 10px 0 20px; }
+.toc-group { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.35); padding: 12px 18px 4px; }
+.toc a { display: flex; align-items: center; gap: 8px; padding: 6px 18px; text-decoration: none; color: rgba(255,255,255,0.65); font-size: 11.5px; transition: all 0.15s; border-left: 2px solid transparent; }
+.toc a:hover { color: #fff; background: rgba(255,255,255,0.07); border-left-color: rgba(255,255,255,0.3); }
+.main { margin-left: 230px; padding: 32px 32px 80px; max-width: 1200px; }
+.doc-cover { background: #fff; border-radius: 8px; padding: 36px 40px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.cover-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #94a3b8; margin-bottom: 10px; }
+.cover-title { font-size: 22px; font-weight: 700; color: #1a6648; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
+.cover-meta { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.meta-item { display: flex; flex-direction: column; gap: 2px; }
+.meta-label { font-size: 10px; font-weight: 600; color: #94a3b8; letter-spacing: 0.06em; text-transform: uppercase; }
+.meta-value { font-size: 13px; color: #1a1a1a; font-weight: 500; }
+.section-card { background: #fff; border-radius: 8px; padding: 28px 32px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid #e2e8f0; }
+.section-num { width: 28px; height: 28px; background: #1a6648; color: #fff; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+.section-title { font-size: 16px; font-weight: 700; color: #1a6648; }
+.subsection-title { font-size: 13px; font-weight: 700; color: #334155; margin: 18px 0 10px; padding-left: 10px; border-left: 3px solid #1a6648; }
+.diagram-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 16px; margin: 12px 0; overflow-x: auto; }
+.table-wrap { overflow-x: auto; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+thead th { background: #1a6648; color: #fff; font-weight: 600; padding: 8px 12px; text-align: left; font-size: 11.5px; }
+tbody td { padding: 6px 10px; border-top: 1px solid #f1f5f9; vertical-align: top; color: #334155; }
+tbody tr:nth-child(even) td { background: #f8fafc; }
+.table-card { border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 12px; overflow: hidden; }
+.table-card-header { background: #1a6648; color: #fff; padding: 8px 14px; font-weight: 700; font-size: 12.5px; display: flex; align-items: center; gap: 8px; }
+.table-card-tag { font-size: 9.5px; font-weight: 600; padding: 1px 6px; border-radius: 3px; background: rgba(255,255,255,0.18); }
+.table-card-body { padding: 0; }
+.relation-card { background: #f7fdf9; border: 1px solid #b3d9c8; border-radius: 6px; padding: 10px 14px; margin-bottom: 8px; font-size: 12.5px; color: #1a6648; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.stat-card { background: #f7fdf9; border: 1px solid #b3d9c8; border-radius: 8px; padding: 14px; text-align: center; }
+.stat-num { font-size: 24px; font-weight: 900; color: #1a6648; }
+.stat-label { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 4px; }
+code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 11px; background: #f1f5f9; padding: 1px 5px; border-radius: 3px; }
+.badge { display: inline-block; font-size: 9.5px; font-weight: 600; padding: 2px 6px; border-radius: 3px; }
+.badge-pk { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.badge-fk { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+.badge-uniq { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.badge-rls { background: #e6f4ee; color: #1a6648; border: 1px solid #b3d9c8; }
+.badge-idx { background: #ede9fe; color: #5b21b6; border: 1px solid #c4b5fd; }
+@media print { .sidebar { display: none; } .main { margin-left: 0; max-width: 100%; } .section-card { box-shadow: none; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <span class="doc-badge">ER DIAGRAM</span>
+    <div class="doc-title">Build-Factory<br>ER 図 + DB 設計</div>
+    <div class="doc-version">v1.0 / 2026-05-09</div>
+  </div>
+  <nav class="toc">
+    <a href="#overview">概要 + 統計</a>
+    <div class="toc-group">グループ別 ER 図</div>
+    <a href="#er-overall">全体像</a>
+    <a href="#er-auth">A. 認証・テナント</a>
+    <a href="#er-ai">B. AI・スキル</a>
+    <a href="#er-project">C. プロジェクト管理</a>
+    <a href="#er-mock">D. 仕様・モック</a>
+    <a href="#er-execution">E. 実装・レビュー</a>
+    <a href="#er-ops">F. 連携・運用</a>
+    <div class="toc-group">テーブル定義</div>
+    <a href="#table-defs">主要 42 テーブル</a>
+    <div class="toc-group">インデックス・設計</div>
+    <a href="#indexes">インデックス方針</a>
+    <a href="#design-notes">設計ノート</a>
+  </nav>
+</aside>
+
+<main class="main">
+
+<div class="doc-cover">
+  <div class="cover-label">Entity Relationship Diagram</div>
+  <div class="cover-title">Build-Factory　ER 図 + テーブル定義</div>
+  <div class="cover-meta">
+    <div class="meta-item"><span class="meta-label">DB</span><span class="meta-value">Supabase Postgres + RLS</span></div>
+    <div class="meta-item"><span class="meta-label">ORM</span><span class="meta-value">SQLAlchemy 2.0 async + Supabase SDK</span></div>
+    <div class="meta-item"><span class="meta-label">Migration</span><span class="meta-value">Supabase CLI</span></div>
+    <div class="meta-item"><span class="meta-label">バージョン</span><span class="meta-value">v1.0</span></div>
+    <div class="meta-item"><span class="meta-label">作成日</span><span class="meta-value">2026-05-09</span></div>
+  </div>
+</div>
+
+<!-- 統計 -->
+<div class="section-card" id="overview">
+  <div class="section-header"><div class="section-num">i</div><div class="section-title">概要 + 統計</div></div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-num">42</div><div class="stat-label">Tables</div></div>
+    <div class="stat-card"><div class="stat-num">7</div><div class="stat-label">Categories</div></div>
+    <div class="stat-card"><div class="stat-num">60+</div><div class="stat-label">Relations</div></div>
+    <div class="stat-card"><div class="stat-num">100+</div><div class="stat-label">Indexes</div></div>
+    <div class="stat-card"><div class="stat-num">42</div><div class="stat-label">RLS Policies</div></div>
+    <div class="stat-card"><div class="stat-num">5</div><div class="stat-label">Extensions</div></div>
+  </div>
+
+  <div class="subsection-title">採用拡張機能</div>
+  <ul style="padding-left:20px;font-size:12.5px;color:#334155;">
+    <li><code>pgvector</code> — embedding（M-24 semantic 検索 / user_interaction_log 学習データ）</li>
+    <li><code>pg_trgm</code> — fuzzy / 部分一致検索</li>
+    <li><code>pgsodium</code> — API キー / OAuth トークン暗号化</li>
+    <li><code>pg_cron</code> — 定期実行（バックアップ / 古いログクリーンアップ）</li>
+    <li><code>pg_partman</code> — 時系列テーブル月次 partition（Phase 2）</li>
+  </ul>
+</div>
+
+<!-- 全体 ER -->
+<div class="section-card" id="er-overall">
+  <div class="section-header"><div class="section-num">A</div><div class="section-title">全体 ER 図（簡易版）</div></div>
+  <div class="diagram-box">
+    <pre class="mermaid">
+erDiagram
+  accounts ||--o{ workspaces : "1:N"
+  accounts ||--o{ account_members : "1:N"
+  workspaces ||--o{ workspace_members : "1:N"
+  workspaces ||--o{ phases : "1:N"
+  workspaces ||--o{ tasks : "1:N"
+  workspaces ||--o{ artifacts : "1:N"
+  workspaces ||--o{ constitutions : "1:N"
+  workspaces ||--o{ sessions : "1:N"
+  phases ||--o{ tasks : "1:N"
+  phases ||--o{ phase_gates : "1:N"
+  tasks ||--o{ task_dependencies : "M:N self-ref"
+  tasks ||--o{ acceptance_criteria : "1:N"
+  tasks ||--o{ sessions : "1:N"
+  tasks ||--o{ prs : "1:N"
+  sessions ||--o{ session_logs : "1:N"
+  sessions ||--o{ session_artifacts : "M:N"
+  artifacts ||--o{ artifact_versions : "1:N"
+  artifacts ||--o{ session_artifacts : "M:N"
+  screens ||--o{ screen_components : "M:N"
+  components ||--o{ screen_components : "M:N"
+  screens ||--o{ tasks : "0:N"
+  prs ||--o{ pr_reviews : "1:N"
+  constitutions ||--o{ red_lines : "1:N"
+  red_lines ||--o{ red_line_violations : "1:N"
+  ai_employees ||--o{ ai_employees : "self-ref hierarchy"
+  ai_employees ||--o{ skill_executions : "1:N"
+  ai_employees }o--|| users : "cloned_from_user_id"
+  users ||--o{ user_knowledge_namespace : "1:N"
+  users ||--o{ user_interaction_log : "1:N (opt-in)"
+  users ||--o{ user_settings : "1:1"
+  workspaces ||--o{ slack_webhooks : "1:1"
+  workspaces ||--o{ github_repos : "1:1"
+  workspaces ||--o{ obsidian_vaults : "1:N"
+  workspaces ||--o{ token_limits : "1:1"
+  workspaces ||--o{ cost_logs : "1:N"
+  workspaces ||--o{ audit_logs : "1:N"
+  llm_providers ||--o{ api_keys : "1:N"
+    </pre>
+  </div>
+</div>
+
+<!-- A. Auth -->
+<div class="section-card" id="er-auth">
+  <div class="section-header"><div class="section-num">B</div><div class="section-title">A. 認証・テナント（6 テーブル）</div></div>
+  <div class="diagram-box">
+    <pre class="mermaid">
+erDiagram
+  users {
+    uuid id PK
+    text email UK
+    text display_name
+    text avatar_url
+    bool user_clone_opt_in
+    timestamptz created_at
+  }
+  accounts {
+    uuid id PK
+    text name
+    enum type "company / individual"
+    enum plan "free / pro / team / enterprise"
+    uuid owner_user_id FK
+  }
+  account_members {
+    uuid id PK
+    uuid account_id FK
+    uuid user_id FK
+    enum role "account_owner"
+  }
+  workspaces {
+    uuid id PK
+    uuid account_id FK
+    text name
+    text slug UK
+    jsonb project_meta
+    numeric token_limit_amount
+  }
+  workspace_members {
+    uuid id PK
+    uuid workspace_id FK
+    uuid user_id FK
+    enum role "admin/contributor/viewer/client/monitor"
+    jsonb custom_permissions
+    jsonb visible_tabs
+  }
+  workspace_invitations {
+    uuid id PK
+    uuid workspace_id FK
+    text email
+    enum role
+    text token UK
+    timestamptz expires_at
+    timestamptz accepted_at
+  }
+  accounts ||--o{ account_members : ""
+  users ||--o{ account_members : ""
+  accounts ||--o{ workspaces : ""
+  workspaces ||--o{ workspace_members : ""
+  users ||--o{ workspace_members : ""
+  workspaces ||--o{ workspace_invitations : ""
+    </pre>
+  </div>
+</div>
+
+<!-- B. AI -->
+<div class="section-card" id="er-ai">
+  <div class="section-header"><div class="section-num">C</div><div class="section-title">B. AI 社員・スキル（5 テーブル）</div></div>
+  <div class="diagram-box">
+    <pre class="mermaid">
+erDiagram
+  ai_employees {
+    uuid id PK
+    uuid account_id FK
+    text name
+    text persona
+    text system_prompt
+    enum hierarchy_level "csuite/lead/member/personal_clone"
+    uuid parent_employee_id FK "self-ref"
+    enum department
+    uuid cloned_from_user_id FK
+    uuid_array skill_ids
+  }
+  skills {
+    uuid id PK
+    uuid account_id FK "NULL = global"
+    text name
+    text version
+    text category
+    text skill_md_content
+    bool is_archived
+    bool is_builtin
+  }
+  skill_executions {
+    uuid id PK
+    uuid skill_id FK
+    uuid ai_employee_id FK
+    uuid user_id FK
+    uuid workspace_id FK
+    uuid session_id FK
+    jsonb input
+    jsonb output
+    numeric cost
+    int tokens
+    text langfuse_trace_id
+  }
+  user_knowledge_namespace {
+    uuid id PK
+    uuid user_id FK
+    text namespace_id
+    enum scope "private / shared"
+  }
+  user_interaction_log {
+    uuid id PK
+    uuid user_id FK
+    uuid workspace_id FK
+    text action_type
+    jsonb context_snapshot
+    jsonb decision
+    text reasoning
+    vector embedding
+    timestamptz created_at
+  }
+  ai_employees ||--o{ ai_employees : "self-ref hierarchy"
+  ai_employees ||--o{ skill_executions : ""
+  skills ||--o{ skill_executions : ""
+  users ||--o{ user_knowledge_namespace : ""
+  users ||--o{ user_interaction_log : "opt-in 必須"
+    </pre>
+  </div>
+  <div class="relation-card">
+    <strong>個人クローン opt-in trigger</strong>：<code>user_interaction_log</code> への INSERT は <code>users.user_clone_opt_in = TRUE</code> 時のみ許可（DB trigger で強制）/ デフォルト OFF / いつでも OFF + 全削除可
+  </div>
+</div>
+
+<!-- C. プロジェクト管理 -->
+<div class="section-card" id="er-project">
+  <div class="section-header"><div class="section-num">D</div><div class="section-title">C. プロジェクト管理 moat（6 テーブル）</div></div>
+  <div class="diagram-box">
+    <pre class="mermaid">
+erDiagram
+  phases {
+    uuid id PK
+    uuid workspace_id FK
+    text name
+    int order
+    timestamptz planned_start_at
+    timestamptz planned_end_at
+    enum status "planning/active/review/done/archived"
+  }
+  phase_gates {
+    uuid id PK
+    uuid phase_id FK
+    text name
+    enum condition_type "task_completion/review_approval/manual"
+    jsonb criteria
+    enum status "pending/passed/failed"
+  }
+  tasks {
+    uuid id PK
+    uuid workspace_id FK
+    uuid phase_id FK
+    text title
+    text description
+    enum status "triage/todo/ready/in_progress/blocked/done"
+    enum priority "low/medium/high/urgent"
+    uuid assigned_employee_id FK
+    uuid screen_id FK "M-5b"
+    vector embedding
+    tsvector tsv
+    text_array tags
+  }
+  task_dependencies {
+    uuid id PK
+    uuid parent_task_id FK
+    uuid child_task_id FK
+    enum type "blocks/related/subtask_of"
+  }
+  acceptance_criteria {
+    uuid id PK
+    uuid task_id FK
+    enum ears_type "ubiquitous/event/state/optional/unwanted"
+    text trigger_text
+    text response_text
+    text condition_text
+    enum status "pending/verified/failed"
+  }
+  constitutions {
+    uuid id PK
+    uuid workspace_id FK
+    int version
+    text content_md
+    bool is_current
+  }
+  phases ||--o{ phase_gates : ""
+  phases ||--o{ tasks : ""
+  tasks ||--o{ task_dependencies : "parent"
+  tasks ||--o{ task_dependencies : "child (DAG)"
+  tasks ||--o{ acceptance_criteria : ""
+    </pre>
+  </div>
+  <div class="relation-card">
+    <strong>循環依存防止</strong>：<code>task_dependencies</code> に循環チェック trigger（recursive CTE）を必須実装
+  </div>
+</div>
+
+<!-- D. 仕様・モック -->
+<div class="section-card" id="er-mock">
+  <div class="section-header"><div class="section-num">E</div><div class="section-title">D. 仕様・モック（5 テーブル）</div></div>
+  <div class="diagram-box">
+    <pre class="mermaid">
+erDiagram
+  artifacts {
+    uuid id PK
+    uuid workspace_id FK
+    enum type "spec/mock_screen/mock_component/flow_map/progress/review/delivery/requirements/hearing/audit"
+    enum format "html/markdown/json/svg/png"
+    text title
+    text storage_url
+    vector embedding
+    tsvector tsv
+  }
+  artifact_versions {
+    uuid id PK
+    uuid artifact_id FK
+    int version
+    text storage_url
+    text changes
+  }
+  screens {
+    uuid id PK
+    uuid workspace_id FK
+    text name
+    text route_pattern
+    text_array role_visibility
+    uuid mock_artifact_id FK
+  }
+  components {
+    uuid id PK
+    uuid workspace_id FK
+    text name
+    text type
+    uuid mock_artifact_id FK
+  }
+  screen_components {
+    uuid screen_id FK
+    uuid component_id FK
+    jsonb position
+  }
+  artifacts ||--o{ artifact_versions : ""
+  screens ||--o{ screen_components : "M:N"
+  components ||--o{ screen_components : "M:N"
+  artifacts ||--o| screens : "mock"
+  artifacts ||--o| components : "mock"
+    </pre>
+  </div>
+</div>
+
+<!-- E. 実装・レビュー -->
+<div class="section-card" id="er-execution">
+  <div class="section-header"><div class="section-num">F</div><div class="section-title">E. 実装・レビュー（7 テーブル）</div></div>
+  <div class="diagram-box">
+    <pre class="mermaid">
+erDiagram
+  sessions {
+    uuid id PK
+    uuid task_id FK
+    uuid user_id FK "OAuth 各自プラン"
+    uuid workspace_id FK
+    enum status "starting/running/paused/completed/failed/cancelled/crashed"
+    timestamptz started_at
+    timestamptz ended_at
+    numeric cost
+    int tokens_input
+    int tokens_output
+    int retry_count
+    int failure_count "circuit breaker"
+    text langfuse_trace_id
+  }
+  session_logs {
+    uuid id PK "uuidv7"
+    uuid session_id FK
+    timestamptz timestamp "BRIN"
+    enum log_type "stdout/stderr/status/tool_call/tool_result"
+    text content
+  }
+  session_artifacts {
+    uuid session_id FK
+    uuid artifact_id FK
+  }
+  prs {
+    uuid id PK
+    uuid task_id FK
+    uuid workspace_id FK
+    text github_pr_url
+    int github_pr_number
+    enum status "open/merged/closed/draft"
+    uuid html_review_artifact_id FK
+  }
+  pr_reviews {
+    uuid id PK
+    uuid pr_id FK
+    uuid reviewer_id "polymorphic"
+    enum reviewer_type "human/ai_employee/monitor"
+    enum status "pending/approved/changes_requested/commented"
+    text comment
+  }
+  red_lines {
+    uuid id PK
+    uuid constitution_id FK "Constitution の下位"
+    enum category "api_key_leak/db_destructive/force_push/infinite_loop/deploy_decision/custom"
+    text pattern
+    enum severity "low/medium/high/critical"
+    bool auto_block
+  }
+  red_line_violations {
+    uuid id PK
+    uuid red_line_id FK
+    uuid session_id FK
+    uuid workspace_id FK
+    uuid user_id FK
+    jsonb context_snapshot
+    enum status "detected/approved/rejected/false_positive"
+    uuid approved_by FK
+  }
+  sessions ||--o{ session_logs : ""
+  sessions ||--o{ session_artifacts : "M:N"
+  sessions ||--o{ red_line_violations : ""
+  prs ||--o{ pr_reviews : ""
+  red_lines ||--o{ red_line_violations : ""
+    </pre>
+  </div>
+</div>
+
+<!-- F. 連携・運用 -->
+<div class="section-card" id="er-ops">
+  <div class="section-header"><div class="section-num">G</div><div class="section-title">F. 連携・運用（11 テーブル + 補助 2）</div></div>
+  <div class="diagram-box">
+    <pre class="mermaid">
+erDiagram
+  llm_providers {
+    uuid id PK
+    text name UK "anthropic/openai/google/custom"
+    text endpoint
+    jsonb capabilities
+  }
+  api_keys {
+    uuid id PK
+    enum owner_type "user/workspace/account"
+    uuid owner_id
+    uuid provider_id FK
+    bytea encrypted_key "pgsodium"
+    text key_hint "末尾4文字"
+  }
+  slack_webhooks {
+    uuid workspace_id PK
+    bytea webhook_url_encrypted
+    bytea bot_token_encrypted
+    text default_channel
+    jsonb notification_filters
+  }
+  github_repos {
+    uuid id PK
+    uuid workspace_id FK
+    text repo_url
+    text default_branch
+    bytea oauth_token_encrypted
+  }
+  obsidian_vaults {
+    uuid id PK
+    enum owner_type
+    uuid owner_id
+    text vault_path
+    enum sync_mode "export_only/bidirectional"
+    enum storage_backend "local_fs/supabase_storage/github"
+  }
+  notifications {
+    uuid id PK
+    uuid user_id FK
+    uuid workspace_id FK
+    text type
+    jsonb payload
+    timestamptz read_at
+  }
+  cost_logs {
+    uuid id PK "uuidv7"
+    uuid workspace_id FK
+    date date
+    uuid provider_id FK
+    text model
+    int tokens_input
+    int tokens_output
+    numeric cost
+    uuid session_id FK
+  }
+  token_limits {
+    uuid workspace_id PK
+    numeric amount
+    enum currency "jpy/usd"
+    int threshold_warn
+    int threshold_fallback
+    int threshold_stop
+  }
+  audit_logs {
+    uuid id PK "uuidv7 partitioned"
+    uuid user_id FK
+    uuid workspace_id FK
+    uuid account_id FK
+    text action
+    text target_type
+    uuid target_id
+    jsonb before
+    jsonb after
+    inet ip_address
+    text user_agent
+    timestamptz created_at "BRIN"
+  }
+  backups {
+    uuid id PK
+    enum type "db_full/db_incremental/storage/obsidian"
+    text storage_url
+    bigint size_bytes
+    timestamptz retention_until
+    timestamptz verified_at
+  }
+  user_settings {
+    uuid user_id PK
+    jsonb notification_prefs
+    enum theme "light/dark/auto"
+    enum language "ja/en"
+    text default_llm_provider
+    text default_llm_model
+  }
+  llm_providers ||--o{ api_keys : ""
+  llm_providers ||--o{ cost_logs : ""
+    </pre>
+  </div>
+</div>
+
+<!-- 主要テーブル定義 -->
+<div class="section-card" id="table-defs">
+  <div class="section-header"><div class="section-num">H</div><div class="section-title">主要テーブル定義（抜粋）</div></div>
+  <p style="font-size:12px;color:#64748b;">→ 全 42 テーブルの完全 DDL は Supabase CLI migrations フォルダで管理。ここでは主要 8 テーブルのみ抜粋。</p>
+
+  <div class="table-card">
+    <div class="table-card-header">workspaces <span class="table-card-tag">RLS 強制</span></div>
+    <div class="table-card-body">
+      <table>
+        <thead><tr><th>列</th><th>型</th><th>属性</th><th>説明</th></tr></thead>
+        <tbody>
+          <tr><td>id</td><td>uuid</td><td><span class="badge badge-pk">PK</span></td><td>UUID v7</td></tr>
+          <tr><td>account_id</td><td>uuid</td><td><span class="badge badge-fk">FK</span> <span class="badge badge-rls">RLS</span> <span class="badge badge-idx">IDX</span></td><td>NOT NULL</td></tr>
+          <tr><td>name</td><td>text</td><td>NOT NULL</td><td>表示名</td></tr>
+          <tr><td>slug</td><td>text</td><td><span class="badge badge-uniq">UNIQUE per account</span></td><td>URL 用</td></tr>
+          <tr><td>project_meta</td><td>jsonb</td><td>DEFAULT '{}'</td><td>柔軟スキーマ</td></tr>
+          <tr><td>token_limit_amount</td><td>numeric</td><td>NULL = 無制限</td><td>admin が設定</td></tr>
+          <tr><td>created_by</td><td>uuid</td><td><span class="badge badge-fk">FK→users</span></td><td></td></tr>
+          <tr><td>created_at / updated_at / deleted_at</td><td>timestamptz</td><td>標準</td><td>ソフトデリート</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-card-header">workspace_members <span class="table-card-tag">RLS 強制</span> <span class="table-card-tag">M-21</span></div>
+    <div class="table-card-body">
+      <table>
+        <tbody>
+          <tr><td>id</td><td>uuid</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+          <tr><td>workspace_id</td><td>uuid</td><td><span class="badge badge-fk">FK</span> <span class="badge badge-idx">IDX</span></td><td></td></tr>
+          <tr><td>user_id</td><td>uuid</td><td><span class="badge badge-fk">FK</span> <span class="badge badge-idx">IDX</span></td><td></td></tr>
+          <tr><td>role</td><td>enum</td><td>workspace_admin / contributor / viewer / client / monitor</td><td></td></tr>
+          <tr><td>custom_permissions</td><td>jsonb</td><td>DEFAULT '{}'</td><td>個別 override</td></tr>
+          <tr><td>visible_tabs</td><td>jsonb</td><td>DEFAULT '[]'</td><td>client のタブ ON/OFF</td></tr>
+          <tr><td colspan="4"><span class="badge badge-uniq">UNIQUE(workspace_id, user_id) WHERE deleted_at IS NULL</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-card-header">ai_employees <span class="table-card-tag">M-22 階層</span></div>
+    <div class="table-card-body">
+      <table>
+        <tbody>
+          <tr><td>id</td><td>uuid</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+          <tr><td>account_id</td><td>uuid</td><td><span class="badge badge-fk">FK</span> <span class="badge badge-rls">RLS</span></td><td></td></tr>
+          <tr><td>hierarchy_level</td><td>enum</td><td>csuite / lead / member / personal_clone</td><td>3 階層 + クローン</td></tr>
+          <tr><td>parent_employee_id</td><td>uuid</td><td><span class="badge badge-fk">FK→ai_employees</span></td><td>self-ref（循環防止 trigger）</td></tr>
+          <tr><td>department</td><td>enum</td><td>executive / engineering / design / qa / knowledge / general</td><td></td></tr>
+          <tr><td>cloned_from_user_id</td><td>uuid</td><td><span class="badge badge-fk">FK→users</span> NULL</td><td>クローン素地</td></tr>
+          <tr><td>skill_ids</td><td>uuid[]</td><td><span class="badge badge-idx">GIN</span></td><td>関連スキル</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-card-header">tasks <span class="table-card-tag">RLS 強制</span> <span class="table-card-tag">M-6/7/24</span></div>
+    <div class="table-card-body">
+      <table>
+        <tbody>
+          <tr><td>id</td><td>uuid</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+          <tr><td>workspace_id / phase_id</td><td>uuid</td><td><span class="badge badge-fk">FK</span> <span class="badge badge-rls">RLS</span> <span class="badge badge-idx">IDX</span></td><td></td></tr>
+          <tr><td>title / description</td><td>text</td><td></td><td></td></tr>
+          <tr><td>status</td><td>enum</td><td>triage / todo / ready / in_progress / blocked / done</td><td>Hermes 6 列</td></tr>
+          <tr><td>priority</td><td>enum</td><td>low / medium / high / urgent</td><td></td></tr>
+          <tr><td>assigned_employee_id</td><td>uuid</td><td><span class="badge badge-fk">FK→ai_employees</span></td><td></td></tr>
+          <tr><td>screen_id</td><td>uuid</td><td><span class="badge badge-fk">FK→screens</span> NULL</td><td>M-5b 紐付け</td></tr>
+          <tr><td>embedding</td><td>vector(1536)</td><td><span class="badge badge-idx">ivfflat</span></td><td>semantic 検索</td></tr>
+          <tr><td>tsv</td><td>tsvector</td><td><span class="badge badge-idx">GIN</span> GENERATED</td><td>FTS</td></tr>
+          <tr><td>tags</td><td>text[]</td><td><span class="badge badge-idx">GIN</span></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-card-header">acceptance_criteria <span class="table-card-tag">EARS notation M-25</span></div>
+    <div class="table-card-body">
+      <table>
+        <tbody>
+          <tr><td>id</td><td>uuid</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+          <tr><td>task_id</td><td>uuid</td><td><span class="badge badge-fk">FK</span> <span class="badge badge-idx">IDX</span></td><td></td></tr>
+          <tr><td>ears_type</td><td>enum</td><td>ubiquitous / event / state / optional / unwanted</td><td>5 形式</td></tr>
+          <tr><td>trigger_text / response_text / condition_text</td><td>text</td><td></td><td>EARS 構成要素</td></tr>
+          <tr><td>raw_text</td><td>text</td><td></td><td>元の自然言語</td></tr>
+          <tr><td>status</td><td>enum</td><td>pending / verified / failed</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-card-header">sessions <span class="table-card-tag">M-10b/c/d</span></div>
+    <div class="table-card-body">
+      <table>
+        <tbody>
+          <tr><td>id</td><td>uuid</td><td><span class="badge badge-pk">PK</span></td><td></td></tr>
+          <tr><td>task_id / workspace_id</td><td>uuid</td><td><span class="badge badge-fk">FK</span> <span class="badge badge-idx">IDX</span></td><td></td></tr>
+          <tr><td>user_id</td><td>uuid</td><td><span class="badge badge-fk">FK</span></td><td>OAuth で各自プラン使用</td></tr>
+          <tr><td>status</td><td>enum</td><td>starting / running / paused / completed / failed / cancelled / crashed</td><td></td></tr>
+          <tr><td>retry_count / failure_count</td><td>int</td><td>circuit breaker</td><td></td></tr>
+          <tr><td>cost / tokens_input / tokens_output</td><td>numeric / int</td><td></td><td>Langfuse 連携</td></tr>
+          <tr><td>langfuse_trace_id</td><td>text</td><td></td><td>追跡</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-card-header">constitutions + red_lines <span class="table-card-tag">M-12/26 階層管理</span></div>
+    <div class="table-card-body">
+      <table>
+        <tbody>
+          <tr><td colspan="4"><strong>constitutions</strong>（プロジェクト不変原則・上位）</td></tr>
+          <tr><td>id / workspace_id / version</td><td>uuid / uuid / int</td><td>UNIQUE(workspace_id, version)</td><td></td></tr>
+          <tr><td>content_md</td><td>text</td><td>NOT NULL</td><td>Markdown 不変原則</td></tr>
+          <tr><td>is_current</td><td>bool</td><td>UNIQUE INDEX WHERE is_current=true</td><td>現行版は 1 つ</td></tr>
+          <tr><td colspan="4"><strong>red_lines</strong>（検出ルール・下位）</td></tr>
+          <tr><td>constitution_id</td><td>uuid</td><td><span class="badge badge-fk">FK→constitutions</span></td><td>階層</td></tr>
+          <tr><td>category / pattern / severity / auto_block</td><td>enum / text / enum / bool</td><td></td><td>5 主要カテゴリ + custom</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-card-header">audit_logs <span class="table-card-tag">7 年保持・partitioned</span></div>
+    <div class="table-card-body">
+      <table>
+        <tbody>
+          <tr><td>id</td><td>uuid</td><td><span class="badge badge-pk">PK uuidv7</span></td><td></td></tr>
+          <tr><td>user_id / workspace_id / account_id</td><td>uuid</td><td><span class="badge badge-fk">FK</span></td><td></td></tr>
+          <tr><td>action / target_type / target_id</td><td>text / text / uuid</td><td></td><td></td></tr>
+          <tr><td>before / after</td><td>jsonb</td><td></td><td>変更前後</td></tr>
+          <tr><td>ip_address / user_agent</td><td>inet / text</td><td></td><td></td></tr>
+          <tr><td>created_at</td><td>timestamptz</td><td><span class="badge badge-idx">BRIN</span></td><td>partitioned monthly via pg_partman (P2)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Indexes -->
+<div class="section-card" id="indexes">
+  <div class="section-header"><div class="section-num">I</div><div class="section-title">インデックス方針</div></div>
+
+  <div class="subsection-title">必須インデックスパターン（全テーブル共通）</div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>パターン</th><th>例</th><th>理由</th></tr></thead>
+    <tbody>
+      <tr><td>RLS 対象カラム</td><td><code>idx_X_workspace_id ON X(workspace_id) WHERE deleted_at IS NULL</code></td><td>RLS 性能</td></tr>
+      <tr><td>workspace_members 評価</td><td><code>idx_wsm_user_workspace ON workspace_members(user_id, workspace_id) WHERE deleted_at IS NULL</code></td><td>RLS で頻繁参照</td></tr>
+      <tr><td>全 FK</td><td><code>idx_tasks_phase_id ON tasks(phase_id)</code></td><td>JOIN 性能</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="subsection-title">特殊インデックス（用途別）</div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>用途</th><th>採用</th><th>適用テーブル</th></tr></thead>
+    <tbody>
+      <tr><td>全文検索（M-24）</td><td><code>GIN</code> on tsvector</td><td>tasks / artifacts</td></tr>
+      <tr><td>semantic 検索（M-24）</td><td><code>ivfflat (vector_cosine_ops)</code></td><td>tasks / artifacts / user_interaction_log</td></tr>
+      <tr><td>fuzzy 検索</td><td><code>GIN (gin_trgm_ops)</code></td><td>tasks.title / artifacts.title</td></tr>
+      <tr><td>配列検索</td><td><code>GIN</code></td><td>ai_employees.skill_ids / tasks.tags</td></tr>
+      <tr><td>時系列（追記専用）</td><td><code>BRIN</code></td><td>audit_logs / session_logs / cost_logs</td></tr>
+      <tr><td>partial（部分条件）</td><td><code>WHERE is_current = true</code></td><td>constitutions.is_current</td></tr>
+      <tr><td>partial（unread）</td><td><code>WHERE read_at IS NULL</code></td><td>notifications</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="subsection-title">複合インデックス（クエリパターン特化）</div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>クエリ</th><th>インデックス</th></tr></thead>
+    <tbody>
+      <tr><td>カンバン view</td><td><code>tasks(workspace_id, status, priority DESC, created_at DESC)</code> WHERE deleted_at IS NULL</td></tr>
+      <tr><td>swarm 実行中一覧</td><td><code>sessions(workspace_id, status, started_at DESC)</code> WHERE status IN ('starting','running','paused')</td></tr>
+      <tr><td>依存グラフ traversal</td><td><code>task_dependencies(parent_task_id, child_task_id)</code> + <code>(child_task_id, parent_task_id)</code></td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<!-- Design notes -->
+<div class="section-card" id="design-notes">
+  <div class="section-header"><div class="section-num">J</div><div class="section-title">設計ノート</div></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>項目</th><th>方針</th></tr></thead>
+    <tbody>
+      <tr><td>PK 型</td><td>UUID v7（時系列ソート可・衝突なし）</td></tr>
+      <tr><td>削除戦略</td><td>ソフトデリート（<code>deleted_at TIMESTAMPTZ</code>）+ RLS で auto フィルタ / 物理削除は admin 手動のみ</td></tr>
+      <tr><td>マルチテナント</td><td>account_id / workspace_id 全テーブル必須 + RLS で auto enforce</td></tr>
+      <tr><td>命名規則</td><td>snake_case / 複数形 / FK は <code>&lt;table&gt;_id</code></td></tr>
+      <tr><td>タイムスタンプ</td><td><code>created_at</code> / <code>updated_at</code>（trigger 自動更新）</td></tr>
+      <tr><td>作成・更新者追跡</td><td><code>created_by</code> / <code>updated_by</code> UUID FK→users</td></tr>
+      <tr><td>JSONB 活用</td><td>custom_permissions / project_meta / capabilities / criteria / before / after</td></tr>
+      <tr><td>enum</td><td>Postgres ENUM 型 + check constraint で型安全</td></tr>
+      <tr><td>監査連携</td><td>主要テーブルに変更検出 trigger → audit_logs に自動 INSERT</td></tr>
+      <tr><td>時系列テーブル</td><td>audit_logs / session_logs / cost_logs は BRIN + pg_partman 月次 partition（Phase 2）</td></tr>
+      <tr><td>暗号化</td><td>API キー / OAuth トークンは pgsodium で <code>bytea</code> 列に保管 / UI は masked 表示</td></tr>
+      <tr><td>マイグレーション</td><td>Supabase CLI（<code>supabase migration new</code> + <code>supabase db push</code>） / 既存 alembic は archive</td></tr>
+      <tr><td>seed</td><td><code>supabase/seed.sql</code> / <code>BF_ENV=development</code> ガード必須</td></tr>
+      <tr><td>本番マイグレ戦略</td><td>expand-and-contract（zero-downtime）</td></tr>
+      <tr><td>個人クローン opt-in</td><td><code>users.user_clone_opt_in DEFAULT FALSE</code> + INSERT trigger で強制</td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<div style="text-align:center;margin-top:30px;font-size:11px;color:#94a3b8;">
+  <p>Build-Factory ER 図 + DB 設計 v1.0 / 株式会社 ENGINE BASE / 2026-05-09</p>
+  <p style="margin-top:4px;">関連: <code>architecture-v1.html</code> · <code>architecture-v1.md</code> · <code>architecture_design.json</code></p>
+</div>
+
+</main>
+</div>
+</body>
+</html>

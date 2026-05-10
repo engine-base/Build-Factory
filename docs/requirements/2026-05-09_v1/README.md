@@ -41,6 +41,10 @@ architecture-design → tech-stack → functional-breakdown
 
 ---
 
+## 後続成果物
+
+- 🆕 **architecture-design v1.0** → `docs/architecture/2026-05-09_v1/`（要件定義 v1 → アーキ設計 v1 への昇格・2026-05-09）
+
 ## 改訂履歴
 
 - **v1**（2026-05-09）: ヒアリング v2.1 → 要件定義 v1 への正式昇格
