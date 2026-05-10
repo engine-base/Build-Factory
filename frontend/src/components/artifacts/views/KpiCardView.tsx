@@ -1,5 +1,7 @@
 "use client";
 
+import { TrendingUpIcon, TrendingDownIcon, MinusIcon } from "lucide-react";
+
 interface Metric {
   label: string;
   value: number | string;
@@ -41,8 +43,12 @@ export function KpiCardView({ data }: Props) {
                   : "text-gray-500"
               }`}
             >
-              {m.delta > 0 ? "▲" : m.delta < 0 ? "▼" : "─"}{" "}
-              {Math.abs(m.delta).toLocaleString()}
+              <span className="inline-flex items-center gap-1">
+                {m.delta > 0 ? <TrendingUpIcon className="w-3.5 h-3.5" aria-label="上昇" />
+                  : m.delta < 0 ? <TrendingDownIcon className="w-3.5 h-3.5" aria-label="下降" />
+                  : <MinusIcon className="w-3.5 h-3.5" aria-label="変化なし" />}
+                {Math.abs(m.delta).toLocaleString()}
+              </span>
             </div>
           )}
         </div>

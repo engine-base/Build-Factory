@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 import { ArtifactPanel } from "@/components/artifacts/ArtifactPanel";
-import { Package } from "lucide-react";
+import { Package, UserIcon } from "lucide-react";
 
 const API = "http://localhost:8001";
 
@@ -21,7 +21,7 @@ export default function SecretaryPage() {
     queryFn: () => fetch(`${API}/api/staff/1`).then(r => r.json()).catch(() => null),
   });
 
-  const avatar = secretary?.avatar_emoji || "🎀";
+  const avatar = secretary?.avatar_emoji || "";
   const name = secretary?.persona_name || "秘書";
 
   const [showArtifacts, setShowArtifacts] = useState(false);
@@ -38,7 +38,7 @@ export default function SecretaryPage() {
             <div className="px-4 py-3 bg-white flex items-center gap-3"
               style={{ borderBottom: "1px solid var(--eb-border)" }}>
               <div className="w-9 h-9 rounded-full flex items-center justify-center text-xl"
-                style={{ background: "#7E3AED22" }}>{avatar}</div>
+                style={{ background: "#7E3AED22" }}>{avatar || <UserIcon className="w-4 h-4" aria-label="secretary" />}</div>
               <div className="flex-1">
                 <h1 className="font-bold text-sm" style={{ fontFamily: "var(--font-noto-sans-jp)" }}>
                   秘書 {name}

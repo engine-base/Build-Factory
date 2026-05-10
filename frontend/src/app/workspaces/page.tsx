@@ -9,7 +9,7 @@ import {
   fetchWorkspacesByAccount,
   createWorkspace,
 } from "@/lib/workspaces";
-import { Plus, Folder, Users, Sparkles } from "lucide-react";
+import { Plus, Folder, Users, Sparkles, ConstructionIcon, Building2Icon, UserIcon, PaletteIcon } from "lucide-react";
 
 /**
  * Account ダッシュボード
@@ -69,7 +69,7 @@ export default function AccountDashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            🏗 Build-Factory
+            <ConstructionIcon className="w-6 h-6" aria-label="construction" /> Build-Factory
           </h1>
           <p className="text-sm text-gray-500 mt-1">
             開発フロー特化 AI 社員 OS
@@ -97,7 +97,10 @@ export default function AccountDashboardPage() {
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            {a.type === "company" ? "🏢" : "👤"} {a.name}
+            <span className="inline-flex items-center gap-1">
+              {a.type === "company" ? <Building2Icon className="w-3 h-3" aria-label="company" /> : <UserIcon className="w-3 h-3" aria-label="individual" />}
+              {a.name}
+            </span>
             <span className="ml-1.5 opacity-70">·{a.plan}</span>
           </button>
         ))}
@@ -227,8 +230,8 @@ function WorkspaceCard({ workspace: w }: { workspace: Workspace }) {
       )}
       <div className="mt-3 flex items-center gap-3 text-xs text-gray-500">
         {w.design_system_ref && (
-          <span className="rounded bg-purple-50 text-purple-700 px-1.5 py-0.5">
-            🎨 {w.design_system_ref}
+          <span className="rounded bg-purple-50 text-purple-700 px-1.5 py-0.5 inline-flex items-center gap-1">
+            <PaletteIcon className="w-3 h-3" aria-label="design system" /> {w.design_system_ref}
           </span>
         )}
         {w.member_role && (

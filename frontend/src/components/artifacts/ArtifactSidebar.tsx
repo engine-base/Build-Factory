@@ -2,6 +2,24 @@
 
 import { useEffect, useState } from "react";
 import {
+  PinIcon,
+  ArchiveIcon,
+  CheckCircle2Icon,
+  FolderIcon,
+  ClipboardListIcon,
+  BarChart3Icon,
+  FileTextIcon,
+  TrendingUpIcon,
+  CalendarIcon,
+  ScaleIcon,
+  RepeatIcon,
+  ImageIcon,
+  TargetIcon,
+  PencilIcon,
+  FilmIcon,
+  BrainIcon,
+} from "lucide-react";
+import {
   Artifact,
   ArtifactWS,
   CategorySummary,
@@ -16,7 +34,7 @@ interface Props {
 
 /**
  * 既存の左メニュー（dashboard / employee 等）に**追加配置**するセクション。
- * トップに「📌 ピン留め」、その下にカテゴリ別件数。
+ * トップにピン留め、その下にカテゴリ別件数。
  */
 export function ArtifactSidebar({ onSelect }: Props) {
   const [pinned, setPinned] = useState<Artifact[]>([]);
@@ -62,7 +80,10 @@ export function ArtifactSidebar({ onSelect }: Props) {
       {/* ピン留めセクション */}
       <div>
         <div className="mb-1.5 flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
-          <span>📌 ピン留め</span>
+          <span className="inline-flex items-center gap-1">
+            <PinIcon className="w-3.5 h-3.5" aria-hidden="true" />
+            ピン留め
+          </span>
           <span className="text-gray-400">{pinned.length}</span>
         </div>
         <ul className="space-y-0.5">
@@ -73,10 +94,11 @@ export function ArtifactSidebar({ onSelect }: Props) {
             <li key={a.id} className="group flex items-center gap-2 rounded px-2 py-1 hover:bg-gray-100">
               <button
                 onClick={() => onSelect?.(a)}
-                className="flex-1 truncate text-left text-sm"
+                className="flex-1 inline-flex items-center gap-1 truncate text-left text-sm"
                 title={a.title}
               >
-                {typeIcon(a.type)} {a.title || a.type}
+                <TypeIcon type={a.type} className="w-3.5 h-3.5" />
+                <span className="truncate">{a.title || a.type}</span>
               </button>
               <button
                 onClick={async () => {
@@ -95,8 +117,9 @@ export function ArtifactSidebar({ onSelect }: Props) {
 
       {/* カテゴリ */}
       <div>
-        <div className="mb-1.5 px-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
-          🗃 ライブラリ
+        <div className="mb-1.5 inline-flex items-center gap-1 px-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <ArchiveIcon className="w-3.5 h-3.5" aria-hidden="true" />
+          ライブラリ
         </div>
         <ul className="space-y-0.5">
           {categories.map((c) => (
@@ -123,10 +146,11 @@ export function ArtifactSidebar({ onSelect }: Props) {
               <li key={a.id}>
                 <button
                   onClick={() => onSelect?.(a)}
-                  className="block w-full truncate rounded px-2 py-1 text-left text-xs hover:bg-gray-100"
+                  className="inline-flex w-full items-center gap-1 truncate rounded px-2 py-1 text-left text-xs hover:bg-gray-100"
                   title={a.title}
                 >
-                  {typeIcon(a.type)} {a.title || a.type}
+                  <TypeIcon type={a.type} className="w-3 h-3" />
+                  <span className="truncate">{a.title || a.type}</span>
                 </button>
               </li>
             ))}
@@ -137,23 +161,40 @@ export function ArtifactSidebar({ onSelect }: Props) {
   );
 }
 
-function typeIcon(t: string): string {
-  switch (t) {
-    case "list":     return "✅";
-    case "kanban":   return "🗂";
-    case "table":    return "📋";
-    case "kpi-card": return "📊";
-    case "markdown": return "📄";
-    case "chart":    return "📈";
-    case "gantt":    return "📅";
-    case "calendar": return "📅";
-    case "compare":  return "⚖️";
-    case "workflow": return "🔁";
-    case "gallery":  return "🖼";
-    case "matrix":   return "🎯";
-    case "form":     return "📝";
-    case "slide":    return "🎞";
-    case "mindmap":  return "🧠";
-    default:         return "•";
+function TypeIcon({ type, className }: { type: string; className?: string }) {
+  const cls = className ?? "w-3.5 h-3.5";
+  switch (type) {
+    case "list":
+      return <CheckCircle2Icon className={cls} aria-hidden="true" />;
+    case "kanban":
+      return <FolderIcon className={cls} aria-hidden="true" />;
+    case "table":
+      return <ClipboardListIcon className={cls} aria-hidden="true" />;
+    case "kpi-card":
+      return <BarChart3Icon className={cls} aria-hidden="true" />;
+    case "markdown":
+      return <FileTextIcon className={cls} aria-hidden="true" />;
+    case "chart":
+      return <TrendingUpIcon className={cls} aria-hidden="true" />;
+    case "gantt":
+      return <CalendarIcon className={cls} aria-hidden="true" />;
+    case "calendar":
+      return <CalendarIcon className={cls} aria-hidden="true" />;
+    case "compare":
+      return <ScaleIcon className={cls} aria-hidden="true" />;
+    case "workflow":
+      return <RepeatIcon className={cls} aria-hidden="true" />;
+    case "gallery":
+      return <ImageIcon className={cls} aria-hidden="true" />;
+    case "matrix":
+      return <TargetIcon className={cls} aria-hidden="true" />;
+    case "form":
+      return <PencilIcon className={cls} aria-hidden="true" />;
+    case "slide":
+      return <FilmIcon className={cls} aria-hidden="true" />;
+    case "mindmap":
+      return <BrainIcon className={cls} aria-hidden="true" />;
+    default:
+      return <span className={cls} aria-hidden="true">•</span>;
   }
 }

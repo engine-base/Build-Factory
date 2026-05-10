@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { MessageSquare, X, UserPlus, UserMinus, Edit2, Users, AlertTriangle } from "lucide-react";
+import { MessageSquare, X, UserPlus, UserMinus, Edit2, Users, AlertTriangle, BellIcon, BotIcon, UserIcon, BookOpenIcon, ChevronRightIcon } from "lucide-react";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 
 const API = "http://localhost:8001";
@@ -73,8 +73,8 @@ export default function AIEmployeesPage() {
         <div className="flex items-start justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold" style={{ fontFamily: "var(--font-noto-sans-jp)" }}>AI社員（組織図）</h1>
-            <p className="text-sm mt-1" style={{ color: "var(--eb-neutral)" }}>
-              秘書 ▸ リーダー ▸ メンバー の階層構造。クリックで個性確認・チャット・編集・退職処理。
+            <p className="text-sm mt-1 inline-flex items-center gap-1 flex-wrap" style={{ color: "var(--eb-neutral)" }}>
+              秘書<ChevronRightIcon className="w-3 h-3" aria-hidden />リーダー<ChevronRightIcon className="w-3 h-3" aria-hidden />メンバー の階層構造。クリックで個性確認・チャット・編集・退職処理。
             </p>
           </div>
           <button onClick={() => { setSecretaryFlow({ kind: "hire" }); setChatEmployee(null); }}
@@ -110,7 +110,7 @@ export default function AIEmployeesPage() {
             style={{ background: "#FEF3C7", border: "1px solid #FCD34D" }}>
             <AlertTriangle className="w-4 h-4 mt-0.5" style={{ color: "#92400E" }} />
             <div className="text-xs" style={{ color: "#92400E" }}>
-              {org.warnings.map(w => <div key={w.employee_id}>🔔 {w.message}</div>)}
+              {org.warnings.map(w => <div key={w.employee_id} className="inline-flex items-center gap-1"><BellIcon className="w-3 h-3" aria-label="bell" /> {w.message}</div>)}
             </div>
           </div>
         )}
@@ -180,7 +180,7 @@ export default function AIEmployeesPage() {
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full flex items-center justify-center text-lg"
                     style={{ background: colorOf(chatEmployee.category) + "22" }}>
-                    {chatEmployee.avatar_emoji || "🤖"}
+                    {chatEmployee.avatar_emoji || <BotIcon className="w-4 h-4" aria-label="bot" />}
                   </div>
                   <div>
                     <p className="text-xs font-bold" style={{ fontFamily: "var(--font-noto-sans-jp)" }}>
@@ -221,7 +221,7 @@ export default function AIEmployeesPage() {
               employeeId={hr.id}
               employeeName={hr.persona_name || "人事AI"}
               employeeColor="#0F766E"
-              avatarEmoji={hr.avatar_emoji || "👔"}
+              avatarEmoji={hr.avatar_emoji || undefined}
               defaultProvider="openai"
               defaultModel="gpt-4o-mini"
               showThreadList={false}
@@ -231,7 +231,7 @@ export default function AIEmployeesPage() {
                   style={{ borderBottom: "1px solid var(--eb-border)" }}>
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-lg"
-                      style={{ background: "#0F766E22" }}>{hr.avatar_emoji || "👔"}</div>
+                      style={{ background: "#0F766E22" }}>{hr.avatar_emoji || <UserIcon className="w-4 h-4" aria-label="user" />}</div>
                     <div>
                       <p className="text-xs font-bold" style={{ fontFamily: "var(--font-noto-sans-jp)" }}>
                         人事 {hr.persona_name}
@@ -305,7 +305,7 @@ function EmployeeCard({ emp, knowledgeCount, isLeader, compact, onChat, onEdit, 
           display: "flex", alignItems: "center", justifyContent: "center",
           flexShrink: 0,
         }}>
-        {emp.avatar_emoji || "🤖"}
+        {emp.avatar_emoji || <BotIcon className={compact ? "w-4 h-4" : "w-5 h-5"} aria-label="bot" />}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
@@ -322,7 +322,7 @@ function EmployeeCard({ emp, knowledgeCount, isLeader, compact, onChat, onEdit, 
           {emp.specialty && (
             <span className="text-[11px] opacity-70">／ {emp.specialty}</span>
           )}
-          <span className="text-[11px] opacity-60">📚 {knowledgeCount}件</span>
+          <span className="text-[11px] opacity-60 inline-flex items-center gap-1"><BookOpenIcon className="w-3 h-3" aria-label="knowledge" /> {knowledgeCount}件</span>
         </div>
         {!compact && emp.handles && (
           <p className="text-xs mt-1" style={{ color: "var(--eb-neutral)" }}>{emp.handles}</p>

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Send, Play, Check, Loader2, CheckCircle2, Circle, CircleDot,
-  Sparkles, Wand2, Eye, ArrowRight,
+  Sparkles, Wand2, Eye, ArrowRight, CheckIcon, StarIcon,
 } from "lucide-react";
 import {
   fetchBuilderState, startBuilderStep, replyBuilder, completeBuilderStep,
@@ -239,7 +239,8 @@ function CenterPanel({
                     marginLeft: "auto", fontSize: 10, fontWeight: 700,
                     color: "var(--bf-success)", background: "rgba(22,163,74,0.1)",
                     padding: "2px 8px", borderRadius: 999,
-                  }}>✓ 確定</span>
+                    display: "inline-flex", alignItems: "center", gap: 4,
+                  }}><CheckIcon className="w-3 h-3" aria-label="confirmed" /> 確定</span>
                 )}
               </div>
               {sections.map((sec) => sec.items.length > 0 && (
@@ -278,8 +279,8 @@ function CenterPanel({
             marginTop: 24, padding: 16, background: "var(--bf-primary-bg)",
             border: "1px solid var(--bf-primary)", borderRadius: 10,
           }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: "var(--bf-primary)", letterSpacing: "0.06em", marginBottom: 8 }}>
-              ★ 確定済みテンプレ構成 (template_config)
+            <div style={{ fontSize: 11, fontWeight: 800, color: "var(--bf-primary)", letterSpacing: "0.06em", marginBottom: 8, display: "inline-flex", alignItems: "center", gap: 4 }}>
+              <StarIcon className="w-3 h-3" aria-label="confirmed template" /> 確定済みテンプレ構成 (template_config)
             </div>
             <pre style={{
               fontSize: 11, lineHeight: 1.55, color: "var(--bf-text-2)",

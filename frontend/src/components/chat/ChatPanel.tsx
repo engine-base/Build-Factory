@@ -12,7 +12,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Send, Mic, MicOff, Paperclip, FileText, Video, Music, Image as ImageIcon,
   X, Loader, Sparkles, Bot, ChevronUp, Check, Cpu, User as UserIcon,
-  Plus, MessageSquare, Trash2,
+  Plus, MessageSquare, Trash2, AlertTriangleIcon, LightbulbIcon,
 } from "lucide-react";
 import { ToolUIBlock, parseToolUIBlocks, ToolUIActionProvider } from "@/components/tool-ui";
 import { MarkdownView } from "./MarkdownView";
@@ -825,7 +825,7 @@ function NativeComposer({
               setText((e.target as HTMLTextAreaElement).value);
             }}
             onKeyDown={onKeyDown}
-            placeholder={recording ? "🎙️ 音声入力中..." : "メッセージを入力..."}
+            placeholder={recording ? "音声入力中..." : "メッセージを入力..."}
             rows={1}
             className="px-4 pt-3 pb-2 text-sm resize-none outline-none bg-transparent"
             style={{
@@ -912,7 +912,7 @@ function LLMPicker({ providers, selected, onChange, helperSel, setHelperSel }: {
         }}
         title={isToolless ? "このモデルは Function Calling 未対応 — ツール実行不可" : ""}>
         <Cpu className="w-3 h-3" />
-        <span>{currentLabel}{isToolless && " ⚠"}</span>
+        <span className="inline-flex items-center gap-1">{currentLabel}{isToolless && <AlertTriangleIcon className="w-3 h-3" aria-label="warning" />}</span>
         <ChevronUp className={`w-3 h-3 transition-transform ${open ? "" : "rotate-180"}`} />
       </button>
       {open && (
@@ -950,9 +950,10 @@ function LLMPicker({ providers, selected, onChange, helperSel, setHelperSel }: {
               {showHelper && (
                 <div className="px-1">
                   {isLocalMain && (
-                    <div className="mx-1 mb-1 p-1.5 rounded text-[10px]"
+                    <div className="mx-1 mb-1 p-1.5 rounded text-[10px] flex items-start gap-1"
                       style={{ background: "#FEF3C7", color: "#92400E" }}>
-                      💡 ローカルLLMをメインに選んでいます。補助LLMだけ高速API（gpt-4o-mini等）にすると応答が速くなります。
+                      <LightbulbIcon className="w-3 h-3 mt-0.5 shrink-0" aria-label="tip" />
+                      <span>ローカルLLMをメインに選んでいます。補助LLMだけ高速API（gpt-4o-mini等）にすると応答が速くなります。</span>
                     </div>
                   )}
                   <button

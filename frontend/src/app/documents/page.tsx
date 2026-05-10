@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Upload, FileText, Loader, FolderOpen, Tag } from "lucide-react";
+import { Upload, FileText, Loader, FolderOpen, Tag, FolderIcon as FolderPathIcon, FileTextIcon } from "lucide-react";
 
 const API = "http://localhost:8001";
 
@@ -138,8 +138,9 @@ export default function DocumentsPage() {
                     <p className="text-[11px] mt-2 line-clamp-2" style={{ color: "var(--eb-neutral)", fontFamily: "var(--font-noto-sans-jp)" }}>
                       {d.summary}
                     </p>
-                    <p className="text-[10px] mt-1.5 truncate" style={{ color: "var(--eb-neutral)" }}>
-                      {d.md_path?.replace(/^.*Obsidian\//, "📁 ")}
+                    <p className="text-[10px] mt-1.5 truncate inline-flex items-center gap-1" style={{ color: "var(--eb-neutral)" }}>
+                      <FolderPathIcon className="w-3 h-3" aria-label="folder" />
+                      <span className="truncate">{d.md_path?.replace(/^.*Obsidian\//, "")}</span>
                     </p>
                   </div>
                 </div>
@@ -160,9 +161,14 @@ export default function DocumentsPage() {
             <div className="mb-3">
               <label className="block text-[10px] font-semibold mb-1" style={{ color: "var(--eb-neutral)", fontFamily: "var(--font-inter)" }}>PDFファイル</label>
               <button type="button" onClick={() => fileRef.current?.click()}
-                className="w-full p-3 rounded text-xs text-left border-dashed"
+                className="w-full p-3 rounded text-xs text-left border-dashed inline-flex items-center gap-1"
                 style={{ border: "2px dashed var(--eb-border)", color: file ? "#1f2937" : "var(--eb-neutral)" }}>
-                {file ? `📄 ${file.name} (${(file.size/1024).toFixed(0)}KB)` : "クリックしてPDFを選択..."}
+                {file ? (
+                  <>
+                    <FileTextIcon className="w-3 h-3 shrink-0" aria-label="pdf file" />
+                    <span>{file.name} ({(file.size/1024).toFixed(0)}KB)</span>
+                  </>
+                ) : "クリックしてPDFを選択..."}
               </button>
               <input ref={fileRef} type="file" accept=".pdf" className="hidden"
                 onChange={e => setFile(e.target.files?.[0] ?? null)} />
