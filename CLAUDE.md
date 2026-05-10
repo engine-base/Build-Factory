@@ -52,13 +52,32 @@
 - **pg_cron** + **pg_partman** (Phase 2)
 - **Supabase Auth** (GoTrue) + 2FA (TOTP) + OAuth (Anthropic / Slack / GitHub)
 
-### AI Stack (5 層)
-1. **LangGraph** = オーケストレータ (handoff / guardrails / sessions)
-2. **LiteLLM** = プロバイダ抽象化 (Anthropic / OpenAI / 他)
-3. **claude-agent-sdk** = subprocess 経由で Claude Code を呼ぶ
-4. **Anthropic Agent Teams** = Claude Code 内の Plan / Gen / Eval
-5. **openai/codex (Apache 2.0)** = 参照のみ (依存しない)
-   - OpenAI Agents SDK / openai-python は LiteLLM 経由のみで、直接依存しない
+### AI Stack (3 層 — ADR-010 で 5層 → 3層に再設計、2026-05-10)
+
+```
+Layer 3: claude-agent-sdk + Subagent (Anthropic 公式) ← 中核
+  - Subagent (Task tool) = handoff (mary→devon→quinn)
+  - 3-tier compaction を SDK が自動実行
+  - Memory API 統合 / MCP server / session resume
+
+Layer 2a (メイン): anthropic-python ← Claude 専用、最高精度
+  - extended thinking / prompt cache / Memory / Files / Citations / Batch / Computer Use
+
+Layer 2b (サブ): LiteLLM ← マルチプロバイダ柔軟性 (縮退)
+  - 画像生成 (Gemini Image / DALL-E)
+  - 音声 (Whisper)
+  - 安価バッチ (Gemini Flash)
+  - 緊急代替 (Anthropic 障害時 → GPT-4o / Gemini 2.5 Pro)
+
+Layer 1: PostgreSQL + Mem0 + Obsidian + Constitution
+  - sessions / chat_threads / chat_messages / audit_logs / cost_logs
+  - Mem0 (Memory API ベクトル補完)
+  - Obsidian (人間可読 Markdown 永続記憶)
+  - Constitution (松本の判断基準、system prompt 注入)
+```
+
+**禁則**: メイン経路 (claude-runner) で LangGraph / LangChain / LiteLLM を使ってはならない (lint で fail)。
+**自前実装必須 8 項目**: T-AI-01 (Memory API) / T-AI-02 (Mem0 ブリッジ) / T-AI-03 (chat 全文検索) / T-AI-04 (Constitution 注入) / T-AI-05 (Cost tracking) / T-AI-06 (Rate limit retry) / T-AI-07 (Streaming WS) / T-AI-08 (障害時 fallback)。
 
 ### Memory (3 tier — Claude API 流 compaction)
 - **Short**: `chat_threads` / `chat_messages` (生ログ)
@@ -159,8 +178,9 @@
 | 05-10 | **CLAUDE.md / HANDOVER.md / ADR 整備** (このファイル含む) |
 | 05-10 | **実装プロトコル + lint script + Hook 整備** (機械的強制レイヤー) |
 | 05-10 | **M-31 / ADR-009 / templates/project-bootstrap/ 追加**: Build-Factory が回す各案件にも強制レイヤーを自動展開する仕組み (T-BTSTRAP-01〜06、6 タスク) |
+| 05-10 | **M-32 / ADR-010 (ADR-002 supersede)**: AI スタック 5層→3層 (Anthropic 純正中心 + LiteLLM サブ復活)、自前実装 8 項目 (T-AI-01〜08) を追加 |
 
-ADR は `docs/decisions/` に 9 件残っている (主要技術判断の根拠)。
+ADR は `docs/decisions/` に 10 件 (ADR-002 は superseded、ADR-010 が新方針)。
 **強制レイヤー**: `scripts/lint-mock.sh` + `scripts/validate-tickets.py` + `.claude/settings.json` (PostToolUse hook + permissions deny)
 
 ---

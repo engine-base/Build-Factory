@@ -23,12 +23,13 @@
     "claude_code_parallel_weeks": "4-5",
     "dogfood_partial_start_week": 5,
     "dogfood_full_start_week": 8,
-    "total_tasks": 165,
+    "total_tasks": 176,
     "by_label": {
-      "REFACTOR": 58,
-      "NEW": 94,
-      "REUSE": 13
-    }
+      "REFACTOR": 62,
+      "NEW": 102,
+      "REUSE": 12
+    },
+    "last_updated": "2026-05-10 (ADR-010)"
   },
   "critical_path": [
     "T-019-01",
@@ -284,7 +285,7 @@
     },
     {
       "id": "T-S0-08",
-      "title": "Supabase BE wrapper (既存 supabase_client.py 拡張)",
+      "title": "claude-agent-sdk runner 基盤 (subprocess + session resume)",
       "sprint": "S0",
       "feature": "META",
       "layer": "BE",
@@ -294,8 +295,7 @@
       "deps": [],
       "critical": true,
       "existing_files": [
-        "backend/integrations/skill_runner.py",
-        "backend/services/supabase_client.py"
+        "backend/integrations/skill_runner.py"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
       "mock_link": "../../mocks/2026-05-09_v1/task/S-032-swarm-session-detail.html",
@@ -306,19 +306,31 @@
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The claude-runner shall spawn Claude Code as a subprocess via claude-agent-sdk and capture all stdout/stderr."
+          "text": "The runner shall use claude-agent-sdk (Anthropic official) — NOT LangGraph — to spawn Claude Code as a subprocess and capture stdout/stderr."
+        },
+        {
+          "type": "UBIQUITOUS",
+          "text": "The runner shall pass session_id to claude-agent-sdk so the SDK auto-restores conversation history and applies 3-tier compaction."
         },
         {
           "type": "EVENT",
-          "text": "When a task starts, the system shall create a session row with status=running and stream logs to session_logs."
+          "text": "When a task starts, the system shall create a sessions row with status=running and stream logs to session_logs."
         },
         {
           "type": "STATE",
-          "text": "While the runner is active, the system shall send heartbeat every 30s; absent heartbeat marks the session crashed."
+          "text": "While the runner is active, the SDK shall apply prompt cache (cache_control: ephemeral, 5min TTL) automatically; the system shall record cache hit rate to cost_logs."
+        },
+        {
+          "type": "STATE",
+          "text": "While context usage exceeds 95%, the SDK shall auto-generate a 9-section structured summary; the system shall persist it to chat_messages.compressed_summary."
+        },
+        {
+          "type": "EVENT",
+          "text": "When the subprocess crashes, the system shall mark status=crashed and offer 4-choice resume (from_checkpoint / rerun_full / manual_fix / cancel)."
         },
         {
           "type": "UNWANTED",
-          "text": "If the subprocess crashes, the system shall mark status=crashed and offer 4-choice resume (checkpoint/rerun/manual/cancel)."
+          "text": "If LangGraph or LangChain imports are introduced anywhere in this module, the lint script shall fail (ADR-010 forbids them in main path)."
         }
       ]
     },
@@ -897,20 +909,18 @@
     },
     {
       "id": "T-021-03",
-      "title": "permission 評価 middleware (existing auth_middleware.py 拡張)",
+      "title": "Swarm 並列実行 (Subagent / Task tool + git worktree)",
       "sprint": "S1",
       "feature": "F-021",
       "layer": "BE",
-      "label": "REFACTOR",
+      "label": "NEW",
       "human_days": 0.5,
       "claude_code_hours": 2,
       "deps": [
         "T-021-02"
       ],
       "critical": true,
-      "existing_files": [
-        "backend/services/auth_middleware.py"
-      ],
+      "existing_files": [],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-11",
       "mock_link": "../../mocks/2026-05-09_v1/task/S-031-swarm-grid.html",
       "entities": [
@@ -920,19 +930,23 @@
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall support spawning 4, 9, 16, or 64 parallel sessions in a single swarm pool."
+          "text": "Swarm shall spawn 4 / 9 / 16 / 64 parallel sessions, each via claude-agent-sdk Subagent (Task tool) + a dedicated git worktree + branch."
         },
         {
           "type": "EVENT",
-          "text": "When a swarm is started, the system shall allocate one git worktree + one branch per session to prevent file conflicts."
+          "text": "When the swarm starts, the system shall allocate one worktree per session under .worktrees/swarm_{pool_id}/cell_{n} to prevent file conflicts."
         },
         {
           "type": "STATE",
-          "text": "While a swarm is running, the system shall display per-cell live log previews and aggregate stats (queued/running/done/failed)."
+          "text": "While a swarm is running, the system shall stream per-cell logs and aggregate stats (queued/running/done/failed/crashed)."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where two cells touch the same file, the system shall serialize them via a file-level lock and shall not allow both to commit simultaneously."
         },
         {
           "type": "UNWANTED",
-          "text": "If two sessions in the same swarm modify the same file, the system shall not allow both to commit; the second shall be marked conflicted."
+          "text": "If a Subagent escapes its sandbox or attempts to access another cell's worktree, the system shall kill that cell and emit a redline event."
         }
       ]
     },
@@ -1049,7 +1063,7 @@
     },
     {
       "id": "T-020-02",
-      "title": "LiteLLM wrapper service (existing llm.py/llm_providers.py 統合)",
+      "title": "Memory 3 tier (claude-agent-sdk session + Memory API + Mem0 + Obsidian)",
       "sprint": "S2",
       "feature": "F-020",
       "layer": "BE",
@@ -1061,33 +1075,41 @@
       ],
       "critical": true,
       "existing_files": [
-        "backend/routers/llm.py",
-        "backend/routers/llm_providers.py",
-        "backend/services/conversation_memory.py"
+        "backend/services/memory_service.py"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28",
       "mock_link": null,
       "entities": [
         "chat_threads",
         "chat_messages",
-        "audit_logs"
+        "audit_logs",
+        "mem0_collections",
+        "obsidian_notes"
       ],
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall maintain a 3-tier memory: short (raw), mid (compressed + 9-section summary), long (Mem0 + Obsidian + Constitution)."
+          "text": "The memory service shall expose a unified API combining: Tier 1 (claude-agent-sdk session, raw messages), Tier 2 (compressed + 9-section summary auto-generated by SDK), Tier 3 (Anthropic Memory API + Mem0 vector + Obsidian markdown)."
         },
         {
           "type": "EVENT",
-          "text": "When the context window reaches 95%, the system shall auto-generate the 9-section structured summary and replace older raw messages."
+          "text": "When the SDK's auto compaction triggers at 95% context, the system shall persist the 9-section summary to chat_messages and emit a memory_compacted event to audit_logs."
+        },
+        {
+          "type": "EVENT",
+          "text": "When a new session starts that references a prior session_id, the system shall merge: SDK session_resume + Memory API recall + Mem0 vector top-5 + Constitution into the system prompt."
         },
         {
           "type": "STATE",
-          "text": "While prompt caching is active, the system shall apply cache_control: ephemeral with 5-min TTL to stable prefixes."
+          "text": "While Anthropic Memory API is available, the system shall write durable facts there as primary; Mem0 holds the vector copy for similarity search."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where the user opts in to Obsidian sync, the system shall mirror Tier 3 facts to ~/Documents/会社運営DB/obsidian/ as Markdown files."
         },
         {
           "type": "UNWANTED",
-          "text": "If summarization fails, the system shall not silently drop data; it shall keep raw messages and alert the operator."
+          "text": "If Memory API fails, the system shall fall back to Mem0 only and emit a memory_degraded event; it shall not silently drop facts."
         }
       ]
     },
@@ -3017,6 +3039,407 @@
         {
           "type": "UNWANTED",
           "text": "If any required file is missing from the bootstrapped repo, the test shall fail with a clear error indicating the missing path."
+        }
+      ]
+    },
+    {
+      "id": "T-M12-01",
+      "title": "LiteLLM Router (サブ用途のみ — 画像/音声/安価バッチ/緊急代替)",
+      "label": "REFACTOR",
+      "sprint": "S2",
+      "feature": "F-M12",
+      "layer": "L2",
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-32",
+      "mock_link": null,
+      "existing_files": [],
+      "entities": [
+        "cost_logs"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "LiteLLM shall be used ONLY for sub-purpose routes (image generation, speech, batch with cheaper providers, emergency Anthropic-outage fallback) — NOT for the main Claude Code implementation engine."
+        },
+        {
+          "type": "EVENT",
+          "text": "When an image-gen request arrives, the system shall route to Gemini Image / DALL-E via LiteLLM."
+        },
+        {
+          "type": "EVENT",
+          "text": "When Anthropic API is unhealthy (3 consecutive 5xx within 60s), the system shall switch the main route to LiteLLM → GPT-4o or Gemini 2.5 Pro for the duration of the outage."
+        },
+        {
+          "type": "STATE",
+          "text": "While in fallback mode, the system shall mark every response with provider=fallback and disable Memory API writes (which only Anthropic supports)."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If a developer attempts to route the main Claude Code engine through LiteLLM (e.g., importing LiteLLM from claude-runner code), the lint script shall fail."
+        }
+      ]
+    },
+    {
+      "id": "T-AI-01",
+      "title": "Anthropic Memory API 統合 (永続記憶の主たる保存先)",
+      "sprint": "S2",
+      "feature": "F-AI",
+      "layer": "L2",
+      "label": "NEW",
+      "human_days": 1.5,
+      "claude_code_hours": 3,
+      "deps": [
+        "T-S0-08"
+      ],
+      "blocks": [
+        "T-AI-02",
+        "T-020-02"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-32",
+      "mock_link": null,
+      "existing_files": [],
+      "entities": [
+        "memory_facts",
+        "users",
+        "workspaces"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall integrate Anthropic Memory API as the primary store for cross-session durable facts (decisions, preferences, context)."
+        },
+        {
+          "type": "EVENT",
+          "text": "When a session ends with status=completed, the system shall extract durable facts (D-XXX style) and write them to Memory API scoped by user/workspace."
+        },
+        {
+          "type": "EVENT",
+          "text": "When a new session starts, the system shall recall relevant Memory API entries and inject them into the system prompt within 200ms."
+        },
+        {
+          "type": "STATE",
+          "text": "While storing facts, the system shall tag each entry with source_session_id and confidence_score (0.0–1.0)."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where the user requests memory deletion, the system shall remove the fact from Memory API + Mem0 + Obsidian within 24 hours and emit an audit event."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If Memory API write fails, the system shall queue the fact for retry and shall not lose the data."
+        }
+      ]
+    },
+    {
+      "id": "T-AI-02",
+      "title": "Mem0 ベクトル検索 + Anthropic Memory API ブリッジ",
+      "sprint": "S2",
+      "feature": "F-AI",
+      "layer": "L2",
+      "label": "NEW",
+      "human_days": 1,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-AI-01"
+      ],
+      "blocks": [
+        "T-020-02"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-32",
+      "mock_link": null,
+      "existing_files": [],
+      "entities": [
+        "memory_facts",
+        "mem0_collections"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The bridge shall mirror every Memory API write to Mem0 (pgvector) for similarity search."
+        },
+        {
+          "type": "EVENT",
+          "text": "When a session asks 'recall similar past decisions to X', the system shall query Mem0 vector top-5 within 300ms and re-rank against Memory API results."
+        },
+        {
+          "type": "STATE",
+          "text": "While the user is the secretary AI, the bridge shall preload top-50 most-relevant facts into the system prompt at session start."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If Mem0 and Memory API diverge (e.g., a fact exists in one but not the other), the bridge shall surface the discrepancy in audit_logs and shall not silently pick one."
+        }
+      ]
+    },
+    {
+      "id": "T-AI-03",
+      "title": "chat_messages 全文検索 (pg_trgm + pgvector ハイブリッド)",
+      "sprint": "S2",
+      "feature": "F-024",
+      "layer": "L1",
+      "label": "NEW",
+      "human_days": 1,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-001-06"
+      ],
+      "blocks": [
+        "T-024-01"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-24",
+      "mock_link": "../../mocks/2026-05-09_v1/account/S-011-global-search.html",
+      "existing_files": [
+        "data/migrations/"
+      ],
+      "entities": [
+        "chat_messages",
+        "chat_threads"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall expose a hybrid search API combining pg_trgm (lexical similarity) and pgvector (semantic similarity) over chat_messages.content."
+        },
+        {
+          "type": "EVENT",
+          "text": "When a user types a query in S-011 global search, the system shall return ranked results (hybrid score = 0.5*trgm + 0.5*vector) within 500ms (P95)."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where the user adds 'date:2026-04', the system shall narrow results to that date range."
+        },
+        {
+          "type": "STATE",
+          "text": "While indexing, the system shall use pg_partman to partition chat_messages by month for fast archival."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If a query attempts to search across workspaces the user has no access to, RLS shall block it and the result count shall be 0."
+        }
+      ]
+    },
+    {
+      "id": "T-AI-04",
+      "title": "Constitution 自動注入エンジン (全 AI 社員のシステムプロンプト)",
+      "sprint": "S3",
+      "feature": "F-026",
+      "layer": "L2",
+      "label": "NEW",
+      "human_days": 1,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-S0-08",
+        "T-AI-01"
+      ],
+      "blocks": [
+        "T-026-02"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-26",
+      "mock_link": "../../mocks/2026-05-09_v1/moat/S-018-constitution-editor.html",
+      "existing_files": [],
+      "entities": [
+        "constitutions",
+        "users"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "Every AI employee session shall have the latest Constitution version (masato's judgment criteria) injected into the system prompt as a stable cached prefix."
+        },
+        {
+          "type": "EVENT",
+          "text": "When the Constitution is updated (new version saved in S-018), the system shall invalidate prompt cache for all active sessions on next turn."
+        },
+        {
+          "type": "STATE",
+          "text": "While a session is operating as 'secretary' AI, the system shall additionally inject the full constitution body (all sections); for other roles, only Sections 2 (values) + 4 (red lines)."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where a workspace overrides specific constitution sections (workspace-level Constitution), the system shall merge with masato's base constitution, workspace winning on conflict."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If the Constitution file is corrupted or missing, the system shall block all AI sessions and alert masato — it shall not run AI without constitution."
+        }
+      ]
+    },
+    {
+      "id": "T-AI-05",
+      "title": "Cost tracking (Anthropic Usage API + LiteLLM callback で 案件/AI/日次集計)",
+      "sprint": "S3",
+      "feature": "F-017",
+      "layer": "L7",
+      "label": "REFACTOR",
+      "human_days": 1.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-S0-08",
+        "T-M12-01"
+      ],
+      "blocks": [
+        "T-014-01"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-17",
+      "mock_link": "../../mocks/2026-05-09_v1/ops/S-040-cost-dashboard.html",
+      "existing_files": [
+        "backend/services/cost_service.py"
+      ],
+      "entities": [
+        "cost_logs",
+        "sessions",
+        "workspaces"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "Every Claude API call (via claude-agent-sdk) and every LiteLLM call shall record one cost_logs row containing: provider, model, in/out tokens, cache_read/write tokens, USD cost, session_id, workspace_id, ai_employee_id."
+        },
+        {
+          "type": "EVENT",
+          "text": "When a session completes, the system shall reconcile its cumulative cost with Anthropic Usage API (daily) and flag discrepancies > 5%."
+        },
+        {
+          "type": "STATE",
+          "text": "While monthly cost on a workspace exceeds the configured budget, the system shall pause that workspace's queue and notify masato."
+        },
+        {
+          "type": "STATE",
+          "text": "While prompt cache is hit, cost_logs.cache_read_tokens shall be > 0 and the displayed cost shall reflect the 90% discount on cached input."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If cost recording fails, the session shall continue but emit a cost_recording_failed audit event for manual reconciliation."
+        }
+      ]
+    },
+    {
+      "id": "T-AI-06",
+      "title": "Rate limit 自動 retry (tenacity 指数バックオフ 2/4/8/16s)",
+      "sprint": "S2",
+      "feature": "F-AI",
+      "layer": "L2",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-S0-08"
+      ],
+      "blocks": [
+        "T-AI-08"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-32",
+      "mock_link": null,
+      "existing_files": [],
+      "entities": [
+        "sessions",
+        "audit_logs"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "EVENT",
+          "text": "When Anthropic API returns 429 (rate limit) or 529 (overloaded), the system shall retry with exponential backoff: 2s, 4s, 8s, 16s, then fail."
+        },
+        {
+          "type": "EVENT",
+          "text": "When a transient 5xx is returned, the system shall retry up to 3 times before failing."
+        },
+        {
+          "type": "STATE",
+          "text": "While retrying, the system shall preserve the session_id and idempotency-key so the same logical request is not duplicated."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If a non-retryable error (4xx other than 429) is returned, the system shall NOT retry and shall surface the error immediately."
+        }
+      ]
+    },
+    {
+      "id": "T-AI-07",
+      "title": "Streaming UI (claude-agent-sdk → WebSocket bridge)",
+      "sprint": "S3",
+      "feature": "F-010d",
+      "layer": "L4",
+      "label": "NEW",
+      "human_days": 1.5,
+      "claude_code_hours": 3,
+      "deps": [
+        "T-S0-08"
+      ],
+      "blocks": [],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "mock_link": "../../mocks/2026-05-09_v1/task/S-032-swarm-session-detail.html",
+      "existing_files": [
+        "backend/routers/ws.py"
+      ],
+      "entities": [
+        "sessions",
+        "session_logs"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "EVENT",
+          "text": "When claude-agent-sdk emits a streaming token, the system shall forward it via WebSocket to the subscribed frontend within 50ms."
+        },
+        {
+          "type": "EVENT",
+          "text": "When a tool_use event occurs, the system shall send a structured ws message {type:'tool_use', tool, input} and append to session_logs."
+        },
+        {
+          "type": "STATE",
+          "text": "While the WebSocket disconnects, the system shall buffer messages for 30s and replay on reconnect."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where the client requests log replay, the system shall replay session_logs since a given seq_id."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If the buffer overflows (> 1MB per session), the system shall drop the oldest streaming messages and emit a buffer_overflow event but shall preserve tool_use and final result."
+        }
+      ]
+    },
+    {
+      "id": "T-AI-08",
+      "title": "Anthropic 障害時 LiteLLM フォールバック (Claude → GPT-4o / Gemini)",
+      "sprint": "S4",
+      "feature": "F-M12",
+      "layer": "L2",
+      "label": "NEW",
+      "human_days": 1.5,
+      "claude_code_hours": 3,
+      "deps": [
+        "T-AI-06",
+        "T-M12-01"
+      ],
+      "blocks": [],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-32",
+      "mock_link": null,
+      "existing_files": [],
+      "entities": [
+        "sessions",
+        "audit_logs",
+        "cost_logs"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "EVENT",
+          "text": "When Anthropic API health-check fails 3 times within 60 seconds, the system shall switch the main route to LiteLLM → GPT-4o (primary fallback) and notify masato."
+        },
+        {
+          "type": "STATE",
+          "text": "While in fallback mode, the system shall disable Memory API writes and Subagent (Task tool), and shall mark every session with degraded_mode=true."
+        },
+        {
+          "type": "EVENT",
+          "text": "When Anthropic recovers (3 consecutive successful health-checks in 5 min), the system shall switch back to claude-agent-sdk automatically."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where masato manually overrides via /admin/fallback {provider:gemini}, the system shall route to Gemini 2.5 Pro instead of GPT-4o."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If both Anthropic AND OpenAI fail simultaneously, the system shall pause new sessions, allow only emergency read-only access, and alert masato + Slack — it shall not silently route to an untested provider."
         }
       ]
     }

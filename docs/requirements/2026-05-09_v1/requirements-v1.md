@@ -403,8 +403,45 @@ Build-Factory 本体の開発で整備した強制レイヤー (CLAUDE.md / HAND
 
 ---
 
+## 11.6 M-32 ai_stack_anthropic_native (2026-05-10 追加 / ADR-010)
+
+**目的**: AI スタックを Anthropic 純正中心 (3 層構成) に再設計し、Agent ランタイムの精度 (会話状態 / コンテキスト管理 / 履歴保持 / 最適化) を最高水準に引き上げる。同時に LiteLLM をサブ用途で残し、マルチプロバイダ柔軟性も確保する。
+
+### 背景
+ADR-002 で確定した 5 層スタック (LangGraph + LiteLLM + claude-agent-sdk + Agent Teams + codex 参照) は、Agent ランタイムロジックを LangGraph で自前実装する設計だった。しかし claude-agent-sdk が Anthropic 公式の 3-tier compaction / Subagent / Memory API / 自動 prompt cache を内蔵しているため、これを中核に据える方が精度・保守性で勝る。
+
+### 受け入れ条件 (EARS)
+- **UBIQUITOUS**: The main Claude Code implementation engine shall use claude-agent-sdk + anthropic-python (Anthropic-native), NOT LangGraph or LiteLLM.
+- **UBIQUITOUS**: LiteLLM shall be retained for sub-purpose routes ONLY (image gen, speech, cheap batch with Gemini Flash, emergency fallback).
+- **EVENT**: When a session reaches 95% context, the SDK shall auto-generate a 9-section structured summary and the system shall persist it.
+- **EVENT**: When Anthropic API is unhealthy (3 consecutive failures within 60s), the system shall switch the main route to LiteLLM → GPT-4o or Gemini fallback and notify masato.
+- **STATE**: While in fallback mode, the system shall mark sessions degraded_mode=true and disable Memory API writes.
+- **STATE**: While prompt cache is active, the system shall apply cache_control: ephemeral (5min TTL) and record cache hit rate in cost_logs.
+- **OPTIONAL**: Where masato manually overrides the fallback provider, the system shall route to the specified provider (e.g., Gemini 2.5 Pro).
+- **UNWANTED**: If LangGraph or LangChain imports appear in the main runner code path, the lint script shall fail.
+- **UNWANTED**: If both Anthropic AND OpenAI fail simultaneously, the system shall pause new sessions and alert masato — it shall not silently route to an untested provider.
+
+### 自前実装が必須なもの (T-AI-01〜08)
+SDK が自動でカバーしない領域は必ず自前実装する:
+1. **Anthropic Memory API 統合** (T-AI-01) — 永続記憶の主たる保存先
+2. **Mem0 + Memory API ブリッジ** (T-AI-02) — ベクトル検索の補完
+3. **chat_messages 全文検索** (T-AI-03) — pg_trgm + pgvector ハイブリッド
+4. **Constitution 自動注入** (T-AI-04) — 全 AI 社員のシステムプロンプトに常時注入
+5. **Cost tracking** (T-AI-05) — 案件別 / AI 別 / 日次集計
+6. **Rate limit 自動 retry** (T-AI-06) — tenacity 指数バックオフ
+7. **Streaming UI** (T-AI-07) — SDK streaming → WebSocket
+8. **Anthropic 障害時 LiteLLM フォールバック** (T-AI-08) — Claude → GPT-4o / Gemini
+
+### 関連
+- ADR: `docs/decisions/ADR-010-ai-stack-anthropic-native.md` (supersedes ADR-002)
+- 機能: F-AI (新規) / F-M12 (LiteLLM、サブ用途に縮退)
+- タスク: T-S0-08 (更新) / T-020-02 (更新) / T-021-03 (更新) / T-M12-01 (縮退) / T-AI-01〜08 (新規 8 件)
+
+---
+
 ## 12. 改訂履歴
 
+- **v1.2**（2026-05-10）: M-32 ai_stack_anthropic_native 追加 (ADR-010、ADR-002 supersede)
 - **v1.1**（2026-05-10）: M-31 project_bootstrap_enforcement 追加 (ADR-009)
 - **v1.0**（2026-05-09）: ヒアリング v2.1 → 要件定義 v1 への正式昇格
 - ヒアリング v2.1（2026-05-09）= requirements-definition STEP 1〜2 確定事項
