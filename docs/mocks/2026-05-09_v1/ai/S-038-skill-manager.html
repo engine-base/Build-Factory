@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>S-038 スキル管理 — Build-Factory Mock</title>
+<meta name="screen-id" content="S-038" />
+<meta name="feature-id" content="F-002" />
+<meta name="task-ids" content="T-002-01" />
+<meta name="phase" content="P1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      colors: { eb: { 50:'#e6f0ec', 100:'#c4dccf', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+      fontFamily: { sans: ['"Noto Sans JP"','system-ui','sans-serif'], mono: ['"JetBrains Mono"','ui-monospace','monospace'] }
+    } }
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body { font-family:"Noto Sans JP", system-ui, sans-serif; }
+  .mono { font-family:"JetBrains Mono", ui-monospace, monospace; }
+  .pulse-dot { animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex">
+<aside class="w-[230px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-5 border-b border-eb-600">
+    <div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div>
+    <div class="text-sm font-bold mt-1">受託EC構築 #4</div>
+    <div class="text-[11px] text-eb-100 mt-0.5 mono">ws_8f3a2c · P1</div>
+  </div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5">
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../account/S-006-account-dashboard.html">← Account</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../workspace/S-012-workspace-dashboard.html">Workspace ホーム</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../spec/S-020-hearing-session.html">ヒアリング</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../spec/S-022-spec-viewer.html">仕様書</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../moat/S-017-dependency-graph.html">機能 / 依存</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-027-task-kanban.html">タスク Kanban</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-031-swarm-grid.html">Swarm 並列実行</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../review/S-033-pr-review.html">レビュー</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../ops/S-040-cost-dashboard.html">運用 / メトリクス</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 text-[11px] text-eb-100">masato (owner)</div>
+</aside>
+
+<main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+  <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 gap-4 shrink-0 sticky top-0 z-10">
+    <h1 class="text-base font-bold text-slate-900">スキル管理</h1>
+    
+  </header>
+  <div class="p-6 max-w-[1200px] w-full mx-auto">
+    <div class="bg-white border border-slate-200 rounded-lg overflow-hidden">
+      <div class="px-5 py-3 border-b border-slate-200 flex items-center gap-3">
+        <h2 class="text-sm font-bold flex-1">スキル管理 (90 件)</h2>
+        <input class="px-3 py-1.5 text-xs border border-slate-300 rounded w-56" placeholder="検索..."/>
+        <select class="px-2 py-1.5 text-xs border border-slate-300 rounded">
+          <option>全カテゴリ</option><option>開発</option><option>営業</option><option>経理</option><option>マーケ</option><option>CS</option>
+        </select>
+        <button class="px-3 py-1.5 text-xs bg-eb-500 text-white rounded font-bold">+ 新規スキル</button>
+      </div>
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-[10px] tracking-wider text-slate-500 font-bold">
+          <tr><th class="text-left px-5 py-2">スキル名</th><th class="text-left px-3">カテゴリ</th><th class="text-left px-3">使用社員</th><th class="text-left px-3">実行回数</th><th class="text-left px-3">最終実行</th><th class="px-3"></th></tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100"><tr class="hover:bg-slate-50">
+            <td class="px-5 py-2 mono text-xs">invoice-create</td>
+            <td class="px-3"><span class="px-1.5 py-0.5 text-[10px] bg-emerald-100 text-emerald-800 rounded">経理</span></td>
+            <td class="px-3 text-xs">secretary, accountant</td>
+            <td class="px-3 text-xs mono">214</td>
+            <td class="px-3 text-xs mono text-slate-500">3 時間前</td>
+            <td class="px-3 text-right"><button class="text-xs text-slate-500">⋯</button></td>
+          </tr><tr class="hover:bg-slate-50">
+            <td class="px-5 py-2 mono text-xs">hearing</td>
+            <td class="px-3"><span class="px-1.5 py-0.5 text-[10px] bg-blue-100 text-blue-800 rounded">BA</span></td>
+            <td class="px-3 text-xs">mary</td>
+            <td class="px-3 text-xs mono">47</td>
+            <td class="px-3 text-xs mono text-slate-500">2 時間前</td>
+            <td class="px-3 text-right"><button class="text-xs text-slate-500">⋯</button></td>
+          </tr><tr class="hover:bg-slate-50">
+            <td class="px-5 py-2 mono text-xs">requirements-definition</td>
+            <td class="px-3"><span class="px-1.5 py-0.5 text-[10px] bg-blue-100 text-blue-800 rounded">BA</span></td>
+            <td class="px-3 text-xs">mary</td>
+            <td class="px-3 text-xs mono">43</td>
+            <td class="px-3 text-xs mono text-slate-500">昨日</td>
+            <td class="px-3 text-right"><button class="text-xs text-slate-500">⋯</button></td>
+          </tr><tr class="hover:bg-slate-50">
+            <td class="px-5 py-2 mono text-xs">architecture-design</td>
+            <td class="px-3"><span class="px-1.5 py-0.5 text-[10px] bg-purple-100 text-purple-800 rounded">Architect</span></td>
+            <td class="px-3 text-xs">winston</td>
+            <td class="px-3 text-xs mono">43</td>
+            <td class="px-3 text-xs mono text-slate-500">昨日</td>
+            <td class="px-3 text-right"><button class="text-xs text-slate-500">⋯</button></td>
+          </tr><tr class="hover:bg-slate-50">
+            <td class="px-5 py-2 mono text-xs">code-implement</td>
+            <td class="px-3"><span class="px-1.5 py-0.5 text-[10px] bg-amber-100 text-amber-800 rounded">Dev</span></td>
+            <td class="px-3 text-xs">devon</td>
+            <td class="px-3 text-xs mono">1284</td>
+            <td class="px-3 text-xs mono text-slate-500">数秒前</td>
+            <td class="px-3 text-right"><button class="text-xs text-slate-500">⋯</button></td>
+          </tr><tr class="hover:bg-slate-50">
+            <td class="px-5 py-2 mono text-xs">test-write</td>
+            <td class="px-3"><span class="px-1.5 py-0.5 text-[10px] bg-amber-100 text-amber-800 rounded">Dev</span></td>
+            <td class="px-3 text-xs">devon, quinn</td>
+            <td class="px-3 text-xs mono">812</td>
+            <td class="px-3 text-xs mono text-slate-500">5 分前</td>
+            <td class="px-3 text-right"><button class="text-xs text-slate-500">⋯</button></td>
+          </tr><tr class="hover:bg-slate-50">
+            <td class="px-5 py-2 mono text-xs">ears-validate</td>
+            <td class="px-3"><span class="px-1.5 py-0.5 text-[10px] bg-rose-100 text-rose-700 rounded">QA</span></td>
+            <td class="px-3 text-xs">quinn</td>
+            <td class="px-3 text-xs mono">217</td>
+            <td class="px-3 text-xs mono text-slate-500">30 分前</td>
+            <td class="px-3 text-right"><button class="text-xs text-slate-500">⋯</button></td>
+          </tr><tr class="hover:bg-slate-50">
+            <td class="px-5 py-2 mono text-xs">pr-review</td>
+            <td class="px-3"><span class="px-1.5 py-0.5 text-[10px] bg-rose-100 text-rose-700 rounded">QA</span></td>
+            <td class="px-3 text-xs">quinn, reviewer</td>
+            <td class="px-3 text-xs mono">68</td>
+            <td class="px-3 text-xs mono text-slate-500">2 時間前</td>
+            <td class="px-3 text-right"><button class="text-xs text-slate-500">⋯</button></td>
+          </tr><tr class="hover:bg-slate-50">
+            <td class="px-5 py-2 mono text-xs">daily-briefing</td>
+            <td class="px-3"><span class="px-1.5 py-0.5 text-[10px] bg-slate-100 text-slate-700 rounded">Secretary</span></td>
+            <td class="px-3 text-xs">secretary</td>
+            <td class="px-3 text-xs mono">90</td>
+            <td class="px-3 text-xs mono text-slate-500">今朝</td>
+            <td class="px-3 text-right"><button class="text-xs text-slate-500">⋯</button></td>
+          </tr><tr class="hover:bg-slate-50">
+            <td class="px-5 py-2 mono text-xs">monthly-close</td>
+            <td class="px-3"><span class="px-1.5 py-0.5 text-[10px] bg-emerald-100 text-emerald-800 rounded">経理</span></td>
+            <td class="px-3 text-xs">accountant</td>
+            <td class="px-3 text-xs mono">6</td>
+            <td class="px-3 text-xs mono text-slate-500">先月末</td>
+            <td class="px-3 text-right"><button class="text-xs text-slate-500">⋯</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="px-5 py-3 border-t border-slate-100 text-[11px] text-slate-500 flex items-center justify-between">
+        <span>表示 1-10 / 90</span>
+        <span>※ SKILL.md は IP 保護対象。表示は名前・カテゴリ・統計のみ。</span>
+      </div>
+    </div>
+  </div>
+<footer class="h-9 bg-white border-t border-slate-200 flex items-center justify-between px-6 text-[11px] text-slate-500 shrink-0 mono">
+    <span>S-038 skill_manager · F-002 · T-002-01</span>
+    <span><a href="../index.html" class="hover:underline">← Index</a></span>
+  </footer>
+</main>
+</body>
+</html>

@@ -8,10 +8,10 @@
   },
   "summary": {
     "total_screens": 43,
-    "completed": 10,
+    "completed": 43,
     "in_progress": 0,
     "pending_critical": 0,
-    "pending_remaining": 33,
+    "pending_remaining": 0,
     "phase_1_5_only": 1,
     "last_updated": "2026-05-10"
   },
@@ -40,7 +40,7 @@
       "category": "auth",
       "path": "auth/S-002-signup.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-004",
       "task_ids": [
         "T-004-04"
@@ -59,7 +59,7 @@
       "category": "auth",
       "path": "auth/S-003-password-reset.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-004",
       "phase": "1"
     },
@@ -69,7 +69,7 @@
       "category": "auth",
       "path": "auth/S-004-mfa-setup.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-004",
       "phase": "1"
     },
@@ -79,7 +79,7 @@
       "category": "auth",
       "path": "auth/S-005-oauth-callback.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-023",
       "task_ids": [
         "T-023-04"
@@ -115,7 +115,7 @@
       "category": "account",
       "path": "account/S-007-account-settings.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-004",
       "phase": "1"
     },
@@ -125,7 +125,7 @@
       "category": "account",
       "path": "account/S-008-account-members.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-004",
       "phase": "1"
     },
@@ -135,7 +135,7 @@
       "category": "account",
       "path": "account/S-009-profile-settings.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-023",
       "task_ids": [
         "T-023-01",
@@ -157,7 +157,7 @@
       "category": "account",
       "path": "account/S-010-notifications-inbox.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-014",
       "phase": "1"
     },
@@ -167,7 +167,7 @@
       "category": "account",
       "path": "account/S-011-global-search.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-024",
       "task_ids": [
         "T-024-01"
@@ -200,7 +200,7 @@
       "category": "workspace",
       "path": "workspace/S-013-workspace-settings.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-004",
       "phase": "1"
     },
@@ -210,7 +210,7 @@
       "category": "workspace",
       "path": "workspace/S-014-workspace-members.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-021",
       "task_ids": [
         "T-021-04"
@@ -227,7 +227,7 @@
       "category": "workspace",
       "path": "workspace/S-015-workspace-invite.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-004",
       "task_ids": [
         "T-004-03"
@@ -240,7 +240,7 @@
       "category": "moat",
       "path": "moat/S-016-phase-management.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-008",
       "task_ids": [
         "T-008-02"
@@ -277,7 +277,7 @@
       "category": "moat",
       "path": "moat/S-018-constitution-editor.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-026",
       "task_ids": [
         "T-026-02"
@@ -293,7 +293,7 @@
       "category": "moat",
       "path": "moat/S-019-red-line-settings.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-012",
       "entities": [
         "red_lines"
@@ -325,7 +325,7 @@
       "category": "spec",
       "path": "spec/S-021-requirements-editor.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-005/F-025",
       "task_ids": [
         "T-005-03",
@@ -357,7 +357,7 @@
       "category": "spec",
       "path": "spec/S-023-screen-mock-viewer.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-005b",
       "task_ids": [
         "T-005b-04"
@@ -374,7 +374,7 @@
       "category": "spec",
       "path": "spec/S-024-component-catalog.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-005b",
       "task_ids": [
         "T-005b-03"
@@ -388,7 +388,7 @@
       "category": "spec",
       "path": "spec/S-025-screen-flow-map.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-005b",
       "task_ids": [
         "T-005b-03"
@@ -401,7 +401,7 @@
       "category": "spec",
       "path": "spec/S-026-design-html-editor.html",
       "priority": "low",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "S-3",
       "phase": "1.5",
       "notes": "GrapesJS embed・Phase 1.5"
@@ -429,7 +429,7 @@
       "category": "task",
       "path": "task/S-028-task-list.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-007",
       "task_ids": [
         "T-007-02"
@@ -442,7 +442,7 @@
       "category": "task",
       "path": "task/S-029-task-dag-view.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-007",
       "task_ids": [
         "T-007-03"
@@ -509,7 +509,7 @@
       "category": "review",
       "path": "review/S-033-pr-review.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-013",
       "task_ids": [
         "T-013-03"
@@ -526,7 +526,7 @@
       "category": "review",
       "path": "review/S-034-red-line-approval.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-012",
       "task_ids": [
         "T-012-04"
@@ -542,7 +542,7 @@
       "category": "review",
       "path": "review/S-035-delivery-approval.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-011",
       "phase": "1"
     },
@@ -552,7 +552,7 @@
       "category": "ai",
       "path": "ai/S-036-ai-employees-org-chart.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-022",
       "task_ids": [
         "T-022-04"
@@ -569,7 +569,7 @@
       "category": "ai",
       "path": "ai/S-037-ai-employee-detail.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-022",
       "task_ids": [
         "T-022-03"
@@ -582,7 +582,7 @@
       "category": "ai",
       "path": "ai/S-038-skill-manager.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-002",
       "task_ids": [
         "T-002-01"
@@ -598,7 +598,7 @@
       "category": "ops",
       "path": "ops/S-039-knowledge-base.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-016/F-024",
       "phase": "1"
     },
@@ -608,7 +608,7 @@
       "category": "ops",
       "path": "ops/S-040-cost-dashboard.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-017",
       "task_ids": [
         "T-017-03"
@@ -626,7 +626,7 @@
       "category": "ops",
       "path": "ops/S-041-audit-log-viewer.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-018",
       "task_ids": [
         "T-018-02"
@@ -642,7 +642,7 @@
       "category": "client",
       "path": "client/S-042-client-workspace.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-021/S-1",
       "phase": "1"
     },
@@ -652,7 +652,7 @@
       "category": "client",
       "path": "client/S-043-client-comment.html",
       "priority": "normal",
-      "status": "pending",
+      "status": "completed",
       "feature_id": "F-005/F-021",
       "phase": "1"
     }

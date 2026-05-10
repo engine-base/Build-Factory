@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>S-023 画面モックビューア — Build-Factory Mock</title>
+<meta name="screen-id" content="S-023" />
+<meta name="feature-id" content="F-005b" />
+<meta name="task-ids" content="T-005b-04" />
+<meta name="phase" content="P1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      colors: { eb: { 50:'#e6f0ec', 100:'#c4dccf', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+      fontFamily: { sans: ['"Noto Sans JP"','system-ui','sans-serif'], mono: ['"JetBrains Mono"','ui-monospace','monospace'] }
+    } }
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body { font-family:"Noto Sans JP", system-ui, sans-serif; }
+  .mono { font-family:"JetBrains Mono", ui-monospace, monospace; }
+  .pulse-dot { animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex">
+<aside class="w-[230px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-5 border-b border-eb-600">
+    <div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div>
+    <div class="text-sm font-bold mt-1">受託EC構築 #4</div>
+    <div class="text-[11px] text-eb-100 mt-0.5 mono">ws_8f3a2c · P1</div>
+  </div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5">
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../account/S-006-account-dashboard.html">← Account</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../workspace/S-012-workspace-dashboard.html">Workspace ホーム</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../spec/S-020-hearing-session.html">ヒアリング</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../spec/S-022-spec-viewer.html">仕様書</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../moat/S-017-dependency-graph.html">機能 / 依存</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-027-task-kanban.html">タスク Kanban</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-031-swarm-grid.html">Swarm 並列実行</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../review/S-033-pr-review.html">レビュー</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../ops/S-040-cost-dashboard.html">運用 / メトリクス</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 text-[11px] text-eb-100">masato (owner)</div>
+</aside>
+
+<main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+  <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 gap-4 shrink-0 sticky top-0 z-10">
+    <h1 class="text-base font-bold text-slate-900">画面モック ビューア</h1>
+    
+  </header>
+  <div class="p-6 max-w-[1200px] w-full mx-auto">
+    <div class="grid grid-cols-[280px_1fr] gap-4">
+      <aside class="bg-white border border-slate-200 rounded-lg p-3">
+        <input class="w-full px-2 py-1 text-xs border border-slate-300 rounded mb-3" placeholder="検索..."/>
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">画面 (43)</div>
+        <div class="text-[11px] space-y-0.5 max-h-96 overflow-y-auto">
+          <div class="px-2 py-1 bg-eb-50 text-eb-700 rounded font-bold mono">S-006 account_dashboard</div>
+          <div class="px-2 py-1 hover:bg-slate-50 rounded mono">S-012 workspace_dashboard</div>
+          <div class="px-2 py-1 hover:bg-slate-50 rounded mono">S-022 spec_viewer</div>
+          <div class="px-2 py-1 hover:bg-slate-50 rounded mono">S-027 task_kanban</div>
+          <div class="px-2 py-1 hover:bg-slate-50 rounded mono">S-031 swarm_grid</div>
+          <div class="text-[10px] text-slate-400 pl-2 mt-1">…と 38 件</div>
+        </div>
+      </aside>
+      <section class="bg-white border border-slate-200 rounded-lg overflow-hidden">
+        <div class="px-4 py-3 border-b border-slate-200 flex items-center gap-2">
+          <h2 class="text-sm font-bold mono">S-006 account_dashboard</h2>
+          <span class="px-2 py-0.5 text-[10px] bg-rose-100 text-rose-700 rounded font-bold">CRITICAL</span>
+          <span class="text-[11px] text-slate-500 mono">F-024/F-018 · T-024-01,02,03</span>
+          <div class="flex-1"></div>
+          <a href="../account/S-006-account-dashboard.html" class="px-3 py-1.5 text-xs bg-eb-500 text-white rounded font-bold">▶︎ 実モックを開く</a>
+        </div>
+        <div class="bg-slate-100 p-4 flex items-center justify-center" style="min-height:500px">
+          <iframe src="../account/S-006-account-dashboard.html" class="w-full h-[500px] bg-white rounded shadow-sm border border-slate-300"></iframe>
+        </div>
+        <div class="px-4 py-3 border-t border-slate-200 grid grid-cols-3 gap-3 text-xs">
+          <div><div class="text-[10px] tracking-wider text-slate-500 font-bold">エンティティ</div><div>accounts, workspaces, tasks, sessions, cost_logs</div></div>
+          <div><div class="text-[10px] tracking-wider text-slate-500 font-bold">関連タスク</div><div class="mono">T-024-01, T-024-02, T-024-03</div></div>
+          <div><div class="text-[10px] tracking-wider text-slate-500 font-bold">フェーズ</div><div>P1 — Phase 1 確定</div></div>
+        </div>
+      </section>
+    </div>
+  </div>
+<footer class="h-9 bg-white border-t border-slate-200 flex items-center justify-between px-6 text-[11px] text-slate-500 shrink-0 mono">
+    <span>S-023 screen_mock_viewer · F-005b · T-005b-04</span>
+    <span><a href="../index.html" class="hover:underline">← Index</a></span>
+  </footer>
+</main>
+</body>
+</html>

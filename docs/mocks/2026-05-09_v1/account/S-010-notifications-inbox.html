@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>S-010 通知 Inbox — Build-Factory Mock</title>
+<meta name="screen-id" content="S-010" />
+<meta name="feature-id" content="F-014" />
+<meta name="task-ids" content="T-014-04" />
+<meta name="phase" content="P1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      colors: { eb: { 50:'#e6f0ec', 100:'#c4dccf', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+      fontFamily: { sans: ['"Noto Sans JP"','system-ui','sans-serif'], mono: ['"JetBrains Mono"','ui-monospace','monospace'] }
+    } }
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body { font-family:"Noto Sans JP", system-ui, sans-serif; }
+  .mono { font-family:"JetBrains Mono", ui-monospace, monospace; }
+  .pulse-dot { animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex">
+<aside class="w-[230px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-5 border-b border-eb-600">
+    <div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div>
+    <div class="text-sm font-bold mt-1">受託EC構築 #4</div>
+    <div class="text-[11px] text-eb-100 mt-0.5 mono">ws_8f3a2c · P1</div>
+  </div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5">
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../account/S-006-account-dashboard.html">← Account</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../workspace/S-012-workspace-dashboard.html">Workspace ホーム</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../spec/S-020-hearing-session.html">ヒアリング</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../spec/S-022-spec-viewer.html">仕様書</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../moat/S-017-dependency-graph.html">機能 / 依存</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-027-task-kanban.html">タスク Kanban</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-031-swarm-grid.html">Swarm 並列実行</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../review/S-033-pr-review.html">レビュー</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../ops/S-040-cost-dashboard.html">運用 / メトリクス</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 text-[11px] text-eb-100">masato (owner)</div>
+</aside>
+
+<main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+  <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 gap-4 shrink-0 sticky top-0 z-10">
+    <h1 class="text-base font-bold text-slate-900">通知</h1>
+    
+  </header>
+  <div class="p-6 max-w-[1200px] w-full mx-auto">
+    <div class="grid grid-cols-[280px_1fr] gap-6">
+      <aside class="space-y-2 text-sm">
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">フィルタ</div>
+        <button class="w-full text-left px-3 py-2 bg-eb-50 text-eb-700 rounded font-bold flex justify-between"><span>すべて</span><span class="mono text-xs">12</span></button>
+        <button class="w-full text-left px-3 py-2 hover:bg-slate-100 rounded flex justify-between"><span>未読</span><span class="mono text-xs">5</span></button>
+        <button class="w-full text-left px-3 py-2 hover:bg-slate-100 rounded flex justify-between"><span>承認待ち</span><span class="mono text-xs text-rose-600 font-bold">3</span></button>
+        <button class="w-full text-left px-3 py-2 hover:bg-slate-100 rounded flex justify-between"><span>失敗 / 警告</span><span class="mono text-xs">2</span></button>
+        <button class="w-full text-left px-3 py-2 hover:bg-slate-100 rounded flex justify-between"><span>レビュー</span><span class="mono text-xs">1</span></button>
+        <button class="w-full text-left px-3 py-2 hover:bg-slate-100 rounded flex justify-between"><span>システム</span><span class="mono text-xs">1</span></button>
+      </aside>
+      <section class="bg-white border border-slate-200 rounded-lg overflow-hidden">
+        <div class="divide-y divide-slate-100">
+          <div class="px-5 py-3 hover:bg-slate-50 flex items-start gap-3 bg-amber-50/40">
+            <span class="w-2 h-2 mt-1.5 rounded-full bg-rose-500 shrink-0"></span>
+            <div class="flex-1">
+              <div class="flex items-center gap-2"><span class="text-sm font-bold">承認待ち</span><span class="text-[10px] text-rose-700 px-1.5 py-0.5 bg-rose-100 rounded font-bold mono">URGENT</span></div>
+              <div class="text-xs text-slate-600 mt-0.5">受託EC構築 #4 — 仕様書 v1.2 が承認待ち (2 時間経過)</div>
+              <div class="text-[10px] text-slate-400 mt-1 mono">2026-05-10 12:14 · sally (PO)</div>
+            </div>
+          </div>
+          <div class="px-5 py-3 hover:bg-slate-50 flex items-start gap-3 bg-rose-50/40">
+            <span class="w-2 h-2 mt-1.5 rounded-full bg-rose-500 shrink-0"></span>
+            <div class="flex-1">
+              <div class="flex items-center gap-2"><span class="text-sm font-bold">セッション失敗</span></div>
+              <div class="text-xs text-slate-600 mt-0.5">T-008b-01 が 3 回連続失敗 — 手動介入が必要</div>
+              <div class="text-[10px] text-slate-400 mt-1 mono">14:11 · devon (Dev)</div>
+            </div>
+          </div>
+          <div class="px-5 py-3 hover:bg-slate-50 flex items-start gap-3">
+            <span class="w-2 h-2 mt-1.5 rounded-full bg-amber-500 shrink-0"></span>
+            <div class="flex-1">
+              <div class="flex items-center gap-2"><span class="text-sm font-bold">レッドライン違反疑い</span></div>
+              <div class="text-xs text-slate-600 mt-0.5">T-014-02 が依存外パッケージを追加 — 承認をお願いします</div>
+              <div class="text-[10px] text-slate-400 mt-1 mono">13:55 · quinn (QA)</div>
+            </div>
+          </div>
+          <div class="px-5 py-3 hover:bg-slate-50 flex items-start gap-3 opacity-70">
+            <span class="w-2 h-2 mt-1.5 rounded-full bg-slate-300 shrink-0"></span>
+            <div class="flex-1">
+              <div class="flex items-center gap-2"><span class="text-sm">PR #42 マージ完了</span></div>
+              <div class="text-xs text-slate-500 mt-0.5">T-010-02 cost_logs 集計を main にマージ</div>
+              <div class="text-[10px] text-slate-400 mt-1 mono">12:18 · GitHub Bot</div>
+            </div>
+          </div>
+          <div class="px-5 py-3 hover:bg-slate-50 flex items-start gap-3 opacity-70">
+            <span class="w-2 h-2 mt-1.5 rounded-full bg-slate-300 shrink-0"></span>
+            <div class="flex-1">
+              <div class="flex items-center gap-2"><span class="text-sm">朝ブリーフィング</span></div>
+              <div class="text-xs text-slate-500 mt-0.5">前日の進捗 12% / 完了 8 タスク / コスト $12.40</div>
+              <div class="text-[10px] text-slate-400 mt-1 mono">08:00 · secretary</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+<footer class="h-9 bg-white border-t border-slate-200 flex items-center justify-between px-6 text-[11px] text-slate-500 shrink-0 mono">
+    <span>S-010 notifications_inbox · F-014 · T-014-04</span>
+    <span><a href="../index.html" class="hover:underline">← Index</a></span>
+  </footer>
+</main>
+</body>
+</html>

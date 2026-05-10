@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>S-024 コンポーネントカタログ — Build-Factory Mock</title>
+<meta name="screen-id" content="S-024" />
+<meta name="feature-id" content="F-005b" />
+<meta name="task-ids" content="T-005b-03" />
+<meta name="phase" content="P1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      colors: { eb: { 50:'#e6f0ec', 100:'#c4dccf', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+      fontFamily: { sans: ['"Noto Sans JP"','system-ui','sans-serif'], mono: ['"JetBrains Mono"','ui-monospace','monospace'] }
+    } }
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body { font-family:"Noto Sans JP", system-ui, sans-serif; }
+  .mono { font-family:"JetBrains Mono", ui-monospace, monospace; }
+  .pulse-dot { animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex">
+<aside class="w-[230px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-5 border-b border-eb-600">
+    <div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div>
+    <div class="text-sm font-bold mt-1">受託EC構築 #4</div>
+    <div class="text-[11px] text-eb-100 mt-0.5 mono">ws_8f3a2c · P1</div>
+  </div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5">
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../account/S-006-account-dashboard.html">← Account</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../workspace/S-012-workspace-dashboard.html">Workspace ホーム</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../spec/S-020-hearing-session.html">ヒアリング</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../spec/S-022-spec-viewer.html">仕様書</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../moat/S-017-dependency-graph.html">機能 / 依存</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-027-task-kanban.html">タスク Kanban</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-031-swarm-grid.html">Swarm 並列実行</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../review/S-033-pr-review.html">レビュー</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../ops/S-040-cost-dashboard.html">運用 / メトリクス</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 text-[11px] text-eb-100">masato (owner)</div>
+</aside>
+
+<main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+  <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 gap-4 shrink-0 sticky top-0 z-10">
+    <h1 class="text-base font-bold text-slate-900">コンポーネントカタログ</h1>
+    
+  </header>
+  <div class="p-6 max-w-[1200px] w-full mx-auto">
+    <div class="grid grid-cols-[200px_1fr] gap-4">
+      <aside class="bg-white border border-slate-200 rounded-lg p-3 text-sm">
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">カテゴリ</div>
+        <div class="space-y-0.5 text-xs">
+          <a class="block px-2 py-1 bg-eb-50 text-eb-700 rounded font-bold">Button (4)</a>
+          <a class="block px-2 py-1 hover:bg-slate-50 rounded">Input (6)</a>
+          <a class="block px-2 py-1 hover:bg-slate-50 rounded">Card (3)</a>
+          <a class="block px-2 py-1 hover:bg-slate-50 rounded">Badge (5)</a>
+          <a class="block px-2 py-1 hover:bg-slate-50 rounded">Modal (2)</a>
+          <a class="block px-2 py-1 hover:bg-slate-50 rounded">Toast (3)</a>
+          <a class="block px-2 py-1 hover:bg-slate-50 rounded">Tabs (1)</a>
+          <a class="block px-2 py-1 hover:bg-slate-50 rounded">Table (2)</a>
+        </div>
+      </aside>
+      <section class="space-y-4">
+        <div class="bg-white border border-slate-200 rounded-lg p-5">
+          <h2 class="text-sm font-bold mb-3">Button</h2>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="border border-slate-200 rounded p-4">
+              <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-3">Primary</div>
+              <button class="px-4 py-2 bg-eb-500 hover:bg-eb-600 text-white rounded font-bold text-sm">確定する</button>
+              <pre class="mt-3 text-[10px] mono bg-slate-900 text-slate-200 p-2 rounded overflow-x-auto">&lt;Button&gt;確定する&lt;/Button&gt;</pre>
+            </div>
+            <div class="border border-slate-200 rounded p-4">
+              <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-3">Secondary</div>
+              <button class="px-4 py-2 border border-slate-300 hover:bg-slate-50 rounded font-bold text-sm">キャンセル</button>
+              <pre class="mt-3 text-[10px] mono bg-slate-900 text-slate-200 p-2 rounded overflow-x-auto">&lt;Button variant="secondary"&gt;キャンセル&lt;/Button&gt;</pre>
+            </div>
+            <div class="border border-slate-200 rounded p-4">
+              <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-3">Destructive</div>
+              <button class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded font-bold text-sm">削除する</button>
+              <pre class="mt-3 text-[10px] mono bg-slate-900 text-slate-200 p-2 rounded overflow-x-auto">&lt;Button variant="destructive"&gt;削除&lt;/Button&gt;</pre>
+            </div>
+            <div class="border border-slate-200 rounded p-4">
+              <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-3">Ghost / Icon</div>
+              <button class="px-3 py-1.5 hover:bg-slate-100 rounded text-sm">⋯</button>
+              <pre class="mt-3 text-[10px] mono bg-slate-900 text-slate-200 p-2 rounded overflow-x-auto">&lt;IconButton&gt;⋯&lt;/IconButton&gt;</pre>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-lg p-5">
+          <h2 class="text-sm font-bold mb-3">Badge / Label</h2>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-2 py-0.5 text-[10px] bg-emerald-100 text-emerald-800 rounded mono font-bold">REUSE</span>
+            <span class="px-2 py-0.5 text-[10px] bg-amber-100 text-amber-800 rounded mono font-bold">REFACTOR</span>
+            <span class="px-2 py-0.5 text-[10px] bg-blue-100 text-blue-800 rounded mono font-bold">NEW</span>
+            <span class="px-2 py-0.5 text-[10px] bg-slate-100 text-slate-700 rounded mono font-bold">ARCHIVE</span>
+            <span class="px-2 py-0.5 text-[10px] bg-rose-100 text-rose-700 rounded font-bold">CRITICAL</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+<footer class="h-9 bg-white border-t border-slate-200 flex items-center justify-between px-6 text-[11px] text-slate-500 shrink-0 mono">
+    <span>S-024 component_catalog · F-005b · T-005b-03</span>
+    <span><a href="../index.html" class="hover:underline">← Index</a></span>
+  </footer>
+</main>
+</body>
+</html>

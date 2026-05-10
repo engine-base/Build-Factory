@@ -64,7 +64,7 @@ body{font-family:"Noto Sans JP",sans-serif;background:#f0f2f5;color:#1a1a1a;line
   <div class="s-card"><div class="num">10</div><div class="lbl">Critical</div></div>
   <div class="s-card"><div class="num">32</div><div class="lbl">Normal</div></div>
   <div class="s-card"><div class="num">1</div><div class="lbl">Phase 1.5</div></div>
-  <div class="s-card"><div class="num"><span id="completed-count">0</span></div><div class="lbl">Completed</div></div>
+  <div class="s-card"><div class="num"><span id="completed-count">43</span>/43</div><div class="lbl">Completed</div></div>
 </div>
 </div>
 
@@ -87,26 +87,26 @@ body{font-family:"Noto Sans JP",sans-serif;background:#f0f2f5;color:#1a1a1a;line
 <div class="tools">
 <h3>🛠 ツール</h3>
 <a href="design-tokens.md" target="_blank">design-tokens.md</a>
-<a href="flow-map.html" target="_blank">flow-map.html（画面遷移）</a>
-<a href="component-catalog.html" target="_blank">component-catalog.html</a>
+<a href="spec/S-025-screen-flow-map.html" target="_blank">画面遷移マップ (S-025)</a>
+<a href="spec/S-024-component-catalog.html" target="_blank">コンポーネントカタログ (S-024)</a>
 <a href="mock-tracker.json" target="_blank">mock-tracker.json</a>
 <a href="../../task-decomposition/2026-05-09_v1/interfaces.md" target="_blank">API インターフェース</a>
 </div>
 
 <div class="note">
-<strong>進め方（A + D ハイブリッド）：</strong>
-共通基盤 → 重要 10 画面 → 残り 33 画面（カテゴリ別に順次）。pending（斜線パターン）= まだ未作成・completed（緑バック）= 作成済。
+<strong>進め方（A + D ハイブリッド）完了：</strong>
+共通基盤 → 重要 10 画面 → 残り 33 画面 すべて作成済み (43/43)。各カードをクリックで画面を確認できます。実装時は対応モック + 仕様書 + ER 図 + タスクカード を必参照。
 </div>
 
 <!-- 認証 5 -->
 <div class="section">
 <h2>🔐 認証 <span class="count">5 画面</span></h2>
 <div class="grid">
-<a href="auth/S-001-login.html" class="card pending"><div class="h"><span class="id">S-001</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">login</div><div class="meta-row"><span class="feature">F-004</span><span>Supabase Auth + 2FA + OAuth</span></div></a>
-<a href="auth/S-002-signup.html" class="card pending"><div class="h"><span class="id">S-002</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">signup</div><div class="meta-row"><span class="feature">F-004</span><span>新規登録 + 招待トークン</span></div></a>
-<a href="auth/S-003-password-reset.html" class="card pending"><div class="h"><span class="id">S-003</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">password_reset</div><div class="meta-row"><span class="feature">F-004</span></div></a>
-<a href="auth/S-004-mfa-setup.html" class="card pending"><div class="h"><span class="id">S-004</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">mfa_setup</div><div class="meta-row"><span class="feature">F-004</span><span>TOTP 2FA</span></div></a>
-<a href="auth/S-005-oauth-callback.html" class="card pending"><div class="h"><span class="id">S-005</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">oauth_callback</div><div class="meta-row"><span class="feature">F-023</span><span>Slack/GitHub/Anthropic</span></div></a>
+<a href="auth/S-001-login.html" class="card completed"><div class="h"><span class="id">S-001</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">login</div><div class="meta-row"><span class="feature">F-004</span><span>Supabase Auth + 2FA + OAuth</span></div></a>
+<a href="auth/S-002-signup.html" class="card completed"><div class="h"><span class="id">S-002</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">signup</div><div class="meta-row"><span class="feature">F-004</span><span>新規登録 + 招待トークン</span></div></a>
+<a href="auth/S-003-password-reset.html" class="card completed"><div class="h"><span class="id">S-003</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">password_reset</div><div class="meta-row"><span class="feature">F-004</span></div></a>
+<a href="auth/S-004-mfa-setup.html" class="card completed"><div class="h"><span class="id">S-004</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">mfa_setup</div><div class="meta-row"><span class="feature">F-004</span><span>TOTP 2FA</span></div></a>
+<a href="auth/S-005-oauth-callback.html" class="card completed"><div class="h"><span class="id">S-005</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">oauth_callback</div><div class="meta-row"><span class="feature">F-023</span><span>Slack/GitHub/Anthropic</span></div></a>
 </div>
 </div>
 
@@ -114,12 +114,12 @@ body{font-family:"Noto Sans JP",sans-serif;background:#f0f2f5;color:#1a1a1a;line
 <div class="section">
 <h2>👤 アカウント横断 <span class="count">6 画面</span></h2>
 <div class="grid">
-<a href="account/S-006-account-dashboard.html" class="card pending"><div class="h"><span class="id">S-006</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">account_dashboard ⭐</div><div class="meta-row"><span class="feature">F-024+</span><span>10 案件俯瞰・Hero 4 + 主要 4</span></div></a>
-<a href="account/S-007-account-settings.html" class="card pending"><div class="h"><span class="id">S-007</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">account_settings</div><div class="meta-row"><span class="feature">F-004</span></div></a>
-<a href="account/S-008-account-members.html" class="card pending"><div class="h"><span class="id">S-008</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">account_members</div><div class="meta-row"><span class="feature">F-004</span></div></a>
-<a href="account/S-009-profile-settings.html" class="card pending"><div class="h"><span class="id">S-009</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">profile_settings</div><div class="meta-row"><span class="feature">F-023</span><span>BYOK + クローン opt-in</span></div></a>
-<a href="account/S-010-notifications-inbox.html" class="card pending"><div class="h"><span class="id">S-010</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">notifications_inbox</div><div class="meta-row"><span class="feature">F-014</span></div></a>
-<a href="account/S-011-global-search.html" class="card pending"><div class="h"><span class="id">S-011</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">global_search</div><div class="meta-row"><span class="feature">F-024</span><span>Cmd+K modal</span></div></a>
+<a href="account/S-006-account-dashboard.html" class="card completed"><div class="h"><span class="id">S-006</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">account_dashboard ⭐</div><div class="meta-row"><span class="feature">F-024+</span><span>10 案件俯瞰・Hero 4 + 主要 4</span></div></a>
+<a href="account/S-007-account-settings.html" class="card completed"><div class="h"><span class="id">S-007</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">account_settings</div><div class="meta-row"><span class="feature">F-004</span></div></a>
+<a href="account/S-008-account-members.html" class="card completed"><div class="h"><span class="id">S-008</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">account_members</div><div class="meta-row"><span class="feature">F-004</span></div></a>
+<a href="account/S-009-profile-settings.html" class="card completed"><div class="h"><span class="id">S-009</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">profile_settings</div><div class="meta-row"><span class="feature">F-023</span><span>BYOK + クローン opt-in</span></div></a>
+<a href="account/S-010-notifications-inbox.html" class="card completed"><div class="h"><span class="id">S-010</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">notifications_inbox</div><div class="meta-row"><span class="feature">F-014</span></div></a>
+<a href="account/S-011-global-search.html" class="card completed"><div class="h"><span class="id">S-011</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">global_search</div><div class="meta-row"><span class="feature">F-024</span><span>Cmd+K modal</span></div></a>
 </div>
 </div>
 
@@ -127,10 +127,10 @@ body{font-family:"Noto Sans JP",sans-serif;background:#f0f2f5;color:#1a1a1a;line
 <div class="section">
 <h2>🏢 Workspace 横断 <span class="count">4 画面</span></h2>
 <div class="grid">
-<a href="workspace/S-012-workspace-dashboard.html" class="card pending"><div class="h"><span class="id">S-012</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">workspace_dashboard</div><div class="meta-row"><span class="feature">F-008+</span></div></a>
-<a href="workspace/S-013-workspace-settings.html" class="card pending"><div class="h"><span class="id">S-013</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">workspace_settings</div><div class="meta-row"><span class="feature">F-004</span></div></a>
-<a href="workspace/S-014-workspace-members.html" class="card pending"><div class="h"><span class="id">S-014</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">workspace_members</div><div class="meta-row"><span class="feature">F-021</span><span>permission matrix UI</span></div></a>
-<a href="workspace/S-015-workspace-invite.html" class="card pending"><div class="h"><span class="id">S-015</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">workspace_invite</div><div class="meta-row"><span class="feature">F-004</span></div></a>
+<a href="workspace/S-012-workspace-dashboard.html" class="card completed"><div class="h"><span class="id">S-012</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">workspace_dashboard</div><div class="meta-row"><span class="feature">F-008+</span></div></a>
+<a href="workspace/S-013-workspace-settings.html" class="card completed"><div class="h"><span class="id">S-013</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">workspace_settings</div><div class="meta-row"><span class="feature">F-004</span></div></a>
+<a href="workspace/S-014-workspace-members.html" class="card completed"><div class="h"><span class="id">S-014</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">workspace_members</div><div class="meta-row"><span class="feature">F-021</span><span>permission matrix UI</span></div></a>
+<a href="workspace/S-015-workspace-invite.html" class="card completed"><div class="h"><span class="id">S-015</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">workspace_invite</div><div class="meta-row"><span class="feature">F-004</span></div></a>
 </div>
 </div>
 
@@ -138,10 +138,10 @@ body{font-family:"Noto Sans JP",sans-serif;background:#f0f2f5;color:#1a1a1a;line
 <div class="section">
 <h2>🏛 プロジェクト管理 (moat) <span class="count">4 画面</span></h2>
 <div class="grid">
-<a href="moat/S-016-phase-management.html" class="card pending"><div class="h"><span class="id">S-016</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">phase_management</div><div class="meta-row"><span class="feature">F-008</span></div></a>
-<a href="moat/S-017-dependency-graph.html" class="card pending"><div class="h"><span class="id">S-017</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">dependency_graph ⭐</div><div class="meta-row"><span class="feature">F-009</span><span>DAG・moat 中核</span></div></a>
-<a href="moat/S-018-constitution-editor.html" class="card pending"><div class="h"><span class="id">S-018</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">constitution_editor</div><div class="meta-row"><span class="feature">F-026</span></div></a>
-<a href="moat/S-019-red-line-settings.html" class="card pending"><div class="h"><span class="id">S-019</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">red_line_settings</div><div class="meta-row"><span class="feature">F-012</span></div></a>
+<a href="moat/S-016-phase-management.html" class="card completed"><div class="h"><span class="id">S-016</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">phase_management</div><div class="meta-row"><span class="feature">F-008</span></div></a>
+<a href="moat/S-017-dependency-graph.html" class="card completed"><div class="h"><span class="id">S-017</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">dependency_graph ⭐</div><div class="meta-row"><span class="feature">F-009</span><span>DAG・moat 中核</span></div></a>
+<a href="moat/S-018-constitution-editor.html" class="card completed"><div class="h"><span class="id">S-018</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">constitution_editor</div><div class="meta-row"><span class="feature">F-026</span></div></a>
+<a href="moat/S-019-red-line-settings.html" class="card completed"><div class="h"><span class="id">S-019</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">red_line_settings</div><div class="meta-row"><span class="feature">F-012</span></div></a>
 </div>
 </div>
 
@@ -149,13 +149,13 @@ body{font-family:"Noto Sans JP",sans-serif;background:#f0f2f5;color:#1a1a1a;line
 <div class="section">
 <h2>📋 仕様化・モック <span class="count">7 画面</span></h2>
 <div class="grid">
-<a href="spec/S-020-hearing-session.html" class="card pending"><div class="h"><span class="id">S-020</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">hearing_session</div><div class="meta-row"><span class="feature">F-005</span><span>Mary BA 4STEP</span></div></a>
-<a href="spec/S-021-requirements-editor.html" class="card pending"><div class="h"><span class="id">S-021</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">requirements_editor</div><div class="meta-row"><span class="feature">F-005+F-025</span></div></a>
-<a href="spec/S-022-spec-viewer.html" class="card pending"><div class="h"><span class="id">S-022</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">spec_viewer</div><div class="meta-row"><span class="feature">F-015</span></div></a>
-<a href="spec/S-023-screen-mock-viewer.html" class="card pending"><div class="h"><span class="id">S-023</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">screen_mock_viewer</div><div class="meta-row"><span class="feature">F-005b</span></div></a>
-<a href="spec/S-024-component-catalog.html" class="card pending"><div class="h"><span class="id">S-024</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">component_catalog</div><div class="meta-row"><span class="feature">F-005b</span></div></a>
-<a href="spec/S-025-screen-flow-map.html" class="card pending"><div class="h"><span class="id">S-025</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">screen_flow_map</div><div class="meta-row"><span class="feature">F-005b</span></div></a>
-<a href="spec/S-026-design-html-editor.html" class="card pending"><div class="h"><span class="id">S-026</span><span class="priority priority-low">P1.5</span><span class="status-badge status-pending">Pending</span></div><div class="title">design_html_editor</div><div class="meta-row"><span class="feature">S-3</span><span>GrapesJS embed</span></div></a>
+<a href="spec/S-020-hearing-session.html" class="card completed"><div class="h"><span class="id">S-020</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">hearing_session</div><div class="meta-row"><span class="feature">F-005</span><span>Mary BA 4STEP</span></div></a>
+<a href="spec/S-021-requirements-editor.html" class="card completed"><div class="h"><span class="id">S-021</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">requirements_editor</div><div class="meta-row"><span class="feature">F-005+F-025</span></div></a>
+<a href="spec/S-022-spec-viewer.html" class="card completed"><div class="h"><span class="id">S-022</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">spec_viewer</div><div class="meta-row"><span class="feature">F-015</span></div></a>
+<a href="spec/S-023-screen-mock-viewer.html" class="card completed"><div class="h"><span class="id">S-023</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">screen_mock_viewer</div><div class="meta-row"><span class="feature">F-005b</span></div></a>
+<a href="spec/S-024-component-catalog.html" class="card completed"><div class="h"><span class="id">S-024</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">component_catalog</div><div class="meta-row"><span class="feature">F-005b</span></div></a>
+<a href="spec/S-025-screen-flow-map.html" class="card completed"><div class="h"><span class="id">S-025</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">screen_flow_map</div><div class="meta-row"><span class="feature">F-005b</span></div></a>
+<a href="spec/S-026-design-html-editor.html" class="card completed"><div class="h"><span class="id">S-026</span><span class="priority priority-low">P1.5</span><span class="status-badge status-completed">Completed</span></div><div class="title">design_html_editor</div><div class="meta-row"><span class="feature">S-3</span><span>GrapesJS embed</span></div></a>
 </div>
 </div>
 
@@ -163,12 +163,12 @@ body{font-family:"Noto Sans JP",sans-serif;background:#f0f2f5;color:#1a1a1a;line
 <div class="section">
 <h2>⚡ タスク・実行 <span class="count">6 画面</span></h2>
 <div class="grid">
-<a href="task/S-027-task-kanban.html" class="card pending"><div class="h"><span class="id">S-027</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">task_kanban</div><div class="meta-row"><span class="feature">F-007</span><span>Hermes 流 6 列</span></div></a>
-<a href="task/S-028-task-list.html" class="card pending"><div class="h"><span class="id">S-028</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">task_list</div><div class="meta-row"><span class="feature">F-007</span></div></a>
-<a href="task/S-029-task-dag-view.html" class="card pending"><div class="h"><span class="id">S-029</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">task_dag_view</div><div class="meta-row"><span class="feature">F-007</span></div></a>
-<a href="task/S-030-task-detail.html" class="card pending"><div class="h"><span class="id">S-030</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">task_detail ⭐</div><div class="meta-row"><span class="feature">F-006+F-010b</span><span>▶︎ 再生 + EARS AC</span></div></a>
-<a href="task/S-031-swarm-grid.html" class="card pending"><div class="h"><span class="id">S-031</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">swarm_grid ⭐⭐</div><div class="meta-row"><span class="feature">F-010c+F-010d</span><span>並列 swarm UI</span></div></a>
-<a href="task/S-032-swarm-session-detail.html" class="card pending"><div class="h"><span class="id">S-032</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">swarm_session_detail</div><div class="meta-row"><span class="feature">F-010d</span><span>ライブログ + resume 4 択</span></div></a>
+<a href="task/S-027-task-kanban.html" class="card completed"><div class="h"><span class="id">S-027</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">task_kanban</div><div class="meta-row"><span class="feature">F-007</span><span>Hermes 流 6 列</span></div></a>
+<a href="task/S-028-task-list.html" class="card completed"><div class="h"><span class="id">S-028</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">task_list</div><div class="meta-row"><span class="feature">F-007</span></div></a>
+<a href="task/S-029-task-dag-view.html" class="card completed"><div class="h"><span class="id">S-029</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">task_dag_view</div><div class="meta-row"><span class="feature">F-007</span></div></a>
+<a href="task/S-030-task-detail.html" class="card completed"><div class="h"><span class="id">S-030</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">task_detail ⭐</div><div class="meta-row"><span class="feature">F-006+F-010b</span><span>▶︎ 再生 + EARS AC</span></div></a>
+<a href="task/S-031-swarm-grid.html" class="card completed"><div class="h"><span class="id">S-031</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">swarm_grid ⭐⭐</div><div class="meta-row"><span class="feature">F-010c+F-010d</span><span>並列 swarm UI</span></div></a>
+<a href="task/S-032-swarm-session-detail.html" class="card completed"><div class="h"><span class="id">S-032</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">swarm_session_detail</div><div class="meta-row"><span class="feature">F-010d</span><span>ライブログ + resume 4 択</span></div></a>
 </div>
 </div>
 
@@ -176,9 +176,9 @@ body{font-family:"Noto Sans JP",sans-serif;background:#f0f2f5;color:#1a1a1a;line
 <div class="section">
 <h2>✅ レビュー・納品 <span class="count">3 画面</span></h2>
 <div class="grid">
-<a href="review/S-033-pr-review.html" class="card pending"><div class="h"><span class="id">S-033</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">pr_review</div><div class="meta-row"><span class="feature">F-013</span></div></a>
-<a href="review/S-034-red-line-approval.html" class="card pending"><div class="h"><span class="id">S-034</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">red_line_approval</div><div class="meta-row"><span class="feature">F-012</span></div></a>
-<a href="review/S-035-delivery-approval.html" class="card pending"><div class="h"><span class="id">S-035</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">delivery_approval</div><div class="meta-row"><span class="feature">F-011</span></div></a>
+<a href="review/S-033-pr-review.html" class="card completed"><div class="h"><span class="id">S-033</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">pr_review</div><div class="meta-row"><span class="feature">F-013</span></div></a>
+<a href="review/S-034-red-line-approval.html" class="card completed"><div class="h"><span class="id">S-034</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">red_line_approval</div><div class="meta-row"><span class="feature">F-012</span></div></a>
+<a href="review/S-035-delivery-approval.html" class="card completed"><div class="h"><span class="id">S-035</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">delivery_approval</div><div class="meta-row"><span class="feature">F-011</span></div></a>
 </div>
 </div>
 
@@ -186,9 +186,9 @@ body{font-family:"Noto Sans JP",sans-serif;background:#f0f2f5;color:#1a1a1a;line
 <div class="section">
 <h2>🤖 AI 社員・スキル <span class="count">3 画面</span></h2>
 <div class="grid">
-<a href="ai/S-036-ai-employees-org-chart.html" class="card pending"><div class="h"><span class="id">S-036</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">ai_employees_org_chart</div><div class="meta-row"><span class="feature">F-022</span><span>3 階層組織図</span></div></a>
-<a href="ai/S-037-ai-employee-detail.html" class="card pending"><div class="h"><span class="id">S-037</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">ai_employee_detail</div><div class="meta-row"><span class="feature">F-022</span></div></a>
-<a href="ai/S-038-skill-manager.html" class="card pending"><div class="h"><span class="id">S-038</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">skill_manager</div><div class="meta-row"><span class="feature">F-002</span></div></a>
+<a href="ai/S-036-ai-employees-org-chart.html" class="card completed"><div class="h"><span class="id">S-036</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">ai_employees_org_chart</div><div class="meta-row"><span class="feature">F-022</span><span>3 階層組織図</span></div></a>
+<a href="ai/S-037-ai-employee-detail.html" class="card completed"><div class="h"><span class="id">S-037</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">ai_employee_detail</div><div class="meta-row"><span class="feature">F-022</span></div></a>
+<a href="ai/S-038-skill-manager.html" class="card completed"><div class="h"><span class="id">S-038</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">skill_manager</div><div class="meta-row"><span class="feature">F-002</span></div></a>
 </div>
 </div>
 
@@ -196,9 +196,9 @@ body{font-family:"Noto Sans JP",sans-serif;background:#f0f2f5;color:#1a1a1a;line
 <div class="section">
 <h2>📊 ナレッジ・観測 <span class="count">3 画面</span></h2>
 <div class="grid">
-<a href="ops/S-039-knowledge-base.html" class="card pending"><div class="h"><span class="id">S-039</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">knowledge_base</div><div class="meta-row"><span class="feature">F-016+F-024</span></div></a>
-<a href="ops/S-040-cost-dashboard.html" class="card pending"><div class="h"><span class="id">S-040</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">cost_dashboard</div><div class="meta-row"><span class="feature">F-017</span><span>8 タブ</span></div></a>
-<a href="ops/S-041-audit-log-viewer.html" class="card pending"><div class="h"><span class="id">S-041</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">audit_log_viewer</div><div class="meta-row"><span class="feature">F-018</span></div></a>
+<a href="ops/S-039-knowledge-base.html" class="card completed"><div class="h"><span class="id">S-039</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">knowledge_base</div><div class="meta-row"><span class="feature">F-016+F-024</span></div></a>
+<a href="ops/S-040-cost-dashboard.html" class="card completed"><div class="h"><span class="id">S-040</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">cost_dashboard</div><div class="meta-row"><span class="feature">F-017</span><span>8 タブ</span></div></a>
+<a href="ops/S-041-audit-log-viewer.html" class="card completed"><div class="h"><span class="id">S-041</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">audit_log_viewer</div><div class="meta-row"><span class="feature">F-018</span></div></a>
 </div>
 </div>
 
@@ -206,14 +206,14 @@ body{font-family:"Noto Sans JP",sans-serif;background:#f0f2f5;color:#1a1a1a;line
 <div class="section">
 <h2>👥 クライアント専用 <span class="count">2 画面</span></h2>
 <div class="grid">
-<a href="client/S-042-client-workspace.html" class="card pending"><div class="h"><span class="id">S-042</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">client_workspace</div><div class="meta-row"><span class="feature">F-021+S-1</span></div></a>
-<a href="client/S-043-client-comment.html" class="card pending"><div class="h"><span class="id">S-043</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">client_comment</div><div class="meta-row"><span class="feature">F-005+F-021</span></div></a>
+<a href="client/S-042-client-workspace.html" class="card completed"><div class="h"><span class="id">S-042</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">client_workspace</div><div class="meta-row"><span class="feature">F-021+S-1</span></div></a>
+<a href="client/S-043-client-comment.html" class="card completed"><div class="h"><span class="id">S-043</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-completed">Completed</span></div><div class="title">client_comment</div><div class="meta-row"><span class="feature">F-005+F-021</span></div></a>
 </div>
 </div>
 
 <div style="text-align:center;margin-top:30px;font-size:11px;color:#94a3b8">
 <p>Build-Factory Mocks v1.0 / 株式会社 ENGINE BASE / 2026-05-09</p>
-<p>関連: <code>mock-tracker.json</code> · <code>design-tokens.md</code> · <code>flow-map.html</code> · <code>component-catalog.html</code></p>
+<p>関連: <code>mock-tracker.json</code> · <code>design-tokens.md</code> · <code>S-025 screen-flow-map</code> · <code>S-024 component-catalog</code></p>
 </div>
 
 </div>
