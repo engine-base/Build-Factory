@@ -7,16 +7,16 @@
       "services_scanned": 54,
       "migrations_scanned": 7,
       "total_files_on_disk": 100,
-      "specific_refs_in_tickets": 58,
+      "specific_refs_in_tickets": 116,
       "dir_refs_in_tickets": 14
     },
     "counts_by_classification": {
-      "REFACTOR": 35,
-      "UNDETERMINED": 64,
-      "REUSE": 1
+      "REFACTOR": 91,
+      "UNDETERMINED": 5,
+      "REUSE": 4
     },
-    "orphan_tickets_count": 6,
-    "phase_annotations_applied": 2
+    "orphan_tickets_count": 4,
+    "phase_annotations_applied": 5
   },
   "inventory": [
     {
@@ -45,9 +45,15 @@
     },
     {
       "path": "backend/routers/ai_system.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-022-03 (F-022) で参照",
+      "tickets": [
+        {
+          "ticket": "T-022-03",
+          "label": "REFACTOR",
+          "feature": "F-022"
+        }
+      ]
     },
     {
       "path": "backend/routers/approval.py",
@@ -63,33 +69,59 @@
     },
     {
       "path": "backend/routers/artifacts.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-003-05 (F-003) で参照",
+      "tickets": [
+        {
+          "ticket": "T-003-05",
+          "label": "REFACTOR",
+          "feature": "F-003"
+        }
+      ]
     },
     {
       "path": "backend/routers/browser_use.py",
       "classification": "UNDETERMINED",
       "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "tickets": [],
+      "phase_boundary": "Phase 2",
+      "phase_action": "browser-use の Phase 1 必要性を再評価 (現状 UNDETERMINED)"
     },
     {
       "path": "backend/routers/chat.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-M30-01 (M-30) で参照",
+      "tickets": [
+        {
+          "ticket": "T-M30-01",
+          "label": "REFACTOR",
+          "feature": "M-30"
+        }
+      ]
     },
     {
       "path": "backend/routers/chatwork.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REUSE",
+      "rationale": "REUSE ラベルのチケット T-014-01 (F-014) で参照",
+      "tickets": [
+        {
+          "ticket": "T-014-01",
+          "label": "REUSE",
+          "feature": "F-014"
+        }
+      ]
     },
     {
       "path": "backend/routers/dashboard.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-008-01 (F-008) で参照",
+      "tickets": [
+        {
+          "ticket": "T-008-01",
+          "label": "REFACTOR",
+          "feature": "F-008"
+        }
+      ]
     },
     {
       "path": "backend/routers/design_frames.py",
@@ -117,15 +149,27 @@
     },
     {
       "path": "backend/routers/design_pipeline.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-005b-02 (F-005b) で参照",
+      "tickets": [
+        {
+          "ticket": "T-005b-02",
+          "label": "REFACTOR",
+          "feature": "F-005b"
+        }
+      ]
     },
     {
       "path": "backend/routers/documents.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-016-01 (F-016) で参照",
+      "tickets": [
+        {
+          "ticket": "T-016-01",
+          "label": "REFACTOR",
+          "feature": "F-016"
+        }
+      ]
     },
     {
       "path": "backend/routers/employees.py",
@@ -141,9 +185,15 @@
     },
     {
       "path": "backend/routers/estimate.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-005-01 (F-005) で参照",
+      "tickets": [
+        {
+          "ticket": "T-005-01",
+          "label": "REFACTOR",
+          "feature": "F-005"
+        }
+      ]
     },
     {
       "path": "backend/routers/hearing.py",
@@ -159,9 +209,15 @@
     },
     {
       "path": "backend/routers/knowledge_actions.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-024-02 (F-024) で参照",
+      "tickets": [
+        {
+          "ticket": "T-024-02",
+          "label": "REFACTOR",
+          "feature": "F-024"
+        }
+      ]
     },
     {
       "path": "backend/routers/knowledge_search.py",
@@ -177,15 +233,27 @@
     },
     {
       "path": "backend/routers/llm.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-020-02 (F-020) で参照",
+      "tickets": [
+        {
+          "ticket": "T-020-02",
+          "label": "REFACTOR",
+          "feature": "F-020"
+        }
+      ]
     },
     {
       "path": "backend/routers/llm_providers.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-020-02 (F-020) で参照",
+      "tickets": [
+        {
+          "ticket": "T-020-02",
+          "label": "REFACTOR",
+          "feature": "F-020"
+        }
+      ]
     },
     {
       "path": "backend/routers/mcp_server.py",
@@ -201,27 +269,51 @@
     },
     {
       "path": "backend/routers/pricing_design.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-005-01 (F-005) で参照",
+      "tickets": [
+        {
+          "ticket": "T-005-01",
+          "label": "REFACTOR",
+          "feature": "F-005"
+        }
+      ]
     },
     {
       "path": "backend/routers/proposal.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-005-01 (F-005) で参照",
+      "tickets": [
+        {
+          "ticket": "T-005-01",
+          "label": "REFACTOR",
+          "feature": "F-005"
+        }
+      ]
     },
     {
       "path": "backend/routers/records.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-016-01 (F-016) で参照",
+      "tickets": [
+        {
+          "ticket": "T-016-01",
+          "label": "REFACTOR",
+          "feature": "F-016"
+        }
+      ]
     },
     {
       "path": "backend/routers/references.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-024-02 (F-024) で参照",
+      "tickets": [
+        {
+          "ticket": "T-024-02",
+          "label": "REFACTOR",
+          "feature": "F-024"
+        }
+      ]
     },
     {
       "path": "backend/routers/requirements.py",
@@ -249,21 +341,39 @@
     },
     {
       "path": "backend/routers/secretary.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-003-02 (F-003) で参照",
+      "tickets": [
+        {
+          "ticket": "T-003-02",
+          "label": "REFACTOR",
+          "feature": "F-003"
+        }
+      ]
     },
     {
       "path": "backend/routers/secretary_stream.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-003-02 (F-003) で参照",
+      "tickets": [
+        {
+          "ticket": "T-003-02",
+          "label": "REFACTOR",
+          "feature": "F-003"
+        }
+      ]
     },
     {
       "path": "backend/routers/skill_creator.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-002-01 (F-002) で参照",
+      "tickets": [
+        {
+          "ticket": "T-002-01",
+          "label": "REFACTOR",
+          "feature": "F-002"
+        }
+      ]
     },
     {
       "path": "backend/routers/skills.py",
@@ -279,15 +389,27 @@
     },
     {
       "path": "backend/routers/slot_admin.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-005-02 (F-005) で参照",
+      "tickets": [
+        {
+          "ticket": "T-005-02",
+          "label": "REFACTOR",
+          "feature": "F-005"
+        }
+      ]
     },
     {
       "path": "backend/routers/staff.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-022-03 (F-022) で参照",
+      "tickets": [
+        {
+          "ticket": "T-022-03",
+          "label": "REFACTOR",
+          "feature": "F-022"
+        }
+      ]
     },
     {
       "path": "backend/routers/tasks.py",
@@ -303,9 +425,15 @@
     },
     {
       "path": "backend/routers/template_builder.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-015-01 (F-015) で参照",
+      "tickets": [
+        {
+          "ticket": "T-015-01",
+          "label": "REFACTOR",
+          "feature": "F-015"
+        }
+      ]
     },
     {
       "path": "backend/routers/threads.py",
@@ -321,15 +449,27 @@
     },
     {
       "path": "backend/routers/uploads.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-016-01 (F-016) で参照",
+      "tickets": [
+        {
+          "ticket": "T-016-01",
+          "label": "REFACTOR",
+          "feature": "F-016"
+        }
+      ]
     },
     {
       "path": "backend/routers/workflows.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-010c-01 (F-010c) で参照",
+      "tickets": [
+        {
+          "ticket": "T-010c-01",
+          "label": "REFACTOR",
+          "feature": "F-010c"
+        }
+      ]
     },
     {
       "path": "backend/routers/workspaces.py",
@@ -345,15 +485,27 @@
     },
     {
       "path": "backend/services/account_service.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-004-01 (F-004) で参照",
+      "tickets": [
+        {
+          "ticket": "T-004-01",
+          "label": "REFACTOR",
+          "feature": "F-004"
+        }
+      ]
     },
     {
       "path": "backend/services/account_settings_service.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-004-01 (F-004) で参照",
+      "tickets": [
+        {
+          "ticket": "T-004-01",
+          "label": "REFACTOR",
+          "feature": "F-004"
+        }
+      ]
     },
     {
       "path": "backend/services/artifact_export.py",
@@ -381,21 +533,40 @@
     },
     {
       "path": "backend/services/auth_middleware.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-S0-09 (META) で参照",
+      "tickets": [
+        {
+          "ticket": "T-S0-09",
+          "label": "REFACTOR",
+          "feature": "META"
+        },
+        {
+          "ticket": "T-021-03",
+          "label": "REFACTOR",
+          "feature": "F-021"
+        }
+      ]
     },
     {
       "path": "backend/services/briefing_service.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-005-01 (F-005) で参照",
+      "tickets": [
+        {
+          "ticket": "T-005-01",
+          "label": "REFACTOR",
+          "feature": "F-005"
+        }
+      ]
     },
     {
       "path": "backend/services/browser_queue.py",
       "classification": "UNDETERMINED",
       "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "tickets": [],
+      "phase_boundary": "Phase 2",
+      "phase_action": "browser-use キューイング、Phase 1 では不使用"
     },
     {
       "path": "backend/services/browser_use_service.py",
@@ -407,15 +578,32 @@
     },
     {
       "path": "backend/services/catchup_service.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-008-01 (F-008) で参照",
+      "tickets": [
+        {
+          "ticket": "T-008-01",
+          "label": "REFACTOR",
+          "feature": "F-008"
+        }
+      ]
     },
     {
       "path": "backend/services/conversation_memory.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-020-02 (F-020) で参照",
+      "tickets": [
+        {
+          "ticket": "T-020-02",
+          "label": "REFACTOR",
+          "feature": "F-020"
+        },
+        {
+          "ticket": "T-M30-03",
+          "label": "REFACTOR",
+          "feature": "M-30"
+        }
+      ]
     },
     {
       "path": "backend/services/conversation_summarizer.py",
@@ -443,15 +631,27 @@
     },
     {
       "path": "backend/services/delegation_service.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-003-02 (F-003) で参照",
+      "tickets": [
+        {
+          "ticket": "T-003-02",
+          "label": "REFACTOR",
+          "feature": "F-003"
+        }
+      ]
     },
     {
       "path": "backend/services/design_pipeline.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-005b-02 (F-005b) で参照",
+      "tickets": [
+        {
+          "ticket": "T-005b-02",
+          "label": "REFACTOR",
+          "feature": "F-005b"
+        }
+      ]
     },
     {
       "path": "backend/services/designer_ai.py",
@@ -467,15 +667,27 @@
     },
     {
       "path": "backend/services/document_ingest_service.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-016-01 (F-016) で参照",
+      "tickets": [
+        {
+          "ticket": "T-016-01",
+          "label": "REFACTOR",
+          "feature": "F-016"
+        }
+      ]
     },
     {
       "path": "backend/services/document_service.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-016-01 (F-016) で参照",
+      "tickets": [
+        {
+          "ticket": "T-016-01",
+          "label": "REFACTOR",
+          "feature": "F-016"
+        }
+      ]
     },
     {
       "path": "backend/services/embedding_service.py",
@@ -496,9 +708,15 @@
     },
     {
       "path": "backend/services/estimate_service.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-005-01 (F-005) で参照",
+      "tickets": [
+        {
+          "ticket": "T-005-01",
+          "label": "REFACTOR",
+          "feature": "F-005"
+        }
+      ]
     },
     {
       "path": "backend/services/hearing_service.py",
@@ -514,9 +732,15 @@
     },
     {
       "path": "backend/services/inbox_service.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REUSE",
+      "rationale": "REUSE ラベルのチケット T-014-01 (F-014) で参照",
+      "tickets": [
+        {
+          "ticket": "T-014-01",
+          "label": "REUSE",
+          "feature": "F-014"
+        }
+      ]
     },
     {
       "path": "backend/services/intent_preprocessor.py",
@@ -532,15 +756,27 @@
     },
     {
       "path": "backend/services/knowledge_curator.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-M28-05 (M-28) で参照",
+      "tickets": [
+        {
+          "ticket": "T-M28-05",
+          "label": "REFACTOR",
+          "feature": "M-28"
+        }
+      ]
     },
     {
       "path": "backend/services/knowledge_transfer.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-M28-05 (M-28) で参照",
+      "tickets": [
+        {
+          "ticket": "T-M28-05",
+          "label": "REFACTOR",
+          "feature": "M-28"
+        }
+      ]
     },
     {
       "path": "backend/services/long_term_memory.py",
@@ -597,15 +833,27 @@
     },
     {
       "path": "backend/services/obsidian_vault_sync.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-M30-04 (M-30) で参照",
+      "tickets": [
+        {
+          "ticket": "T-M30-04",
+          "label": "REFACTOR",
+          "feature": "M-30"
+        }
+      ]
     },
     {
       "path": "backend/services/orchestrator_graph.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-010b-01 (F-010b) で参照",
+      "tickets": [
+        {
+          "ticket": "T-010b-01",
+          "label": "REFACTOR",
+          "feature": "F-010b"
+        }
+      ]
     },
     {
       "path": "backend/services/output_processor.py",
@@ -629,21 +877,39 @@
     },
     {
       "path": "backend/services/pricing_design_service.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-005-01 (F-005) で参照",
+      "tickets": [
+        {
+          "ticket": "T-005-01",
+          "label": "REFACTOR",
+          "feature": "F-005"
+        }
+      ]
     },
     {
       "path": "backend/services/proposal_service.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-005-01 (F-005) で参照",
+      "tickets": [
+        {
+          "ticket": "T-005-01",
+          "label": "REFACTOR",
+          "feature": "F-005"
+        }
+      ]
     },
     {
       "path": "backend/services/rag_context.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-M28-05 (M-28) で参照",
+      "tickets": [
+        {
+          "ticket": "T-M28-05",
+          "label": "REFACTOR",
+          "feature": "M-28"
+        }
+      ]
     },
     {
       "path": "backend/services/requirements_service.py",
@@ -671,39 +937,75 @@
     },
     {
       "path": "backend/services/sales_service.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-008-01 (F-008) で参照",
+      "tickets": [
+        {
+          "ticket": "T-008-01",
+          "label": "REFACTOR",
+          "feature": "F-008"
+        }
+      ]
     },
     {
       "path": "backend/services/scoped_knowledge.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-024-02 (F-024) で参照",
+      "tickets": [
+        {
+          "ticket": "T-024-02",
+          "label": "REFACTOR",
+          "feature": "F-024"
+        }
+      ]
     },
     {
       "path": "backend/services/secretary_chat.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-003-02 (F-003) で参照",
+      "tickets": [
+        {
+          "ticket": "T-003-02",
+          "label": "REFACTOR",
+          "feature": "F-003"
+        }
+      ]
     },
     {
       "path": "backend/services/skill_detector.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-M27-02 (M-27) で参照",
+      "tickets": [
+        {
+          "ticket": "T-M27-02",
+          "label": "REFACTOR",
+          "feature": "M-27"
+        }
+      ]
     },
     {
       "path": "backend/services/skill_manager.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-002-02 (F-002) で参照",
+      "tickets": [
+        {
+          "ticket": "T-002-02",
+          "label": "REFACTOR",
+          "feature": "F-002"
+        }
+      ]
     },
     {
       "path": "backend/services/slack_history.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REUSE",
+      "rationale": "REUSE ラベルのチケット T-014-01 (F-014) で参照",
+      "tickets": [
+        {
+          "ticket": "T-014-01",
+          "label": "REUSE",
+          "feature": "F-014"
+        }
+      ]
     },
     {
       "path": "backend/services/slot_extractor.py",
@@ -743,33 +1045,59 @@
     },
     {
       "path": "backend/services/supabase_client.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-S0-08 (META) で参照",
+      "tickets": [
+        {
+          "ticket": "T-S0-08",
+          "label": "REFACTOR",
+          "feature": "META"
+        }
+      ]
     },
     {
       "path": "backend/services/template_builder_service.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-015-01 (F-015) で参照",
+      "tickets": [
+        {
+          "ticket": "T-015-01",
+          "label": "REFACTOR",
+          "feature": "F-015"
+        }
+      ]
     },
     {
       "path": "backend/services/template_render_service.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-015-01 (F-015) で参照",
+      "tickets": [
+        {
+          "ticket": "T-015-01",
+          "label": "REFACTOR",
+          "feature": "F-015"
+        }
+      ]
     },
     {
       "path": "backend/services/tool_ui_postprocess.py",
       "classification": "UNDETERMINED",
       "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "tickets": [],
+      "phase_boundary": "Phase 1.5",
+      "phase_action": "tool UI / postprocess は Phase 1.5 でレビュー後にチケット化"
     },
     {
       "path": "backend/services/upload_service.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-016-01 (F-016) で参照",
+      "tickets": [
+        {
+          "ticket": "T-016-01",
+          "label": "REFACTOR",
+          "feature": "F-016"
+        }
+      ]
     },
     {
       "path": "backend/services/user_profile.py",
@@ -785,9 +1113,15 @@
     },
     {
       "path": "backend/services/workflow_service.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-010c-01 (F-010c) で参照",
+      "tickets": [
+        {
+          "ticket": "T-010c-01",
+          "label": "REFACTOR",
+          "feature": "F-010c"
+        }
+      ]
     },
     {
       "path": "backend/services/workspace_service.py",
@@ -803,9 +1137,15 @@
     },
     {
       "path": "supabase/migrations/20260501220000_initial_schema.sql",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-001-02 (F-001) で参照",
+      "tickets": [
+        {
+          "ticket": "T-001-02",
+          "label": "REFACTOR",
+          "feature": "F-001"
+        }
+      ]
     },
     {
       "path": "supabase/migrations/20260501220100_pgvector.sql",
@@ -821,46 +1161,66 @@
     },
     {
       "path": "supabase/migrations/20260501220200_knowledge_scope.sql",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-024-02 (F-024) で参照",
+      "tickets": [
+        {
+          "ticket": "T-024-02",
+          "label": "REFACTOR",
+          "feature": "F-024"
+        }
+      ]
     },
     {
       "path": "supabase/migrations/20260501220300_rls_skeleton.sql",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-001-02 (F-001) で参照",
+      "tickets": [
+        {
+          "ticket": "T-001-02",
+          "label": "REFACTOR",
+          "feature": "F-001"
+        }
+      ]
     },
     {
       "path": "supabase/migrations/20260501230000_design_frames.sql",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-005b-01 (F-005b) で参照",
+      "tickets": [
+        {
+          "ticket": "T-005b-01",
+          "label": "REFACTOR",
+          "feature": "F-005b"
+        }
+      ]
     },
     {
       "path": "supabase/migrations/20260501230100_design_mockup_content.sql",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-005b-01 (F-005b) で参照",
+      "tickets": [
+        {
+          "ticket": "T-005b-01",
+          "label": "REFACTOR",
+          "feature": "F-005b"
+        }
+      ]
     },
     {
       "path": "supabase/migrations/20260502000000_design_mocks.sql",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": []
+      "classification": "REFACTOR",
+      "rationale": "REFACTOR ラベルのチケット T-005b-01 (F-005b) で参照",
+      "tickets": [
+        {
+          "ticket": "T-005b-01",
+          "label": "REFACTOR",
+          "feature": "F-005b"
+        }
+      ]
     }
   ],
   "orphan_tickets": [
-    {
-      "ticket": "T-001-02",
-      "label": "REFACTOR",
-      "missing_file": "backend/routers/auth.py"
-    },
-    {
-      "ticket": "T-020-02",
-      "label": "REFACTOR",
-      "missing_file": "backend/services/memory_service.py"
-    },
     {
       "ticket": "T-BTSTRAP-02",
       "label": "REFACTOR",
