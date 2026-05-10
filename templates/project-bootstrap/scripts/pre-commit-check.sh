@@ -70,6 +70,12 @@ else
   print_step FAIL "lint-archive" "ARCHIVE 残留参照が検出されました"
   EXIT_CODE=1
 fi
+if bash scripts/lint-mock.sh --secrets >> "$LINT_LOG" 2>&1; then
+  print_step PASS "lint-secrets"
+else
+  print_step FAIL "lint-secrets" "実鍵パターン (sb_publishable_*/sb_secret_*) が検出されました — CLAUDE.md §5.4"
+  EXIT_CODE=1
+fi
 
 # 寛容モード (ベースラインと比較)
 EMOJI_BASELINE_FILE=".lint-baseline-emoji"

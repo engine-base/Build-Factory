@@ -13,6 +13,8 @@ from fastapi.staticfiles import StaticFiles
 
 load_dotenv(Path(__file__).parent.parent / ".env")
 
+from config import validate_required_env
+
 from routers import chat, dashboard, records, llm, mcp_server
 from routers.approval import router as approval_router
 from routers.ai_system import router as ai_system_router
@@ -55,6 +57,9 @@ from integrations.slack_client import start_slack, stop_slack
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # ── 起動時 ──────────────────────────────────
+    # T-001-01 AC-3: 必須 SUPABASE_* env vars が欠けていたら fail fast
+    validate_required_env()
+
     await load_jobs_from_db()
     scheduler.start()
     print(f"[lifespan] Scheduler started — {len(scheduler.get_jobs())} jobs")

@@ -120,8 +120,8 @@ python -m services.obsidian_vault_sync watch
 # 必須
 DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
 SUPABASE_URL=http://127.0.0.1:54321
-SUPABASE_ANON_KEY=sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH
-SUPABASE_SERVICE_KEY=sb_secret_N7UND0UgjKTVK-Uodkm0Hg_xSvEMPvz
+SUPABASE_ANON_KEY=REPLACE_WITH_SUPABASE_ANON_KEY              # `supabase start` で表示された publishable key
+SUPABASE_SERVICE_KEY=REPLACE_WITH_SUPABASE_SERVICE_KEY        # `supabase start` で表示された secret key
 SUPABASE_JWT_SECRET=super-secret-jwt-token-with-at-least-32-characters-long
 
 # 開発時のみ (auth bypass)

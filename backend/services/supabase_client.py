@@ -1,13 +1,17 @@
 """
 Supabase クライアント（Auth + Storage 両用）。
 
-ローカル開発のデフォルト設定:
-    SUPABASE_URL = http://127.0.0.1:54321
-    SUPABASE_ANON_KEY = supabase start で表示された Publishable key
-    SUPABASE_SERVICE_KEY = supabase start で表示された Secret key
-    SUPABASE_JWT_SECRET = local default (super-secret-jwt-token-with-at-least-32-characters-long)
+すべての Supabase 関連シークレットは環境変数経由で必須 (T-001-01)。
+ハードコードフォールバックは不採用 — `.env` に未設定の場合は import 時に失敗する。
 
-本番では .env で上書き。
+必須 env vars:
+    SUPABASE_URL          (例: https://<project>.supabase.co または http://127.0.0.1:54321)
+    SUPABASE_ANON_KEY     (公開可)
+    SUPABASE_SERVICE_KEY  (秘匿、サーバーサイドのみ)
+    SUPABASE_JWT_SECRET   (HS256 検証用)
+
+任意:
+    SUPABASE_BUCKET       (デフォルト: "artifacts")
 """
 from __future__ import annotations
 
@@ -18,22 +22,21 @@ from typing import Any, Optional
 import httpx
 import jwt as pyjwt
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "http://127.0.0.1:54321")
-SUPABASE_ANON_KEY = os.environ.get(
-    "SUPABASE_ANON_KEY",
-    "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH",
-)
-SUPABASE_SERVICE_KEY = os.environ.get(
-    "SUPABASE_SERVICE_KEY",
-    "sb_secret_N7UND0UgjKTVK-Uodkm0Hg_xSvEMPvz",
-)
-# ローカル supabase の JWT シークレット（本番では別途設定）
-SUPABASE_JWT_SECRET = os.environ.get(
-    "SUPABASE_JWT_SECRET",
-    "super-secret-jwt-token-with-at-least-32-characters-long",
-)
+_REQUIRED = ("SUPABASE_URL", "SUPABASE_ANON_KEY", "SUPABASE_SERVICE_KEY", "SUPABASE_JWT_SECRET")
+_missing = [k for k in _REQUIRED if not os.environ.get(k)]
+if _missing:
+    raise RuntimeError(
+        "Supabase 環境変数が未設定です: "
+        + ", ".join(_missing)
+        + " — .env を作成し SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_SERVICE_KEY / "
+        "SUPABASE_JWT_SECRET を設定してください (.env.example 参照)。"
+    )
 
-DEFAULT_BUCKET = os.environ.get("SUPABASE_BUCKET", "artifacts")
+SUPABASE_URL: str = os.environ["SUPABASE_URL"]
+SUPABASE_ANON_KEY: str = os.environ["SUPABASE_ANON_KEY"]
+SUPABASE_SERVICE_KEY: str = os.environ["SUPABASE_SERVICE_KEY"]
+SUPABASE_JWT_SECRET: str = os.environ["SUPABASE_JWT_SECRET"]
+DEFAULT_BUCKET: str = os.environ.get("SUPABASE_BUCKET", "artifacts")
 
 
 def auth_headers(use_service: bool = False) -> dict[str, str]:
