@@ -39,10 +39,23 @@ check_emoji() {
 import re
 from pathlib import Path
 
-EMOJI_RE = re.compile(r'[\U0001F000-\U0001FFFF\U00002600-\U000027BF\U0001F300-\U0001F9FF]')
+EMOJI_RE = re.compile(
+    r'[\U0001F000-\U0001FFFF\U00002600-\U000027BF\U0001F300-\U0001F9FF'
+    r'▲▶▸▼◀◂'  # Geometric Shapes: action triangles ▲ ▶ ▸ ▼ ◀ ◂
+    r']'
+)
 TARGETS = ["docs/mocks", "frontend/src", "backend"]
 EXCLUDES = {"scripts/lint-mock.sh", "scripts/validate-tickets.py"}
 EXTS = {".html", ".tsx", ".ts", ".jsx", ".js", ".py", ".md"}
+
+# ADR-005 適用範囲外: 外部チャット (Slack/Chatwork) 送信ペイロード。
+# 受信側 UI が Lucide をレンダリングできないため絵文字使用を許可。
+EMOJI_EXEMPT_FILES = {
+    "backend/integrations/slack_block_kit.py",
+    "backend/integrations/slack_client.py",
+    "backend/integrations/slack_llm_session.py",
+    "backend/integrations/chatwork_client.py",
+}
 
 found = []
 for target in TARGETS:
@@ -53,6 +66,8 @@ for target in TARGETS:
         if f.suffix not in EXTS:
             continue
         if str(f) in EXCLUDES:
+            continue
+        if str(f) in EMOJI_EXEMPT_FILES:
             continue
         try:
             text = f.read_text(encoding="utf-8")

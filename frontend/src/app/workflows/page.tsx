@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Workflow, Play, CheckCircle, XCircle, Clock, ChevronRight, Loader } from "lucide-react";
+import { Workflow, Play, CheckCircle, XCircle, Clock, ChevronRight, Loader, ShuffleIcon } from "lucide-react";
 
 const API = "http://localhost:8001";
 
@@ -167,9 +167,9 @@ export default function WorkflowsPage() {
                           {s.skill_name}
                         </span>
                         {s.parallel_group && (
-                          <span className="text-[9px] px-1.5 py-0.5 rounded"
+                          <span className="text-[9px] px-1.5 py-0.5 rounded inline-flex items-center gap-1"
                             style={{ background: "#FEF3C7", color: "#92400E", fontFamily: "var(--font-inter)" }}>
-                            🔀 {s.parallel_group}
+                            <ShuffleIcon className="w-3 h-3" aria-label="parallel" /> {s.parallel_group}
                           </span>
                         )}
                         <span className="text-[10px] px-1.5 py-0.5 rounded ml-auto"

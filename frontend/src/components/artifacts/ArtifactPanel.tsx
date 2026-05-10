@@ -2,6 +2,23 @@
 
 import { useEffect, useState } from "react";
 import {
+  PinIcon,
+  CheckCircle2Icon,
+  FolderIcon,
+  ClipboardListIcon,
+  BarChart3Icon,
+  FileTextIcon,
+  TrendingUpIcon,
+  CalendarIcon,
+  ScaleIcon,
+  RepeatIcon,
+  ImageIcon,
+  TargetIcon,
+  PencilIcon,
+  FilmIcon,
+  BrainIcon,
+} from "lucide-react";
+import {
   Artifact,
   ArtifactWS,
   ArtifactWSEvent,
@@ -143,9 +160,11 @@ export function ArtifactPanel({ threadId, onClose }: Props) {
             }`}
             title={a.title}
           >
-            <span>{typeIcon(a.type)}</span>
+            <TypeIcon type={a.type} className="w-3.5 h-3.5" />
             <span className="max-w-[12rem] truncate">{a.title || a.type}</span>
-            {a.pinned_by.includes("masato") && <span>📌</span>}
+            {a.pinned_by.includes("masato") && (
+              <PinIcon className="w-3 h-3" aria-hidden="true" />
+            )}
           </button>
         ))}
       </div>
@@ -160,10 +179,11 @@ export function ArtifactPanel({ threadId, onClose }: Props) {
             </span>
           ))}
           <button
-            className="ml-auto rounded px-2 py-1 hover:bg-gray-100"
+            className="ml-auto inline-flex items-center gap-1 rounded px-2 py-1 hover:bg-gray-100"
             onClick={() => handlePinToggle(active)}
           >
-            {active.pinned_by.includes("masato") ? "📌 ピン解除" : "📌 ピン留め"}
+            <PinIcon className="w-3.5 h-3.5" aria-hidden="true" />
+            {active.pinned_by.includes("masato") ? "ピン解除" : "ピン留め"}
           </button>
           <ExportMenu artifact={active} />
           <button
@@ -276,23 +296,40 @@ function ExportMenu({ artifact }: { artifact: Artifact }) {
   );
 }
 
-function typeIcon(t: string): string {
-  switch (t) {
-    case "list":     return "✅";
-    case "kanban":   return "🗂";
-    case "table":    return "📋";
-    case "kpi-card": return "📊";
-    case "markdown": return "📄";
-    case "chart":    return "📈";
-    case "gantt":    return "📅";
-    case "calendar": return "📅";
-    case "compare":  return "⚖️";
-    case "workflow": return "🔁";
-    case "gallery":  return "🖼";
-    case "matrix":   return "🎯";
-    case "form":     return "📝";
-    case "slide":    return "🎞";
-    case "mindmap":  return "🧠";
-    default:         return "•";
+function TypeIcon({ type, className }: { type: string; className?: string }) {
+  const cls = className ?? "w-3.5 h-3.5";
+  switch (type) {
+    case "list":
+      return <CheckCircle2Icon className={cls} aria-hidden="true" />;
+    case "kanban":
+      return <FolderIcon className={cls} aria-hidden="true" />;
+    case "table":
+      return <ClipboardListIcon className={cls} aria-hidden="true" />;
+    case "kpi-card":
+      return <BarChart3Icon className={cls} aria-hidden="true" />;
+    case "markdown":
+      return <FileTextIcon className={cls} aria-hidden="true" />;
+    case "chart":
+      return <TrendingUpIcon className={cls} aria-hidden="true" />;
+    case "gantt":
+      return <CalendarIcon className={cls} aria-hidden="true" />;
+    case "calendar":
+      return <CalendarIcon className={cls} aria-hidden="true" />;
+    case "compare":
+      return <ScaleIcon className={cls} aria-hidden="true" />;
+    case "workflow":
+      return <RepeatIcon className={cls} aria-hidden="true" />;
+    case "gallery":
+      return <ImageIcon className={cls} aria-hidden="true" />;
+    case "matrix":
+      return <TargetIcon className={cls} aria-hidden="true" />;
+    case "form":
+      return <PencilIcon className={cls} aria-hidden="true" />;
+    case "slide":
+      return <FilmIcon className={cls} aria-hidden="true" />;
+    case "mindmap":
+      return <BrainIcon className={cls} aria-hidden="true" />;
+    default:
+      return <span className={cls} aria-hidden="true">•</span>;
   }
 }

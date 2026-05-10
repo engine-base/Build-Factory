@@ -29,7 +29,7 @@ const TIMELINE: TimelineItem[] = [
   { date: "5月12日 (月)", title: "設計フェーズ完了予定", desc: "アーキ + デザイン + API + 機能・タスク分解 まで完了", kind: "upcoming", meta: [{ icon: CheckCircle2, label: "承認ゲート" }] },
   { date: "5月13日 (火) 〜", title: "実装フェーズ開始",   desc: "Claude Code MCP 経由でタスク分散実装", kind: "upcoming", meta: [{ label: "エンジニア AI" }] },
   { date: "5月25日 (日)", title: "テスト + QA フェーズ", desc: "E2E + 受入テスト + コードレビュー", kind: "upcoming" },
-  { date: "5月20日 (火) ・ 納期", title: "本番リリース ★ 納期", desc: "●●株式会社 へ納品 ・ 残 23 日", kind: "upcoming", isDeadline: true },
+  { date: "5月20日 (火) ・ 納期", title: "本番リリース ・ 納期", desc: "●●株式会社 へ納品 ・ 残 23 日", kind: "upcoming", isDeadline: true },
 ];
 
 type EventItem = {

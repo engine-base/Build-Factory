@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, CoffeeIcon, CameraIcon, StoreIcon, PackageIcon, AlertTriangleIcon, CheckIcon, XIcon } from "lucide-react";
 
 /* ────── 静的テキスト (直接編集なし・AI チャット経由でのみ更新) ────── */
 function E({ value, multiline = false, inline = false, style, className }: {
@@ -204,7 +204,7 @@ export function UsersTab() {
       <div className="rd-persona-grid">
         <PersonaCard
           idPrefix="users/p-a"
-          icon="☕"
+          icon={<CoffeeIcon className="w-5 h-5" aria-label="coffee" />}
           title="ペルソナA: こだわりホームバリスタ"
           rows={[
             ["属性", "30〜45 歳・在宅勤務中心・月のコーヒー支出 5,000 円以上"],
@@ -215,7 +215,7 @@ export function UsersTab() {
         />
         <PersonaCard
           idPrefix="users/p-b"
-          icon="📷"
+          icon={<CameraIcon className="w-5 h-5" aria-label="camera" />}
           title="ペルソナB: SNS 発信型ユーザー"
           rows={[
             ["属性", "20代後半・カフェ巡りが趣味・SNS 経由で新規購入"],
@@ -226,7 +226,7 @@ export function UsersTab() {
         />
         <PersonaCard
           idPrefix="users/p-c"
-          icon="🏪"
+          icon={<StoreIcon className="w-5 h-5" aria-label="store" />}
           title="ペルソナC: BtoB 個人カフェオーナー"
           rows={[
             ["属性", "個人経営カフェ・15-30 席規模・週 2-3 回の発注"],
@@ -237,7 +237,7 @@ export function UsersTab() {
         />
         <PersonaCard
           idPrefix="users/p-d"
-          icon="📦"
+          icon={<PackageIcon className="w-5 h-5" aria-label="package" />}
           title="ペルソナD: 自社スタッフ (運用)"
           rows={[
             ["属性", "ASTcolor 社内スタッフ 3 名・受注/在庫/発送を兼任"],
@@ -252,7 +252,7 @@ export function UsersTab() {
 
 function PersonaCard({ idPrefix, icon, title, rows }: {
   idPrefix: string;
-  icon: string; title: string; rows: [string, string][];
+  icon: React.ReactNode; title: string; rows: [string, string][];
 }) {
   return (
     <div className="rd-persona-card">
@@ -809,7 +809,7 @@ export function InfraCostTab() {
         ))}
       </div>
       <div className="rd-notice-warn">
-        <span>⚠️</span>
+        <AlertTriangleIcon className="w-4 h-4" aria-label="warning" />
         <div><strong>Shippinno のコストに注意</strong>　月 500 件超の出荷で従量課金 (1 件 ¥80〜) が発生する場合、インフラコストの中で最大の費用となる可能性があります。契約内容と件数別単価を早急に確認してください。</div>
       </div>
     </RichSectionCard>
@@ -870,11 +870,11 @@ export function ScopeTab() {
       <RichSubsection title="スコープ">
         <div className="rd-scope-grid">
           <div>
-            <div className="rd-scope-in-label">✅ 含むもの</div>
+            <div className="rd-scope-in-label inline-flex items-center gap-1"><CheckIcon className="w-4 h-4" aria-label="included" /> 含むもの</div>
             <ul>{scopeIn.map((x) => <li key={x}>{x}</li>)}</ul>
           </div>
           <div>
-            <div className="rd-scope-out-label">❌ 含まないもの (将来フェーズ)</div>
+            <div className="rd-scope-out-label inline-flex items-center gap-1"><XIcon className="w-4 h-4" aria-label="excluded" /> 含まないもの (将来フェーズ)</div>
             <ul>{scopeOut.map((x) => <li key={x}>{x}</li>)}</ul>
           </div>
         </div>

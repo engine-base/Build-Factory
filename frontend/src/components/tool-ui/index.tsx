@@ -17,7 +17,7 @@ import {
   ExternalLink, BarChart3, Terminal, CloudSun, MapPin, Layers,
   PieChart, Code, GitCompare, Table2, FileText, Hash,
   CheckCircle2, ShoppingBag, Image as ImageIcon, Video, Music,
-  Target, Clock, ChevronRight, X, Edit3,
+  Target, Clock, ChevronRight, X, Edit3, CheckIcon, CircleIcon,
 } from "lucide-react";
 import { createContext, useContext, useState } from "react";
 
@@ -466,9 +466,9 @@ function SocialPost({ data }: any) {
 // ─────────────────────────────────────────────
 function ApprovalCard({ data }: any) {
   const action = useToolUIAction();
-  const approveText = data.approve_label || "✅ 承認・実行してください";
-  const rejectText  = data.reject_label || "❌ 中止";
-  const editText    = data.edit_label   || "✏️ 修正したい";
+  const approveText = data.approve_label || "承認・実行してください";
+  const rejectText  = data.reject_label || "中止";
+  const editText    = data.edit_label   || "修正したい";
   return (
     <Card icon={CheckCircle2} title={data.title || "確認カード"} accent="#D97706">
       {data.description && (
@@ -579,7 +579,7 @@ function Plan({ data }: any) {
             <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
               style={{ background: s.done ? "#DCFCE7" : "var(--eb-surface-variant)",
                        color: s.done ? "#16A34A" : "var(--eb-neutral)" }}>
-              {s.done ? "✓" : i + 1}
+              {s.done ? <CheckIcon className="w-3 h-3" aria-label="done" /> : i + 1}
             </span>
             <div className="flex-1">
               <p className="text-xs font-medium" style={{ fontFamily: "var(--font-noto-sans-jp)" }}>{s.title}</p>
@@ -606,8 +606,8 @@ function ProgressTracker({ data }: any) {
         <ul className="space-y-1">
           {data.tasks.map((t: any, i: number) => (
             <li key={i} className="flex items-center gap-2 text-xs">
-              <span style={{ color: t.done ? "#16A34A" : "var(--eb-neutral)" }}>
-                {t.done ? "✓" : "○"}
+              <span style={{ color: t.done ? "#16A34A" : "var(--eb-neutral)" }} className="inline-flex items-center">
+                {t.done ? <CheckIcon className="w-3 h-3" aria-label="done" /> : <CircleIcon className="w-3 h-3" aria-label="todo" />}
               </span>
               <span style={{ fontFamily: "var(--font-noto-sans-jp)", textDecoration: t.done ? "line-through" : "none", opacity: t.done ? 0.6 : 1 }}>
                 {t.name}

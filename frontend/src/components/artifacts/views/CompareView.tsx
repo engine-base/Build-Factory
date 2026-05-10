@@ -1,5 +1,7 @@
 "use client";
 
+import { CheckIcon } from "lucide-react";
+
 interface CompareItem {
   name: string;
   values: Record<string, string | number | boolean>;
@@ -26,8 +28,8 @@ export function CompareView({ data, onChange }: Props) {
     onChange?.({ ...data, items: next });
   };
 
-  const renderCell = (v: unknown) => {
-    if (typeof v === "boolean") return v ? "✓" : "—";
+  const renderCell = (v: unknown): React.ReactNode => {
+    if (typeof v === "boolean") return v ? <CheckIcon className="w-4 h-4 inline-block" aria-label="yes" /> : "—";
     if (v === null || v === undefined) return "—";
     return String(v);
   };

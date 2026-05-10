@@ -1,5 +1,7 @@
 "use client";
 
+import { StarIcon } from "lucide-react";
+
 /**
  * 価格設計 デモ用リッチビュー (テンプレモック準拠)
  * - 4 タブ: 原価試算 / 市場相場 / 価値試算 / 推奨レンジ・採用案
@@ -53,7 +55,7 @@ function RecommendedTab() {
             <div className="pr-pin-label">競合中央</div>
           </div>
           <div className="pr-range-marker pr-recommended" style={{ left: "64%" }}>
-            <div className="pr-pin-amount">320 万 ★ 推奨</div>
+            <div className="pr-pin-amount inline-flex items-center gap-1">320 万 <StarIcon className="w-3 h-3" aria-label="recommended" /> 推奨</div>
             <div className="pr-pin-label">採用案</div>
           </div>
           <div className="pr-range-marker pr-value" style={{ left: "78%" }}>

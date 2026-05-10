@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PackageIcon } from "lucide-react";
 import { Artifact } from "@/lib/artifacts";
 import { ArtifactPanel } from "@/components/artifacts/ArtifactPanel";
 import { ArtifactSidebar } from "@/components/artifacts/ArtifactSidebar";
@@ -17,7 +18,7 @@ export default function ArtifactsPage() {
     <div className="flex h-full">
       <aside className="w-72 shrink-0 border-r bg-white overflow-y-auto">
         <div className="border-b px-4 py-3">
-          <h1 className="font-bold text-sm">📦 Artifacts</h1>
+          <h1 className="font-bold text-sm inline-flex items-center gap-1"><PackageIcon className="w-4 h-4" aria-label="artifacts" /> Artifacts</h1>
           <p className="text-[10px] text-gray-500 mt-0.5">
             出力・成果物のライブラリ
           </p>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 interface Slide {
   id: string;
@@ -84,7 +85,7 @@ export function SlideView({ data, onChange }: Props) {
           className="rounded px-3 py-1 text-xs hover:bg-gray-100"
           disabled={idx === 0}
         >
-          ◀
+          <ChevronLeftIcon className="w-4 h-4" aria-label="前のスライド" />
         </button>
         <span className="text-xs">{idx + 1} / {slides.length}</span>
         <button
@@ -92,7 +93,7 @@ export function SlideView({ data, onChange }: Props) {
           className="rounded px-3 py-1 text-xs hover:bg-gray-100"
           disabled={idx === slides.length - 1}
         >
-          ▶
+          <ChevronRightIcon className="w-4 h-4" aria-label="次のスライド" />
         </button>
         <button
           onClick={addSlide}

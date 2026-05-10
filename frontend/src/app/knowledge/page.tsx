@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Search, FileText, RefreshCw, Folder, FolderOpen, ChevronRight, ChevronDown,
   FileEdit, Bot, MessageSquare, Database, Plus, X, Loader, Edit2, Trash2, Save,
-  Sparkles, Filter,
+  Sparkles, Filter, CheckIcon, BookmarkIcon, FolderIcon as FolderPathIcon,
 } from "lucide-react";
 
 const API = "http://localhost:8001";
@@ -468,9 +468,9 @@ function KnowledgeDetail({ item, onUpdate, onDelete }: {
         </div>
 
         {saved && (
-          <p className="text-xs mb-3 px-2 py-1 rounded"
+          <p className="text-xs mb-3 px-2 py-1 rounded inline-flex items-center gap-1"
             style={{ background: "#DCFCE7", color: "#16A34A" }}>
-            ✅ 保存しました
+            <CheckIcon className="w-3 h-3" aria-label="saved" /> 保存しました
           </p>
         )}
 
@@ -500,9 +500,9 @@ function KnowledgeDetail({ item, onUpdate, onDelete }: {
                 </span>
               )}
               {item.skill_tags && (
-                <span className="text-xs px-2 py-0.5 rounded"
+                <span className="text-xs px-2 py-0.5 rounded inline-flex items-center gap-1"
                   style={{ background: "#FEF3C7", color: "#92400E" }}>
-                  🔖 {item.skill_tags}
+                  <BookmarkIcon className="w-3 h-3" aria-label="skill tags" /> {item.skill_tags}
                 </span>
               )}
               {item.tags && (
@@ -520,8 +520,8 @@ function KnowledgeDetail({ item, onUpdate, onDelete }: {
         </div>
 
         {item.md_path && (
-          <p className="text-[11px] mb-3" style={{ color: "var(--eb-neutral)", fontFamily: "var(--font-inter)" }}>
-            📁 {item.md_path?.replace(/^.*Obsidian\//, "")}
+          <p className="text-[11px] mb-3 inline-flex items-center gap-1" style={{ color: "var(--eb-neutral)", fontFamily: "var(--font-inter)" }}>
+            <FolderPathIcon className="w-3 h-3" aria-label="folder" /> {item.md_path?.replace(/^.*Obsidian\//, "")}
           </p>
         )}
 

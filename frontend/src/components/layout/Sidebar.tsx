@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 
 const AI_NAV = [
-  { href: "/workspaces",   label: "🏗 Workspaces",   icon: LayoutGrid },
+  { href: "/workspaces",   label: "Workspaces",      icon: LayoutGrid },
   { href: "/secretary",    label: "秘書チャット",     icon: Sparkles },
   { href: "/ai-employees", label: "AI社員",           icon: Bot },
   { href: "/artifacts",    label: "Artifacts",        icon: Package },

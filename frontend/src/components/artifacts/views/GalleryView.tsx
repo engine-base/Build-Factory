@@ -1,5 +1,7 @@
 "use client";
 
+import { StarIcon } from "lucide-react";
+
 interface GalleryItem {
   id: string;
   url: string;
@@ -45,10 +47,14 @@ export function GalleryView({ data, onChange }: Props) {
           </div>
           <button
             onClick={() => toggleFavorite(it.id)}
-            className="absolute top-2 right-2 text-xl"
+            className="absolute top-2 right-2"
             title="お気に入り"
           >
-            {it.favorite ? "⭐" : "☆"}
+            <StarIcon
+              className="w-5 h-5"
+              fill={it.favorite ? "currentColor" : "none"}
+              aria-label={it.favorite ? "favorite" : "not favorite"}
+            />
           </button>
           {(it.title || it.caption) && (
             <div className="p-2">

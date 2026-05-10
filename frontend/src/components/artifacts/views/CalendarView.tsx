@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 interface Event {
   id: string;
@@ -72,9 +73,9 @@ export function CalendarView({ data, onChange }: Props) {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <button onClick={() => move(-1)} className="rounded px-2 py-1 text-sm hover:bg-gray-100">◀</button>
+        <button onClick={() => move(-1)} className="rounded px-2 py-1 text-sm hover:bg-gray-100" aria-label="前の月"><ChevronLeftIcon className="w-4 h-4" /></button>
         <span className="font-semibold text-sm">{year} 年 {month + 1} 月</span>
-        <button onClick={() => move(1)} className="rounded px-2 py-1 text-sm hover:bg-gray-100">▶</button>
+        <button onClick={() => move(1)} className="rounded px-2 py-1 text-sm hover:bg-gray-100" aria-label="次の月"><ChevronRightIcon className="w-4 h-4" /></button>
       </div>
       <div className="grid grid-cols-7 text-[10px] text-gray-500">
         {["日","月","火","水","木","金","土"].map((d) => (

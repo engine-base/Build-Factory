@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ChevronRightIcon, ChevronDownIcon } from "lucide-react";
 
 interface Node {
   id: string;
@@ -83,8 +84,9 @@ function NodeView({
           <button
             onClick={() => setCollapsed((v) => !v)}
             className="text-xs text-gray-500 w-4"
+            aria-label={collapsed ? "展開" : "折りたたむ"}
           >
-            {collapsed ? "▶" : "▼"}
+            {collapsed ? <ChevronRightIcon className="w-3 h-3" /> : <ChevronDownIcon className="w-3 h-3" />}
           </button>
         )}
         {!hasChildren && <span className="w-4" />}
