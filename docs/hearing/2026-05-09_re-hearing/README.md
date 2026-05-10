@@ -4,6 +4,8 @@
 
 > v1 PROJECT_BRIEF（2026-05-01）はコンセプト含めて白紙化し、ここから新しい仕様体系（v2）が始まります。
 
+**現在のバージョン：v2.1**（2026-05-09 改訂・requirements-definition STEP 1〜2 の確定事項を反映）
+
 ---
 
 ## ファイル一覧
@@ -22,18 +24,23 @@
 ### コンセプト（v2 確定）
 > **企画から納品までの全工程を 1 環境で完璧に進めるプロジェクト管理 OS**
 
+### 解決する核心課題（v2.1 で研ぎ澄まし）
+> **AI 開発が流行する一方、管理 / 品質の不足で「漏れ」「使えないものになる」事故が頻発している。Build-Factory はこの管理・品質の壁を AI チームと管理盤の一体化で破壊する。**
+
 ### 本質的なゴール
-1 人で **10 案件並走**しても破綻しない開発体制を作り、SaaS 商用化する
+1 人で **10 案件並走**しても破綻しない開発体制を作り、SaaS 商用化する。1 案件あたり **5 並列タスク**を回し続けるスループット。
 
-### Phase 1 Must（22 項目）
-- Supabase 基盤移行 / 既存スキル整理 / AI 社員ハイブリッド統合
-- account / workspace 階層 / ヒアリング → 仕様書 HTML / タスク分解
-- 多 view（Kanban + List + DAG）/ フェーズ管理 / 依存グラフ
-- MCP / ▶︎ 再生 / 並列 swarm / WebSocket UI
-- リーダー AI 壁打ち / 赤線リスト / GitHub / Slack / HTML レポート
-- Obsidian / Langfuse / 監査ログ + バックアップ / bootstrap 振り分け
+### Phase 1 Must（29 項目・v2.1）
+- M-1〜M-19（v2.0 から継続・基盤 + AI 社員統合 + 仕様書 HTML + タスク分解 + 多 view + フェーズ + 依存グラフ + MCP + ▶︎ + swarm + 壁打ち + 赤線 + GitHub + Slack + HTML レポート + Obsidian + Langfuse + 監査 + bootstrap 振分け）
+- **M-20** LLM プロバイダー抽象化レイヤー（マルチプロバイダー切替・拡張容易）
+- **M-21** ロール custom_permissions UI + monitor ロール
+- **M-22** AI 社員 3 階層対応（DB schema + 組織図 UI 簡易版）+ 個人ナレッジ namespace
+- **M-23** アカウント設定 / プロフィール画面
+- **M-24** グローバル検索
+- **M-25** EARS notation 標準（acceptance-criteria テンプレ）
+- **M-26** Constitution（プロジェクト不変原則）= 赤線リストの拡張
 
-### 主要な方針転換（v1 からの差分）
+### 主要な方針転換（v1 からの差分・再掲）
 - **Onlook / Open Design 不採用** → 仕様書 → HTML/CSS で完璧再現 + GrapesJS GUI 編集
 - **出力フォーマット = HTML + Markdown ハイブリッド**（HTML デフォルト）
 - **タスク ▶︎ 再生 + 並列実行 + swarm view** を Phase 1 から実装
@@ -43,28 +50,89 @@
 - **デプロイ環境 = 連携アダプタ式**（Vercel / Netlify / Coolify / Cloud Run / 自前 SSH）
 - **ナレッジ母艦 = Obsidian**
 
+### v2.1 で追加 / 確定したもの（CHANGELOG）
+
+| # | 確定事項 |
+|---|---|
+| ① | 目的を「AI 開発の管理・品質問題を解決する」方向に研ぎ澄ました |
+| ② | ターゲットを **受託会社 / 中小企業の開発リーダー / 個人開発者・副業エンジニア** まで拡張 |
+| ③ | P-1 高本まさと年齢を **27 歳** に訂正 |
+| ④ | 並列セッション = **1 案件 5 並列タスク**（10 案件並走で理論最大 50 並列） |
+| ⑤ | Token 上限はデフォルト無制限・admin が金額設定で上限化（80% 警告 / 95% fallback / 100% 停止） |
+| ⑥ | チャット層 LLM = **マルチプロバイダー抽象化**（Claude / OpenAI / Gemini / 軽量 LLM / 拡張容易） |
+| ⑦ | パフォーマンス目標を **時間ベース → 品質ベース**に振替（ヒアリング深掘り完了度・タスク独立性 90% 等） |
+| ⑧ | ロール権限の **細粒度化**（クライアント以外も含む custom_permissions）+ **monitor** ロール追加（第 6 ロール） |
+| ⑨ | AI 社員 **3 階層構造**（COO / 部署リーダー / メンバー）+ **個人クローン化**（将来別サービス） |
+| ⑩ | EARS notation を acceptance-criteria 標準形式として採用（Kiro 流） |
+| ⑪ | Constitution（プロジェクト不変原則）を赤線リストの拡張として採用（GitHub Spec Kit 流） |
+| ⑫ | アカウント設定 / プロフィール → Phase 1 / グローバル検索 → Phase 1 / オンボーディング → Phase 1.5 / モバイル → Phase 3 |
+
 ---
 
-## 次のスキル進行順（推奨）
+## AI 社員階層構造（将来の理想形）
 
 ```
-hearing（このセッション・完了）
+🏢 AI 組織図（Phase 配分）
+
+           ┌──────────────────────┐
+           │    COO AI（総括）      │  ← Phase 2
+           └──────────┬───────────┘
+                      │
+        ┌─────────────┼─────────────┬─────────────┐
+        ▼             ▼             ▼             ▼
+   ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐
+   │開発部    │  │デザイン部│  │QA 部     │  │ナレッジ部│  ← Phase 1.5
+   │リーダー  │  │リーダー  │  │リーダー  │  │リーダー  │
+   └────┬────┘  └────┬────┘  └────┬────┘  └────┬────┘
+        │             │             │             │
+   ┌────┴────┐  ┌────┴────┐  ┌────┴────┐  ┌────┴────┐
+   │PM秘書    │  │brand-   │  │test-    │  │curator   │   ← Phase 1
+   │arch     │  │voice    │  │verif    │  │keeper    │
+   │senior   │  │design-md│  │e2e-test │  │analyst   │
+   │reviewer │  │ui-mockup│  │         │  │          │
+   └─────────┘  └─────────┘  └─────────┘  └─────────┘
+
+       👤 各ユーザーには「個人クローン」が紐づく
+       ・本人の判断履歴・会話・ナレッジを学習
+       ・クローン化サービスは将来別アプリとして切り出し
+       ・Phase 1 から学習素地（user_interaction_log）は記録開始
+```
+
+---
+
+## ロール構成（v2.1 確定 6 ロール）
+
+| ロール | 用途 | デフォルト権限 |
+|---|---|---|
+| `account_owner` | アカウント所有者 | 全権限（課金含む） |
+| `workspace_admin` | workspace 管理者 | workspace 内ほぼ全権限 |
+| `contributor` | 開発担当 | 編集 / 実行 / 承認 / 閲覧 |
+| `viewer` | 閲覧者 | 閲覧のみ |
+| `client` | クライアント招待ユーザ | 招待タブのみ閲覧 + コメント |
+| `monitor` 🆕 | 監視担当（社内 / 業務委託） | 全閲覧 + 承認（PR / 赤線 / 納品） |
+
+→ `custom_permissions JSON` で**全ロール**の個別 override 可能（クライアント以外も含む）
+
+---
+
+## 次のスキル進行順（推奨・現在進行中）
+
+```
+hearing（完了）✅
   ↓
-requirements-definition  ← M-1〜M-19 の要件を詳細化
+requirements-definition  ← STEP 3 進行中
   ↓
-architecture-design      ← Supabase 移行 / AI 社員統合 / Plan-Gen-Eval の技術設計
+architecture-design
   ↓
-tech-stack               ← OSS 候補の最終選定（BMAD / GrapesJS / Langfuse 等）
+tech-stack
   ↓
-functional-breakdown     ← 画面・機能・ロール権限・エンティティ草案
+functional-breakdown
   ↓
-feature-decomposition    ← 機能を分散開発可能な粒度まで分解
+feature-decomposition
   ↓
-task-decomposition       ← 各機能を Claude Code が独立実装できる単位に
+task-decomposition
   ↓
-distributed-dev          ← 各タスクを「ブランチ実装パッケージ」に変換
-  ↓
-（Build-Factory が指示所、Claude Code が実装、リーダー AI が壁打ち）
+distributed-dev（Claude Code への実装パッケージ化）
 ```
 
 ---
@@ -80,8 +148,17 @@ distributed-dev          ← 各タスクを「ブランチ実装パッケージ
 
 ## 編集ルール
 
-このフォルダのファイルは **生きた仕様書** ですが、原則として **再ヒアリング時のスナップショット**として保持します。
-- 内容の更新が必要になった場合は、新しい日付フォルダ（例：`2026-XX-XX_re-hearing/`）を切ってください
-- このフォルダ内のファイルは「2026-05-09 時点の決定」として履歴的価値を残してください
+このフォルダは **生きた仕様書**です。
+- requirements-definition 以降の詳細仕様（STEP 6 出力時）は別フォルダ（`docs/requirements/2026-05-09_v2.1/` 等）に切り出されます
+- このフォルダは「ヒアリング完了時点 + 直近の確定事項」のスナップショットを保持します
+- 大幅な再設計時は新しい日付フォルダ（例：`2026-XX-XX_re-hearing/`）を切ってください
 
-最新の正式仕様書は次のフェーズ（requirements-definition 以降）の出力で更新されます。
+---
+
+## 改訂履歴
+
+| 版 | 日付 | 主な変更 |
+|---|---|---|
+| **v2.1** | 2026-05-09 | 上記 CHANGELOG ① 〜 ⑫（requirements-definition STEP 1〜2 の確定事項を反映） |
+| v2.0 | 2026-05-09 | v1 を白紙化、コンセプトから再設計（hearing 4 STEP 完了） |
+| v1.0 | 2026-05-01 | 初版 PROJECT_BRIEF 作成（Onlook 統合・並走前提） |
