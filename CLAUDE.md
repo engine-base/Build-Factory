@@ -38,7 +38,7 @@
 
 ### Frontend
 - **Next.js 15** (App Router) + **shadcn/ui** + **Tailwind CSS 4**
-- **Lucide Icons** (アイコン唯一の選択肢、絵文字禁止) — `docs/mocks/2026-05-09_v1/design-tokens.md` §8
+- **Lucide Icons** (アイコン唯一の選択肢、絵文字禁止) — 規約: [`docs/mocks/2026-05-09_v1/design-tokens.md`](docs/mocks/2026-05-09_v1/design-tokens.md) §8
 - **Recharts** (チャート) / **React Flow** (DAG / Swarm) / **Zustand** (state) / **TanStack Query** (data)
 - **GrapesJS core (BSD-3)** = HTML エディタ (Phase 1.5、Studio SDK は不採用)
 

@@ -267,7 +267,7 @@ git 履歴: `git log --oneline -20`
 | **画面のイメージは?** | `mocks/2026-05-09_v1/index.html` をブラウザで |
 | **API はどう設計?** | `task-decomposition/2026-05-09_v1/interfaces.md` |
 | **DB スキーマは?** | `architecture/2026-05-09_v1/er-diagram-v1.html` |
-| **なぜこの技術?** | `decisions/ADR-XXX.md` を参照 |
+| **なぜこの技術?** | `decisions/ADR-001` 〜 `ADR-009` を参照 |
 | **判断に迷う** | masato (高本まさと) に AskUserQuestion で確認 |
 
 ---

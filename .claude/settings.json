@@ -8,7 +8,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'echo \"📋 Build-Factory セッション開始。CLAUDE.md と docs/HANDOVER.md を必ず読んでから作業を始めてください。実装タスクは docs/task-decomposition/IMPLEMENTATION_PROTOCOL.md の 7 ステップ手順を厳守。\" >&2'"
+            "command": "bash scripts/session-brief.sh"
           }
         ]
       }
