@@ -633,7 +633,9 @@
       ],
       "critical": true,
       "existing_files": [
-        "data/migrations/"
+        "supabase/migrations/20260501220300_rls_skeleton.sql",
+        "supabase/migrations/20260510000000_auth_tables.sql",
+        "supabase/migrations/20260510000001_bf_project_tables.sql"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-21",
       "mock_link": "../../mocks/2026-05-09_v1/workspace/S-014-workspace-members.html",
@@ -664,7 +666,8 @@
           "type": "UNWANTED",
           "text": "If RLS is disabled on any user-data table, the migration test suite shall fail."
         }
-      ]
+      ],
+      "output_file": "supabase/migrations/20260510000002_rls_full_enforcement.sql"
     },
     {
       "id": "T-001-07",
