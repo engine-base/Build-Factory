@@ -37,13 +37,25 @@ OUT_JSON = ROOT / "docs" / "audit" / "2026-05-10_v1" / "existing-inventory.json"
 OUT_MD = ROOT / "docs" / "audit" / "2026-05-10_v1" / "existing-inventory.md"
 
 PHASE_ANNOTATIONS = {
-    "backend/services/penpot_client.py": {
-        "phase_boundary": "Phase 1.5",
-        "phase_action": "S-3 GrapesJS 統合に伴い REFACTOR (Penpot 依存除去)",
+    "backend/routers/browser_use.py": {
+        "phase_boundary": "Phase 2",
+        "phase_action": "browser-use の Phase 1 必要性を再評価 (現状 UNDETERMINED)",
     },
     "backend/services/browser_use_service.py": {
         "phase_boundary": "Phase 2",
         "phase_action": "browser-use の Phase 1 必要性を再評価 (現状 UNDETERMINED)",
+    },
+    "backend/services/browser_queue.py": {
+        "phase_boundary": "Phase 2",
+        "phase_action": "browser-use キューイング、Phase 1 では不使用",
+    },
+    "backend/services/penpot_client.py": {
+        "phase_boundary": "Phase 1.5",
+        "phase_action": "S-3 GrapesJS 統合に伴い REFACTOR (Penpot 依存除去)",
+    },
+    "backend/services/tool_ui_postprocess.py": {
+        "phase_boundary": "Phase 1.5",
+        "phase_action": "tool UI / postprocess は Phase 1.5 でレビュー後にチケット化",
     },
 }
 

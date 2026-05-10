@@ -158,6 +158,50 @@
       ]
     },
     {
+      "id": "T-S0-13b",
+      "title": "UNDETERMINED 64 件 + Orphan 6 件のチケット紐付けクリーンアップ",
+      "label": "REFACTOR",
+      "feature": "META",
+      "layer": "OPS",
+      "sprint": "S0",
+      "deps": [
+        "T-S0-13"
+      ],
+      "critical": true,
+      "claude_code_hours": 3,
+      "human_days": 0.5,
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "mock_link": null,
+      "entities": [],
+      "existing_files": [
+        "docs/task-decomposition/2026-05-09_v1/tickets.json",
+        "docs/audit/2026-05-10_v1/existing-inventory.json"
+      ],
+      "output_file": "docs/audit/2026-05-10_v1/existing-inventory.json (UNDETERMINED 0 化)",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The cleanup shall reduce existing-inventory.json UNDETERMINED count to zero or annotate each remaining file with a phase_boundary (Phase 1.5 / Phase 2) and explicit reason."
+        },
+        {
+          "type": "EVENT",
+          "text": "When a file matches an existing REFACTOR ticket by basename or feature, the system shall add the file's exact path to that ticket's existing_files."
+        },
+        {
+          "type": "STATE",
+          "text": "While the cleanup is running, the system shall not introduce duplicate entries to any ticket's existing_files."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where multiple tickets could plausibly own a file, the cleanup shall pick the highest-specificity ticket (REFACTOR > REUSE > NEW) and document the choice."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If a file cannot be mapped with confidence, the cleanup shall mark it as triage_needed with a 1-line reason instead of silently assigning to the closest ticket."
+        }
+      ]
+    },
+    {
       "id": "T-S0-01",
       "title": "docker-compose.yml 全サービス",
       "sprint": 0,
@@ -250,7 +294,8 @@
       "deps": [],
       "critical": true,
       "existing_files": [
-        "backend/integrations/skill_runner.py"
+        "backend/integrations/skill_runner.py",
+        "backend/services/supabase_client.py"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
       "mock_link": "../../mocks/2026-05-09_v1/task/S-032-swarm-session-detail.html",
@@ -290,7 +335,9 @@
         "T-S0-08"
       ],
       "critical": true,
-      "existing_files": [],
+      "existing_files": [
+        "backend/services/auth_middleware.py"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30",
       "mock_link": null,
       "entities": [
@@ -402,7 +449,8 @@
       "critical": true,
       "existing_files": [
         "backend/integrations/auth/",
-        "backend/routers/auth.py"
+        "supabase/migrations/20260501220000_initial_schema.sql",
+        "supabase/migrations/20260501220300_rls_skeleton.sql"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-2",
       "mock_link": "../../mocks/2026-05-09_v1/auth/S-001-login.html",
@@ -628,7 +676,8 @@
       ],
       "existing_files": [
         "backend/routers/skills.py",
-        "frontend/src/app/skills/"
+        "frontend/src/app/skills/",
+        "backend/routers/skill_creator.py"
       ]
     },
     {
@@ -642,6 +691,9 @@
       "claude_code_hours": 1,
       "deps": [
         "T-002-01"
+      ],
+      "existing_files": [
+        "backend/services/skill_manager.py"
       ]
     },
     {
@@ -657,7 +709,9 @@
         "T-001-02"
       ],
       "existing_files": [
-        "backend/routers/accounts.py"
+        "backend/routers/accounts.py",
+        "backend/services/account_service.py",
+        "backend/services/account_settings_service.py"
       ]
     },
     {
@@ -777,7 +831,9 @@
         "T-021-02"
       ],
       "critical": true,
-      "existing_files": [],
+      "existing_files": [
+        "backend/services/auth_middleware.py"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-11",
       "mock_link": "../../mocks/2026-05-09_v1/task/S-031-swarm-grid.html",
       "entities": [
@@ -928,7 +984,9 @@
       ],
       "critical": true,
       "existing_files": [
-        "backend/services/memory_service.py"
+        "backend/routers/llm.py",
+        "backend/routers/llm_providers.py",
+        "backend/services/conversation_memory.py"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28",
       "mock_link": null,
@@ -1022,7 +1080,9 @@
       ],
       "existing_files": [
         "backend/routers/employees.py",
-        "backend/services/staff_service.py"
+        "backend/services/staff_service.py",
+        "backend/routers/ai_system.py",
+        "backend/routers/staff.py"
       ]
     },
     {
@@ -1067,7 +1127,11 @@
       "critical": true,
       "existing_files": [
         "frontend/src/app/workspaces/",
-        "backend/routers/workspaces.py"
+        "backend/routers/workspaces.py",
+        "backend/routers/secretary.py",
+        "backend/routers/secretary_stream.py",
+        "backend/services/delegation_service.py",
+        "backend/services/secretary_chat.py"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-3",
       "mock_link": "../../mocks/2026-05-09_v1/workspace/S-012-workspace-dashboard.html",
@@ -1139,7 +1203,8 @@
         "T-003-02"
       ],
       "existing_files": [
-        "backend/services/artifact_service.py"
+        "backend/services/artifact_service.py",
+        "backend/routers/artifacts.py"
       ]
     },
     {
@@ -1169,7 +1234,8 @@
       ],
       "existing_files": [
         "backend/services/intent_preprocessor.py",
-        "backend/services/mode_detector.py"
+        "backend/services/mode_detector.py",
+        "backend/services/skill_detector.py"
       ],
       "reference_oss": "openai/codex"
     },
@@ -1280,7 +1346,10 @@
         "T-001-07"
       ],
       "existing_files": [
-        "backend/services/embedding_service.py"
+        "backend/services/embedding_service.py",
+        "backend/services/knowledge_curator.py",
+        "backend/services/knowledge_transfer.py",
+        "backend/services/rag_context.py"
       ]
     },
     {
@@ -1296,7 +1365,8 @@
         "T-001-05"
       ],
       "existing_files": [
-        "backend/routers/threads.py"
+        "backend/routers/threads.py",
+        "backend/routers/chat.py"
       ]
     },
     {
@@ -1325,7 +1395,8 @@
         "T-M28-04"
       ],
       "existing_files": [
-        "backend/services/conversation_summarizer.py"
+        "backend/services/conversation_summarizer.py",
+        "backend/services/conversation_memory.py"
       ]
     },
     {
@@ -1342,7 +1413,8 @@
       ],
       "existing_files": [
         "backend/services/long_term_memory.py",
-        "backend/services/obsidian_sync.py"
+        "backend/services/obsidian_sync.py",
+        "backend/services/obsidian_vault_sync.py"
       ]
     },
     {
@@ -1410,7 +1482,10 @@
         "T-S0-05"
       ],
       "existing_files": [
-        "backend/services/artifact_export.py"
+        "backend/services/artifact_export.py",
+        "backend/routers/template_builder.py",
+        "backend/services/template_builder_service.py",
+        "backend/services/template_render_service.py"
       ]
     },
     {
@@ -1456,7 +1531,14 @@
       ],
       "existing_files": [
         "backend/routers/hearing.py",
-        "backend/services/hearing_service.py"
+        "backend/services/hearing_service.py",
+        "backend/routers/estimate.py",
+        "backend/routers/pricing_design.py",
+        "backend/routers/proposal.py",
+        "backend/services/briefing_service.py",
+        "backend/services/estimate_service.py",
+        "backend/services/pricing_design_service.py",
+        "backend/services/proposal_service.py"
       ]
     },
     {
@@ -1473,7 +1555,8 @@
       ],
       "existing_files": [
         "backend/services/slot_state.py",
-        "backend/services/slot_extractor.py"
+        "backend/services/slot_extractor.py",
+        "backend/routers/slot_admin.py"
       ]
     },
     {
@@ -1520,7 +1603,10 @@
       ],
       "existing_files": [
         "backend/routers/design_frames.py",
-        "backend/routers/design_mocks.py"
+        "backend/routers/design_mocks.py",
+        "supabase/migrations/20260501230000_design_frames.sql",
+        "supabase/migrations/20260501230100_design_mockup_content.sql",
+        "supabase/migrations/20260502000000_design_mocks.sql"
       ]
     },
     {
@@ -1536,7 +1622,9 @@
         "T-003-02"
       ],
       "existing_files": [
-        "backend/services/designer_ai.py"
+        "backend/services/designer_ai.py",
+        "backend/routers/design_pipeline.py",
+        "backend/services/design_pipeline.py"
       ]
     },
     {
@@ -1645,6 +1733,11 @@
       "claude_code_hours": 2,
       "deps": [
         "T-001-04"
+      ],
+      "existing_files": [
+        "backend/routers/dashboard.py",
+        "backend/services/catchup_service.py",
+        "backend/services/sales_service.py"
       ]
     },
     {
@@ -1833,7 +1926,11 @@
       ],
       "existing_files": [
         "backend/routers/knowledge_search.py",
-        "backend/services/embedding_service.py"
+        "backend/services/embedding_service.py",
+        "backend/routers/knowledge_actions.py",
+        "backend/routers/references.py",
+        "backend/services/scoped_knowledge.py",
+        "supabase/migrations/20260501220200_knowledge_scope.sql"
       ]
     },
     {
@@ -2029,7 +2126,8 @@
       ],
       "existing_files": [
         "backend/workers/task_executor.py",
-        "backend/integrations/skill_runner.py"
+        "backend/integrations/skill_runner.py",
+        "backend/services/orchestrator_graph.py"
       ]
     },
     {
@@ -2205,7 +2303,9 @@
         "T-010b-01"
       ],
       "existing_files": [
-        "backend/workers/task_executor.py"
+        "backend/workers/task_executor.py",
+        "backend/routers/workflows.py",
+        "backend/services/workflow_service.py"
       ]
     },
     {
@@ -2404,7 +2504,10 @@
       ],
       "existing_files": [
         "backend/integrations/slack_client.py",
-        "backend/integrations/slack_block_kit.py"
+        "backend/integrations/slack_block_kit.py",
+        "backend/routers/chatwork.py",
+        "backend/services/inbox_service.py",
+        "backend/services/slack_history.py"
       ]
     },
     {
@@ -2433,7 +2536,13 @@
         "T-001-05"
       ],
       "existing_files": [
-        "backend/services/obsidian_sync.py"
+        "backend/services/obsidian_sync.py",
+        "backend/routers/documents.py",
+        "backend/routers/records.py",
+        "backend/routers/uploads.py",
+        "backend/services/document_ingest_service.py",
+        "backend/services/document_service.py",
+        "backend/services/upload_service.py"
       ]
     },
     {
