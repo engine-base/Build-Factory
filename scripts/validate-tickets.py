@@ -25,8 +25,9 @@ def validate_ticket(t: dict) -> list[str]:
     label = t.get("label", "")
 
     # 必須フィールド (既存)
+    # sprint は 0 (Sprint 0) も valid なので、None or キー欠落のみを「missing」と判定する
     for f in ["id", "title", "sprint", "feature", "layer", "label"]:
-        if not t.get(f):
+        if t.get(f) is None or (f != "sprint" and not t.get(f)):
             issues.append(f"missing {f}")
 
     # 必須フィールド (今回追加)

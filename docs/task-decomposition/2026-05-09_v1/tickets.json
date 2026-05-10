@@ -96,7 +96,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-019-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-19"
     },
     {
       "id": "T-019-03",
@@ -109,7 +110,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-019-02"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-19"
     },
     {
       "id": "T-S0-13",
@@ -255,7 +257,8 @@
       "label": "NEW",
       "human_days": 0.5,
       "claude_code_hours": 2,
-      "deps": []
+      "deps": [],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-S0-02",
@@ -266,7 +269,8 @@
       "label": "NEW",
       "human_days": 0.5,
       "claude_code_hours": 2,
-      "deps": []
+      "deps": [],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-S0-03",
@@ -277,7 +281,8 @@
       "label": "NEW",
       "human_days": 0.3,
       "claude_code_hours": 1,
-      "deps": []
+      "deps": [],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-S0-04",
@@ -290,7 +295,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-S0-02"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-S0-05",
@@ -301,7 +307,8 @@
       "label": "REUSE",
       "human_days": 0.3,
       "claude_code_hours": 1,
-      "deps": []
+      "deps": [],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-S0-06",
@@ -314,7 +321,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-S0-05"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-S0-07",
@@ -325,7 +333,8 @@
       "label": "REFACTOR",
       "human_days": 0.3,
       "claude_code_hours": 1,
-      "deps": []
+      "deps": [],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-S0-08",
@@ -479,7 +488,8 @@
       "label": "NEW",
       "human_days": 0.3,
       "claude_code_hours": 1,
-      "deps": []
+      "deps": [],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-S0-11",
@@ -490,7 +500,8 @@
       "label": "NEW",
       "human_days": 0.3,
       "claude_code_hours": 1,
-      "deps": []
+      "deps": [],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-S0-12",
@@ -501,7 +512,8 @@
       "label": "NEW",
       "human_days": 0.2,
       "claude_code_hours": 1,
-      "deps": []
+      "deps": [],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-001-01",
@@ -654,7 +666,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-001-02"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-001-04",
@@ -723,7 +736,8 @@
       "claude_code_hours": 3,
       "deps": [
         "T-001-02"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-001-06",
@@ -791,7 +805,8 @@
       ],
       "existing_files": [
         "supabase/migrations/20260501220100_pgvector.sql"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-001-08",
@@ -804,7 +819,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-001-03"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-001-09",
@@ -817,7 +833,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-001-04"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-001-10",
@@ -830,7 +847,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-001-06"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-001-11",
@@ -845,7 +863,8 @@
         "T-001-08",
         "T-001-09",
         "T-001-10"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-002-01",
@@ -863,7 +882,8 @@
         "backend/routers/skills.py",
         "frontend/src/app/skills/",
         "backend/routers/skill_creator.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-2"
     },
     {
       "id": "T-002-02",
@@ -879,7 +899,8 @@
       ],
       "existing_files": [
         "backend/services/skill_manager.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-2"
     },
     {
       "id": "T-004-01",
@@ -897,7 +918,8 @@
         "backend/routers/accounts.py",
         "backend/services/account_service.py",
         "backend/services/account_settings_service.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4"
     },
     {
       "id": "T-004-02",
@@ -910,7 +932,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-004-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4"
     },
     {
       "id": "T-004-03",
@@ -923,7 +946,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-004-02"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4"
     },
     {
       "id": "T-004-04",
@@ -936,7 +960,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-004-03"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4"
     },
     {
       "id": "T-004-05",
@@ -949,7 +974,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-004-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4"
     },
     {
       "id": "T-004-06",
@@ -962,7 +988,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-004-04"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4"
     },
     {
       "id": "T-IT-S0",
@@ -975,7 +1002,8 @@
       "claude_code_hours": 2,
       "deps": [
         "all_sprint_0"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-021-01",
@@ -988,7 +1016,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-001-02"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-21"
     },
     {
       "id": "T-021-02",
@@ -1001,7 +1030,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-021-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-21"
     },
     {
       "id": "T-021-03",
@@ -1057,7 +1087,8 @@
       "claude_code_hours": 3,
       "deps": [
         "T-S0-06"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-21"
     },
     {
       "id": "T-021-05",
@@ -1070,7 +1101,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-021-03"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-21"
     },
     {
       "id": "T-023-01",
@@ -1087,7 +1119,8 @@
       "existing_files": [
         "backend/services/user_profile.py",
         "backend/routers/account_settings.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-23"
     },
     {
       "id": "T-023-02",
@@ -1103,7 +1136,8 @@
       ],
       "existing_files": [
         "backend/services/credentials_store.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-23"
     },
     {
       "id": "T-023-03",
@@ -1116,7 +1150,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-001-07"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-23"
     },
     {
       "id": "T-023-04",
@@ -1129,7 +1164,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-S0-08"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-23"
     },
     {
       "id": "T-023-05",
@@ -1142,7 +1178,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-001-08"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-23"
     },
     {
       "id": "T-020-01",
@@ -1155,7 +1192,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-S0-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-20"
     },
     {
       "id": "T-020-02",
@@ -1220,7 +1258,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-020-02"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-20"
     },
     {
       "id": "T-020-04",
@@ -1233,7 +1272,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-023-03"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-20"
     },
     {
       "id": "T-022-01",
@@ -1246,7 +1286,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-001-03"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-22"
     },
     {
       "id": "T-022-02",
@@ -1259,7 +1300,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-022-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-22"
     },
     {
       "id": "T-022-03",
@@ -1278,7 +1320,8 @@
         "backend/services/staff_service.py",
         "backend/routers/ai_system.py",
         "backend/routers/staff.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-22"
     },
     {
       "id": "T-022-04",
@@ -1291,7 +1334,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-S0-05"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-22"
     },
     {
       "id": "T-003-01",
@@ -1304,7 +1348,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-022-03"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-3"
     },
     {
       "id": "T-003-02",
@@ -1370,7 +1415,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-003-02"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-3"
     },
     {
       "id": "T-003-04",
@@ -1383,7 +1429,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-003-02"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-3"
     },
     {
       "id": "T-003-05",
@@ -1400,7 +1447,8 @@
       "existing_files": [
         "backend/services/artifact_service.py",
         "backend/routers/artifacts.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-3"
     },
     {
       "id": "T-M27-01",
@@ -1413,7 +1461,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-S0-08"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-27"
     },
     {
       "id": "T-M27-02",
@@ -1432,7 +1481,8 @@
         "backend/services/mode_detector.py",
         "backend/services/skill_detector.py"
       ],
-      "reference_oss": "openai/codex"
+      "reference_oss": "openai/codex",
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-27"
     },
     {
       "id": "T-M27-03",
@@ -1446,7 +1496,8 @@
       "deps": [
         "T-M27-02",
         "T-003-02"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-27"
     },
     {
       "id": "T-M28-01",
@@ -1500,7 +1551,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-M28-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28"
     },
     {
       "id": "T-M28-03",
@@ -1513,7 +1565,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-020-04"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28"
     },
     {
       "id": "T-M28-04",
@@ -1526,7 +1579,8 @@
       "claude_code_hours": 3,
       "deps": [
         "T-M28-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28"
     },
     {
       "id": "T-M28-05",
@@ -1545,7 +1599,8 @@
         "backend/services/knowledge_curator.py",
         "backend/services/knowledge_transfer.py",
         "backend/services/rag_context.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28"
     },
     {
       "id": "T-M30-01",
@@ -1562,7 +1617,8 @@
       "existing_files": [
         "backend/routers/threads.py",
         "backend/routers/chat.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30"
     },
     {
       "id": "T-M30-02",
@@ -1575,7 +1631,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-M30-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30"
     },
     {
       "id": "T-M30-03",
@@ -1592,7 +1649,8 @@
       "existing_files": [
         "backend/services/conversation_summarizer.py",
         "backend/services/conversation_memory.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30"
     },
     {
       "id": "T-M30-04",
@@ -1610,7 +1668,8 @@
         "backend/services/long_term_memory.py",
         "backend/services/obsidian_sync.py",
         "backend/services/obsidian_vault_sync.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30"
     },
     {
       "id": "T-M30-05",
@@ -1623,7 +1682,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-M30-04"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30"
     },
     {
       "id": "T-IT-S2",
@@ -1636,7 +1696,8 @@
       "claude_code_hours": 2,
       "deps": [
         "all_sprint_2"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-025-01",
@@ -1649,7 +1710,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-001-04"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-25"
     },
     {
       "id": "T-025-02",
@@ -1662,7 +1724,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-003-02"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-25"
     },
     {
       "id": "T-015-01",
@@ -1681,7 +1744,8 @@
         "backend/routers/template_builder.py",
         "backend/services/template_builder_service.py",
         "backend/services/template_render_service.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-15"
     },
     {
       "id": "T-015-02",
@@ -1697,7 +1761,8 @@
       ],
       "existing_files": [
         "backend/services/output_processor.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-15"
     },
     {
       "id": "T-015-03",
@@ -1710,7 +1775,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-S0-08"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-15"
     },
     {
       "id": "T-005-01",
@@ -1734,7 +1800,8 @@
         "backend/services/estimate_service.py",
         "backend/services/pricing_design_service.py",
         "backend/services/proposal_service.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5"
     },
     {
       "id": "T-005-02",
@@ -1752,7 +1819,8 @@
         "backend/services/slot_state.py",
         "backend/services/slot_extractor.py",
         "backend/routers/slot_admin.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5"
     },
     {
       "id": "T-005-03",
@@ -1769,7 +1837,8 @@
       "existing_files": [
         "backend/routers/requirements.py",
         "backend/services/requirements_service.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5"
     },
     {
       "id": "T-005-04",
@@ -1782,7 +1851,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-015-03"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5"
     },
     {
       "id": "T-005b-01",
@@ -1802,7 +1872,8 @@
         "supabase/migrations/20260501230000_design_frames.sql",
         "supabase/migrations/20260501230100_design_mockup_content.sql",
         "supabase/migrations/20260502000000_design_mocks.sql"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5"
     },
     {
       "id": "T-005b-02",
@@ -1820,7 +1891,8 @@
         "backend/services/designer_ai.py",
         "backend/routers/design_pipeline.py",
         "backend/services/design_pipeline.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5"
     },
     {
       "id": "T-005b-03",
@@ -1833,7 +1905,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-015-02"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5"
     },
     {
       "id": "T-005b-04",
@@ -1846,7 +1919,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-005-04"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5"
     },
     {
       "id": "T-006-01",
@@ -1859,7 +1933,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-003-02"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-6"
     },
     {
       "id": "T-006-02",
@@ -1876,7 +1951,8 @@
       ],
       "existing_files": [
         "backend/routers/tasks.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-6"
     },
     {
       "id": "T-006-03",
@@ -1889,7 +1965,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-009-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-6"
     },
     {
       "id": "T-006-04",
@@ -1902,7 +1979,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-006-02"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-6"
     },
     {
       "id": "T-IT-S3",
@@ -1915,7 +1993,8 @@
       "claude_code_hours": 2,
       "deps": [
         "all_sprint_3"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-008-01",
@@ -1933,7 +2012,8 @@
         "backend/routers/dashboard.py",
         "backend/services/catchup_service.py",
         "backend/services/sales_service.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-8"
     },
     {
       "id": "T-008-02",
@@ -1946,7 +2026,8 @@
       "claude_code_hours": 3,
       "deps": [
         "T-008-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-8"
     },
     {
       "id": "T-008-03",
@@ -1959,7 +2040,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-008-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-8"
     },
     {
       "id": "T-008-04",
@@ -1972,7 +2054,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-008-02"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-8"
     },
     {
       "id": "T-009-01",
@@ -1985,7 +2068,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-001-09"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-9"
     },
     {
       "id": "T-009-02",
@@ -1998,7 +2082,8 @@
       "claude_code_hours": 3,
       "deps": [
         "T-S0-05"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-9"
     },
     {
       "id": "T-009-03",
@@ -2011,7 +2096,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-006-03"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-9"
     },
     {
       "id": "T-009-04",
@@ -2024,7 +2110,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-009-02"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-9"
     },
     {
       "id": "T-009-05",
@@ -2037,7 +2124,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-009-02"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-9"
     },
     {
       "id": "T-007-01",
@@ -2053,7 +2141,8 @@
       ],
       "existing_files": [
         "frontend/src/components/tasks/TaskKanban.tsx"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-7"
     },
     {
       "id": "T-007-02",
@@ -2066,7 +2155,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-S0-06"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-7"
     },
     {
       "id": "T-007-03",
@@ -2079,7 +2169,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-009-02"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-7"
     },
     {
       "id": "T-007-04",
@@ -2092,7 +2183,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-007-02"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-7"
     },
     {
       "id": "T-024-01",
@@ -2105,7 +2197,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-S0-06"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-24"
     },
     {
       "id": "T-024-02",
@@ -2126,7 +2219,8 @@
         "backend/routers/references.py",
         "backend/services/scoped_knowledge.py",
         "supabase/migrations/20260501220200_knowledge_scope.sql"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-24"
     },
     {
       "id": "T-024-03",
@@ -2139,7 +2233,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-S0-09"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-24"
     },
     {
       "id": "T-IT-S4",
@@ -2152,7 +2247,8 @@
       "claude_code_hours": 2,
       "deps": [
         "all_sprint_4"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-026-01",
@@ -2165,7 +2261,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-001-04"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-26"
     },
     {
       "id": "T-026-02",
@@ -2178,7 +2275,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-S0-06"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-26"
     },
     {
       "id": "T-026-03",
@@ -2191,7 +2289,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-M28-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-26"
     },
     {
       "id": "T-012-01",
@@ -2204,7 +2303,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-026-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-12"
     },
     {
       "id": "T-012-02",
@@ -2221,7 +2321,8 @@
       "existing_files": [
         "backend/routers/approval.py",
         "backend/workers/approval_worker.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-12"
     },
     {
       "id": "T-012-03",
@@ -2233,7 +2334,8 @@
       "human_days": 0.5,
       "claude_code_hours": 2,
       "deps": [],
-      "reference_oss": "openai/codex"
+      "reference_oss": "openai/codex",
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-12"
     },
     {
       "id": "T-012-04",
@@ -2249,7 +2351,8 @@
       ],
       "existing_files": [
         "frontend/src/app/approval/"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-12"
     },
     {
       "id": "T-010a-01",
@@ -2266,7 +2369,8 @@
       "existing_files": [
         "backend/routers/mcp_server.py",
         "mcp_stdio_server.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
     },
     {
       "id": "T-010a-02",
@@ -2279,7 +2383,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-010a-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
     },
     {
       "id": "T-010a-03",
@@ -2292,7 +2397,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-010a-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
     },
     {
       "id": "T-010a-04",
@@ -2305,7 +2411,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-021-03"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
     },
     {
       "id": "T-010b-01",
@@ -2323,7 +2430,8 @@
         "backend/workers/task_executor.py",
         "backend/integrations/skill_runner.py",
         "backend/services/orchestrator_graph.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
     },
     {
       "id": "T-010b-02",
@@ -2336,7 +2444,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-023-04"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
     },
     {
       "id": "T-010b-03",
@@ -2350,7 +2459,8 @@
       "deps": [
         "T-M28-01",
         "T-026-03"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
     },
     {
       "id": "T-010b-04",
@@ -2363,7 +2473,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-010b-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
     },
     {
       "id": "T-010b-05",
@@ -2376,7 +2487,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-001-05"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
     },
     {
       "id": "T-011-01",
@@ -2393,7 +2505,8 @@
       "existing_files": [
         "backend/routers/reviewer.py",
         "backend/services/reviewer_loop.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-11"
     },
     {
       "id": "T-011-02",
@@ -2406,7 +2519,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-011-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-11"
     },
     {
       "id": "T-011-03",
@@ -2419,7 +2533,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-014-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-11"
     },
     {
       "id": "T-011-04",
@@ -2432,7 +2547,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-011-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-11"
     },
     {
       "id": "T-IT-S5",
@@ -2445,7 +2561,8 @@
       "claude_code_hours": 2,
       "deps": [
         "all_sprint_5"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-M29-01",
@@ -2457,7 +2574,8 @@
       "human_days": 0.5,
       "claude_code_hours": 2,
       "deps": [],
-      "reference_oss": "openai/codex"
+      "reference_oss": "openai/codex",
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-29"
     },
     {
       "id": "T-M29-02",
@@ -2470,7 +2588,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-M29-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-29"
     },
     {
       "id": "T-M29-03",
@@ -2483,7 +2602,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-M29-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-29"
     },
     {
       "id": "T-010c-01",
@@ -2501,7 +2621,8 @@
         "backend/workers/task_executor.py",
         "backend/routers/workflows.py",
         "backend/services/workflow_service.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
     },
     {
       "id": "T-010c-02",
@@ -2514,7 +2635,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-009-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
     },
     {
       "id": "T-010c-03",
@@ -2527,7 +2649,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-010c-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
     },
     {
       "id": "T-010c-04",
@@ -2540,7 +2663,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-010c-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
     },
     {
       "id": "T-010c-05",
@@ -2553,7 +2677,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-010b-05"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
     },
     {
       "id": "T-010c-06",
@@ -2566,7 +2691,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-010c-05"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
     },
     {
       "id": "T-010d-01",
@@ -2579,7 +2705,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-S0-08"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
     },
     {
       "id": "T-010d-02",
@@ -2592,7 +2719,8 @@
       "claude_code_hours": 3,
       "deps": [
         "T-S0-06"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
     },
     {
       "id": "T-010d-03",
@@ -2605,7 +2733,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-010d-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
     },
     {
       "id": "T-010d-04",
@@ -2618,7 +2747,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-010d-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
     },
     {
       "id": "T-IT-S6",
@@ -2631,7 +2761,8 @@
       "claude_code_hours": 2,
       "deps": [
         "all_sprint_6"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-013-01",
@@ -2644,7 +2775,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-023-04"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-13"
     },
     {
       "id": "T-013-02",
@@ -2657,7 +2789,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-M29-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-13"
     },
     {
       "id": "T-013-03",
@@ -2670,7 +2803,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-015-03"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-13"
     },
     {
       "id": "T-013-04",
@@ -2683,7 +2817,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-M29-03"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-13"
     },
     {
       "id": "T-014-01",
@@ -2703,7 +2838,8 @@
         "backend/routers/chatwork.py",
         "backend/services/inbox_service.py",
         "backend/services/slack_history.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-14"
     },
     {
       "id": "T-014-02",
@@ -2716,7 +2852,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-014-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-14"
     },
     {
       "id": "T-016-01",
@@ -2738,7 +2875,8 @@
         "backend/services/document_ingest_service.py",
         "backend/services/document_service.py",
         "backend/services/upload_service.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-16"
     },
     {
       "id": "T-016-02",
@@ -2751,7 +2889,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-015-03"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-16"
     },
     {
       "id": "T-016-03",
@@ -2764,7 +2903,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-016-02"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-16"
     },
     {
       "id": "T-017-01",
@@ -2777,7 +2917,8 @@
       "claude_code_hours": 1,
       "deps": [
         "T-S0-01"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-17"
     },
     {
       "id": "T-017-02",
@@ -2793,7 +2934,8 @@
       ],
       "existing_files": [
         "backend/services/observability.py"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-17"
     },
     {
       "id": "T-017-03",
@@ -2806,7 +2948,8 @@
       "claude_code_hours": 3,
       "deps": [
         "T-S0-05"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-17"
     },
     {
       "id": "T-018-01",
@@ -2819,7 +2962,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-001-05"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-18"
     },
     {
       "id": "T-018-02",
@@ -2832,7 +2976,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-S0-06"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-18"
     },
     {
       "id": "T-018-03",
@@ -2845,7 +2990,8 @@
       "claude_code_hours": 2,
       "deps": [
         "T-S0-04"
-      ]
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-18"
     },
     {
       "id": "T-IT-S7",
@@ -2859,7 +3005,8 @@
       "deps": [
         "all_sprint_7"
       ],
-      "phase_1_completion_marker": true
+      "phase_1_completion_marker": true,
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
     },
     {
       "id": "T-BTSTRAP-01",
