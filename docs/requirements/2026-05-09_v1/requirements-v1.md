@@ -379,8 +379,33 @@ M-17 Langfuse / M-18 監査 + バックアップ
 
 ---
 
+## 11.5 M-31 project_bootstrap_enforcement (2026-05-10 追加)
+
+**目的**: Build-Factory が回す全案件に「機械的強制レイヤー」を自動展開し、品質を担保する。
+
+### 背景
+Build-Factory 本体の開発で整備した強制レイヤー (CLAUDE.md / HANDOVER.md / IMPLEMENTATION_PROTOCOL.md / lint-mock.sh / validate-tickets.py / .claude/settings.json / tickets.json メタ完備) を、各案件 (受託 EC #4 / 内製 SaaS #2 等) でも自動配置する。これにより案件ごとの品質を担保する。
+
+### 受け入れ条件 (EARS)
+- **UBIQUITOUS**: The system shall maintain a `templates/project-bootstrap/` skeleton with all enforcement-layer files (CLAUDE.md.j2, HANDOVER.md.j2, IMPLEMENTATION_PROTOCOL.md, lint-mock.sh, validate-tickets.py, settings.json).
+- **EVENT**: When a new workspace is created via POST /api/workspaces, the system shall create a GitHub repo and populate it with the rendered template.
+- **EVENT**: When `templates/CHANGELOG.md` is updated on main, the CI shall trigger a dry-run migrate against every active workspace and require masato approval before propagating.
+- **STATE**: While a workspace is in `bootstrapping` state, the system shall refuse other operations until `ready`.
+- **OPTIONAL**: Where `--all` is given to `build-factory project migrate`, the system shall sequentially migrate every workspace.
+- **UNWANTED**: If a rendered file still contains `{{ }}` (unrendered placeholder), the system shall fail validation and shall not commit.
+- **UNWANTED**: If the bootstrap fails midway, the system shall not leave a partial repo on GitHub; it shall mark `workspace.status='bootstrap_failed'` for retry.
+
+### 関連
+- ADR: `docs/decisions/ADR-009-project-bootstrap-enforcement.md`
+- 機能: F-003 workspace_management
+- タスク: T-BTSTRAP-01 〜 T-BTSTRAP-06 (6 件)
+- テンプレ: `templates/project-bootstrap/`
+
+---
+
 ## 12. 改訂履歴
 
+- **v1.1**（2026-05-10）: M-31 project_bootstrap_enforcement 追加 (ADR-009)
 - **v1.0**（2026-05-09）: ヒアリング v2.1 → 要件定義 v1 への正式昇格
 - ヒアリング v2.1（2026-05-09）= requirements-definition STEP 1〜2 確定事項
 - ヒアリング v2.0（2026-05-09）= hearing 4STEP 完了

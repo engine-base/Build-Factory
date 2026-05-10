@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "_comment": "Build-Factory プロジェクト用 Claude Code 設定。新セッションで CLAUDE.md → HANDOVER → ADR の順に読み込み、編集後は絵文字 / Lucide / EARS の遵守を機械的にチェック。",
+
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'echo \"📋 Build-Factory セッション開始。CLAUDE.md と docs/HANDOVER.md を必ず読んでから作業を始めてください。実装タスクは docs/task-decomposition/IMPLEMENTATION_PROTOCOL.md の 7 ステップ手順を厳守。\" >&2'"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'f=\"$CLAUDE_FILE_PATH\"; if [ -z \"$f\" ]; then exit 0; fi; case \"$f\" in *.html|*.tsx|*.ts|*.jsx|*.js|*.py|*.md) ;; *) exit 0 ;; esac; if python3 -c \"import re,sys; t=open(sys.argv[1]).read(); m=re.findall(r\\\"[\\\\U0001F000-\\\\U0001FFFF\\\\U00002600-\\\\U000027BF\\\\U0001F300-\\\\U0001F9FF]\\\", t); sys.exit(1 if m else 0)\" \"$f\" 2>/dev/null; then exit 0; else echo \"⚠ $f に絵文字が含まれています。Lucide Icons (<i data-lucide=...>) に置換してください (CLAUDE.md §5.1)\" >&2; fi'"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'cmd=\"$CLAUDE_TOOL_INPUT\"; if echo \"$cmd\" | grep -qE \"git commit|git push\"; then echo \"💡 コミット前に lint チェック推奨: bash scripts/lint-mock.sh\" >&2; fi; if echo \"$cmd\" | grep -qE \"--no-verify|--force\"; then echo \"🚨 --no-verify / --force は CLAUDE.md §5.4 で原則禁止。明示承認が必要です\" >&2; fi'"
+          }
+        ]
+      }
+    ]
+  },
+
+  "permissions": {
+    "allow": [
+      "Bash(python3 scripts/validate-tickets.py)",
+      "Bash(bash scripts/lint-mock.sh*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(ls*)",
+      "Bash(cat docs/*)",
+      "Bash(cat CLAUDE.md)"
+    ],
+    "ask": [
+      "Bash(git push*)",
+      "Bash(git commit*)",
+      "Bash(rm*)",
+      "Bash(pnpm add*)",
+      "Bash(pip install*)"
+    ],
+    "deny": [
+      "Bash(git push*--force*)",
+      "Bash(git commit*--no-verify*)",
+      "Bash(git*--no-verify*)"
+    ]
+  }
+}

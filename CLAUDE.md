@@ -158,8 +158,9 @@
 | 05-10 | **絵文字 175 件 → Lucide Icons に一括置換** |
 | 05-10 | **CLAUDE.md / HANDOVER.md / ADR 整備** (このファイル含む) |
 | 05-10 | **実装プロトコル + lint script + Hook 整備** (機械的強制レイヤー) |
+| 05-10 | **M-31 / ADR-009 / templates/project-bootstrap/ 追加**: Build-Factory が回す各案件にも強制レイヤーを自動展開する仕組み (T-BTSTRAP-01〜06、6 タスク) |
 
-ADR は `docs/decisions/` に 8 件残っている (主要技術判断の根拠)。
+ADR は `docs/decisions/` に 9 件残っている (主要技術判断の根拠)。
 **強制レイヤー**: `scripts/lint-mock.sh` + `scripts/validate-tickets.py` + `.claude/settings.json` (PostToolUse hook + permissions deny)
 
 ---
@@ -199,6 +200,12 @@ open docs/task-decomposition/2026-05-09_v1/tickets.html
 ├── data/                              ← Supabase migrations (8 件)
 ├── mocks/                             ← (旧) 元設計時のモック (参照のみ)
 ├── onlook/ penpot/                    ← (削除予定: T-019-01 ARCHIVE)
+├── templates/                         ← 各案件に展開する強制レイヤーテンプレ (M-31)
+│   ├── project-bootstrap/             ← 新案件作成時に自動配置されるスケルトン
+│   └── CHANGELOG.md                   ← テンプレ更新履歴 (更新時に全案件へ伝播)
+├── scripts/
+│   ├── lint-mock.sh                   ← 絵文字 / AGPL / メタ検証
+│   └── validate-tickets.py            ← tickets.json EARS AC 検証
 └── docs/                              ← 全フェーズ成果物
     ├── HANDOVER.md                    ← 統合インデックス
     ├── decisions/                     ← ADR (技術判断記録)

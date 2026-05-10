@@ -22,7 +22,13 @@
     "human_weeks": "9-10",
     "claude_code_parallel_weeks": "4-5",
     "dogfood_partial_start_week": 5,
-    "dogfood_full_start_week": 8
+    "dogfood_full_start_week": 8,
+    "total_tasks": 165,
+    "by_label": {
+      "REFACTOR": 58,
+      "NEW": 94,
+      "REUSE": 13
+    }
   },
   "critical_path": [
     "T-019-01",
@@ -2544,6 +2550,283 @@
         "all_sprint_7"
       ],
       "phase_1_completion_marker": true
+    },
+    {
+      "id": "T-BTSTRAP-01",
+      "title": "テンプレート構造を確定 (templates/project-bootstrap/)",
+      "sprint": "S2",
+      "feature": "F-003",
+      "layer": "L2",
+      "label": "REUSE",
+      "human_days": 0.5,
+      "claude_code_hours": 1,
+      "deps": [],
+      "blocks": [
+        "T-BTSTRAP-02"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-31",
+      "mock_link": null,
+      "existing_files": [
+        "templates/project-bootstrap/",
+        "templates/project-bootstrap/CLAUDE.md.j2",
+        "templates/project-bootstrap/docs/HANDOVER.md.j2",
+        "templates/project-bootstrap/docs/task-decomposition/IMPLEMENTATION_PROTOCOL.md",
+        "templates/project-bootstrap/scripts/lint-mock.sh",
+        "templates/project-bootstrap/scripts/validate-tickets.py",
+        "templates/project-bootstrap/.claude/settings.json",
+        "templates/CHANGELOG.md"
+      ],
+      "entities": [],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The repository shall contain templates/project-bootstrap/ with all required skeleton files (CLAUDE.md.j2, HANDOVER.md.j2, IMPLEMENTATION_PROTOCOL.md, lint-mock.sh, validate-tickets.py, settings.json)."
+        },
+        {
+          "type": "UBIQUITOUS",
+          "text": "The templates/CHANGELOG.md shall record every change to the template with version bump."
+        },
+        {
+          "type": "EVENT",
+          "text": "When the template structure is updated, the system shall update templates/CHANGELOG.md before merging."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If a required skeleton file is missing from templates/project-bootstrap/, the lint script shall fail."
+        }
+      ]
+    },
+    {
+      "id": "T-BTSTRAP-02",
+      "title": "WorkspaceService.bootstrap() — 新案件作成時にテンプレを GitHub repo に展開",
+      "sprint": "S2",
+      "feature": "F-003",
+      "layer": "L2",
+      "label": "REFACTOR",
+      "human_days": 2,
+      "claude_code_hours": 4,
+      "deps": [
+        "T-BTSTRAP-01",
+        "T-BTSTRAP-03",
+        "T-013-01"
+      ],
+      "blocks": [
+        "T-BTSTRAP-04",
+        "T-BTSTRAP-06"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-31",
+      "mock_link": "../../mocks/2026-05-09_v1/account/S-006-account-dashboard.html",
+      "existing_files": [
+        "backend/services/workspace_service.py",
+        "backend/integrations/github_client.py"
+      ],
+      "entities": [
+        "workspaces",
+        "github_repos",
+        "workspace_members"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "When a new workspace is created via POST /api/workspaces, the system shall automatically create a GitHub repo (engine-base/proj-{slug}) and populate it with templates/project-bootstrap/ files."
+        },
+        {
+          "type": "EVENT",
+          "text": "When the bootstrap completes, the system shall make an initial commit with message 'chore: bootstrap project from template v{X}' on the main branch."
+        },
+        {
+          "type": "STATE",
+          "text": "While the bootstrap is in progress, the system shall set workspace.status='bootstrapping' and refuse other operations until status becomes 'ready'."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where the user provided a custom GitHub org, the system shall create the repo under that org instead of the default."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If the GitHub API call fails, the system shall mark workspace.status='bootstrap_failed', preserve the workspace row for retry, and shall not leave a partial repo on GitHub."
+        }
+      ]
+    },
+    {
+      "id": "T-BTSTRAP-03",
+      "title": "Jinja2 プレースホルダ置換エンジン",
+      "sprint": "S2",
+      "feature": "F-003",
+      "layer": "L2",
+      "label": "NEW",
+      "human_days": 1,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-BTSTRAP-01"
+      ],
+      "blocks": [
+        "T-BTSTRAP-02"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-31",
+      "mock_link": null,
+      "existing_files": [],
+      "entities": [],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall render every .j2 file in templates/project-bootstrap/ using Jinja2 with the workspace metadata as context."
+        },
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall support 10 placeholders: project_name, project_slug, client_name, deadline, phase, owner_email, tech_stack, ai_employees, template_version, generated_at."
+        },
+        {
+          "type": "EVENT",
+          "text": "When a required placeholder is missing from the workspace metadata, the system shall raise BootstrapError before writing any file (atomic)."
+        },
+        {
+          "type": "STATE",
+          "text": "While rendering, the system shall apply autoescape=False (Markdown / HTML output preserved)."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If a rendered file still contains {{ }} (unrendered placeholder), the system shall fail validation and shall not commit."
+        }
+      ]
+    },
+    {
+      "id": "T-BTSTRAP-04",
+      "title": "既存案件への遡及適用 (build-factory project migrate)",
+      "sprint": "S3",
+      "feature": "F-003",
+      "layer": "L2",
+      "label": "NEW",
+      "human_days": 2,
+      "claude_code_hours": 3,
+      "deps": [
+        "T-BTSTRAP-02"
+      ],
+      "blocks": [
+        "T-BTSTRAP-05"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-31",
+      "mock_link": null,
+      "existing_files": [
+        "backend/cli/project_commands.py"
+      ],
+      "entities": [
+        "workspaces",
+        "github_repos",
+        "template_migrations"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The CLI command `build-factory project migrate --workspace={id}` shall fetch the workspace's repo, diff with the latest template, and add only missing files."
+        },
+        {
+          "type": "EVENT",
+          "text": "When an existing file would be overwritten, the system shall skip it and report a manual-merge needed."
+        },
+        {
+          "type": "STATE",
+          "text": "While dry-run mode is on (--dry-run), the system shall print the diff but shall not commit or push."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where --all is specified, the system shall iterate through every workspace and migrate sequentially."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If the workspace repo is dirty (uncommitted changes), the system shall abort the migration and shall not force any change."
+        }
+      ]
+    },
+    {
+      "id": "T-BTSTRAP-05",
+      "title": "テンプレ更新時に全案件へ PR 自動作成 (CI 統合)",
+      "sprint": "S4",
+      "feature": "F-013",
+      "layer": "L7",
+      "label": "NEW",
+      "human_days": 1.5,
+      "claude_code_hours": 3,
+      "deps": [
+        "T-BTSTRAP-04",
+        "T-013-03"
+      ],
+      "blocks": [],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-31",
+      "mock_link": "../../mocks/2026-05-09_v1/review/S-033-pr-review.html",
+      "existing_files": [
+        ".github/workflows/template-propagation.yml"
+      ],
+      "entities": [
+        "template_migrations",
+        "prs"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "EVENT",
+          "text": "When templates/CHANGELOG.md is updated on main, the GitHub Action shall trigger a dry-run migrate against every active workspace."
+        },
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall report the total number of files that would change per workspace, awaiting masato approval before proceeding."
+        },
+        {
+          "type": "EVENT",
+          "text": "When masato approves via the workflow_dispatch input, the system shall create a PR titled 'chore: migrate to template v{X}' on each workspace repo."
+        },
+        {
+          "type": "STATE",
+          "text": "While a workspace's last migration is pending review, the system shall not create a duplicate PR for the same template version."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If any workspace migration fails (auth / network), the system shall continue with the others and report failures in the summary, not abort the whole job."
+        }
+      ]
+    },
+    {
+      "id": "T-BTSTRAP-06",
+      "title": "e2e テスト = workspace 作成 → 強制レイヤー検証",
+      "sprint": "S3",
+      "feature": "F-003",
+      "layer": "L7",
+      "label": "NEW",
+      "human_days": 1,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-BTSTRAP-02"
+      ],
+      "blocks": [],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-31",
+      "mock_link": null,
+      "existing_files": [
+        "tests/e2e/test_workspace_bootstrap.py"
+      ],
+      "entities": [
+        "workspaces"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "EVENT",
+          "text": "When the e2e test creates a new workspace, the resulting GitHub repo shall contain CLAUDE.md, docs/HANDOVER.md, scripts/lint-mock.sh, scripts/validate-tickets.py, and .claude/settings.json."
+        },
+        {
+          "type": "UBIQUITOUS",
+          "text": "The test shall verify that grep -c 'Build-Factory' CLAUDE.md returns >= 1 in the bootstrapped repo."
+        },
+        {
+          "type": "EVENT",
+          "text": "When the test runs `bash scripts/lint-mock.sh` on the bootstrapped repo, it shall pass (no emojis, no AGPL, no missing files)."
+        },
+        {
+          "type": "STATE",
+          "text": "While running CI, this test shall execute under 60 seconds."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If any required file is missing from the bootstrapped repo, the test shall fail with a clear error indicating the missing path."
+        }
+      ]
     }
   ]
 }

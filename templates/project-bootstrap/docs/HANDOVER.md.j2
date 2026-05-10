@@ -1,0 +1,158 @@
+# {{project_name}} — HANDOVER
+
+> **新セッションが「最初に読むべき」統合インデックス。**
+> CLAUDE.md (リポジトリ直下) を読んだ後、ここから各フェーズ成果物に飛ぶ。
+
+---
+
+## 0. クイック俯瞰
+
+| 質問 | 答え |
+|---|---|
+| **何を作る?** | {{project_name}} ({{client_name}} 様) |
+| **納期** | {{deadline}} |
+| **現フェーズ** | Phase {{phase}} |
+| **技術スタック** | {{tech_stack}} |
+| **担当 AI** | {{ai_employees}} |
+
+---
+
+## 1. フェーズ進捗マップ
+
+```
+[Phase 1] ヒアリング          ⏳ → docs/hearing/
+[Phase 2] 要件定義             - → docs/requirements/
+[Phase 3] アーキ設計           - → docs/architecture/
+[Phase 4] 機能分解             - → docs/functional-breakdown/
+[Phase 5] 技術選定             - → docs/tech-stack/
+[Phase 6] 機能依存分解         - → docs/feature-decomposition/
+[Phase 7] タスク分解           - → docs/task-decomposition/
+[Phase 8] 画面モック           - → docs/mocks/
+[Phase 9] 実装                 - → 各タスク
+[Phase 10] レビュー / 納品     - → docs/delivery/
+```
+
+---
+
+## 2. 全成果物のインデックス
+
+(Phase 1 開始時点では空。各フェーズ完了時に AI 社員が自動更新する)
+
+### 2.1 ヒアリング → 要件定義
+| 成果物 | パス | 状態 |
+|---|---|---|
+| ヒアリング サマリー | `hearing/{date}/hearing_summary.html` | ⏳ |
+| project_brief.json | `hearing/{date}/project_brief.json` | ⏳ |
+| 要件定義書 v1 | `requirements/{date}/requirements-v1.html` | - |
+
+### 2.2 アーキテクチャ
+| 成果物 | パス | 状態 |
+|---|---|---|
+| アーキ設計書 | `architecture/{date}/architecture-v1.html` | - |
+| ER 図 | `architecture/{date}/er-diagram-v1.html` | - |
+
+### 2.3 機能分解
+| 成果物 | パス | 状態 |
+|---|---|---|
+| 機能分解 HTML | `functional-breakdown/{date}/functional-breakdown.html` | - |
+| screens.json | `functional-breakdown/{date}/screens.json` | - |
+| features.json | `functional-breakdown/{date}/features.json` | - |
+| entities.json | `functional-breakdown/{date}/entities.json` | - |
+
+### 2.4 技術選定
+| 成果物 | パス | 状態 |
+|---|---|---|
+| tech-stack | `tech-stack/{date}/tech-stack-v1.html` | - |
+| selected-stack.json | `tech-stack/{date}/selected-stack.json` | - |
+
+### 2.5 タスク分解
+| 成果物 | パス | 状態 |
+|---|---|---|
+| **タスク (Kanban)** | `task-decomposition/{date}/tickets.html` | - |
+| **tickets.json** | `task-decomposition/{date}/tickets.json` | - |
+| API インターフェース | `task-decomposition/{date}/interfaces.md` | - |
+
+### 2.6 画面モック
+| 成果物 | パス | 状態 |
+|---|---|---|
+| **モック index** | `mocks/{date}/index.html` | - |
+| design-tokens.md | `mocks/{date}/design-tokens.md` | - |
+| 各画面 HTML | `mocks/{date}/{category}/S-XXX-*.html` | - |
+
+### 2.7 技術判断記録 (この案件固有 ADR)
+| ADR | テーマ | 状態 |
+|---|---|---|
+| (まだなし) | - | - |
+
+Build-Factory 共通の ADR は本体リポジトリ参照: https://github.com/engine-base/build-factory/tree/main/docs/decisions
+
+---
+
+## 3. 重要な数字 (Phase 4 完了後に AI が自動更新)
+
+| 数値 | 意味 |
+|---|---|
+| **?** | 画面数 |
+| **?** | 機能 (features) 数 |
+| **?** | エンティティ (DB tables) 数 |
+| **?** | 総タスク数 |
+| **? / ? / ? / ?** | REUSE / REFACTOR / NEW / ARCHIVE |
+
+---
+
+## 4. クリティカルパス
+
+(Phase 7 タスク分解完了時に AI が自動生成)
+
+---
+
+## 5. 実装の進め方
+
+### 5.1 環境セットアップ (初回のみ)
+
+```bash
+cd ~/projects/{{project_slug}}    # またはこの repo
+git fetch origin
+git checkout main
+git pull
+```
+
+### 5.2 タスク実行サイクル
+
+各タスクは [`docs/task-decomposition/IMPLEMENTATION_PROTOCOL.md`](task-decomposition/IMPLEMENTATION_PROTOCOL.md) の 7 ステップに従う:
+
+1. タスクを開く
+2. メタ完備チェック → 不足なら補完
+3. 関連モック・仕様・既存ファイルを必ず開く
+4. 実装方針を 1 行宣言
+5. 実装 (CLAUDE.md §3 ルール厳守)
+6. テスト + lint
+7. v2.1 適合チェック (REFACTOR は 9 項目)
+
+---
+
+## 6. お作法 (絶対遵守、CLAUDE.md §3 と重複)
+
+1. **アイコンは Lucide のみ** (絵文字 ❌)
+2. **AC は EARS 形式** (UNWANTED 必須)
+3. **既存実装を REUSE/REFACTOR で活用** — 新規追加は最後の手段
+4. **AGPL 依存追加禁止**
+5. **`--no-verify` / `--force push` 禁止**
+6. **本番 DB に DROP/TRUNCATE/DELETE * 禁止**
+7. **重大変更は {{owner_email}} に確認**
+
+---
+
+## 7. 困った時
+
+| 状況 | 動き |
+|---|---|
+| **どこから読めばいい?** | このファイル → CLAUDE.md → 各フェーズ READMEの順 |
+| **タスクの詳細仕様は?** | `task-decomposition/{date}/tickets.html` |
+| **画面のイメージは?** | `mocks/{date}/index.html` をブラウザで |
+| **判断に迷う** | {{owner_email}} に AskUserQuestion で確認 |
+| **Build-Factory 共通仕様の確認** | https://github.com/engine-base/build-factory |
+
+---
+
+**自動生成: {{generated_at}} (template v{{template_version}})**
