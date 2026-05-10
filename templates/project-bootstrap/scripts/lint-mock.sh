@@ -114,26 +114,31 @@ check_agpl() {
 
 # ----------------------------------------------------------------
 # 3. ARCHIVE 対象 (onlook / penpot) の残留検出
+#    Build-Factory W-7 (Won't: Onlook / Open Design):
+#      - onlook/ + penpot/ ディレクトリは削除必須
+#      - ソースコード内の onlook 参照は禁止
+#      - penpot 統合コードは Phase 1.5 (GrapesJS 置換) まで残置可
 # ----------------------------------------------------------------
 check_archive() {
   echo "[3/4] ARCHIVE 対象 (onlook/penpot) 残留検出..."
-  local archive_targets=("onlook" "penpot")
   local found=0
-  for t in "${archive_targets[@]}"; do
-    # ディレクトリ自体
+
+  # ディレクトリ自体は両方とも削除必須
+  for t in onlook penpot; do
     if [ -d "$t" ]; then
       echo -e "${YELLOW}WARN: $t/ ディレクトリが残っている${NC} (T-019-01 ARCHIVE 対象)"
       found=1
     fi
-    # ソースコード内の import / 参照
-    local refs
-    refs=$(grep -rn --include="*.ts" --include="*.tsx" --include="*.py" --include="*.js" "$t" frontend/src backend 2>/dev/null | grep -v "^scripts/lint" || true)
-    if [ -n "$refs" ]; then
-      echo -e "${YELLOW}WARN: '$t' の参照が残っている:${NC}"
-      echo "$refs" | head -5
-      found=1
-    fi
   done
+
+  # ソースコード内の onlook 参照は禁止
+  local refs
+  refs=$(grep -rn --include="*.ts" --include="*.tsx" --include="*.py" --include="*.js" "onlook" frontend/src backend 2>/dev/null || true)
+  if [ -n "$refs" ]; then
+    echo -e "${YELLOW}WARN: 'onlook' の参照が残っている:${NC}"
+    echo "$refs" | head -5
+    found=1
+  fi
 
   if [ "$found" -eq 0 ]; then
     echo -e "${GREEN}OK: ARCHIVE 残留なし${NC}"

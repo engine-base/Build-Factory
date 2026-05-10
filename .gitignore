@@ -35,3 +35,8 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# pre-commit-check.sh artifacts (環境固有 / 機密でない)
+.last-precommit-check
+/tmp/precommit-lint.log
+# .tsc-baseline はリポジトリで管理する (技術的負債の可視化のため)
