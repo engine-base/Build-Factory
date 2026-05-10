@@ -1,0 +1,223 @@
+{
+  "meta": {
+    "project": "Build-Factory",
+    "version": "1.0 (requirements-definition v1 final)",
+    "based_on_hearing": "docs/hearing/2026-05-09_re-hearing/ (v2.1)",
+    "created_at": "2026-05-09",
+    "skill_version": "requirements-definition 2.0"
+  },
+  "context": {
+    "project_type": "SaaS Web アプリ (開発工場 OS)",
+    "scale": "大規模 (Phase 1 = 30 機能 / 35 画面 / 30 テーブル / 17 連携)",
+    "priority": "品質優先 + 速度確保 (楽な道に逃げず長期負債ゼロ)",
+    "core_problem": "AI 開発が流行する一方、管理 / 品質の不足で「漏れ」「使えないものになる」事故が頻発しているのを Build-Factory で解決する"
+  },
+  "decision_log": [
+    {
+      "decision": "Phase 1 Must を 30 項目で確定 (▶︎ 再生 + swarm + Constitution まで含む)",
+      "reason": "「楽な道に逃げない・長期で楽になる確実な作り」方針。後付けすると AI 出力にゴミが混入してリカバリ困難。",
+      "alternatives": ["18-22 項目に絞り込む", "swarm を Phase 1.5 に後ろ倒し"],
+      "why_not_chosen": "moat (▶︎ + swarm + Constitution) を最初から組み込まないと差別化が薄れる"
+    },
+    {
+      "decision": "M-1 Supabase 移行は 0 から新規構築 + テストデータ seed (既存ユーザ移行なし)",
+      "reason": "既存ユーザが別にいないため、移行ロジック不要。テストデータがあれば 6 ロール権限テスト等が成立。",
+      "alternatives": ["既存 SQLite データを移行", "seed なしでクリーンスタート"],
+      "why_not_chosen": "移行は不要 / seed なしでは権限テスト不可"
+    },
+    {
+      "decision": "M-5 仕様書出力に M-5b 画面モック自動生成を併設 (画面ごと + コンポーネントごと)",
+      "reason": "仕様書だけでは Claude Code に渡す情報が抽象的すぎる。画面モック HTML を渡すと実装精度が上がる。Thariq 流 HTML 出力主義と整合。",
+      "alternatives": ["タスクごとモック (粒度小すぎ)", "画面モックなし (実装ミス増)"],
+      "why_not_chosen": "タスクごと = モック過多 / なし = 実装ぶれ"
+    },
+    {
+      "decision": "M-20 LLM プロバイダー抽象化を Phase 1 から実装 (LiteLLM ベース推奨)",
+      "reason": "チャット層で Claude / OpenAI / Gemini / 拡張容易な adapter 設計が必要。後から adapter 化は重い。",
+      "alternatives": ["Claude 固定で開始", "プロバイダー切替なし"],
+      "why_not_chosen": "ユーザ柔軟性 (BYOK) と SaaS 拡張性で必須"
+    },
+    {
+      "decision": "M-21 ロール custom_permissions UI を Phase 1 から実装 (monitor ロール追加)",
+      "reason": "クライアント以外も含む全ロールで権限細粒度化が必要。後付けすると UI 大改修。",
+      "alternatives": ["5 ロール固定で Phase 1.5 で追加"],
+      "why_not_chosen": "受託会社 / 中小企業の運用パターンで初期から必要"
+    },
+    {
+      "decision": "M-22 AI 社員 3 階層対応 + 個人ナレッジ namespace を Phase 1 で土台のみ",
+      "reason": "将来 COO / 部署リーダー / 個人クローン化への拡張ポイントを Phase 1 から DB に組み込まないと痛い。",
+      "alternatives": ["フラット AI 社員のまま"],
+      "why_not_chosen": "後から階層追加は DB マイグレーションが大変"
+    },
+    {
+      "decision": "M-25 EARS notation を acceptance-criteria 標準に",
+      "reason": "Kiro 等 spec-driven development の業界標準。後続スキル (feature-decomposition / task-decomposition) と互換。",
+      "alternatives": ["独自形式", "Gherkin", "テンプレなし自由形式"],
+      "why_not_chosen": "標準採用が学習コスト最小・他ツール統合容易"
+    },
+    {
+      "decision": "M-26 Constitution を Phase 1 から導入 (赤線リストの拡張)",
+      "reason": "GitHub Spec Kit (93k stars) 流。プロジェクト全体の不変ルールを Markdown で管理し全 AI セッションが参照。後付けすると AI 出力にゴミ蓄積。",
+      "alternatives": ["赤線リストのみ", "Phase 1.5 後ろ倒し"],
+      "why_not_chosen": "後付けは品質回復困難"
+    },
+    {
+      "decision": "M-23 アカウント設定 / プロフィール画面 + M-24 グローバル検索を Phase 1 に追加",
+      "reason": "SaaS 必須・10 案件並走で必須。暗黙ではなく明示要件化。",
+      "alternatives": ["Phase 1.5 後ろ倒し"],
+      "why_not_chosen": "10 案件並走時に検索なしは破綻・プロフィールなしは SaaS としてあり得ない"
+    },
+    {
+      "decision": "並列セッション = 1 案件 5 並列 (10 案件で理論最大 50)",
+      "reason": "プラン制約と効率のバランス。タスク完了次第キューから補充するモデル。",
+      "alternatives": ["1 案件 1 セッション直列", "10 案件無制限並列"],
+      "why_not_chosen": "直列 = 遅すぎ / 無制限 = プラン上限超過"
+    },
+    {
+      "decision": "Token 上限デフォルト無制限・admin が金額設定で上限化 (80% 警告 / 95% fallback / 100% 停止)",
+      "reason": "柔軟性 + 制御可能性。BYOK は無制限。実装層は各自プランなのでそもそも BF 側で上限不要。",
+      "alternatives": ["デフォルト固定上限"],
+      "why_not_chosen": "ユーザの自由度を奪う"
+    },
+    {
+      "decision": "パフォーマンス目標を時間ベースから品質ベースに振替",
+      "reason": "ユーザ明示「時間より深掘り完了度・タスク独立性が本質」",
+      "alternatives": ["時間 KPI 維持 (5 分以内仕様生成等)"],
+      "why_not_chosen": "数値目標が本質を見失わせる"
+    },
+    {
+      "decision": "Phase 1 着手順序 = 基盤 (M-1, M-2, M-19, M-4) → AI/UX (M-3, M-22, M-21, M-23) → 仕様化 (M-5, M-5b, M-6, M-25, M-15) → プロジェクト管理 (M-7, M-8, M-9, M-24) → 実装連携 (M-10a-d, M-11, M-20) → 安全 + 連携 (M-12, M-26, M-13, M-14, M-16) → 観測 + 監査 (M-17, M-18)",
+      "reason": "依存グラフを踏まえた最適順序。基盤を最初に固めないと他が動かない。",
+      "alternatives": ["機能優先度順"],
+      "why_not_chosen": "依存関係を無視すると手戻り発生"
+    },
+    {
+      "decision": "dogfooding 方針: Build-Factory 自体を Build-Factory + Claude Code で開発",
+      "reason": "1 人開発の負荷軽減 + 自己検証 + 即フィードバックループ",
+      "alternatives": ["手動開発のみ"],
+      "why_not_chosen": "30 Must 項目は手動では現実的でない"
+    },
+    {
+      "decision": "dogfooding の安全策: 既存 bootstrap を「動く土台」として残す + Claude Code 単独でも開発継続可",
+      "reason": "Build-Factory 自体のバグで開発が止まる自己再帰問題への対応",
+      "alternatives": ["既存破棄して 0 から"],
+      "why_not_chosen": "二重化必須・破壊的変更はリスク高"
+    }
+  ],
+  "features_extended": [
+    {"id": "M-1",  "name": "Supabase 基盤", "category": "infra", "complexity": "高", "dependencies": [], "risk": "DDL / RLS 設計ミスは全体に波及"},
+    {"id": "M-2",  "name": "既存スキル整理", "category": "管理", "complexity": "中", "dependencies": ["M-1"], "risk": "誤 archive で他 import 破綻"},
+    {"id": "M-3",  "name": "AI 社員ハイブリッド", "category": "AI", "complexity": "高", "dependencies": ["M-1", "M-2", "M-22", "M-20"], "risk": "BMAD / Anthropic Agent Teams の API 変更"},
+    {"id": "M-4",  "name": "テナント階層", "category": "認証", "complexity": "中", "dependencies": ["M-1"], "risk": "RLS 漏れで他テナント可視化"},
+    {"id": "M-5",  "name": "ヒアリング → 仕様 HTML", "category": "仕様化", "complexity": "高", "dependencies": ["M-3", "M-15"], "risk": "AI 出力の曖昧さ・ハルシネーション"},
+    {"id": "M-5b", "name": "画面モック生成", "category": "仕様化", "complexity": "高", "dependencies": ["M-5"], "risk": "デザイン一貫性 / レスポンシブ崩れ"},
+    {"id": "M-6",  "name": "タスク分解 + EARS", "category": "仕様化", "complexity": "高", "dependencies": ["M-5", "M-25"], "risk": "粒度判定難・依存漏れ"},
+    {"id": "M-7",  "name": "多 view UI", "category": "UI", "complexity": "中", "dependencies": ["M-6"], "risk": "1000+ タスクで描画遅延"},
+    {"id": "M-8",  "name": "フェーズ管理", "category": "プロジェクト管理 (moat)", "complexity": "中", "dependencies": ["M-6"], "risk": "現場で使われないリスク"},
+    {"id": "M-9",  "name": "依存グラフ + 伝搬", "category": "プロジェクト管理 (moat)", "complexity": "高", "dependencies": ["M-6"], "risk": "DAG 大規模化で UI 破綻"},
+    {"id": "M-10a", "name": "MCP サーバー", "category": "実装連携", "complexity": "中", "dependencies": ["M-3"], "risk": "MCP SDK の変更"},
+    {"id": "M-10b", "name": "セッションスポナー", "category": "実装連携", "complexity": "高", "dependencies": ["M-10a"], "risk": "Claude Code subprocess 不安定"},
+    {"id": "M-10c", "name": "並列マネージャ", "category": "実装連携", "complexity": "高", "dependencies": ["M-10b", "M-9"], "risk": "プラン上限到達 / セッションハング"},
+    {"id": "M-10d", "name": "WebSocket UI", "category": "実装連携", "complexity": "中", "dependencies": ["M-10b"], "risk": "WebSocket 切断・バッファオーバーフロー"},
+    {"id": "M-11", "name": "リーダー AI 壁打ち", "category": "品質 (moat)", "complexity": "高", "dependencies": ["M-3", "M-10b"], "risk": "壁打ち無限ループ・誤判定"},
+    {"id": "M-12", "name": "赤線リスト", "category": "安全", "complexity": "中", "dependencies": ["M-3"], "risk": "誤検出による開発停滞"},
+    {"id": "M-13", "name": "GitHub 連携", "category": "外部連携", "complexity": "中", "dependencies": ["M-10b"], "risk": "merge conflict / branch protection"},
+    {"id": "M-14", "name": "Slack 通知", "category": "外部連携", "complexity": "低", "dependencies": ["M-1"], "risk": "通知過多で麻痺"},
+    {"id": "M-15", "name": "HTML レポート (7 種)", "category": "仕様化", "complexity": "中", "dependencies": ["M-5"], "risk": "テンプレ更新時の互換性"},
+    {"id": "M-16", "name": "Obsidian 単方向 export", "category": "外部連携", "complexity": "中", "dependencies": ["M-15"], "risk": "Vault パス権限 / フォーマット"},
+    {"id": "M-17", "name": "Langfuse self-host", "category": "観測", "complexity": "中", "dependencies": ["M-1"], "risk": "self-host インフラ運用負荷"},
+    {"id": "M-18", "name": "監査 + バックアップ", "category": "運用", "complexity": "中", "dependencies": ["M-1"], "risk": "復元手順未整備リスク"},
+    {"id": "M-19", "name": "bootstrap 振り分け", "category": "整理", "complexity": "中", "dependencies": [], "risk": "誤 archive で動作不能"},
+    {"id": "M-20", "name": "LLM プロバイダー抽象化", "category": "AI", "complexity": "高", "dependencies": [], "risk": "プロバイダー固有機能の吸収"},
+    {"id": "M-21", "name": "custom_permissions + monitor", "category": "権限", "complexity": "高", "dependencies": ["M-4"], "risk": "権限不整合 / 自分自身権限剥奪"},
+    {"id": "M-22", "name": "AI 階層 + クローン素地", "category": "AI", "complexity": "高", "dependencies": ["M-3"], "risk": "倫理 / プライバシー (個人クローン化の opt-in 厳守)"},
+    {"id": "M-23", "name": "プロフィール画面", "category": "UX", "complexity": "中", "dependencies": ["M-4"], "risk": "API キー暗号化漏れ"},
+    {"id": "M-24", "name": "グローバル検索", "category": "UX", "complexity": "中", "dependencies": ["M-1"], "risk": "FTS / pgvector 性能"},
+    {"id": "M-25", "name": "EARS notation", "category": "仕様化", "complexity": "中", "dependencies": ["M-6"], "risk": "形式分類失敗"},
+    {"id": "M-26", "name": "Constitution", "category": "安全 (moat)", "complexity": "中", "dependencies": ["M-12"], "risk": "context 圧迫 / 矛盾"}
+  ],
+  "unresolved": [
+    {"topic": "BMAD のどの部分を取り込むか (fork / 思想 / 完全採用)", "impact": "M-3 着手不可 / AI 社員ハイブリッド統合の方針が定まらない", "priority": "high", "resolve_in": "architecture-design"},
+    {"topic": "Anthropic Agent Teams の最新 API 仕様確認", "impact": "M-11 リーダー AI 壁打ちの実装方式が定まらない", "priority": "high", "resolve_in": "architecture-design"},
+    {"topic": "削除する既存 router / service の最終リスト", "impact": "M-19 着手時に判断揺れ・誤削除リスク", "priority": "high", "resolve_in": "feature-decomposition"},
+    {"topic": "LLM プロバイダー抽象化の選定 (LiteLLM / 自前 SDK / openrouter / etc)", "impact": "M-20 着手不可", "priority": "high", "resolve_in": "tech-stack"},
+    {"topic": "GrapesJS Studio SDK の商用ライセンス費用", "impact": "S-3 採用判断ができない / 代替案 (VvvebJs / Puck) への切替判断", "priority": "medium", "resolve_in": "tech-stack"},
+    {"topic": "EARS notation の具体テンプレート設計 (5 形式の文例 / バリデーションロジック)", "impact": "M-25 / M-6 が動かせない", "priority": "medium", "resolve_in": "feature-decomposition"},
+    {"topic": "Constitution と赤線リストの統合方法 (同じ DB? 別管理? 参照関係)", "impact": "M-12 / M-26 の実装方式が揺れる", "priority": "medium", "resolve_in": "architecture-design"},
+    {"topic": "部署リーダー AI / COO AI のスキル構成", "impact": "S-11 / C-10 着手不可", "priority": "medium", "resolve_in": "feature-decomposition (Phase 1.5 着手前)"},
+    {"topic": "並列セッション数の現実的上限 (プラン別実測)", "impact": "M-10c のデフォルト 5 並列が適切か検証必要", "priority": "medium", "resolve_in": "tech-stack (PoC 検証)"},
+    {"topic": "リーダー AI 壁打ちの「3 ターン」具体実装 (カウント単位 / エスカ通知方法)", "impact": "M-11 の動作仕様が定まらない", "priority": "medium", "resolve_in": "feature-decomposition"},
+    {"topic": "Phase 1 Must 30 項目の各タスク見積もり工数", "impact": "スケジュール立案不可 / dogfooding 計画立てられない", "priority": "high", "resolve_in": "task-decomposition"},
+    {"topic": "クライアント招待 UI のメール文面 / 招待 URL 設計", "impact": "S-1 着手時に判断必要", "priority": "low", "resolve_in": "feature-decomposition"},
+    {"topic": "Obsidian Phase 1 簡易代替 (単方向 export) の実装方式 (書込先 / 同期頻度 / フォーマット)", "impact": "M-16 着手不可", "priority": "medium", "resolve_in": "architecture-design"},
+    {"topic": "個人クローン化サービスの切り出しタイミング", "impact": "C-11 のロードマップが定まらない", "priority": "low", "resolve_in": "future / 別計画"},
+    {"topic": "Supabase plan の確定 (無料 / Pro / Team)", "impact": "コスト構造の見積もり不可", "priority": "medium", "resolve_in": "tech-stack"},
+    {"topic": "monitor ロールの実運用 (Phase 1 でまさとさん兼任 / 外部委託タイミング)", "impact": "監視体制計画が立てられない", "priority": "low", "resolve_in": "運用設計 (後続)"},
+    {"topic": "赤線リスト 5 項目の最終確定 (暫定 5 項目で OK か / 入れ替え)", "impact": "M-12 着手前に確定必要", "priority": "medium", "resolve_in": "feature-decomposition"},
+    {"topic": "AI プロバイダーの DPA (Data Processing Addendum) 確認", "impact": "NDA 案件で AI に context 渡せるか定まらない", "priority": "medium", "resolve_in": "tech-stack (Anthropic / OpenAI / Google の DPA)"},
+    {"topic": "テストデータ seed の最終内容 (M-1 改訂で言及済だが詳細未確定)", "impact": "M-1 着手時に追加情報必要", "priority": "low", "resolve_in": "architecture-design"},
+    {"topic": "個人クローン化での opt-in UI / プライバシー方針", "impact": "M-22 着手時に判断必要 / 倫理リスク", "priority": "high", "resolve_in": "architecture-design (法務レビュー含む)"}
+  ],
+  "risks": [
+    {"id": "R-1",  "category": "技術", "risk": "Supabase 0 セットアップ時のスキーマ設計ミス", "impact": "high", "probability": "medium", "mitigation": "DDL レビュー + RLS テスト + seed で全権限パターン検証"},
+    {"id": "R-2",  "category": "技術", "risk": "LLM ハルシネーション", "impact": "high", "probability": "high", "mitigation": "多層検証 (M-3 → M-11 → 統合) + リーダー壁打ち + monitor 承認"},
+    {"id": "R-3",  "category": "技術", "risk": "Claude Code MCP 連携の不安定さ", "impact": "high", "probability": "medium", "mitigation": "公式 SDK 準拠 + リトライ + crash detection + 30 分応答なしで kill"},
+    {"id": "R-4",  "category": "技術", "risk": "並列 5 セッションでの Claude プラン上限到達", "impact": "medium", "probability": "high", "mitigation": "プラン別実測 + 観測 + UI 警告 + 自動 throttle"},
+    {"id": "R-5",  "category": "技術", "risk": "LLM プロバイダー抽象化で機能差を吸収しきれない", "impact": "medium", "probability": "medium", "mitigation": "capability flag で明示的に扱う + adapter 拡張可能設計"},
+    {"id": "R-6",  "category": "技術", "risk": "BMAD upstream の破壊的変更", "impact": "medium", "probability": "low", "mitigation": "思想流用 + 自前統合 (fork しない) + バージョン固定"},
+    {"id": "R-7",  "category": "技術", "risk": "Anthropic Agent Teams API の変更", "impact": "medium", "probability": "medium", "mitigation": "バージョン固定 + 抽象化レイヤー + フォールバック実装"},
+    {"id": "R-8",  "category": "運用", "risk": "1 人開発の負荷 (Phase 1 = 30 Must 項目で重い)", "impact": "high", "probability": "high", "mitigation": "Build-Factory 自体を BF + Claude Code で開発 (dogfooding) + 段階リリース + 着手順序最適化"},
+    {"id": "R-9",  "category": "運用", "risk": "カバレッジ無限ループ (壁打ちが終わらない)", "impact": "medium", "probability": "medium", "mitigation": "「3 ターン改善なしで人間エスカ」ルール"},
+    {"id": "R-10", "category": "運用", "risk": "フェーズ管理が現場で使われない (過剰機能)", "impact": "medium", "probability": "medium", "mitigation": "Phase 1 で自社案件 dogfooding して即改善"},
+    {"id": "R-11", "category": "セキュリティ", "risk": "機密情報の workspace 横断リーク", "impact": "high", "probability": "medium", "mitigation": "RLS + 機密ラベル + 監査ログ + AI 取得時フィルタ + テスト"},
+    {"id": "R-12", "category": "セキュリティ", "risk": "個人クローン化で本人プライバシー / 倫理問題", "impact": "high", "probability": "medium", "mitigation": "明示的 opt-in / namespace 完全分離 / 別サービス切出しで責任分離 + 法務レビュー"},
+    {"id": "R-13", "category": "セキュリティ", "risk": "API キー / OAuth トークンの漏洩", "impact": "high", "probability": "low", "mitigation": "pgsodium 暗号化 + UI masked + admin も平文閲覧不可 + 漏洩時即 revoke"},
+    {"id": "R-14", "category": "セキュリティ", "risk": "client ロールが許可外タブを覗く", "impact": "high", "probability": "low", "mitigation": "RLS + フロント二重チェック + ペネトレーションテスト (Phase 2)"},
+    {"id": "R-15", "category": "セキュリティ", "risk": "LLM プロンプトインジェクション (仕様書 / クライアントコメント経由)", "impact": "medium", "probability": "medium", "mitigation": "入力サニタイズ + Constitution で「外部入力は信頼しない」原則"},
+    {"id": "R-16", "category": "要件不確定", "risk": "BMAD のどの部分を取り込むか未確定", "impact": "high", "probability": "100%", "mitigation": "architecture-design スキルで決定"},
+    {"id": "R-17", "category": "要件不確定", "risk": "LLM プロバイダー抽象化の具体実装未確定", "impact": "high", "probability": "100%", "mitigation": "tech-stack スキルで決定"},
+    {"id": "R-18", "category": "要件不確定", "risk": "EARS notation のテンプレート設計未確定", "impact": "medium", "probability": "100%", "mitigation": "feature-decomposition で決定"},
+    {"id": "R-19", "category": "要件不確定", "risk": "Constitution と赤線リストの統合方法未確定", "impact": "medium", "probability": "100%", "mitigation": "architecture-design で決定"},
+    {"id": "R-20", "category": "スケジュール", "risk": "Phase 1 が 30 Must で「とにかく早く」と矛盾", "impact": "high", "probability": "high", "mitigation": "dogfooding + 着手順序最適化 (基盤 → コア → 連携 → 観測)"},
+    {"id": "R-21", "category": "スケジュール", "risk": "dogfooding 中の自己再帰問題 (BF バグで開発停止)", "impact": "medium", "probability": "medium", "mitigation": "既存 bootstrap を「動く土台」として残す + Claude Code 単独でも開発可"},
+    {"id": "R-22", "category": "コスト", "risk": "各自 Claude Pro/Max プラン契約必須化 → SaaS 採用障壁", "impact": "medium", "probability": "medium", "mitigation": "BYOK で API キー方式も対応 (M-20) + ドキュメント明記"},
+    {"id": "R-23", "category": "法的", "risk": "AGPL ソフトウェアの誤混入", "impact": "high", "probability": "low", "mitigation": "license-checker CI + 採用前のライセンス確認義務"},
+    {"id": "R-24", "category": "法的", "risk": "NDA 案件の AI への context 渡し範囲", "impact": "high", "probability": "medium", "mitigation": "機密ラベル + workspace 隔離 + AI プロバイダーの DPA 確認"}
+  ],
+  "research": {
+    "research_date": "2026-05-09",
+    "sources": [
+      {"url": "https://github.com/bmad-code-org/BMAD-METHOD", "title": "BMAD Method (46.7k stars)"},
+      {"url": "https://hermes-agent.nousresearch.com/docs/", "title": "Hermes Agent (Nous Research・MIT)"},
+      {"url": "https://kiro.dev/docs/specs/", "title": "Kiro Specs - 3-phase workflow + EARS notation"},
+      {"url": "https://github.com/bmad-code-org/BMAD-METHOD", "title": "GitHub Spec Kit - Constitution パターン"},
+      {"url": "https://www.marktechpost.com/2026/05/08/9-best-ai-tools-for-spec-driven-development-in-2026-kiro-bmad-gsd-and-more-compare/", "title": "9 Best AI Tools for Spec-Driven Development 2026"},
+      {"url": "https://trybuildpilot.com/479-supabase-auth-vs-clerk-vs-nextauth-2026", "title": "Supabase Auth vs Clerk vs NextAuth 2026"},
+      {"url": "https://www.pkgpulse.com/guides/openfga-vs-permify-vs-spicedb-zanzibar-authorization-2026", "title": "OpenFGA vs Permify vs SpiceDB"},
+      {"url": "https://laminar.sh/article/langfuse-alternatives-2026", "title": "Langfuse Alternatives 2026"},
+      {"url": "https://github.com/coollabsio/coolify", "title": "Coolify - 自己ホスト型 PaaS"},
+      {"url": "https://github.com/GrapesJS/grapesjs", "title": "GrapesJS - Web Builder Framework"},
+      {"url": "https://tech-insider.org/linear-vs-jira-2026/", "title": "Linear sub-100ms 標準"},
+      {"url": "https://www.epicflow.com/blog/excellent-ai-project-management-software-tools-setting-new-standards/", "title": "AI PM SaaS 業界標準 2026"}
+    ],
+    "findings": [
+      "BMAD v6.6.0 (2026-04-29) は 12+ ペルソナ実装。Build-Factory の AI 社員ハイブリッドの命名 / 構造の参考に",
+      "Kiro 3-phase + EARS notation を spec-driven development の業界標準として採用判断",
+      "GitHub Spec Kit (93k stars) Constitution を赤線リストの拡張として採用",
+      "Linear sub-100ms response が developer 採用の決定要素 → UI パフォーマンス基準に",
+      "Anthropic Claude Code チーム (Thariq Shihipar) が HTML 出力主流 → 仕様書 + 画面モック HTML の方針と一致",
+      "Hermes Agent の Kanban 6 列 + 親子昇格 + circuit breaker を M-7 / M-10c に流用",
+      "Supabase Auth が DB と統一性 + RLS で multi-tenant 強制 → 認証選定理由",
+      "Langfuse self-host は MIT で月 $50-80 で 5M spans/日 → 観測選定理由",
+      "AI PM SaaS 業界標準 (Microsoft Copilot / ClickUp Brain / Linear AI) と差別化のため Build-Factory は moat (フェーズ管理 + 依存グラフ + 影響分析 + ▶︎ swarm) に集中"
+    ]
+  },
+  "next_skills_recommended": [
+    "architecture-design (BMAD 統合方式 / Supabase 0 セットアップ詳細 / Constitution 統合 / Obsidian P1 簡易代替の技術設計)",
+    "tech-stack (LLM プロバイダー抽象化 LiteLLM 採否 / GrapesJS Studio SDK 費用 / Supabase plan / DPA 確認 / 並列 PoC)",
+    "functional-breakdown (画面・機能・ロール権限・エンティティ草案 + EARS テンプレ + 削除対象 router 確定 + 赤線 5 項目最終 + 部署リーダー AI 構成)",
+    "feature-decomposition (機能を分散開発可能粒度に + 壁打ち 3 ターン具体実装)",
+    "task-decomposition (Phase 1 Must 30 項目を実装単位に + 工数見積もり)",
+    "distributed-dev (各タスクを Claude Code 単独実装パッケージに + dogfooding 開始)"
+  ]
+}

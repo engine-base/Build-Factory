@@ -1,0 +1,541 @@
+{
+  "project": "Build-Factory",
+  "version": "1.0",
+  "version_label": "v1.0 (仮説ベース・要打ち合わせ確定項目あり)",
+  "based_on_hearing": "docs/hearing/2026-05-09_re-hearing/ (v2.1)",
+  "created_at": "2026-05-09",
+  "phase_summary": {
+    "phase_1_must_count": 30,
+    "phase_1_5_should_count": 12,
+    "phase_2_could_count": 6,
+    "phase_3_could_count": 4,
+    "future_count": 1,
+    "wont_count": 8,
+    "total_phase_1_screens": 35,
+    "total_db_tables": 30,
+    "total_external_integrations": 17
+  },
+  "features": [
+    {
+      "id": "M-1",
+      "name": "Supabase 基盤構築 + テストデータ seed",
+      "category": "基盤",
+      "phase": "1",
+      "description": "Supabase Postgres + Auth + RLS を 0 から新規構築。既存ユーザ移行なし。テスト用 seed データ投入。",
+      "inputs": ["Supabase プロジェクト credentials", "新規スキーマ DDL", "seed データ JSON (test_account / 6 ロール test_user / 5 sample task / 3 sample artifact / 2 sample AI 社員)"],
+      "outputs": ["稼働中 Supabase プロジェクト", "全テーブル RLS ポリシー適用済", "テストデータ投入済"],
+      "logic": "Supabase 新規作成 → DDL 適用 → RLS 全テーブル enable → seed スクリプト実行（BF_ENV=development のみ） → Supabase Auth に test ユーザ作成 → Storage に sample HTML upload → Realtime 統合",
+      "errors": [
+        "RLS ポリシー漏れ → 全テーブル必須・自動テスト追加",
+        "seed ID 衝突 → UUID + 冪等性保証"
+      ],
+      "constraints": [
+        "標準 SQL 維持 (portable)",
+        "既存 SQLite データは移行しない・archive のみ",
+        "production では seed 走らない (BF_ENV=development 限定)"
+      ],
+      "permissions_required": ["管理 CLI / migration script から実行"],
+      "v2_1_changes": "既存ユーザ移行ロジック削除 → 0 からセットアップ + seed に変更"
+    },
+    {
+      "id": "M-2",
+      "name": "既存 96 スキル整理",
+      "category": "基盤",
+      "phase": "1",
+      "description": "Build-Factory で使うスキルだけ active に、不要は archive。",
+      "inputs": ["スキル一覧", "取捨選択結果（active / archive / delete-candidate）"],
+      "outputs": ["active / archived フラグ付きスキルセット", "_archived/ 移動済ファイル群"],
+      "logic": "管理画面で一覧 → ラベリング → archive は _archived/ 移動 + DB の is_archived = true → active のみ AI 社員召喚時に表示",
+      "errors": ["誤 archive → 復活操作で is_archived = false"],
+      "constraints": ["物理削除はしない・archive のみ", "archive されたスキルも検索可"],
+      "permissions_required": ["manage_skills"]
+    },
+    {
+      "id": "M-3",
+      "name": "AI 社員ハイブリッド統合",
+      "category": "AI",
+      "phase": "1",
+      "description": "BMAD 12 ペルソナ + Anthropic Agent Teams + 既存 96 スキルを統合し、AI 社員として動作。3 階層対応の土台付き。",
+      "inputs": ["AI 社員 ID", "関連スキル ID 群", "department", "hierarchy_level", "parent_employee_id (任意)"],
+      "outputs": ["プロンプト統合", "LLM 呼び出し", "結果の構造化出力 (HTML / Markdown / JSON)"],
+      "logic": "AI 社員召喚 → スキル SKILL.md を context に注入 → BMAD ペルソナ選択 → parent ガイドライン継承 → LLM 抽象化 (M-20) 経由呼び出し → artifact 保存 + acceptance-criteria 検証 (M-25)",
+      "errors": [
+        "context 上限超過 → 段階的読み込み + summary 化",
+        "LLM 応答エラー → リトライ + プロバイダー fallback",
+        "ハルシネーション疑い → リーダー AI 壁打ち (M-11)"
+      ],
+      "constraints": [
+        "スキル本文は内部のみ・ユーザには成果物のみ表示 (CLAUDE.md ルール)",
+        "1 セッション 1 AI 社員 (部署リーダー以上は他 AI を呼べる)"
+      ],
+      "permissions_required": ["run_session"]
+    },
+    {
+      "id": "M-4",
+      "name": "account / workspace / workspace_members 階層",
+      "category": "基盤",
+      "phase": "1",
+      "description": "マルチテナントの基本データ構造。account → workspace → members の 3 階層。",
+      "inputs": ["account: name / type / plan / owner_user_id", "workspace: account_id / name / project_meta JSON", "member: workspace_id / user_id / role / custom_permissions JSON"],
+      "outputs": ["階層構造の生成 + UUID + RLS で他テナント不可視"],
+      "logic": "account 作成 → owner ロール付与 → workspace 作成 (account_id 必須・作成者を workspace_admin に) → メンバー追加 → ソフトデリート (deleted_at + RLS で除外)",
+      "errors": [
+        "account_owner 削除試行 → 別 owner 指定までブロック",
+        "workspace 数上限 (plan 別) → アップグレード誘導",
+        "メール重複 → エラー + 既存招待参照"
+      ],
+      "constraints": ["1 ユーザは複数 account 所属可", "1 account 内で複数 workspace 可"],
+      "permissions_required": ["account_owner / workspace_admin"]
+    },
+    {
+      "id": "M-5",
+      "name": "ヒアリング → 仕様書 + 画面モック HTML 出力パイプライン",
+      "category": "仕様化",
+      "phase": "1",
+      "description": "hearing + requirements-definition スキル連鎖実行 + 画面モック自動生成。",
+      "inputs": ["自然言語の要望（テキスト / 音声）", "案件メタ情報"],
+      "outputs": [
+        "HTML サマリー (hearing_summary)",
+        "HTML 要件定義書 (requirements-template ベース)",
+        "HTML 画面モック群 (screen ごと 1 ファイル・M-5b)",
+        "HTML コンポーネントカタログ",
+        "Markdown 併記",
+        "構造化 JSON (後続スキル入力)"
+      ],
+      "logic": "hearing AI (Mary BA) 召喚 → 4STEP 対話 → 要件定義 AI (Preston PM) → 6STEP → 画面モック生成 (M-5b) → artifact_service 保存 + Storage upload → 共有リンク生成",
+      "errors": [
+        "対話中断 → slot_state で永続化 + 再開可",
+        "曖昧発言検出 → 複数解釈提示",
+        "法的規制検出 (下請法 / 個人情報) → 警告 + チェックリスト"
+      ],
+      "constraints": ["HTML は Tailwind CDN + SVG 図解標準 + 印刷対応"],
+      "permissions_required": ["edit_spec / view_phase_X"],
+      "v2_1_changes": "画面モック HTML 生成 (M-5b) と連動"
+    },
+    {
+      "id": "M-5b",
+      "name": "画面モック自動生成パイプライン",
+      "category": "仕様化",
+      "phase": "1",
+      "description": "仕様書 → 画面定義 → HTML/CSS 画面モック自動生成。1 画面 = 1 HTML ファイル + コンポーネントカタログ + 画面遷移マップ。",
+      "inputs": [
+        "screen ID / name / role / 含むコンポーネント ID 群",
+        "インタラクション (クリック→遷移先)",
+        "関連仕様 ID",
+        "デザイントークン (design-md スキル出力)"
+      ],
+      "outputs": [
+        "画面モック HTML (Tailwind CDN + SVG + 軽い JS)",
+        "responsive 対応 (PC / タブレット)",
+        "aria-* / role 含むアクセシビリティ",
+        "サンプルデータ埋込"
+      ],
+      "logic": "functional-breakdown 出力から画面リスト取得 → デザイントークン読み込み → ui-mockup スキルで HTML/CSS 生成 (Claude が直接書く・Thariq 流) → コンポーネントは共通カタログから参照 → 一括生成 (並列) → 画面遷移マップ SVG → Storage upload",
+      "errors": [
+        "デザイントークン未確定 → デフォルトテーマ + 警告",
+        "大規模画面 (要素 1000+) → セクション分割",
+        "仕様変更で既存モック古化 → 影響分析でハイライト"
+      ],
+      "constraints": [
+        "1 画面 HTML は 1MB 以内",
+        "インタラクションは軽い JS のみ",
+        "responsive は md:(768px+) 以上必須・モバイルはダミー"
+      ],
+      "permissions_required": ["edit_design_html / view_phase_X"],
+      "added_in": "v2.1"
+    },
+    {
+      "id": "M-6",
+      "name": "機能・タスク分解 + acceptance-criteria (EARS notation)",
+      "category": "仕様化",
+      "phase": "1",
+      "description": "仕様書 → 機能 → タスク分解 + EARS notation で受け入れ基準。",
+      "inputs": ["要件定義 JSON", "機能カテゴリ"],
+      "outputs": ["機能ツリー", "タスクカード", "EARS notation acceptance-criteria 配列"],
+      "logic": "functional-breakdown → feature-decomposition → task-decomposition → 各タスクに EARS で acceptance-criteria 自動生成 (PM 承認) → 依存グラフ (M-9) に登録",
+      "errors": [
+        "分解粒度大すぎ → impact-analysis で警告 + 再分解提案",
+        "acceptance-criteria 曖昧 → EARS 書き直し促進"
+      ],
+      "constraints": ["1 タスク = 1 セッションで完了する粒度 (独立性 KPI 90%)"],
+      "permissions_required": ["edit_task"]
+    },
+    {
+      "id": "M-7",
+      "name": "多 view タスク管理",
+      "category": "プロジェクト管理",
+      "phase": "1",
+      "description": "Kanban / List / DAG / swarm の 4 view 切替可。検索 / 絞り込み / ソート対応。",
+      "inputs": ["表示モード選択", "フィルタ条件"],
+      "outputs": ["選択 view でのタスク表示"],
+      "logic": "View 切替 (タブ): Kanban (6 列・Hermes 流) / List / DAG / Swarm → 検索: タイトル / 担当 AI / フェーズ / ステータス / ラベル → フィルタ: ロール別 → ドラッグ&ドロップでステータス変更 → 一括操作 (Play All)",
+      "errors": ["大量タスクで描画遅延 → 仮想スクロール (react-window)"],
+      "constraints": ["1 view 1000 タスクまで快適"],
+      "permissions_required": ["view_tab_Y"]
+    },
+    {
+      "id": "M-8",
+      "name": "プロジェクト・フェーズ管理基盤",
+      "category": "プロジェクト管理 (moat)",
+      "phase": "1",
+      "description": "1 案件を Phase 1/2/3... に分割 + 移行ゲート定義。",
+      "inputs": ["案件 ID / フェーズ名 / タスク群 / 移行ゲート条件"],
+      "outputs": ["フェーズツリー + ガントチャート + 移行ゲート進捗"],
+      "logic": "案件作成時 Phase 1 デフォルト → PM が新規 Phase + タスク割当 → 移行ゲート条件 (テスト通過 / 承認 / etc) 定義 → ゲート未達で次 Phase 着手不可 → 達成で自動 unlock",
+      "errors": [
+        "ゲート条件循環 → DB 制約",
+        "フェーズ削除時の所属タスク → 別フェーズへ移動要求"
+      ],
+      "constraints": ["1 案件最大 10 フェーズ"],
+      "permissions_required": ["manage_phases"]
+    },
+    {
+      "id": "M-9",
+      "name": "依存グラフ + 基本伝搬",
+      "category": "プロジェクト管理 (moat)",
+      "phase": "1",
+      "description": "タスク・要件・仕様の DAG + 編集時の関連更新候補ハイライト。",
+      "inputs": ["タスク ID 群 + 依存関係 (先行 / 後続)"],
+      "outputs": ["DAG ビュー (React Flow)", "影響範囲ハイライト"],
+      "logic": "タスク追加時に依存選択 → React Flow で DAG 可視化 (階層 / フェーズ別フィルタ) → 編集時に AI が影響を受けそうな関連タスクをハイライト → PM が更新 / 確認 / スキップ選択 → 高度版は impact-analysis (S-5)",
+      "errors": ["循環依存 → DB 制約 + UI 警告"],
+      "constraints": ["DAG 数百ノードまで安定・以上は階層折りたたみ"],
+      "permissions_required": ["edit_dependency"]
+    },
+    {
+      "id": "M-10a",
+      "name": "MCP サーバー (データ流通)",
+      "category": "実装連携",
+      "phase": "1",
+      "description": "Build-Factory が公開する MCP サーバー。Claude Code / Claude Desktop / Slack から接続。",
+      "inputs": ["MCP リクエスト (tool 名 + 引数)"],
+      "outputs": ["MCP レスポンス (JSON / streaming)"],
+      "tools": [
+        "bf_get_spec(task_id) → 仕様書 + acceptance-criteria + 関連ナレッジ",
+        "bf_post_progress(task_id, status, message) → 進捗書戻し",
+        "bf_attach_artifact(task_id, artifact) → 生成物紐付け",
+        "bf_request_review(task_id) → リーダー AI レビュー依頼",
+        "bf_get_review_feedback(task_id) → レビュー結果取得"
+      ],
+      "logic": "FastAPI + MCP SDK で stdio / HTTP transport 提供",
+      "errors": ["認証無効 → 401", "RLS 違反 → 403"],
+      "constraints": ["1 リクエスト 30 秒タイムアウト・streaming 対応"],
+      "permissions_required": ["MCP token scope (workspace 単位)"]
+    },
+    {
+      "id": "M-10b",
+      "name": "Claude Code セッション・スポナー (▶︎ 再生)",
+      "category": "実装連携",
+      "phase": "1",
+      "description": "タスクカードの ▶︎ ボタンで Claude Code セッションを起動。仕様 + acceptance + ナレッジを初期プロンプトに注入。",
+      "inputs": ["task_id", "user_id (OAuth で各自プラン使用)"],
+      "outputs": ["セッション ID + WebSocket チャネル"],
+      "logic": "▶︎ クリック → POST /sessions/spawn → ユーザの Claude OAuth トークンで Claude Code SDK 起動 (subprocess or SDK) → 初期プロンプト構築 (仕様 + EARS + Constitution + ナレッジ) → Anthropic Agent Teams (Plan/Gen/Eval) モードで起動 → WebSocket で stdout/stderr stream → user_interaction_log 記録",
+      "errors": [
+        "OAuth トークン期限切れ → 再認証導線",
+        "プラン上限到達 → UI 警告 + 解除待機 / 別プラン提案",
+        "subprocess 失敗 → リトライ 3 回 → エスカレ"
+      ],
+      "constraints": ["起動 → 最初の出力 10 秒以内 (中央値 5 秒)"],
+      "permissions_required": ["run_session"]
+    },
+    {
+      "id": "M-10c",
+      "name": "並列セッション・マネージャ (swarm)",
+      "category": "実装連携",
+      "phase": "1",
+      "description": "1 案件 5 並列タスクを回し、完了次第キューから次の 5 タスクを補充。親子昇格 + circuit breaker。",
+      "inputs": ["選択タスク群 (複数選択 or Play All)"],
+      "outputs": ["並列実行中セッション群 + swarm view データ"],
+      "logic": "複数選択 → workspace の並列上限 (デフォルト 5) まで起動 → 依存グラフ尊重 (親未完なら子は ready 待機) → 親完了で子自動 ready 昇格 (Hermes 流) → 1 タスク完了 → キューから次の 1 起動 (FIFO + 優先度) → N 回連続失敗 (デフォルト 3) で block → workspace 全体で N 回連続失敗 → workspace 全停止 + アラート",
+      "errors": [
+        "並列数超過 → キュー退避",
+        "依存破綻 (親アーカイブ) → 子キャンセル + 警告",
+        "ハング (30 分応答なし) → kill + retry / エスカレ"
+      ],
+      "constraints": [
+        "workspace 単位の並列上限は admin カスタム可 (デフォルト 5)",
+        "circuit breaker しきい値も admin カスタム可"
+      ],
+      "permissions_required": ["run_parallel_swarm / kill_session"]
+    },
+    {
+      "id": "M-10d",
+      "name": "WebSocket セッション・ストリーミング UI",
+      "category": "実装連携",
+      "phase": "1",
+      "description": "各セッションのライブログをリアルタイム表示。swarm グリッドで同時監視。",
+      "inputs": ["セッション ID 群 (subscribe)"],
+      "outputs": ["stdout / stderr / status / token を WebSocket で push"],
+      "logic": "UI が WebSocket connect → セッション ID subscribe → backend が Claude Code 出力を購読 → クライアントへ forward → swarm グリッド: 4×4 = 16 同時 (仮想化で 64) → 個別 view: 1 セッション全画面 + ログ折りたたみ → アクション: 一時停止 / 再開 / キャンセル / 再実行",
+      "errors": [
+        "WebSocket 切断 → 自動 reconnect + 履歴 fetch",
+        "バッファオーバーフロー → 古いログを Storage ダンプ + UI は 1000 行のみ保持"
+      ],
+      "constraints": ["レイテンシ 100ms 以内 (中央値 50ms)"],
+      "permissions_required": ["view_tab_Y"]
+    },
+    {
+      "id": "M-11",
+      "name": "リーダー AI 壁打ちループ (Plan / Gen / Eval)",
+      "category": "品質",
+      "phase": "1",
+      "description": "Claude Code Evaluator の出力をリーダー AI が壁打ち。3 ターン改善なしで人間エスカレ。",
+      "inputs": ["タスク完了時の Generator 出力 + Evaluator 結果"],
+      "outputs": ["PASS / FAIL (修正指示付き) + 統合テスト指揮"],
+      "logic": "Evaluator PASS → リーダー AI 評価 (タスク粒度 / 依存遵守 / コードスタイル / Constitution 遵守) → FAIL なら修正指示を Generator に戻す (max 3 ターン) → 3 ターンで人間エスカレ (Slack DM + UI バッジ) → 全タスク完了で統合テスト指揮",
+      "errors": [
+        "リーダー AI が壁打ち継続 → 3 ターンで強制エスカレ",
+        "全体統合で機能間矛盾 → 該当タスク Failed に巻き戻し"
+      ],
+      "constraints": ["1 タスクあたり最大 3 ターン"],
+      "permissions_required": ["approve_pr / approve_delivery"]
+    },
+    {
+      "id": "M-12",
+      "name": "赤線リスト + 自動停止 (主要 5 項目)",
+      "category": "安全",
+      "phase": "1",
+      "description": "5 項目該当時に自動停止 + 人間承認待ち。",
+      "items": [
+        "1. 顧客 API キー / 秘密情報の漏洩",
+        "2. 本番 DB への破壊的書込み",
+        "3. GitHub force push / 他人ブランチ書換",
+        "4. AI コール無限ループ (コスト爆発)",
+        "5. デプロイ判断の独断"
+      ],
+      "logic": "AI 出力 / アクション前にミドルウェア検出 → 該当時 block + Slack push + UI バッジ + 監査ログ → 人間承認で再開 / 拒否で停止",
+      "errors": ["誤検出 → 承認 UI で「これは安全」マーク → 学習に活用"],
+      "constraints": ["誤検出率を継続改善 (評価基盤 C-2 で測定)"],
+      "permissions_required": ["approve_red_line"]
+    },
+    {
+      "id": "M-13",
+      "name": "GitHub 連携",
+      "category": "外部連携",
+      "phase": "1",
+      "description": "PR 作成 / Issue / Workflow / HTML diff 注釈レビュー統合。",
+      "inputs": ["repo URL / OAuth or PAT / commit / PR データ"],
+      "outputs": ["自動 PR 作成 + HTML レビュー資料添付"],
+      "logic": "workspace に GitHub repo 紐付け (OAuth or PAT) → タスク完了時 Claude Code が commit + push (OAuth で各自権限) → Build-Factory が PR 自動作成 → HTML diff 注釈レビュー資料を PR コメントに添付 → PR マージで Done",
+      "errors": [
+        "merge conflict → AI 自動解決試行 → 失敗で人間エスカレ",
+        "branch protection 違反 → 警告 + 別ブランチ作成"
+      ],
+      "constraints": ["force push は赤線 3 番で自動停止"],
+      "permissions_required": ["approve_pr"]
+    },
+    {
+      "id": "M-14",
+      "name": "Slack 通知 (片方向)",
+      "category": "外部連携",
+      "phase": "1",
+      "description": "失敗 / 赤線抵触 / 進捗 (バッチ) / レビュー要求 を Slack に push。",
+      "inputs": ["通知種別 + workspace ID + 詳細"],
+      "outputs": ["Slack メッセージ (チャネル / DM)"],
+      "logic": "workspace ごとに Slack incoming webhook or Bot Token 設定 → イベント発生 → 該当チャネルに push → ダイジェスト: 日次サマリー朝 push → 双方向は S-2 (Phase 1.5)",
+      "errors": ["webhook 失効 → 再連携導線 + メールで通知 (fallback)"],
+      "constraints": ["通知頻度上限設定 (admin カスタム可・デフォルト 100/h)"],
+      "permissions_required": ["admin が通知チャネル設定"]
+    },
+    {
+      "id": "M-15",
+      "name": "HTML レポート全種 (7 種)",
+      "category": "仕様化",
+      "phase": "1",
+      "description": "仕様 / 進捗 / レビュー / 納品物 + 画面モック / コンポーネントカタログ / 画面遷移マップ の 7 種を HTML 生成。",
+      "inputs": ["レポート種別 + データソース"],
+      "outputs": ["HTML (Tailwind + SVG) + 共有リンク + Markdown 版"],
+      "logic": "種別選択 → テンプレートに artifact データ埋込 → SVG 図解 (依存グラフ / フロー / ガント) 自動生成 → Storage upload → 共有リンク生成 → PR 添付 / Slack 投稿 / クライアント送付の trigger",
+      "errors": ["データ欠損 → プレースホルダー + 警告バナー"],
+      "constraints": ["共通 CSS は Tailwind CDN", "印刷対応 (@media print)", "レスポンシブは P3 まで PC/タブレット前提"],
+      "permissions_required": ["view_phase_X / edit_spec"]
+    },
+    {
+      "id": "M-16",
+      "name": "Obsidian ナレッジ母艦連携 (最小: 単方向 export)",
+      "category": "外部連携",
+      "phase": "1",
+      "description": "Build-Factory のナレッジ (仕様 / 決定 / 失敗履歴) を Obsidian Vault に Markdown export (Phase 1 は単方向)。",
+      "inputs": ["export 対象 artifact / Vault パス (環境変数 or UI 設定)"],
+      "outputs": ["Obsidian Vault 内 Markdown ファイル群"],
+      "logic": "workspace 設定で Vault パス指定 → export trigger: 手動 / リアルタイム / 1 時間 / 案件完了時 から選択 → artifact を MD 化 (HTML → MD 変換) + frontmatter 付与 → Vault 書込 ({account}/{workspace}/{phase}/) → 双方向 sync は S-4 (Phase 1.5)",
+      "errors": ["Vault パス書込権限なし → 警告 + 別パス提案"],
+      "constraints": ["1 回 export で 100 ファイルまで (過負荷防止)"],
+      "permissions_required": ["export_data"]
+    },
+    {
+      "id": "M-17",
+      "name": "Langfuse self-host (観測 + コスト把握)",
+      "category": "運用",
+      "phase": "1",
+      "description": "全 LLM 呼び出しを Langfuse 送信 + コスト / token / 評価可視化。",
+      "inputs": ["LLM 呼び出し metadata (user / workspace / model / prompt / response / tokens)"],
+      "outputs": ["Langfuse ダッシュボード + workspace cost report"],
+      "logic": "Langfuse SDK で trace → workspace_id / user_id / cost / tokens を tag → workspace 単位で日次・月次集計 → UI に「workspace コストグラフ」表示 → 上限金額 (admin 設定) 近接で警告",
+      "errors": ["Langfuse 接続失敗 → ローカルバッファ + 復旧時 flush"],
+      "constraints": ["self-host (Docker compose)・5M spans/日 月 $50-80"],
+      "permissions_required": ["view_costs / set_token_limits"]
+    },
+    {
+      "id": "M-18",
+      "name": "監査ログ + バックアップ",
+      "category": "運用",
+      "phase": "1",
+      "description": "全アクションを audit_logs 記録 + DB / Storage 定期バックアップ。",
+      "inputs": ["イベント発生 (user_id / action / target / before / after)"],
+      "outputs": ["audit_logs テーブル + バックアップファイル"],
+      "logic": "主要アクション (承認 / 編集 / 削除 / 招待 / 権限変更) を audit_logs にログ → 検索 + エクスポート (JSON / CSV) → 自動バックアップ: DB 日次 / Storage 週次 / Obsidian リアルタイム → 復元手順は admin のみ閲覧",
+      "errors": ["バックアップ失敗 → admin 通知 + リトライ"],
+      "constraints": ["監査ログ 7 年保持 (受託案件法的要件)・バックアップ 90 日保持"],
+      "permissions_required": ["view_audit_log / export_data"]
+    },
+    {
+      "id": "M-19",
+      "name": "既存 Build-Factory bootstrap 振り分け実行",
+      "category": "整理",
+      "phase": "1",
+      "description": "既存 96 スキル / 40+ routers / 50+ services を残す / 改修 / 廃止に振り分け実行。",
+      "inputs": ["既存ファイル一覧 + 振り分け表 (hearing 確定)"],
+      "outputs": ["active / archived / modified ファイル群 + 動作確認済みベースライン"],
+      "logic": "振り分け表に従って 1 ファイルずつ処理 → archive 対象は _archived/ 移動 + import 経路から除外 → modify 対象はリファクタチケット作成 → 動作確認: FastAPI / Next.js 起動 + 既存テスト全 pass",
+      "errors": ["archive で他 import が壊れる → 依存解析で先に修正"],
+      "constraints": ["物理削除はせず archive のみ (復活可)"],
+      "permissions_required": ["manage_workspace 以上"]
+    },
+    {
+      "id": "M-20",
+      "name": "LLM プロバイダー抽象化レイヤー",
+      "category": "AI",
+      "phase": "1",
+      "description": "Claude / OpenAI / Gemini / 軽量 LLM / ローカル LLM (self-host のみ) を切替可能な adapter。LiteLLM ベース推奨。",
+      "inputs": ["プロバイダー / モデル / プロンプト / API キー (self or BYOK)"],
+      "outputs": ["統一フォーマットレスポンス (content / tokens / cost / metadata)"],
+      "logic": "ユーザがプロバイダー + モデルを設定 (workspace / user 単位) → リクエスト時に該当 adapter 選択 → プロバイダー固有機能は capability flag で扱う (streaming / vision / tools 等) → レスポンス統一フォーマット変換 → cost / tokens を Langfuse 転送",
+      "errors": [
+        "プロバイダー固有エラー → 統一エラー型に変換",
+        "機能未対応 (Gemini で tools 等) → 警告 + 別プロバイダー提案"
+      ],
+      "constraints": ["新規プロバイダー追加は adapter 1 ファイル + 設定で完結"],
+      "permissions_required": ["change_llm_provider / set_byok_keys"],
+      "added_in": "v2.1"
+    },
+    {
+      "id": "M-21",
+      "name": "ロール custom_permissions UI + monitor ロール",
+      "category": "権限",
+      "phase": "1",
+      "description": "6 ロール + custom_permissions JSON で個別 override。monitor ロール新規追加。",
+      "inputs": ["ロール選択 + 各 permission キーの ON/OFF"],
+      "outputs": ["custom_permissions JSON + 即時 RLS 反映"],
+      "logic": "UI でロール選択 (デフォルト権限プリチェック) → override したい permission をチェック / アンチェック → 保存 → custom_permissions JSON 更新 → RLS / API ガードで role default + custom_permissions の合算評価",
+      "errors": [
+        "自分自身の管理権限剥奪 → 他 admin が居なければブロック",
+        "権限不整合 (view_costs なしで manage_billing) → 警告 + 自動補完オプション"
+      ],
+      "constraints": [
+        "account_owner 権限は変更不可 (保護)",
+        "monitor ロールはデフォルト「全閲覧 + 承認」固定パターン"
+      ],
+      "permissions_required": ["workspace_admin 以上"],
+      "added_in": "v2.1"
+    },
+    {
+      "id": "M-22",
+      "name": "AI 社員 3 階層対応 + 個人ナレッジ namespace",
+      "category": "AI",
+      "phase": "1",
+      "description": "AI 社員に階層・部署・親子関係 + cloned_from_user_id を持たせ、個人ナレッジ namespace + interaction_log を蓄積。",
+      "inputs": [
+        "AI 社員作成: hierarchy_level (csuite/lead/member/personal_clone) / department / parent_employee_id / cloned_from_user_id (任意)",
+        "ユーザ操作: action_type / context_snapshot / decision / reasoning (自動記録)"
+      ],
+      "outputs": [
+        "組織図 UI (簡易ツリー)",
+        "user_interaction_log 蓄積 (クローン化学習素地)",
+        "user_knowledge_namespace (ユーザ単位ナレッジ分離)"
+      ],
+      "logic": "ai_employees テーブルに階層カラム追加 → 組織図 UI (React Flow tree) で階層可視化 → ユーザ主要アクション (仕様承認 / タスク再生 / コメント等) を user_interaction_log に自動記録 → user_knowledge_namespace でユーザ別 vault スコープ管理",
+      "errors": ["階層循環参照 (A → B → A) → DB 制約 + UI で防ぐ"],
+      "constraints": ["個人クローン化 (C-11) は将来別アプリだが、データ蓄積は P1 から (opt-in 確認 UI 必須)"],
+      "permissions_required": [
+        "AI 社員管理: manage_ai_employees",
+        "自分の interaction_log: 本人のみ",
+        "個人ナレッジ namespace: 本人 + 共有許可ユーザ"
+      ],
+      "added_in": "v2.1"
+    },
+    {
+      "id": "M-23",
+      "name": "アカウント設定 / プロフィール画面",
+      "category": "UX",
+      "phase": "1",
+      "description": "ユーザのプロフィール / 通知設定 / API キー / 連携 / セキュリティの管理画面。",
+      "inputs": ["プロフィール (name / avatar / timezone) / 通知 ON/OFF / API キー (BYOK) / OAuth 連携"],
+      "outputs": ["保存後の設定値 + 即時反映"],
+      "logic": "プロフィール編集 → users テーブル更新 → 通知設定 → user_settings → API キー (BYOK) → 暗号化 (Supabase Vault or pgsodium) で保管 → OAuth 連携: Slack / GitHub 認証 → アクセストークン暗号化 → パスワード変更・2FA (Supabase Auth)",
+      "errors": [
+        "無効 API キー → 検証エンドポイントで事前確認 + エラー",
+        "OAuth 連携失敗 → リトライ導線"
+      ],
+      "constraints": ["API キー / トークンは UI で masked 表示・admin も平文閲覧不可"],
+      "permissions_required": ["本人のみ自分のプロフィール変更可"],
+      "added_in": "v2.1"
+    },
+    {
+      "id": "M-24",
+      "name": "グローバル検索 (Cmd+K)",
+      "category": "UX",
+      "phase": "1",
+      "description": "account 横断で案件 / タスク / 仕様 / ナレッジを横断検索。",
+      "inputs": ["検索クエリ (自然言語可)"],
+      "outputs": ["マッチ結果リスト (カテゴリ別 + プレビュー + 直接ジャンプ)"],
+      "logic": "Postgres FTS + pgvector で semantic search → 結果をカテゴリ別 (案件 / タスク / 仕様 / ナレッジ / 監査ログ) に分類 → RLS で見える範囲のみ → Cmd+K で即起動",
+      "errors": ["クエリ過大 (1000 文字超) → エラー"],
+      "constraints": ["1 クエリ最大 50 件 (ページング対応)"],
+      "permissions_required": ["view_other_workspaces の有無で範囲が変わる"],
+      "added_in": "v2.1"
+    },
+    {
+      "id": "M-25",
+      "name": "EARS notation 標準",
+      "category": "仕様化",
+      "phase": "1",
+      "description": "acceptance-criteria の標準形式として EARS を強制。テンプレート + 検証ロジック付き。",
+      "inputs": ["自然言語の受け入れ基準テキスト"],
+      "outputs": ["EARS 5 形式 (Ubiquitous / Event / State / Optional / Unwanted) に整形された criteria 配列"],
+      "logic": "PM がテキストで書く → AI (要件定義 AI) が EARS 形式分類 → 形式不適合は書き直しサジェスト → JSON Schema 検証 (必須: trigger / response / 条件)",
+      "errors": ["曖昧で形式分類不可 → 複数解釈の提示モード"],
+      "constraints": ["1 タスク 3〜10 個の acceptance-criteria 推奨"],
+      "permissions_required": ["edit_task"],
+      "added_in": "v2.1"
+    },
+    {
+      "id": "M-26",
+      "name": "Constitution (プロジェクト不変原則)",
+      "category": "安全",
+      "phase": "1",
+      "description": "プロジェクト不変原則を Markdown で管理し、全 AI セッションが context として参照。GitHub Spec Kit 流。",
+      "inputs": ["Markdown ファイル (プロジェクト全体の憲法)"],
+      "outputs": ["全セッションの初期プロンプトに自動注入"],
+      "logic": "プロジェクト作成時に Constitution テンプレ生成 (編集可) → 例: コミットメッセージは Conventional Commits / カバレッジ 80% 以上 / 個人情報を含むコード生成禁止 → 全 AI セッション初期プロンプトに Constitution 全文を含める → 違反する出力は赤線リストに自動エスカレ → Constitution 変更は workspace_admin 承認必要",
+      "errors": ["Constitution 矛盾 → 古いセッションが旧版参照 → version 番号付与"],
+      "constraints": ["1 Constitution 上限 10KB (context 圧迫防止)"],
+      "permissions_required": ["manage_red_lines (Constitution 編集も含む)"],
+      "added_in": "v2.1"
+    }
+  ],
+  "common_permission_keys": {
+    "view": ["view_phase_X", "view_tab_Y", "view_other_workspaces", "view_costs", "view_audit_log"],
+    "edit": ["edit_spec", "edit_task", "edit_dependency", "edit_phase", "edit_design_html"],
+    "execute": ["run_session", "run_parallel_swarm", "kill_session"],
+    "approve": ["approve_pr", "approve_red_line", "approve_delivery"],
+    "invite": ["invite_member", "invite_client", "change_role"],
+    "manage": ["manage_skills", "manage_red_lines", "manage_ai_employees", "manage_phases", "manage_billing"],
+    "data": ["export_data", "delete_workspace", "set_token_limits"],
+    "ai": ["set_byok_keys", "change_llm_provider", "manage_prompts"]
+  },
+  "screens_count_phase_1": 35,
+  "tables_count_phase_1": 30,
+  "external_integrations_count_phase_1_1_5": 17
+}

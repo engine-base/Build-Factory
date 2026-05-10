@@ -6,6 +6,8 @@
 
 **現在のバージョン：v2.1**（2026-05-09 改訂・requirements-definition STEP 1〜2 の確定事項を反映）
 
+**🆕 後続成果物**：requirements-definition の STEP 6 完了出力は `docs/requirements/2026-05-09_v1/` に保管されました（要件定義書 v1.0 確定）。
+
 ---
 
 ## ファイル一覧
