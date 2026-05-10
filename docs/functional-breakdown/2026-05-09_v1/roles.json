@@ -1,0 +1,72 @@
+{
+  "meta": {
+    "project": "Build-Factory",
+    "version": "1.0",
+    "created_at": "2026-05-09",
+    "skill": "functional-breakdown"
+  },
+  "roles": [
+    {"id": "R-001", "key": "account_owner", "name": "Account Owner", "scope": "account", "description": "アカウント所有者・課金責任者・全権限", "default_users": ["高本まさと"], "decided_at": "2026-05-09", "status": "decided"},
+    {"id": "R-002", "key": "workspace_admin", "name": "Workspace Admin", "scope": "workspace", "description": "WS 管理者・編集 / 削除 / 招待 / 権限変更可（攻め）", "decided_at": "2026-05-09", "status": "decided"},
+    {"id": "R-003", "key": "contributor", "name": "Contributor", "scope": "workspace", "description": "開発担当・編集 / 実行 / 承認（PR）/ 閲覧", "decided_at": "2026-05-09", "status": "decided"},
+    {"id": "R-004", "key": "viewer", "name": "Viewer", "scope": "workspace", "description": "閲覧のみ・コメント不可", "decided_at": "2026-05-09", "status": "decided"},
+    {"id": "R-005", "key": "client", "name": "Client", "scope": "workspace + tab_visibility", "description": "受託案件発注者・タブ ON/OFF 制限版・コメント可", "decided_at": "2026-05-09", "status": "decided"},
+    {"id": "R-006", "key": "monitor", "name": "Monitor", "scope": "workspace", "description": "監視担当・全閲覧 + 承認専門（守り）・編集 / 削除 / 招待は不可", "added_in": "v2.1", "decided_at": "2026-05-09", "status": "decided"}
+  ],
+  "role_relationship": "completely_parallel (admin = 攻め / monitor = 守り / 1 user に複数付与可・custom_permissions は OR 評価)",
+  "permission_matrix": {
+    "view_phase_X": {"owner": true, "ws_admin": true, "contributor": true, "viewer": true, "client": "limited_by_tab", "monitor": true},
+    "view_tab_Y": {"owner": true, "ws_admin": true, "contributor": true, "viewer": true, "client": "limited_by_visible_tabs", "monitor": true},
+    "view_other_workspaces": {"owner": true, "ws_admin": false, "contributor": false, "viewer": false, "client": false, "monitor": "configurable"},
+    "view_costs": {"owner": true, "ws_admin": true, "contributor": false, "viewer": false, "client": false, "monitor": true},
+    "view_audit_log": {"owner": true, "ws_admin": true, "contributor": false, "viewer": false, "client": false, "monitor": true},
+    "edit_spec": {"owner": true, "ws_admin": true, "contributor": true, "viewer": false, "client": false, "monitor": false},
+    "edit_task": {"owner": true, "ws_admin": true, "contributor": true, "viewer": false, "client": false, "monitor": false},
+    "edit_dependency": {"owner": true, "ws_admin": true, "contributor": true, "viewer": false, "client": false, "monitor": false},
+    "edit_phase": {"owner": true, "ws_admin": true, "contributor": true, "viewer": false, "client": false, "monitor": false},
+    "edit_design_html": {"owner": true, "ws_admin": true, "contributor": true, "viewer": false, "client": false, "monitor": false},
+    "run_session": {"owner": true, "ws_admin": true, "contributor": true, "viewer": false, "client": false, "monitor": false},
+    "run_parallel_swarm": {"owner": true, "ws_admin": true, "contributor": true, "viewer": false, "client": false, "monitor": false},
+    "kill_session": {"owner": true, "ws_admin": true, "contributor": "own_only", "viewer": false, "client": false, "monitor": true},
+    "approve_pr": {"owner": true, "ws_admin": true, "contributor": true, "viewer": false, "client": false, "monitor": true},
+    "approve_red_line": {"owner": true, "ws_admin": true, "contributor": false, "viewer": false, "client": false, "monitor": true},
+    "approve_delivery": {"owner": true, "ws_admin": true, "contributor": false, "viewer": false, "client": false, "monitor": true},
+    "invite_member": {"owner": true, "ws_admin": true, "contributor": false, "viewer": false, "client": false, "monitor": false},
+    "invite_client": {"owner": true, "ws_admin": true, "contributor": true, "viewer": false, "client": false, "monitor": false},
+    "change_role": {"owner": true, "ws_admin": true, "contributor": false, "viewer": false, "client": false, "monitor": false},
+    "manage_skills": {"owner": true, "ws_admin": true, "contributor": false, "viewer": false, "client": false, "monitor": false},
+    "manage_red_lines": {"owner": true, "ws_admin": true, "contributor": false, "viewer": false, "client": false, "monitor": false},
+    "manage_ai_employees": {"owner": true, "ws_admin": true, "contributor": false, "viewer": false, "client": false, "monitor": false},
+    "manage_phases": {"owner": true, "ws_admin": true, "contributor": false, "viewer": false, "client": false, "monitor": false},
+    "manage_billing": {"owner": true, "ws_admin": false, "contributor": false, "viewer": false, "client": false, "monitor": false},
+    "set_token_limits": {"owner": true, "ws_admin": true, "contributor": false, "viewer": false, "client": false, "monitor": false},
+    "export_data": {"owner": true, "ws_admin": true, "contributor": true, "viewer": false, "client": false, "monitor": true},
+    "delete_workspace": {"owner": true, "ws_admin": true, "contributor": false, "viewer": false, "client": false, "monitor": false},
+    "set_byok_keys": {"owner": true, "ws_admin": true, "contributor": "own_only", "viewer": false, "client": false, "monitor": false},
+    "change_llm_provider": {"owner": true, "ws_admin": true, "contributor": true, "viewer": false, "client": false, "monitor": false},
+    "manage_prompts": {"owner": true, "ws_admin": true, "contributor": true, "viewer": false, "client": false, "monitor": false}
+  },
+  "tabs": [
+    {"id": "tab-overview", "name": "概要", "client_default_visible": true},
+    {"id": "tab-spec", "name": "仕様", "client_default_visible": true},
+    {"id": "tab-mock", "name": "モック", "client_default_visible": true},
+    {"id": "tab-progress", "name": "進捗（タスク/フェーズ）", "client_default_visible": true, "client_edit": false},
+    {"id": "tab-review", "name": "レビュー", "client_default_visible": true, "client_can_comment": true},
+    {"id": "tab-knowledge", "name": "ナレッジ", "client_default_visible": false},
+    {"id": "tab-cost", "name": "コスト", "client_default_visible": false},
+    {"id": "tab-audit", "name": "監査", "client_default_visible": false},
+    {"id": "tab-members", "name": "メンバー", "client_default_visible": false},
+    {"id": "tab-settings", "name": "設定", "client_default_visible": false},
+    {"id": "tab-ai-employees", "name": "AI 社員管理", "client_default_visible": false}
+  ],
+  "object_constraints": [
+    {"constraint": "account_owner は剥奪不可（owner 移譲が先に必要）", "enforce": "API + DB trigger"},
+    {"constraint": "self-permission strip は他 admin が居なければ block", "enforce": "API guard"},
+    {"constraint": "workspace 内に admin が 0 になることを禁止", "enforce": "API + UI 警告"},
+    {"constraint": "monitor は edit / delete / invite_member 不可", "enforce": "RLS + custom_permissions 評価"},
+    {"constraint": "client は visible_tabs に含まれないタブの API エンドポイント全 403", "enforce": "RLS + API middleware"},
+    {"constraint": "viewer に edit_* 権限を override で付与した場合は警告（一貫性チェック）", "enforce": "UI 警告"},
+    {"constraint": "monitor + admin の両方を 1 user に付与可（OR 評価）", "enforce": "custom_permissions JSONB OR-merge"}
+  ],
+  "rls_design_summary": "全テーブルに workspace_id NOT NULL + RLS で workspace_members 経由の所属チェック + custom_permissions JSONB でロール default + 個別 override を OR 評価"
+}

@@ -71,6 +71,10 @@ distributed-dev（Claude Code 実装パッケージ化 + dogfooding 開始）
 - `../../requirements/2026-05-09_v1/` — 要件定義 v1.0（前提ドキュメント）
 - `../../hearing/2026-05-09_re-hearing/` — ヒアリング v2.1
 
+## 後続成果物
+
+- 🆕 **functional-breakdown v1.0** → `docs/functional-breakdown/2026-05-09_v1/`（43 画面 / 30 機能 / 6 ロール / 43 エンティティの徹底分解 + 4 JSON + ブログ風 HTML）
+
 ## 改訂履歴
 
 - **v1.0**（2026-05-09）: 要件定義 v1.0 → アーキ設計 v1.0 への正式昇格
