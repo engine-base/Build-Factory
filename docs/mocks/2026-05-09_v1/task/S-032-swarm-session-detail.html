@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-032 swarm_session_detail — Build-Factory</title>
+<meta name="bf-screen-id" content="S-032"><meta name="bf-feature-id" content="F-010d,F-010c"><meta name="bf-task-ids" content="T-010d-03,T-010c-06">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
+<style>body{font-family:"Noto Sans JP",sans-serif;font-feature-settings:"palt"}.mono{font-family:'SF Mono',Menlo,monospace}
+.log-line{font-size:11px;line-height:1.5;padding:1px 0;display:flex;gap:8px}.log-time{color:#64748b;font-size:9px;flex-shrink:0;width:55px}.log-tool{color:#60a5fa}.log-status{color:#10b981}.log-error{color:#f87171}.log-stdout{color:#cbd5e1}.dot{width:6px;height:6px;border-radius:9999px;display:inline-block}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}.dot-pulse{animation:pulse 2s infinite}</style>
+</head>
+<body class="bg-slate-100 min-h-screen">
+
+<!-- Top bar -->
+<header class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
+<div class="flex items-center gap-3">
+<a href="S-031-swarm-grid.html" class="text-xs text-slate-500 hover:text-[#1a6648] flex items-center gap-1"><i data-lucide="chevron-left" class="w-4 h-4"></i>swarm へ戻る</a>
+<div class="text-slate-300">|</div>
+<div><div class="text-[10px] uppercase tracking-wider text-slate-400">Session Detail</div><div class="text-base font-bold text-slate-900 mono flex items-center gap-2"><span class="dot bg-emerald-500 dot-pulse"></span>T-010c-04 — circuit breaker test</div></div>
+</div>
+<div class="flex items-center gap-2">
+<button class="text-xs px-3 py-1.5 border border-slate-300 bg-white rounded hover:border-amber-500 flex items-center gap-1.5"><i data-lucide="pause" class="w-3.5 h-3.5"></i>Pause</button>
+<button class="text-xs px-3 py-1.5 border border-red-300 bg-white text-red-600 rounded hover:bg-red-50 flex items-center gap-1.5"><i data-lucide="x-octagon" class="w-3.5 h-3.5"></i>Kill</button>
+<button class="text-xs px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-1.5"><i data-lucide="git-merge" class="w-3.5 h-3.5"></i>Merge to main</button>
+</div>
+</header>
+
+<div class="grid grid-cols-3 gap-4 p-4">
+
+<!-- Live log（メイン）-->
+<div class="col-span-2 bg-slate-900 text-slate-200 rounded-lg shadow-sm overflow-hidden">
+<div class="bg-slate-800 px-4 py-2 flex items-center justify-between border-b border-slate-700">
+<div class="text-xs text-slate-400 mono">~/worktrees/T-010c-04/</div>
+<div class="flex gap-2 text-[10px] text-slate-400">
+<span><i data-lucide="cpu" class="w-3 h-3 inline"></i> 32% CPU</span>
+<span><i data-lucide="hard-drive" class="w-3 h-3 inline"></i> 380MB / 512MB</span>
+<span class="text-emerald-400"><span class="dot bg-emerald-400 dot-pulse"></span> live</span>
+</div>
+</div>
+<div class="p-4 mono text-[11px] leading-relaxed h-[calc(100vh-200px)] overflow-y-auto">
+<div class="log-line"><span class="log-time">02:14:32</span><span class="log-status">✓ Plan phase started</span></div>
+<div class="log-line"><span class="log-time">02:14:35</span><span class="log-stdout">Reading requirements: F-010c circuit breaker</span></div>
+<div class="log-line"><span class="log-time">02:14:38</span><span class="log-tool">→ tool_call: Read backend/workers/task_executor.py</span></div>
+<div class="log-line"><span class="log-time">02:14:39</span><span class="log-stdout">  238 lines, asyncio Queue + Semaphore pattern</span></div>
+<div class="log-line"><span class="log-time">02:14:42</span><span class="log-tool">→ tool_call: Grep "consecutive_fail"</span></div>
+<div class="log-line"><span class="log-time">02:14:43</span><span class="log-stdout">  No matches in current code</span></div>
+<div class="log-line"><span class="log-time">02:14:48</span><span class="log-status">Plan generated:</span></div>
+<div class="log-line"><span class="log-time">        </span><span class="log-stdout">  1. Add failure_count column to sessions</span></div>
+<div class="log-line"><span class="log-time">        </span><span class="log-stdout">  2. Implement CircuitBreaker class</span></div>
+<div class="log-line"><span class="log-time">        </span><span class="log-stdout">  3. Wire into spawn flow</span></div>
+<div class="log-line"><span class="log-time">        </span><span class="log-stdout">  4. Add admin override endpoint</span></div>
+<div class="log-line"><span class="log-time">02:14:52</span><span class="log-tool">→ tool_call: Edit task_executor.py +43 lines</span></div>
+<div class="log-line"><span class="log-time">02:14:55</span><span class="log-status">✓ CircuitBreaker class added</span></div>
+<div class="log-line"><span class="log-time">02:14:58</span><span class="log-tool">→ tool_call: Bash pytest backend/tests/test_workers.py</span></div>
+<div class="log-line"><span class="log-time">02:15:12</span><span class="log-stdout">collected 18 tests</span></div>
+<div class="log-line"><span class="log-time">02:15:14</span><span class="log-status">test_circuit_breaker_threshold ............ PASS</span></div>
+<div class="log-line"><span class="log-time">02:15:16</span><span class="log-status">test_circuit_breaker_recovery ............. PASS</span></div>
+<div class="log-line"><span class="log-time">02:15:19</span><span class="log-status">test_workspace_block ...................... PASS</span></div>
+<div class="log-line"><span class="log-time">02:15:21</span><span class="log-error">test_admin_override ....................... FAIL</span></div>
+<div class="log-line"><span class="log-time">        </span><span class="log-error">  AssertionError: expected 200, got 403</span></div>
+<div class="log-line"><span class="log-time">02:15:24</span><span class="log-tool">→ Re-reading auth_middleware.py</span></div>
+<div class="log-line"><span class="log-time">02:15:28</span><span class="log-stdout">Permission "manage_red_lines" required</span></div>
+<div class="log-line"><span class="log-time">02:15:30</span><span class="log-tool">→ tool_call: Edit task_executor.py decorator</span></div>
+<div class="log-line"><span class="log-time">02:15:33</span><span class="log-status">✓ permission decorator updated</span></div>
+<div class="log-line"><span class="log-time">02:15:36</span><span class="log-tool">→ Bash pytest test_admin_override</span></div>
+<div class="log-line"><span class="log-time">02:15:42</span><span class="log-status">test_admin_override ....................... PASS</span></div>
+<div class="log-line"><span class="log-time">02:15:45</span><span class="log-error">⚠ Memory threshold approaching: 480MB / 512MB</span></div>
+<div class="log-line"><span class="log-time">02:15:48</span><span class="log-error">⚠ Memory threshold exceeded: 520MB / 512MB</span></div>
+<div class="log-line"><span class="log-time">02:15:50</span><span class="log-error">SIGKILL received - subprocess terminated</span></div>
+<div class="log-line"><span class="log-time">02:15:51</span><span class="log-status">✓ Checkpoint saved at step 7/12</span></div>
+<div class="log-line"><span class="log-time">02:15:52</span><span class="log-tool">→ Awaiting user decision...</span></div>
+</div>
+</div>
+
+<!-- Side panel -->
+<div class="space-y-3">
+
+<!-- Crash recovery panel -->
+<div class="bg-amber-50 border border-amber-300 rounded-lg p-4">
+<div class="flex items-center gap-2 mb-2"><i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600"></i><h3 class="text-sm font-bold text-amber-900">セッション crashed</h3></div>
+<p class="text-xs text-amber-800">memory threshold exceeded で subprocess が kill されました。<br>checkpoint at step 7/12 で保存済み。</p>
+<div class="space-y-2 mt-3">
+<button class="w-full text-left text-xs px-3 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 flex items-center gap-2"><i data-lucide="play" class="w-3.5 h-3.5"></i><div><div class="font-bold">▶ Resume from checkpoint</div><div class="text-[10px] opacity-80">step 7/12 から続行</div></div></button>
+<button class="w-full text-left text-xs px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i><div><div class="font-bold">↻ Rerun full</div><div class="text-[10px] opacity-80">最初から再実行</div></div></button>
+<button class="w-full text-left text-xs px-3 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 flex items-center gap-2"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i><div><div class="font-bold">✎ Manual fix</div><div class="text-[10px] opacity-80">人間が手動修正</div></div></button>
+<button class="w-full text-left text-xs px-3 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 flex items-center gap-2"><i data-lucide="x" class="w-3.5 h-3.5"></i><div><div class="font-bold">✕ Cancel</div><div class="text-[10px] opacity-80">タスクを blocked へ戻す</div></div></button>
+</div>
+</div>
+
+<!-- Stats -->
+<div class="bg-white rounded-lg p-4 border border-slate-200">
+<h3 class="text-xs font-bold text-[#1a6648] uppercase tracking-wider mb-3">Stats</h3>
+<dl class="text-xs space-y-2">
+<div class="flex justify-between"><dt class="text-slate-500">Started</dt><dd class="mono">02:14:32</dd></div>
+<div class="flex justify-between"><dt class="text-slate-500">Duration</dt><dd class="mono">3m 18s</dd></div>
+<div class="flex justify-between"><dt class="text-slate-500">Tokens (in/out)</dt><dd class="mono">1.4K / 1.4K</dd></div>
+<div class="flex justify-between"><dt class="text-slate-500">Cost</dt><dd class="mono text-[#1a6648] font-bold">¥68</dd></div>
+<div class="flex justify-between"><dt class="text-slate-500">Tool calls</dt><dd class="mono">12</dd></div>
+<div class="flex justify-between"><dt class="text-slate-500">Files modified</dt><dd class="mono">3</dd></div>
+<div class="flex justify-between"><dt class="text-slate-500">Tests run</dt><dd class="mono">18 (17 pass)</dd></div>
+<div class="flex justify-between"><dt class="text-slate-500">Worktree</dt><dd class="mono text-[10px]">~/wt/T-010c-04</dd></div>
+<div class="flex justify-between"><dt class="text-slate-500">Branch</dt><dd class="mono text-[10px]">claude/T-010c-04</dd></div>
+</dl>
+</div>
+
+<!-- Diff preview -->
+<div class="bg-white rounded-lg p-4 border border-slate-200">
+<h3 class="text-xs font-bold text-[#1a6648] uppercase tracking-wider mb-3">Files changed (3)</h3>
+<div class="space-y-1.5 text-xs mono">
+<div class="flex justify-between items-center"><span class="text-slate-700">backend/workers/task_executor.py</span><span><span class="text-emerald-600">+43</span> <span class="text-red-600">-5</span></span></div>
+<div class="flex justify-between items-center"><span class="text-slate-700">backend/tests/test_workers.py</span><span><span class="text-emerald-600">+28</span></span></div>
+<div class="flex justify-between items-center"><span class="text-slate-700">supabase/migrations/...failure.sql</span><span><span class="text-emerald-600">+12</span></span></div>
+</div>
+<button class="mt-3 w-full text-xs py-1.5 border border-slate-300 rounded hover:bg-slate-50 flex items-center justify-center gap-1"><i data-lucide="eye" class="w-3.5 h-3.5"></i>View HTML diff</button>
+</div>
+
+</div>
+</div>
+
+<div class="text-center text-[10px] text-slate-400 py-3 border-t border-slate-200">
+<strong>S-032 swarm_session_detail</strong> · F-010d/F-010c crash detection + resume 4 択 · <a class="text-[#1a6648] underline" href="../index.html">Index</a>
+</div>
+<script>lucide.createIcons();</script>
+</body></html>

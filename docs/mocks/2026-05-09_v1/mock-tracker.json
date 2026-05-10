@@ -1,0 +1,672 @@
+{
+  "meta": {
+    "project": "Build-Factory",
+    "version": "1.0",
+    "created_at": "2026-05-09",
+    "tracker_purpose": "43 画面モックの進捗管理 + 仕様書/タスク/エンティティへのリンク",
+    "implementation_reference_pattern": "各タスク (T-XXX) は実装時に対応モック HTML + 仕様書 + ER 図を必ず参照する"
+  },
+  "summary": {
+    "total_screens": 43,
+    "completed": 10,
+    "in_progress": 0,
+    "pending_critical": 0,
+    "pending_remaining": 33,
+    "phase_1_5_only": 1,
+    "last_updated": "2026-05-10"
+  },
+  "screens": [
+    {
+      "id": "S-001",
+      "name": "login",
+      "category": "auth",
+      "path": "auth/S-001-login.html",
+      "priority": "critical",
+      "status": "completed",
+      "feature_id": "F-001/F-004",
+      "task_ids": [
+        "T-004-04"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html",
+      "entities": [
+        "users"
+      ],
+      "phase": "1",
+      "notes": "Supabase Auth + 2FA + OAuth"
+    },
+    {
+      "id": "S-002",
+      "name": "signup",
+      "category": "auth",
+      "path": "auth/S-002-signup.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-004",
+      "task_ids": [
+        "T-004-04"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html",
+      "entities": [
+        "users",
+        "accounts",
+        "workspace_invitations"
+      ],
+      "phase": "1"
+    },
+    {
+      "id": "S-003",
+      "name": "password_reset",
+      "category": "auth",
+      "path": "auth/S-003-password-reset.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-004",
+      "phase": "1"
+    },
+    {
+      "id": "S-004",
+      "name": "mfa_setup",
+      "category": "auth",
+      "path": "auth/S-004-mfa-setup.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-004",
+      "phase": "1"
+    },
+    {
+      "id": "S-005",
+      "name": "oauth_callback",
+      "category": "auth",
+      "path": "auth/S-005-oauth-callback.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-023",
+      "task_ids": [
+        "T-023-04"
+      ],
+      "phase": "1"
+    },
+    {
+      "id": "S-006",
+      "name": "account_dashboard",
+      "category": "account",
+      "path": "account/S-006-account-dashboard.html",
+      "priority": "critical",
+      "status": "completed",
+      "feature_id": "F-024/F-018/META",
+      "task_ids": [
+        "T-024-01",
+        "T-024-02",
+        "T-024-03"
+      ],
+      "entities": [
+        "accounts",
+        "workspaces",
+        "tasks",
+        "sessions",
+        "cost_logs"
+      ],
+      "phase": "1",
+      "notes": "10 案件俯瞰・最重要 UX・Hero 4 + 主要 4 + サブ折りたたみ"
+    },
+    {
+      "id": "S-007",
+      "name": "account_settings",
+      "category": "account",
+      "path": "account/S-007-account-settings.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-004",
+      "phase": "1"
+    },
+    {
+      "id": "S-008",
+      "name": "account_members",
+      "category": "account",
+      "path": "account/S-008-account-members.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-004",
+      "phase": "1"
+    },
+    {
+      "id": "S-009",
+      "name": "profile_settings",
+      "category": "account",
+      "path": "account/S-009-profile-settings.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-023",
+      "task_ids": [
+        "T-023-01",
+        "T-023-02",
+        "T-023-03",
+        "T-023-04",
+        "T-023-05"
+      ],
+      "entities": [
+        "users",
+        "user_settings",
+        "api_keys"
+      ],
+      "phase": "1"
+    },
+    {
+      "id": "S-010",
+      "name": "notifications_inbox",
+      "category": "account",
+      "path": "account/S-010-notifications-inbox.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-014",
+      "phase": "1"
+    },
+    {
+      "id": "S-011",
+      "name": "global_search",
+      "category": "account",
+      "path": "account/S-011-global-search.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-024",
+      "task_ids": [
+        "T-024-01"
+      ],
+      "phase": "1",
+      "notes": "Cmd+K modal"
+    },
+    {
+      "id": "S-012",
+      "name": "workspace_dashboard",
+      "category": "workspace",
+      "path": "workspace/S-012-workspace-dashboard.html",
+      "priority": "critical",
+      "status": "completed",
+      "feature_id": "F-008/F-007",
+      "task_ids": [
+        "T-008-02"
+      ],
+      "entities": [
+        "workspaces",
+        "phases",
+        "tasks",
+        "sessions"
+      ],
+      "phase": "1"
+    },
+    {
+      "id": "S-013",
+      "name": "workspace_settings",
+      "category": "workspace",
+      "path": "workspace/S-013-workspace-settings.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-004",
+      "phase": "1"
+    },
+    {
+      "id": "S-014",
+      "name": "workspace_members",
+      "category": "workspace",
+      "path": "workspace/S-014-workspace-members.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-021",
+      "task_ids": [
+        "T-021-04"
+      ],
+      "entities": [
+        "workspace_members"
+      ],
+      "phase": "1",
+      "notes": "permission matrix UI"
+    },
+    {
+      "id": "S-015",
+      "name": "workspace_invite",
+      "category": "workspace",
+      "path": "workspace/S-015-workspace-invite.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-004",
+      "task_ids": [
+        "T-004-03"
+      ],
+      "phase": "1"
+    },
+    {
+      "id": "S-016",
+      "name": "phase_management",
+      "category": "moat",
+      "path": "moat/S-016-phase-management.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-008",
+      "task_ids": [
+        "T-008-02"
+      ],
+      "entities": [
+        "phases",
+        "phase_gates"
+      ],
+      "phase": "1"
+    },
+    {
+      "id": "S-017",
+      "name": "dependency_graph",
+      "category": "moat",
+      "path": "moat/S-017-dependency-graph.html",
+      "priority": "critical",
+      "status": "completed",
+      "feature_id": "F-009",
+      "task_ids": [
+        "T-009-02",
+        "T-009-03",
+        "T-009-04",
+        "T-009-05"
+      ],
+      "entities": [
+        "task_dependencies"
+      ],
+      "phase": "1",
+      "notes": "DAG 可視化・moat 中核"
+    },
+    {
+      "id": "S-018",
+      "name": "constitution_editor",
+      "category": "moat",
+      "path": "moat/S-018-constitution-editor.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-026",
+      "task_ids": [
+        "T-026-02"
+      ],
+      "entities": [
+        "constitutions"
+      ],
+      "phase": "1"
+    },
+    {
+      "id": "S-019",
+      "name": "red_line_settings",
+      "category": "moat",
+      "path": "moat/S-019-red-line-settings.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-012",
+      "entities": [
+        "red_lines"
+      ],
+      "phase": "1"
+    },
+    {
+      "id": "S-020",
+      "name": "hearing_session",
+      "category": "spec",
+      "path": "spec/S-020-hearing-session.html",
+      "priority": "critical",
+      "status": "completed",
+      "feature_id": "F-005",
+      "task_ids": [
+        "T-005-01",
+        "T-005-02"
+      ],
+      "entities": [
+        "chat_thread",
+        "chat_message"
+      ],
+      "phase": "1",
+      "notes": "Mary BA 4STEP 対話"
+    },
+    {
+      "id": "S-021",
+      "name": "requirements_editor",
+      "category": "spec",
+      "path": "spec/S-021-requirements-editor.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-005/F-025",
+      "task_ids": [
+        "T-005-03",
+        "T-025-02"
+      ],
+      "phase": "1"
+    },
+    {
+      "id": "S-022",
+      "name": "spec_viewer",
+      "category": "spec",
+      "path": "spec/S-022-spec-viewer.html",
+      "priority": "critical",
+      "status": "completed",
+      "feature_id": "F-015",
+      "task_ids": [
+        "T-015-01",
+        "T-015-02",
+        "T-015-03"
+      ],
+      "entities": [
+        "artifacts"
+      ],
+      "phase": "1"
+    },
+    {
+      "id": "S-023",
+      "name": "screen_mock_viewer",
+      "category": "spec",
+      "path": "spec/S-023-screen-mock-viewer.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-005b",
+      "task_ids": [
+        "T-005b-04"
+      ],
+      "entities": [
+        "screens",
+        "components"
+      ],
+      "phase": "1"
+    },
+    {
+      "id": "S-024",
+      "name": "component_catalog",
+      "category": "spec",
+      "path": "spec/S-024-component-catalog.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-005b",
+      "task_ids": [
+        "T-005b-03"
+      ],
+      "phase": "1",
+      "notes": "Storybook 風"
+    },
+    {
+      "id": "S-025",
+      "name": "screen_flow_map",
+      "category": "spec",
+      "path": "spec/S-025-screen-flow-map.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-005b",
+      "task_ids": [
+        "T-005b-03"
+      ],
+      "phase": "1"
+    },
+    {
+      "id": "S-026",
+      "name": "design_html_editor",
+      "category": "spec",
+      "path": "spec/S-026-design-html-editor.html",
+      "priority": "low",
+      "status": "pending",
+      "feature_id": "S-3",
+      "phase": "1.5",
+      "notes": "GrapesJS embed・Phase 1.5"
+    },
+    {
+      "id": "S-027",
+      "name": "task_kanban",
+      "category": "task",
+      "path": "task/S-027-task-kanban.html",
+      "priority": "critical",
+      "status": "completed",
+      "feature_id": "F-007",
+      "task_ids": [
+        "T-007-01"
+      ],
+      "entities": [
+        "tasks"
+      ],
+      "phase": "1",
+      "notes": "Hermes 流 6 列"
+    },
+    {
+      "id": "S-028",
+      "name": "task_list",
+      "category": "task",
+      "path": "task/S-028-task-list.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-007",
+      "task_ids": [
+        "T-007-02"
+      ],
+      "phase": "1"
+    },
+    {
+      "id": "S-029",
+      "name": "task_dag_view",
+      "category": "task",
+      "path": "task/S-029-task-dag-view.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-007",
+      "task_ids": [
+        "T-007-03"
+      ],
+      "phase": "1"
+    },
+    {
+      "id": "S-030",
+      "name": "task_detail",
+      "category": "task",
+      "path": "task/S-030-task-detail.html",
+      "priority": "critical",
+      "status": "completed",
+      "feature_id": "F-006/F-010b",
+      "task_ids": [
+        "T-010b-04"
+      ],
+      "entities": [
+        "tasks",
+        "acceptance_criteria",
+        "sessions"
+      ],
+      "phase": "1",
+      "notes": "▶︎ 再生 + EARS AC"
+    },
+    {
+      "id": "S-031",
+      "name": "swarm_grid",
+      "category": "task",
+      "path": "task/S-031-swarm-grid.html",
+      "priority": "critical",
+      "status": "completed",
+      "feature_id": "F-010c/F-010d",
+      "task_ids": [
+        "T-010d-02"
+      ],
+      "entities": [
+        "sessions"
+      ],
+      "phase": "1",
+      "notes": "並列 swarm UI・最重要・Phase 1 dogfood の中核"
+    },
+    {
+      "id": "S-032",
+      "name": "swarm_session_detail",
+      "category": "task",
+      "path": "task/S-032-swarm-session-detail.html",
+      "priority": "critical",
+      "status": "completed",
+      "feature_id": "F-010d",
+      "task_ids": [
+        "T-010d-03",
+        "T-010c-06"
+      ],
+      "entities": [
+        "session_logs"
+      ],
+      "phase": "1",
+      "notes": "個別セッション + ライブログ + resume 4 択"
+    },
+    {
+      "id": "S-033",
+      "name": "pr_review",
+      "category": "review",
+      "path": "review/S-033-pr-review.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-013",
+      "task_ids": [
+        "T-013-03"
+      ],
+      "entities": [
+        "prs",
+        "pr_reviews"
+      ],
+      "phase": "1"
+    },
+    {
+      "id": "S-034",
+      "name": "red_line_approval",
+      "category": "review",
+      "path": "review/S-034-red-line-approval.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-012",
+      "task_ids": [
+        "T-012-04"
+      ],
+      "entities": [
+        "red_line_violations"
+      ],
+      "phase": "1"
+    },
+    {
+      "id": "S-035",
+      "name": "delivery_approval",
+      "category": "review",
+      "path": "review/S-035-delivery-approval.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-011",
+      "phase": "1"
+    },
+    {
+      "id": "S-036",
+      "name": "ai_employees_org_chart",
+      "category": "ai",
+      "path": "ai/S-036-ai-employees-org-chart.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-022",
+      "task_ids": [
+        "T-022-04"
+      ],
+      "entities": [
+        "ai_employees"
+      ],
+      "phase": "1",
+      "notes": "3 階層組織図"
+    },
+    {
+      "id": "S-037",
+      "name": "ai_employee_detail",
+      "category": "ai",
+      "path": "ai/S-037-ai-employee-detail.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-022",
+      "task_ids": [
+        "T-022-03"
+      ],
+      "phase": "1"
+    },
+    {
+      "id": "S-038",
+      "name": "skill_manager",
+      "category": "ai",
+      "path": "ai/S-038-skill-manager.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-002",
+      "task_ids": [
+        "T-002-01"
+      ],
+      "entities": [
+        "skills"
+      ],
+      "phase": "1"
+    },
+    {
+      "id": "S-039",
+      "name": "knowledge_base",
+      "category": "ops",
+      "path": "ops/S-039-knowledge-base.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-016/F-024",
+      "phase": "1"
+    },
+    {
+      "id": "S-040",
+      "name": "cost_dashboard",
+      "category": "ops",
+      "path": "ops/S-040-cost-dashboard.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-017",
+      "task_ids": [
+        "T-017-03"
+      ],
+      "entities": [
+        "cost_logs",
+        "token_limits"
+      ],
+      "phase": "1",
+      "notes": "8 タブ"
+    },
+    {
+      "id": "S-041",
+      "name": "audit_log_viewer",
+      "category": "ops",
+      "path": "ops/S-041-audit-log-viewer.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-018",
+      "task_ids": [
+        "T-018-02"
+      ],
+      "entities": [
+        "audit_logs"
+      ],
+      "phase": "1"
+    },
+    {
+      "id": "S-042",
+      "name": "client_workspace",
+      "category": "client",
+      "path": "client/S-042-client-workspace.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-021/S-1",
+      "phase": "1"
+    },
+    {
+      "id": "S-043",
+      "name": "client_comment",
+      "category": "client",
+      "path": "client/S-043-client-comment.html",
+      "priority": "normal",
+      "status": "pending",
+      "feature_id": "F-005/F-021",
+      "phase": "1"
+    }
+  ],
+  "implementation_reference_template": {
+    "spec_html": "docs/requirements/2026-05-09_v1/requirements-v1.html",
+    "spec_md": "docs/requirements/2026-05-09_v1/requirements-v1.md",
+    "feature_breakdown_screens": "docs/functional-breakdown/2026-05-09_v1/screens.json",
+    "feature_breakdown_features": "docs/functional-breakdown/2026-05-09_v1/features.json",
+    "feature_breakdown_entities": "docs/functional-breakdown/2026-05-09_v1/entities.json",
+    "task_card": "docs/task-decomposition/2026-05-09_v1/tickets.json",
+    "interfaces": "docs/task-decomposition/2026-05-09_v1/interfaces.md",
+    "architecture": "docs/architecture/2026-05-09_v1/architecture-v1.md",
+    "er_diagram": "docs/architecture/2026-05-09_v1/er-diagram-v1.html",
+    "design_tokens": "docs/mocks/2026-05-09_v1/design-tokens.md"
+  }
+}

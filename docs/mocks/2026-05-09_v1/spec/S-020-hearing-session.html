@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>S-020 ヒアリング セッション — Build-Factory Mock</title>
+<meta name="screen-id" content="S-020" />
+<meta name="feature-id" content="F-005,F-005b" />
+<meta name="task-ids" content="T-005-02,T-005b-01" />
+<meta name="entities" content="hearing_sessions,hearing_messages,decision_log,project_brief" />
+<meta name="phase" content="P1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      colors: { eb: { 50:'#e6f0ec', 100:'#c4dccf', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+      fontFamily: { sans: ['"Noto Sans JP"','system-ui','sans-serif'], mono: ['"JetBrains Mono"','ui-monospace','monospace'] }
+    }}
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body { font-family:"Noto Sans JP", system-ui, sans-serif; }
+  .mono { font-family:"JetBrains Mono", ui-monospace, monospace; }
+  .pulse-dot { animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .typing::after { content:'▋'; animation: blink 1s infinite; color:#1a6648; }
+  @keyframes blink { 50% { opacity:0; } }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex">
+
+<!-- Sidebar -->
+<aside class="w-[230px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-5 border-b border-eb-600">
+    <div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div>
+    <div class="text-sm font-bold mt-1">受託EC構築 #4</div>
+    <div class="text-[11px] text-eb-100 mt-0.5 mono">ws_8f3a2c · P1</div>
+  </div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5">
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../account/S-006-account-dashboard.html">← Account</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="#">Workspace ホーム</a>
+    <a class="block px-3 py-1.5 rounded bg-eb-600 text-white font-bold" href="#">ヒアリング</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="S-022-spec-viewer.html">仕様書</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../moat/S-017-dependency-graph.html">機能 / 依存</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-027-task-kanban.html">タスク Kanban</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-031-swarm-grid.html">Swarm 並列実行</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="#">レビュー</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 text-[11px] text-eb-100">
+    masato (owner)
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="flex-1 flex flex-col min-w-0">
+  <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 gap-4 shrink-0">
+    <div class="flex items-center gap-2">
+      <span class="w-2 h-2 bg-emerald-500 rounded-full pulse-dot"></span>
+      <h1 class="text-base font-bold text-slate-900">ヒアリング セッション</h1>
+    </div>
+    <div class="flex items-center gap-1.5 text-[11px] mono text-slate-500">
+      <span>sess_h_2c8f</span>
+      <span>·</span>
+      <span>担当: <b class="text-slate-700">mary (BA)</b></span>
+      <span>·</span>
+      <span>進捗 <b class="text-eb-600">12/18</b></span>
+    </div>
+    <div class="flex-1"></div>
+    <div class="flex items-center gap-1 px-2 py-1 bg-slate-100 rounded text-[11px]">
+      <button class="px-2 py-0.5 rounded bg-white shadow-sm font-bold">Web</button>
+      <button class="px-2 py-0.5 rounded text-slate-500 hover:bg-white">Slack</button>
+    </div>
+    <button class="px-3 py-1.5 text-xs border border-slate-300 rounded hover:bg-slate-50">一時停止</button>
+    <button class="px-3 py-1.5 text-xs bg-eb-500 text-white rounded font-bold">サマリー生成 →</button>
+  </header>
+
+  <div class="flex-1 grid grid-cols-[1fr_360px] min-h-0">
+    <!-- Chat column -->
+    <section class="overflow-y-auto p-6 space-y-4 max-w-[800px] mx-auto w-full">
+      <!-- System -->
+      <div class="text-center text-[11px] text-slate-400 py-2">
+        2026-05-09 14:02 · ヒアリング開始 (mary BA → 高本まさと)
+      </div>
+
+      <!-- AI msg -->
+      <div class="flex gap-3">
+        <div class="w-9 h-9 rounded-full bg-eb-500 text-white flex items-center justify-center text-xs font-bold shrink-0">M</div>
+        <div class="max-w-[640px]">
+          <div class="text-[11px] text-slate-500 mb-1">mary (BA) <span class="mono">14:02</span></div>
+          <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-md px-4 py-3 text-sm text-slate-700 leading-relaxed">
+            こんにちは、案件「受託EC構築 #4」のヒアリングを始めます。<br/>
+            まず最初に、<b>このプロジェクトの目的</b>を一文で教えてもらえますか？
+            <div class="mt-2 pt-2 border-t border-slate-100 flex items-center gap-2 text-[10px] text-slate-400">
+              <span class="px-1.5 py-0.5 bg-eb-50 text-eb-700 rounded mono">Q1/18</span>
+              <span>セクション: 0_概要</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- User msg -->
+      <div class="flex gap-3 justify-end">
+        <div class="max-w-[640px]">
+          <div class="text-[11px] text-slate-500 mb-1 text-right"><span class="mono">14:03</span> 高本まさと</div>
+          <div class="bg-eb-500 text-white rounded-2xl rounded-tr-md px-4 py-3 text-sm leading-relaxed">
+            既存の Shopify テンプレートでは対応できない、複雑なバンドル販売と定期購入を扱える独自 EC を作りたい。BtoB 向けで卸価格対応も必須。
+          </div>
+        </div>
+        <div class="w-9 h-9 rounded-full bg-slate-700 text-white flex items-center justify-center text-xs font-bold shrink-0">M</div>
+      </div>
+
+      <!-- AI msg with extracted -->
+      <div class="flex gap-3">
+        <div class="w-9 h-9 rounded-full bg-eb-500 text-white flex items-center justify-center text-xs font-bold shrink-0">M</div>
+        <div class="max-w-[640px]">
+          <div class="text-[11px] text-slate-500 mb-1">mary (BA) <span class="mono">14:03</span></div>
+          <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-md px-4 py-3 text-sm text-slate-700 leading-relaxed">
+            ありがとうございます。複雑バンドル + 定期購入 + BtoB 卸価格、と。<br/>
+            <span class="px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-[11px] mono">抽出</span>
+            <span class="px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-[11px] mono ml-1">3 要件</span>
+            <div class="mt-3 bg-amber-50 border border-amber-200 rounded-lg p-2.5 text-[12px]">
+              <div class="font-bold text-amber-900 mb-1">📌 自動抽出された決定事項</div>
+              <ul class="text-amber-800 space-y-0.5 mono">
+                <li>· R-01: 複雑バンドル販売（複数SKU組合せ）</li>
+                <li>· R-02: 定期購入（サブスクリプション）</li>
+                <li>· R-03: BtoB 卸価格（顧客ランク別）</li>
+              </ul>
+            </div>
+            <div class="mt-3">
+              次に、<b>想定 GMV 規模</b>を教えてください。月商の目安はどれくらいでしょうか？
+            </div>
+            <div class="mt-2 pt-2 border-t border-slate-100 flex items-center gap-2 text-[10px] text-slate-400">
+              <span class="px-1.5 py-0.5 bg-eb-50 text-eb-700 rounded mono">Q2/18</span>
+              <span>セクション: 1_スケール</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- User -->
+      <div class="flex gap-3 justify-end">
+        <div class="max-w-[640px]">
+          <div class="text-[11px] text-slate-500 mb-1 text-right"><span class="mono">14:05</span> 高本まさと</div>
+          <div class="bg-eb-500 text-white rounded-2xl rounded-tr-md px-4 py-3 text-sm leading-relaxed">
+            初年度 月商 3,000 万円、3 年で 1 億円目標。同時アクセスは 200 程度想定。
+          </div>
+        </div>
+        <div class="w-9 h-9 rounded-full bg-slate-700 text-white flex items-center justify-center text-xs font-bold shrink-0">M</div>
+      </div>
+
+      <!-- AI typing -->
+      <div class="flex gap-3">
+        <div class="w-9 h-9 rounded-full bg-eb-500 text-white flex items-center justify-center text-xs font-bold shrink-0">M</div>
+        <div class="max-w-[640px]">
+          <div class="text-[11px] text-slate-500 mb-1">mary (BA) <span class="mono">14:05</span></div>
+          <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-md px-4 py-3 text-sm text-slate-700 leading-relaxed">
+            <span class="typing">スケール感を整理しています</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Composer -->
+      <div class="sticky bottom-0 bg-slate-50 pt-3">
+        <div class="bg-white border border-slate-300 rounded-xl p-3 shadow-sm">
+          <textarea class="w-full h-20 text-sm focus:outline-none resize-none" placeholder="返答を入力 (Cmd+Enter で送信)..."></textarea>
+          <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
+            <button class="px-2 py-1 text-xs text-slate-600 hover:bg-slate-100 rounded">📎 添付</button>
+            <button class="px-2 py-1 text-xs text-slate-600 hover:bg-slate-100 rounded">🎤 音声</button>
+            <button class="px-2 py-1 text-xs text-slate-600 hover:bg-slate-100 rounded">⏭ スキップ</button>
+            <div class="flex-1"></div>
+            <span class="text-[10px] text-slate-400 mono">claude-opus-4-7</span>
+            <button class="px-3 py-1 text-xs bg-eb-500 text-white rounded font-bold">送信</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right rail: Decision Log + Project Brief -->
+    <aside class="border-l border-slate-200 bg-white overflow-y-auto p-5 space-y-5">
+      <!-- Progress -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-[10px] tracking-wider text-slate-500 font-bold">進捗</div>
+          <div class="text-[11px] mono text-eb-600 font-bold">12 / 18 (67%)</div>
+        </div>
+        <div class="w-full h-1.5 bg-slate-100 rounded">
+          <div class="h-full bg-eb-500 rounded" style="width:67%"></div>
+        </div>
+      </div>
+
+      <!-- Sections -->
+      <div>
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">セクション</div>
+        <div class="space-y-1 text-xs">
+          <div class="flex items-center justify-between px-2 py-1 bg-emerald-50 rounded"><span>0_概要</span><span class="text-emerald-700 mono">2/2 ✓</span></div>
+          <div class="flex items-center justify-between px-2 py-1 bg-emerald-50 rounded"><span>1_スケール</span><span class="text-emerald-700 mono">2/2 ✓</span></div>
+          <div class="flex items-center justify-between px-2 py-1 bg-amber-50 rounded"><span>2_機能要件</span><span class="text-amber-700 mono">3/4</span></div>
+          <div class="flex items-center justify-between px-2 py-1 bg-amber-50 rounded"><span>3_非機能</span><span class="text-amber-700 mono">2/3</span></div>
+          <div class="flex items-center justify-between px-2 py-1 bg-slate-50 rounded"><span>4_統合</span><span class="text-slate-500 mono">3/3</span></div>
+          <div class="flex items-center justify-between px-2 py-1 bg-slate-50 rounded text-slate-400"><span>5_運用</span><span class="mono">0/2</span></div>
+          <div class="flex items-center justify-between px-2 py-1 bg-slate-50 rounded text-slate-400"><span>6_納期予算</span><span class="mono">0/2</span></div>
+        </div>
+      </div>
+
+      <!-- Decision log preview -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-[10px] tracking-wider text-slate-500 font-bold">決定ログ</div>
+          <button class="text-[10px] text-eb-600 hover:underline">全て見る</button>
+        </div>
+        <div class="space-y-1.5 text-[11px]">
+          <div class="px-2 py-1.5 bg-slate-50 rounded">
+            <div class="font-bold mono text-slate-700">D-001 BtoB 卸価格</div>
+            <div class="text-slate-500 truncate">顧客ランク 5 段階 + 取引先別個別単価</div>
+          </div>
+          <div class="px-2 py-1.5 bg-slate-50 rounded">
+            <div class="font-bold mono text-slate-700">D-002 想定 GMV</div>
+            <div class="text-slate-500 truncate">初年度 3,000万/月 → 3年 1億/月</div>
+          </div>
+          <div class="px-2 py-1.5 bg-slate-50 rounded">
+            <div class="font-bold mono text-slate-700">D-003 同時アクセス</div>
+            <div class="text-slate-500 truncate">200 同時 (P95 < 1.5s 目標)</div>
+          </div>
+          <div class="px-2 py-1.5 bg-amber-50 rounded">
+            <div class="font-bold mono text-amber-900">D-004 [要確認] 決済代行</div>
+            <div class="text-amber-700 truncate">Stripe / GMO / SBPS の選定</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Project brief preview -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-[10px] tracking-wider text-slate-500 font-bold">project_brief.json</div>
+          <button class="text-[10px] text-eb-600 hover:underline">プレビュー</button>
+        </div>
+        <pre class="mono text-[10px] bg-slate-900 text-slate-200 rounded p-3 overflow-x-auto leading-relaxed">{
+  "name": "受託EC構築 #4",
+  "type": "ec_btob",
+  "scale": {
+    "gmv_y1": 36e8,
+    "concurrency": 200
+  },
+  "features": [
+    "bundle_complex",
+    "subscription",
+    "btob_pricing"
+  ],
+  "decisions": 12,
+  "open_questions": 6
+}</pre>
+      </div>
+
+      <div>
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">Slack 連携</div>
+        <div class="px-2 py-1.5 bg-slate-50 rounded text-[11px] flex items-center gap-2">
+          <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+          <span class="text-slate-700">#proj-ec-4 と同期中</span>
+        </div>
+        <div class="text-[10px] text-slate-400 mt-1">最終同期: 14:05:14</div>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="h-9 bg-white border-t border-slate-200 flex items-center justify-between px-6 text-[11px] text-slate-500 shrink-0 mono">
+    <span>S-020 hearing_session · F-005/F-005b · T-005-02, T-005b-01</span>
+    <span><a href="../index.html" class="hover:underline">← Index</a></span>
+  </footer>
+</main>
+
+</body>
+</html>

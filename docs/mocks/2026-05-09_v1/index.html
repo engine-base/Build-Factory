@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build-Factory Mocks v1.0 — Index</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px;scroll-behavior:smooth}
+body{font-family:"Noto Sans JP",sans-serif;background:#f0f2f5;color:#1a1a1a;line-height:1.6;font-feature-settings:"palt"}
+.layout{max-width:1200px;margin:0 auto;padding:32px}
+.cover{background:linear-gradient(135deg,#1a6648 0%,#155236 100%);color:#fff;border-radius:12px;padding:32px 40px;margin-bottom:20px;box-shadow:0 4px 12px rgba(0,0,0,.12)}
+.cover h1{font-size:28px;font-weight:900;margin-bottom:8px}
+.cover .meta{font-size:11px;opacity:.7;letter-spacing:.06em;text-transform:uppercase}
+.cover .desc{font-size:13px;margin-top:12px;opacity:.92}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:16px 0}
+.s-card{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:12px;text-align:center;backdrop-filter:blur(8px)}
+.s-card .num{font-size:24px;font-weight:900}
+.s-card .lbl{font-size:9px;opacity:.7;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+.legend{background:#fff;border-radius:8px;padding:14px 18px;margin-bottom:16px;font-size:12px;display:flex;gap:20px;flex-wrap:wrap;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.lbl-critical{display:inline-flex;align-items:center;gap:4px;color:#dc2626;font-weight:700}
+.lbl-normal{display:inline-flex;align-items:center;gap:4px;color:#1a6648}
+.lbl-low{display:inline-flex;align-items:center;gap:4px;color:#94a3b8}
+.legend .dot{width:8px;height:8px;border-radius:9999px;display:inline-block}
+.section{background:#fff;border-radius:10px;padding:18px 22px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.section h2{font-size:15px;font-weight:700;color:#1a6648;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #1a6648;display:flex;align-items:center;gap:8px}
+.section .count{font-size:11px;font-weight:600;color:#64748b;background:#e2e8f0;padding:2px 8px;border-radius:3px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+.card{display:block;text-decoration:none;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;transition:all .15s;color:inherit}
+.card:hover{border-color:#1a6648;box-shadow:0 4px 12px rgba(0,0,0,.08);transform:translateY(-1px)}
+.card.pending{background:repeating-linear-gradient(45deg,#fff,#fff 8px,#f8fafc 8px,#f8fafc 16px)}
+.card.completed{border-color:#1a6648;background:#f7fdf9}
+.card .h{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+.card .id{font-family:'SF Mono',monospace;font-size:11px;font-weight:700;color:#1a6648;background:#e6f4ee;padding:1px 6px;border-radius:3px}
+.card .priority{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;text-transform:uppercase}
+.priority-critical{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+.priority-normal{background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe}
+.priority-low{background:#f1f5f9;color:#64748b;border:1px solid #cbd5e1}
+.card .title{font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:4px}
+.card .meta-row{display:flex;gap:6px;font-size:10px;color:#64748b;flex-wrap:wrap}
+.card .feature{background:#f1f5f9;padding:1px 5px;border-radius:3px;font-family:monospace}
+.status-badge{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:auto}
+.status-pending{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+.status-completed{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.status-progress{background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe}
+.refs{background:#f7fdf9;border:1px solid #b3d9c8;border-radius:8px;padding:14px 18px;margin-bottom:14px;font-size:12px;color:#1a6648}
+.refs h3{font-size:12px;font-weight:700;margin-bottom:8px}
+.refs a{color:#1a6648;text-decoration:underline;margin-right:14px;display:inline-block;padding:2px 0}
+.refs a:hover{color:#155236}
+.tools{background:#fff;border-radius:10px;padding:14px 18px;margin-bottom:14px;font-size:12px;color:#475569}
+.tools h3{font-size:12px;font-weight:700;color:#1a6648;margin-bottom:8px}
+.tools a{color:#1a6648;text-decoration:none;font-weight:600;background:#e6f4ee;padding:4px 10px;border-radius:4px;margin-right:8px;display:inline-block;font-size:11px;border:1px solid #b3d9c8}
+.tools a:hover{background:#1a6648;color:#fff}
+.note{background:#fffbeb;border:1px solid #fde68a;border-left:4px solid #f59e0b;border-radius:6px;padding:10px 14px;margin:14px 0;font-size:12px;color:#92400e}
+</style></head><body>
+
+<div class="layout">
+
+<div class="cover">
+<div class="meta">Mock Index v1.0 / 2026-05-09</div>
+<h1>Build-Factory 画面モック一覧</h1>
+<p class="desc">43 画面の HTML モック。各カードをクリックで個別モックを開く。実装時は仕様書 + ER 図 + タスクカードと併せて参照する。</p>
+<div class="summary">
+  <div class="s-card"><div class="num">43</div><div class="lbl">Total Screens</div></div>
+  <div class="s-card"><div class="num">10</div><div class="lbl">Critical</div></div>
+  <div class="s-card"><div class="num">32</div><div class="lbl">Normal</div></div>
+  <div class="s-card"><div class="num">1</div><div class="lbl">Phase 1.5</div></div>
+  <div class="s-card"><div class="num"><span id="completed-count">0</span></div><div class="lbl">Completed</div></div>
+</div>
+</div>
+
+<div class="legend">
+<span class="lbl-critical"><span class="dot" style="background:#dc2626"></span> Critical（最優先 10 画面）</span>
+<span class="lbl-normal"><span class="dot" style="background:#1a6648"></span> Normal（残り 32 画面・順次）</span>
+<span class="lbl-low"><span class="dot" style="background:#94a3b8"></span> Phase 1.5（後回し）</span>
+</div>
+
+<div class="refs">
+<h3>📚 関連ドキュメント（実装時の参照リンク）</h3>
+<a href="../../requirements/2026-05-09_v1/requirements-v1.html" target="_blank">📋 要件定義書 v1.0</a>
+<a href="../../architecture/2026-05-09_v1/architecture-v1.html" target="_blank">🏗 アーキ設計 v1.0</a>
+<a href="../../architecture/2026-05-09_v1/er-diagram-v1.html" target="_blank">🗄 ER 図 v1.0</a>
+<a href="../../functional-breakdown/2026-05-09_v1/functional-breakdown.html" target="_blank">📊 機能分解 v1.0</a>
+<a href="../../tech-stack/2026-05-09_v1/tech-stack-v1.html" target="_blank">⚙️ tech-stack v1.0</a>
+<a href="../../task-decomposition/2026-05-09_v1/tickets.html" target="_blank">🎫 113 タスク一覧</a>
+</div>
+
+<div class="tools">
+<h3>🛠 ツール</h3>
+<a href="design-tokens.md" target="_blank">design-tokens.md</a>
+<a href="flow-map.html" target="_blank">flow-map.html（画面遷移）</a>
+<a href="component-catalog.html" target="_blank">component-catalog.html</a>
+<a href="mock-tracker.json" target="_blank">mock-tracker.json</a>
+<a href="../../task-decomposition/2026-05-09_v1/interfaces.md" target="_blank">API インターフェース</a>
+</div>
+
+<div class="note">
+<strong>進め方（A + D ハイブリッド）：</strong>
+共通基盤 → 重要 10 画面 → 残り 33 画面（カテゴリ別に順次）。pending（斜線パターン）= まだ未作成・completed（緑バック）= 作成済。
+</div>
+
+<!-- 認証 5 -->
+<div class="section">
+<h2>🔐 認証 <span class="count">5 画面</span></h2>
+<div class="grid">
+<a href="auth/S-001-login.html" class="card pending"><div class="h"><span class="id">S-001</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">login</div><div class="meta-row"><span class="feature">F-004</span><span>Supabase Auth + 2FA + OAuth</span></div></a>
+<a href="auth/S-002-signup.html" class="card pending"><div class="h"><span class="id">S-002</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">signup</div><div class="meta-row"><span class="feature">F-004</span><span>新規登録 + 招待トークン</span></div></a>
+<a href="auth/S-003-password-reset.html" class="card pending"><div class="h"><span class="id">S-003</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">password_reset</div><div class="meta-row"><span class="feature">F-004</span></div></a>
+<a href="auth/S-004-mfa-setup.html" class="card pending"><div class="h"><span class="id">S-004</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">mfa_setup</div><div class="meta-row"><span class="feature">F-004</span><span>TOTP 2FA</span></div></a>
+<a href="auth/S-005-oauth-callback.html" class="card pending"><div class="h"><span class="id">S-005</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">oauth_callback</div><div class="meta-row"><span class="feature">F-023</span><span>Slack/GitHub/Anthropic</span></div></a>
+</div>
+</div>
+
+<!-- アカウント横断 6 -->
+<div class="section">
+<h2>👤 アカウント横断 <span class="count">6 画面</span></h2>
+<div class="grid">
+<a href="account/S-006-account-dashboard.html" class="card pending"><div class="h"><span class="id">S-006</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">account_dashboard ⭐</div><div class="meta-row"><span class="feature">F-024+</span><span>10 案件俯瞰・Hero 4 + 主要 4</span></div></a>
+<a href="account/S-007-account-settings.html" class="card pending"><div class="h"><span class="id">S-007</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">account_settings</div><div class="meta-row"><span class="feature">F-004</span></div></a>
+<a href="account/S-008-account-members.html" class="card pending"><div class="h"><span class="id">S-008</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">account_members</div><div class="meta-row"><span class="feature">F-004</span></div></a>
+<a href="account/S-009-profile-settings.html" class="card pending"><div class="h"><span class="id">S-009</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">profile_settings</div><div class="meta-row"><span class="feature">F-023</span><span>BYOK + クローン opt-in</span></div></a>
+<a href="account/S-010-notifications-inbox.html" class="card pending"><div class="h"><span class="id">S-010</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">notifications_inbox</div><div class="meta-row"><span class="feature">F-014</span></div></a>
+<a href="account/S-011-global-search.html" class="card pending"><div class="h"><span class="id">S-011</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">global_search</div><div class="meta-row"><span class="feature">F-024</span><span>Cmd+K modal</span></div></a>
+</div>
+</div>
+
+<!-- Workspace 4 -->
+<div class="section">
+<h2>🏢 Workspace 横断 <span class="count">4 画面</span></h2>
+<div class="grid">
+<a href="workspace/S-012-workspace-dashboard.html" class="card pending"><div class="h"><span class="id">S-012</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">workspace_dashboard</div><div class="meta-row"><span class="feature">F-008+</span></div></a>
+<a href="workspace/S-013-workspace-settings.html" class="card pending"><div class="h"><span class="id">S-013</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">workspace_settings</div><div class="meta-row"><span class="feature">F-004</span></div></a>
+<a href="workspace/S-014-workspace-members.html" class="card pending"><div class="h"><span class="id">S-014</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">workspace_members</div><div class="meta-row"><span class="feature">F-021</span><span>permission matrix UI</span></div></a>
+<a href="workspace/S-015-workspace-invite.html" class="card pending"><div class="h"><span class="id">S-015</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">workspace_invite</div><div class="meta-row"><span class="feature">F-004</span></div></a>
+</div>
+</div>
+
+<!-- moat 4 -->
+<div class="section">
+<h2>🏛 プロジェクト管理 (moat) <span class="count">4 画面</span></h2>
+<div class="grid">
+<a href="moat/S-016-phase-management.html" class="card pending"><div class="h"><span class="id">S-016</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">phase_management</div><div class="meta-row"><span class="feature">F-008</span></div></a>
+<a href="moat/S-017-dependency-graph.html" class="card pending"><div class="h"><span class="id">S-017</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">dependency_graph ⭐</div><div class="meta-row"><span class="feature">F-009</span><span>DAG・moat 中核</span></div></a>
+<a href="moat/S-018-constitution-editor.html" class="card pending"><div class="h"><span class="id">S-018</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">constitution_editor</div><div class="meta-row"><span class="feature">F-026</span></div></a>
+<a href="moat/S-019-red-line-settings.html" class="card pending"><div class="h"><span class="id">S-019</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">red_line_settings</div><div class="meta-row"><span class="feature">F-012</span></div></a>
+</div>
+</div>
+
+<!-- spec 7 -->
+<div class="section">
+<h2>📋 仕様化・モック <span class="count">7 画面</span></h2>
+<div class="grid">
+<a href="spec/S-020-hearing-session.html" class="card pending"><div class="h"><span class="id">S-020</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">hearing_session</div><div class="meta-row"><span class="feature">F-005</span><span>Mary BA 4STEP</span></div></a>
+<a href="spec/S-021-requirements-editor.html" class="card pending"><div class="h"><span class="id">S-021</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">requirements_editor</div><div class="meta-row"><span class="feature">F-005+F-025</span></div></a>
+<a href="spec/S-022-spec-viewer.html" class="card pending"><div class="h"><span class="id">S-022</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">spec_viewer</div><div class="meta-row"><span class="feature">F-015</span></div></a>
+<a href="spec/S-023-screen-mock-viewer.html" class="card pending"><div class="h"><span class="id">S-023</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">screen_mock_viewer</div><div class="meta-row"><span class="feature">F-005b</span></div></a>
+<a href="spec/S-024-component-catalog.html" class="card pending"><div class="h"><span class="id">S-024</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">component_catalog</div><div class="meta-row"><span class="feature">F-005b</span></div></a>
+<a href="spec/S-025-screen-flow-map.html" class="card pending"><div class="h"><span class="id">S-025</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">screen_flow_map</div><div class="meta-row"><span class="feature">F-005b</span></div></a>
+<a href="spec/S-026-design-html-editor.html" class="card pending"><div class="h"><span class="id">S-026</span><span class="priority priority-low">P1.5</span><span class="status-badge status-pending">Pending</span></div><div class="title">design_html_editor</div><div class="meta-row"><span class="feature">S-3</span><span>GrapesJS embed</span></div></a>
+</div>
+</div>
+
+<!-- task 6 -->
+<div class="section">
+<h2>⚡ タスク・実行 <span class="count">6 画面</span></h2>
+<div class="grid">
+<a href="task/S-027-task-kanban.html" class="card pending"><div class="h"><span class="id">S-027</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">task_kanban</div><div class="meta-row"><span class="feature">F-007</span><span>Hermes 流 6 列</span></div></a>
+<a href="task/S-028-task-list.html" class="card pending"><div class="h"><span class="id">S-028</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">task_list</div><div class="meta-row"><span class="feature">F-007</span></div></a>
+<a href="task/S-029-task-dag-view.html" class="card pending"><div class="h"><span class="id">S-029</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">task_dag_view</div><div class="meta-row"><span class="feature">F-007</span></div></a>
+<a href="task/S-030-task-detail.html" class="card pending"><div class="h"><span class="id">S-030</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">task_detail ⭐</div><div class="meta-row"><span class="feature">F-006+F-010b</span><span>▶︎ 再生 + EARS AC</span></div></a>
+<a href="task/S-031-swarm-grid.html" class="card pending"><div class="h"><span class="id">S-031</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">swarm_grid ⭐⭐</div><div class="meta-row"><span class="feature">F-010c+F-010d</span><span>並列 swarm UI</span></div></a>
+<a href="task/S-032-swarm-session-detail.html" class="card pending"><div class="h"><span class="id">S-032</span><span class="priority priority-critical">CRITICAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">swarm_session_detail</div><div class="meta-row"><span class="feature">F-010d</span><span>ライブログ + resume 4 択</span></div></a>
+</div>
+</div>
+
+<!-- review 3 -->
+<div class="section">
+<h2>✅ レビュー・納品 <span class="count">3 画面</span></h2>
+<div class="grid">
+<a href="review/S-033-pr-review.html" class="card pending"><div class="h"><span class="id">S-033</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">pr_review</div><div class="meta-row"><span class="feature">F-013</span></div></a>
+<a href="review/S-034-red-line-approval.html" class="card pending"><div class="h"><span class="id">S-034</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">red_line_approval</div><div class="meta-row"><span class="feature">F-012</span></div></a>
+<a href="review/S-035-delivery-approval.html" class="card pending"><div class="h"><span class="id">S-035</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">delivery_approval</div><div class="meta-row"><span class="feature">F-011</span></div></a>
+</div>
+</div>
+
+<!-- AI 3 -->
+<div class="section">
+<h2>🤖 AI 社員・スキル <span class="count">3 画面</span></h2>
+<div class="grid">
+<a href="ai/S-036-ai-employees-org-chart.html" class="card pending"><div class="h"><span class="id">S-036</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">ai_employees_org_chart</div><div class="meta-row"><span class="feature">F-022</span><span>3 階層組織図</span></div></a>
+<a href="ai/S-037-ai-employee-detail.html" class="card pending"><div class="h"><span class="id">S-037</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">ai_employee_detail</div><div class="meta-row"><span class="feature">F-022</span></div></a>
+<a href="ai/S-038-skill-manager.html" class="card pending"><div class="h"><span class="id">S-038</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">skill_manager</div><div class="meta-row"><span class="feature">F-002</span></div></a>
+</div>
+</div>
+
+<!-- ops 3 -->
+<div class="section">
+<h2>📊 ナレッジ・観測 <span class="count">3 画面</span></h2>
+<div class="grid">
+<a href="ops/S-039-knowledge-base.html" class="card pending"><div class="h"><span class="id">S-039</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">knowledge_base</div><div class="meta-row"><span class="feature">F-016+F-024</span></div></a>
+<a href="ops/S-040-cost-dashboard.html" class="card pending"><div class="h"><span class="id">S-040</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">cost_dashboard</div><div class="meta-row"><span class="feature">F-017</span><span>8 タブ</span></div></a>
+<a href="ops/S-041-audit-log-viewer.html" class="card pending"><div class="h"><span class="id">S-041</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">audit_log_viewer</div><div class="meta-row"><span class="feature">F-018</span></div></a>
+</div>
+</div>
+
+<!-- client 2 -->
+<div class="section">
+<h2>👥 クライアント専用 <span class="count">2 画面</span></h2>
+<div class="grid">
+<a href="client/S-042-client-workspace.html" class="card pending"><div class="h"><span class="id">S-042</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">client_workspace</div><div class="meta-row"><span class="feature">F-021+S-1</span></div></a>
+<a href="client/S-043-client-comment.html" class="card pending"><div class="h"><span class="id">S-043</span><span class="priority priority-normal">NORMAL</span><span class="status-badge status-pending">Pending</span></div><div class="title">client_comment</div><div class="meta-row"><span class="feature">F-005+F-021</span></div></a>
+</div>
+</div>
+
+<div style="text-align:center;margin-top:30px;font-size:11px;color:#94a3b8">
+<p>Build-Factory Mocks v1.0 / 株式会社 ENGINE BASE / 2026-05-09</p>
+<p>関連: <code>mock-tracker.json</code> · <code>design-tokens.md</code> · <code>flow-map.html</code> · <code>component-catalog.html</code></p>
+</div>
+
+</div>
+</body></html>
