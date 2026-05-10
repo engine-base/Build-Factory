@@ -1,0 +1,118 @@
+# {{project_name}} — CLAUDE.md (セッション引き継ぎ書)
+
+> **このファイルは Claude Code が新セッション起動時に自動で読み込む。**
+> 実装・モック追加・仕様変更を始める前に必ずここを確認すること。
+> このリポジトリは **{{project_name}}** ({{client_name}} 様 案件) 専用。
+> Build-Factory プロジェクト本体 (`engine-base/Build-Factory`) とは別物なので混同しないこと。
+
+---
+
+## 1. 案件概要
+
+- **案件名**: {{project_name}}
+- **クライアント**: {{client_name}}
+- **納期**: {{deadline}}
+- **オーナー**: {{owner_email}} (高本まさと / 株式会社 ENGINE BASE)
+- **現在フェーズ**: Phase {{phase}}
+- **技術スタック**: {{tech_stack}}
+- **担当 AI 社員**: {{ai_employees}}
+
+---
+
+## 2. フェーズ進捗
+
+| # | フェーズ | 状態 | 成果物 |
+|---|---|---|---|
+| 1 | ヒアリング | ⏳ | `docs/hearing/` |
+| 2 | 要件定義 | - | `docs/requirements/` |
+| 3 | アーキ設計 | - | `docs/architecture/` |
+| 4 | 機能分解 | - | `docs/functional-breakdown/` |
+| 5 | 技術選定 | - | `docs/tech-stack/` |
+| 6 | 機能依存分解 | - | `docs/feature-decomposition/` |
+| 7 | タスク分解 | - | `docs/task-decomposition/` |
+| 8 | 画面モック | - | `docs/mocks/` |
+| 9 | 実装 | - | (各タスクの実装) |
+| 10 | レビュー / 納品 | - | `docs/delivery/` |
+
+**「最初に読むファイル」** → [`docs/HANDOVER.md`](docs/HANDOVER.md)
+**「実装着手手順」** → [`docs/task-decomposition/IMPLEMENTATION_PROTOCOL.md`](docs/task-decomposition/IMPLEMENTATION_PROTOCOL.md)
+
+---
+
+## 3. Build-Factory 共通ルール (継承)
+
+このテンプレは **Build-Factory v{{template_version}}** から自動生成されました。
+以下のルールは **全案件で共通** で守ること:
+
+### 3.1 アイコン (絶対遵守)
+- **Lucide Icons のみ** (`<i data-lucide="play">`)
+- 絵文字 (🔍 📄 ▶︎ 等) は禁止
+- `scripts/lint-mock.sh --emoji` で検出
+
+### 3.2 デザイン
+- 主色: ENGINE BASE green = `#1a6648` (Tailwind 上は `eb-500`)
+- フォント: Noto Sans JP + JetBrains Mono
+- shadcn/ui を最優先
+
+### 3.3 EARS notation (受け入れ条件)
+全 task の `acceptance_criteria` は **5 形式** (UBIQUITOUS / EVENT / STATE / OPTIONAL / UNWANTED) のいずれか。
+**UNWANTED 形式が最低 1 件必須** (異常系の網羅担保)。
+
+### 3.4 タスクラベル
+- **REUSE** = 既存実装そのまま
+- **REFACTOR** = 既存をベースに修正 (v2.1 適合チェック必須)
+- **NEW** = 新規実装
+- **ARCHIVE** = 削除対象
+
+### 3.5 セキュリティ / レッドライン (即セッション kill)
+- 本番 DB に `DROP / TRUNCATE / DELETE *`
+- `.env` / 鍵ファイル のコミット
+- `--no-verify` / `--force push` (公開後)
+- AGPL 依存追加 (SaaS 提供のため)
+
+### 3.6 実装プロトコル (必読)
+タスク実装時は必ず [`docs/task-decomposition/IMPLEMENTATION_PROTOCOL.md`](docs/task-decomposition/IMPLEMENTATION_PROTOCOL.md) の **7 ステップ** を順守。
+
+---
+
+## 4. この案件固有の判断 (随時追記)
+
+判断や選択は `docs/decisions/ADR-XXX-{title}.md` に記録すること。テンプレ作成時点では空。
+
+---
+
+## 5. 別セッションで起動した時の確認コマンド
+
+```bash
+# 案件名が一致するか
+grep -c "{{project_name}}" CLAUDE.md       # 1+ なら OK
+grep -c "company-dashboard\|Build-Factory本体" CLAUDE.md  # 0 なら混入なし
+
+# 強制レイヤーの動作確認
+bash scripts/lint-mock.sh
+python3 scripts/validate-tickets.py
+
+# git 履歴で直近変更を確認
+git log --oneline -10
+```
+
+### 自動 Hook (`.claude/settings.json`)
+- **SessionStart**: 「CLAUDE.md と HANDOVER.md を読め」と stderr 出力
+- **PostToolUse (Edit/Write)**: 編集ファイルの絵文字混入を警告
+- **PostToolUse (Bash)**: `git commit/push` 前に lint 推奨、`--no-verify`/`--force` 警告
+- **Permissions**: `git push --force` / `--no-verify` は **deny**
+
+---
+
+## 6. 質問・判断保留時の動き
+
+- **重大変更** (DB schema / 主要パッケージ追加 / Phase ゲート緩和) = 必ず {{owner_email}} に確認
+- **軽微変更** (UI 修正 / 文言 / バグ修正 / テスト追加) = 自走 OK、git commit で報告
+- **不明点** = 仮置き禁止、`AskUserQuestion` で確認
+- **Build-Factory テンプレに対する逸脱が必要** = `docs/decisions/ADR-XXX-deviation.md` で正当化を記録
+
+---
+
+**自動生成: {{generated_at}} (template v{{template_version}})**
+**責任者: {{owner_email}} / 株式会社 ENGINE BASE**
+**Build-Factory 本体: https://github.com/engine-base/build-factory**

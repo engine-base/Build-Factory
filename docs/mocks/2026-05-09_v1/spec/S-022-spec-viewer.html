@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>S-022 仕様書ビューア — Build-Factory Mock</title>
+<meta name="screen-id" content="S-022" />
+<meta name="feature-id" content="F-006,F-010b" />
+<meta name="task-ids" content="T-010b-04" />
+<meta name="entities" content="specs,spec_versions" />
+<meta name="phase" content="P1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      colors: { eb: { 50:'#e6f0ec', 100:'#c4dccf', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+      fontFamily: { sans: ['"Noto Sans JP"','system-ui','sans-serif'], mono: ['"JetBrains Mono"','ui-monospace','monospace'] }
+    }}
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body { font-family:"Noto Sans JP", system-ui, sans-serif; }
+  .mono { font-family:"JetBrains Mono", ui-monospace, monospace; }
+  .prose h1 { font-size:1.6rem; font-weight:700; color:#0f172a; margin:1rem 0 0.5rem; }
+  .prose h2 { font-size:1.2rem; font-weight:700; color:#0f172a; margin:1.4rem 0 0.5rem; padding-bottom:0.4rem; border-bottom:1px solid #e2e8f0; }
+  .prose h3 { font-size:1rem; font-weight:700; color:#1a6648; margin:1rem 0 0.3rem; }
+  .prose p { margin:0.5rem 0; line-height:1.7; color:#334155; font-size:0.875rem; }
+  .prose ul { margin:0.5rem 0; padding-left:1.4rem; color:#334155; font-size:0.875rem; }
+  .prose li { line-height:1.7; }
+  .prose code { background:#f1f5f9; padding:0.1rem 0.4rem; border-radius:3px; font-family:"JetBrains Mono", monospace; font-size:0.8rem; color:#1a6648; }
+  .prose pre { background:#0f172a; color:#e2e8f0; padding:1rem; border-radius:6px; overflow-x:auto; margin:0.8rem 0; font-family:"JetBrains Mono", monospace; font-size:0.78rem; line-height:1.5; }
+  .toc-active { color:#1a6648; font-weight:700; border-left-color:#1a6648; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex">
+
+<!-- Sidebar -->
+<aside class="w-[230px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-5 border-b border-eb-600">
+    <div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div>
+    <div class="text-sm font-bold mt-1">受託EC構築 #4</div>
+    <div class="text-[11px] text-eb-100 mt-0.5 mono">ws_8f3a2c · P1</div>
+  </div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5">
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../account/S-006-account-dashboard.html">← Account</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="#">Workspace ホーム</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../spec/S-020-hearing-session.html">ヒアリング</a>
+    <a class="block px-3 py-1.5 rounded bg-eb-600 text-white font-bold" href="#">仕様書</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../moat/S-017-dependency-graph.html">機能 / 依存</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-027-task-kanban.html">タスク Kanban</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-031-swarm-grid.html">Swarm 並列実行</a>
+  </nav>
+</aside>
+
+<main class="flex-1 flex flex-col min-w-0">
+  <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 gap-4 shrink-0">
+    <div class="text-[11px] mono text-slate-500">仕様書 / spec_a8f3 / requirements-v1</div>
+    <div class="flex-1"></div>
+    <select class="px-2 py-1 text-xs border border-slate-300 rounded mono">
+      <option>v1.2 (2026-05-10)</option>
+      <option>v1.1 (2026-05-09)</option>
+      <option>v1.0 (2026-05-08)</option>
+    </select>
+    <button class="px-3 py-1.5 text-xs border border-slate-300 rounded">差分</button>
+    <button class="px-3 py-1.5 text-xs border border-slate-300 rounded">PDF出力</button>
+    <button class="px-3 py-1.5 text-xs bg-eb-500 text-white rounded font-bold">承認</button>
+  </header>
+
+  <!-- Tabs -->
+  <div class="bg-white border-b border-slate-200 px-6 flex items-center gap-1 shrink-0">
+    <button class="px-4 py-2 text-sm border-b-2 border-eb-500 text-eb-700 font-bold"><i data-lucide="file-text" class="w-3.5 h-3.5 inline"></i> HTML</button>
+    <button class="px-4 py-2 text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700"><i data-lucide="file-edit" class="w-3.5 h-3.5 inline"></i> Markdown</button>
+    <button class="px-4 py-2 text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700"><i data-lucide="bar-chart-3" class="w-3.5 h-3.5 inline"></i> メタデータ</button>
+    <button class="px-4 py-2 text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700"><i data-lucide="link" class="w-3.5 h-3.5 inline"></i> リンク (3)</button>
+    <div class="flex-1"></div>
+    <input type="text" placeholder="仕様内検索..." class="my-2 px-3 py-1 text-xs border border-slate-300 rounded w-48"/>
+  </div>
+
+  <div class="flex-1 grid grid-cols-[200px_1fr_280px] min-h-0">
+    <!-- TOC -->
+    <aside class="border-r border-slate-200 bg-white overflow-y-auto p-4">
+      <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-3">目次</div>
+      <nav class="text-[12px] space-y-1">
+        <a class="block py-1 pl-2 border-l-2 border-transparent hover:border-eb-500" href="#sec-0">0. 概要</a>
+        <a class="block py-1 pl-2 border-l-2 toc-active" href="#sec-1">1. 機能要件</a>
+        <a class="block py-1 pl-4 text-slate-500 hover:text-slate-800" href="#sec-1-1">1.1 商品管理</a>
+        <a class="block py-1 pl-4 text-slate-500 hover:text-slate-800" href="#sec-1-2">1.2 バンドル販売</a>
+        <a class="block py-1 pl-4 text-slate-500 hover:text-slate-800" href="#sec-1-3">1.3 定期購入</a>
+        <a class="block py-1 pl-2 border-l-2 border-transparent hover:border-eb-500" href="#sec-2">2. 非機能要件</a>
+        <a class="block py-1 pl-2 border-l-2 border-transparent hover:border-eb-500" href="#sec-3">3. データモデル</a>
+        <a class="block py-1 pl-2 border-l-2 border-transparent hover:border-eb-500" href="#sec-4">4. API 仕様</a>
+        <a class="block py-1 pl-2 border-l-2 border-transparent hover:border-eb-500" href="#sec-5">5. 受け入れ条件</a>
+      </nav>
+    </aside>
+
+    <!-- Content -->
+    <section class="overflow-y-auto p-8 bg-white">
+      <article class="prose max-w-3xl mx-auto">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="px-2 py-0.5 text-[10px] mono bg-emerald-100 text-emerald-800 rounded font-bold">承認済み</span>
+          <span class="px-2 py-0.5 text-[10px] mono bg-eb-50 text-eb-700 rounded">v1.2</span>
+          <span class="text-[11px] text-slate-500">最終更新: 2026-05-10 09:14 by winston (Architect)</span>
+        </div>
+        <h1 id="sec-0">受託EC構築 #4 — 要件定義書</h1>
+        <p>本仕様書は、株式会社XX (発注者) と株式会社ENGINE BASE (受注者) における、独自 EC サイト構築プロジェクト <code>受託EC構築 #4</code> の機能・非機能要件を定める。</p>
+
+        <h2 id="sec-1">1. 機能要件</h2>
+        <p>当 EC は、Shopify 等の汎用テンプレートでは対応できない、複雑な商品構成と取引形態を扱う。主要な機能要件は以下の通り。</p>
+
+        <h3 id="sec-1-1">1.1 商品管理</h3>
+        <ul>
+          <li>SKU 単位の在庫管理（複数倉庫対応）</li>
+          <li>商品バリアント（色 × サイズ × 素材 の最大 3 軸）</li>
+          <li>取引先別個別単価（卸価格 5 段階 + 取引先個別）</li>
+        </ul>
+
+        <h3 id="sec-1-2">1.2 バンドル販売</h3>
+        <p>複数 SKU を組み合わせた「バンドル商品」を販売できる。バンドル価格は、構成 SKU の合計単価から自動計算するか、固定価格を設定できる。</p>
+        <pre><code>// バンドル定義の例
+{
+  "bundle_id": "BDL-001",
+  "items": [
+    { "sku": "SKU-A", "qty": 2 },
+    { "sku": "SKU-B", "qty": 1 }
+  ],
+  "pricing": "fixed",   // fixed | sum
+  "price": 12800
+}</code></pre>
+
+        <h3 id="sec-1-3">1.3 定期購入</h3>
+        <ul>
+          <li>初回 / 2 回目以降 の単価を別設定</li>
+          <li>配送間隔: 週次 / 隔週 / 月次 / カスタム</li>
+          <li>スキップ・解約は会員ページから自己操作可能</li>
+        </ul>
+
+        <h2 id="sec-2">2. 非機能要件</h2>
+        <ul>
+          <li>P95 レイテンシ &lt; 1.5s（同時接続 200 想定）</li>
+          <li>稼働率 99.9% （月間ダウンタイム 43 分以下）</li>
+          <li>個人情報は AES-256 暗号化保存（pgsodium）</li>
+        </ul>
+
+        <h2 id="sec-5">5. 受け入れ条件 (EARS)</h2>
+        <ul>
+          <li><b>UBIQUITOUS:</b> The system <b>shall</b> support BtoB pricing tiers for every product SKU.</li>
+          <li><b>EVENT:</b> When a customer places a bundle order, the system <b>shall</b> deduct stock for each constituent SKU.</li>
+          <li><b>STATE:</b> While a subscription is paused, the system <b>shall</b> not generate billing.</li>
+          <li><b>UNWANTED:</b> If payment authorization fails, the system <b>shall not</b> ship the order.</li>
+        </ul>
+      </article>
+    </section>
+
+    <!-- Right rail: comments + linked entities -->
+    <aside class="border-l border-slate-200 bg-white overflow-y-auto p-5 space-y-5">
+      <div>
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">関連エンティティ</div>
+        <div class="space-y-1.5 text-xs">
+          <a href="../moat/S-017-dependency-graph.html" class="block px-2 py-1.5 border border-slate-200 rounded hover:border-eb-500">
+            <span class="mono text-slate-700">F-007</span> dependency_graph
+          </a>
+          <a href="../task/S-027-task-kanban.html" class="block px-2 py-1.5 border border-slate-200 rounded hover:border-eb-500">
+            <span class="mono text-slate-700">15 tasks</span> 関連タスク
+          </a>
+          <a href="../spec/S-020-hearing-session.html" class="block px-2 py-1.5 border border-slate-200 rounded hover:border-eb-500">
+            <span class="mono text-slate-700">sess_h_2c8f</span> 元ヒアリング
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">コメント (3)</div>
+        <div class="space-y-3 text-xs">
+          <div class="bg-amber-50 border-l-4 border-amber-400 px-3 py-2 rounded">
+            <div class="font-bold text-amber-900 mono text-[10px]">§1.2 バンドル販売</div>
+            <div class="text-slate-700 mt-1">在庫が分散倉庫の場合、引当ロジックを別 §に分離してください</div>
+            <div class="text-[10px] text-slate-500 mt-1">winston (AI) · 1時間前</div>
+          </div>
+          <div class="bg-rose-50 border-l-4 border-rose-400 px-3 py-2 rounded">
+            <div class="font-bold text-rose-900 mono text-[10px]">§1.3 定期購入</div>
+            <div class="text-slate-700 mt-1"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 inline"></i> スキップ可能回数の上限が未定義</div>
+            <div class="text-[10px] text-slate-500 mt-1">masato · 30分前</div>
+          </div>
+          <div class="bg-slate-50 border-l-4 border-slate-300 px-3 py-2 rounded">
+            <div class="font-bold text-slate-700 mono text-[10px]">§2 非機能</div>
+            <div class="text-slate-700 mt-1">99.9% は Vercel SLA を超えるため、Phase 2 で再検討</div>
+            <div class="text-[10px] text-slate-500 mt-1">sally (PO) · 昨日</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">バージョン</div>
+        <div class="space-y-1 text-[11px]">
+          <div class="flex items-center justify-between"><span class="mono text-slate-700">v1.2</span><span class="text-emerald-600">承認待ち</span></div>
+          <div class="flex items-center justify-between"><span class="mono text-slate-500">v1.1</span><span class="text-slate-500">先行版</span></div>
+          <div class="flex items-center justify-between"><span class="mono text-slate-500">v1.0</span><span class="text-slate-500">初版</span></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="h-9 bg-white border-t border-slate-200 flex items-center justify-between px-6 text-[11px] text-slate-500 shrink-0 mono">
+    <span>S-022 spec_viewer · F-006/F-010b · T-010b-04</span>
+    <span><a href="../index.html" class="hover:underline">← Index</a></span>
+  </footer>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

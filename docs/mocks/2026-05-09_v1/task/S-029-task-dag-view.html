@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>S-029 タスク DAG — Build-Factory Mock</title>
+<meta name="screen-id" content="S-029" />
+<meta name="feature-id" content="F-007" />
+<meta name="task-ids" content="T-007-03" />
+<meta name="phase" content="P1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      colors: { eb: { 50:'#e6f0ec', 100:'#c4dccf', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+      fontFamily: { sans: ['"Noto Sans JP"','system-ui','sans-serif'], mono: ['"JetBrains Mono"','ui-monospace','monospace'] }
+    } }
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body { font-family:"Noto Sans JP", system-ui, sans-serif; }
+  .mono { font-family:"JetBrains Mono", ui-monospace, monospace; }
+  .pulse-dot { animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex">
+<aside class="w-[230px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-5 border-b border-eb-600">
+    <div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div>
+    <div class="text-sm font-bold mt-1">受託EC構築 #4</div>
+    <div class="text-[11px] text-eb-100 mt-0.5 mono">ws_8f3a2c · P1</div>
+  </div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5">
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../account/S-006-account-dashboard.html">← Account</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../workspace/S-012-workspace-dashboard.html">Workspace ホーム</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../spec/S-020-hearing-session.html">ヒアリング</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../spec/S-022-spec-viewer.html">仕様書</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../moat/S-017-dependency-graph.html">機能 / 依存</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-027-task-kanban.html">タスク Kanban</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-031-swarm-grid.html">Swarm 並列実行</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../review/S-033-pr-review.html">レビュー</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../ops/S-040-cost-dashboard.html">運用 / メトリクス</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 text-[11px] text-eb-100">masato (owner)</div>
+</aside>
+
+<main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+  <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 gap-4 shrink-0 sticky top-0 z-10">
+    <h1 class="text-base font-bold text-slate-900">タスク DAG (113 タスク)</h1>
+    
+  </header>
+  <div class="p-6 max-w-[1200px] w-full mx-auto">
+    <div class="bg-white border border-slate-200 rounded-lg p-4">
+      <h2 class="text-sm font-bold mb-3">タスク DAG (113 件 · 9 層)</h2>
+      <svg viewBox="0 0 1100 600" class="w-full" style="min-height:500px">
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#94a3b8"/></marker><marker id="arc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#dc2626"/></marker></defs><g><rect x="50" y="30" width="140" height="28" rx="3" fill="#d1fae5" stroke="#10b981" stroke-width="1.5"/><text x="58" y="42" class="text-[9px] mono font-bold" fill="#065f46">T-019-01</text><text x="58" y="52" class="text-[9px]" fill="#475569">platform-base</text></g><g><rect x="50" y="80" width="140" height="28" rx="3" fill="#d1fae5" stroke="#10b981" stroke-width="1.5"/><text x="58" y="92" class="text-[9px] mono font-bold" fill="#065f46">T-S0-13</text><text x="58" y="102" class="text-[9px]" fill="#475569">scaffold</text></g><g><rect x="50" y="130" width="140" height="28" rx="3" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/><text x="58" y="142" class="text-[9px] mono font-bold" fill="#92400e">T-001-01</text><text x="58" y="152" class="text-[9px]" fill="#475569">FastAPI base</text></g><g><rect x="50" y="180" width="140" height="28" rx="3" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/><text x="58" y="192" class="text-[9px] mono font-bold" fill="#92400e">T-001-02</text><text x="58" y="202" class="text-[9px]" fill="#475569">auth integ</text></g><g><rect x="50" y="230" width="140" height="28" rx="3" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/><text x="58" y="242" class="text-[9px] mono font-bold" fill="#92400e">T-001-04</text><text x="58" y="252" class="text-[9px]" fill="#475569">middleware</text></g><g><rect x="50" y="280" width="140" height="28" rx="3" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/><text x="58" y="292" class="text-[9px] mono font-bold" fill="#92400e">T-001-06</text><text x="58" y="302" class="text-[9px]" fill="#475569">RLS</text></g><g><rect x="50" y="330" width="140" height="28" rx="3" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/><text x="58" y="342" class="text-[9px] mono font-bold" fill="#92400e">T-S0-08</text><text x="58" y="352" class="text-[9px]" fill="#475569">claude-runner</text></g><g><rect x="50" y="380" width="140" height="28" rx="3" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/><text x="58" y="392" class="text-[9px] mono font-bold" fill="#92400e">T-S0-09</text><text x="58" y="402" class="text-[9px]" fill="#475569">sandbox</text></g><g><rect x="50" y="430" width="140" height="28" rx="3" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/><text x="58" y="442" class="text-[9px] mono font-bold" fill="#1e40af">T-021-03</text><text x="58" y="452" class="text-[9px]" fill="#475569">swarm</text></g><g><rect x="50" y="480" width="140" height="28" rx="3" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/><text x="58" y="492" class="text-[9px] mono font-bold" fill="#1e40af">T-020-02</text><text x="58" y="502" class="text-[9px]" fill="#475569">memory</text></g><g><rect x="50" y="530" width="140" height="28" rx="3" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/><text x="58" y="542" class="text-[9px] mono font-bold" fill="#1e40af">T-003-02</text><text x="58" y="552" class="text-[9px]" fill="#475569">ws dashboard</text></g><g><rect x="220" y="80" width="140" height="28" rx="3" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/><text x="228" y="92" class="text-[9px] mono font-bold" fill="#92400e">T-002-01</text><text x="228" y="102" class="text-[9px]" fill="#475569">auth-supabase</text></g><g><rect x="220" y="130" width="140" height="28" rx="3" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/><text x="228" y="142" class="text-[9px] mono font-bold" fill="#92400e">T-003-01</text><text x="228" y="152" class="text-[9px]" fill="#475569">workspace mgmt</text></g><g><rect x="220" y="180" width="140" height="28" rx="3" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/><text x="228" y="192" class="text-[9px] mono font-bold" fill="#1e40af">T-005-02</text><text x="228" y="202" class="text-[9px]" fill="#475569">hearing</text></g><g><rect x="220" y="280" width="140" height="28" rx="3" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/><text x="228" y="292" class="text-[9px] mono font-bold" fill="#1e40af">T-008b-01</text><text x="228" y="302" class="text-[9px]" fill="#475569">ears validator</text></g><g><rect x="220" y="330" width="140" height="28" rx="3" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/><text x="228" y="342" class="text-[9px] mono font-bold" fill="#1e40af">T-010b-04</text><text x="228" y="352" class="text-[9px]" fill="#475569">spec viewer</text></g><g><rect x="220" y="430" width="140" height="28" rx="3" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/><text x="228" y="442" class="text-[9px] mono font-bold" fill="#1e40af">T-011-03</text><text x="228" y="452" class="text-[9px]" fill="#475569">swarm UI</text></g><g><rect x="390" y="180" width="140" height="28" rx="3" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/><text x="398" y="192" class="text-[9px] mono font-bold" fill="#92400e">T-005b-01</text><text x="398" y="202" class="text-[9px]" fill="#475569">slack bridge</text></g><g><rect x="390" y="230" width="140" height="28" rx="3" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/><text x="398" y="242" class="text-[9px] mono font-bold" fill="#1e40af">T-005c-01</text><text x="398" y="252" class="text-[9px]" fill="#475569">moat builder</text></g><g><rect x="390" y="330" width="140" height="28" rx="3" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/><text x="398" y="342" class="text-[9px] mono font-bold" fill="#1e40af">T-007-02</text><text x="398" y="352" class="text-[9px]" fill="#475569">DAG viz</text></g><g><rect x="390" y="430" width="140" height="28" rx="3" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/><text x="398" y="442" class="text-[9px] mono font-bold" fill="#1e40af">T-014-01</text><text x="398" y="452" class="text-[9px]" fill="#475569">cost tracker</text></g><g><rect x="560" y="180" width="140" height="28" rx="3" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/><text x="568" y="192" class="text-[9px] mono font-bold" fill="#92400e">T-013-01</text><text x="568" y="202" class="text-[9px]" fill="#475569">github PR</text></g><g><rect x="560" y="330" width="140" height="28" rx="3" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/><text x="568" y="342" class="text-[9px] mono font-bold" fill="#92400e">T-012-02</text><text x="568" y="352" class="text-[9px]" fill="#475569">review queue</text></g><g><rect x="560" y="430" width="140" height="28" rx="3" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/><text x="568" y="442" class="text-[9px] mono font-bold" fill="#1e40af">T-022-01</text><text x="568" y="452" class="text-[9px]" fill="#475569">ai org chart</text></g><g><rect x="730" y="180" width="140" height="28" rx="3" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/><text x="738" y="192" class="text-[9px] mono font-bold" fill="#1e40af">T-024-01</text><text x="738" y="202" class="text-[9px]" fill="#475569">global search</text></g><g><rect x="730" y="280" width="140" height="28" rx="3" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/><text x="738" y="292" class="text-[9px] mono font-bold" fill="#1e40af">T-025-02</text><text x="738" y="302" class="text-[9px]" fill="#475569">client comments</text></g><g><rect x="730" y="380" width="140" height="28" rx="3" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/><text x="738" y="392" class="text-[9px] mono font-bold" fill="#92400e">T-026-01</text><text x="738" y="402" class="text-[9px]" fill="#475569">constitution</text></g><g><rect x="900" y="30" width="140" height="28" rx="3" fill="#d1fae5" stroke="#10b981" stroke-width="1.5"/><text x="908" y="42" class="text-[9px] mono font-bold" fill="#065f46">T-M28-01</text><text x="908" y="52" class="text-[9px]" fill="#475569">memory 3 tier</text></g><g><rect x="900" y="130" width="140" height="28" rx="3" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/><text x="908" y="142" class="text-[9px] mono font-bold" fill="#1e40af">T-M27-01</text><text x="908" y="152" class="text-[9px]" fill="#475569">cache control</text></g><g><rect x="900" y="230" width="140" height="28" rx="3" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/><text x="908" y="242" class="text-[9px] mono font-bold" fill="#1e40af">T-M30-01</text><text x="908" y="252" class="text-[9px]" fill="#475569">sandbox exec</text></g>
+        <!-- critical path edges -->
+        <path d="M 120 44 C 120 60, 120 75, 120 80" stroke="#dc2626" fill="none" stroke-width="2" marker-end="url(#arc)"/>
+        <path d="M 120 94 C 120 110, 120 125, 120 130" stroke="#dc2626" fill="none" stroke-width="2" marker-end="url(#arc)"/>
+        <path d="M 120 144 C 120 160, 120 175, 120 180" stroke="#dc2626" fill="none" stroke-width="2" marker-end="url(#arc)"/>
+        <path d="M 120 194 C 120 210, 120 225, 120 230" stroke="#dc2626" fill="none" stroke-width="2" marker-end="url(#arc)"/>
+        <path d="M 120 244 C 120 260, 120 275, 120 280" stroke="#dc2626" fill="none" stroke-width="2" marker-end="url(#arc)"/>
+        <path d="M 120 294 C 120 310, 120 325, 120 330" stroke="#dc2626" fill="none" stroke-width="2" marker-end="url(#arc)"/>
+        <path d="M 120 344 C 120 360, 120 375, 120 380" stroke="#dc2626" fill="none" stroke-width="2" marker-end="url(#arc)"/>
+        <path d="M 120 394 C 120 410, 120 425, 120 430" stroke="#dc2626" fill="none" stroke-width="2" marker-end="url(#arc)"/>
+        <path d="M 120 444 C 120 460, 120 475, 120 480" stroke="#dc2626" fill="none" stroke-width="2" marker-end="url(#arc)"/>
+        <!-- parallel edges -->
+        <path d="M 190 44 C 220 65, 220 70, 220 80" stroke="#94a3b8" fill="none" marker-end="url(#ar)"/>
+        <path d="M 360 195 L 390 195" stroke="#94a3b8" fill="none" marker-end="url(#ar)"/>
+        <path d="M 530 345 L 560 345" stroke="#94a3b8" fill="none" marker-end="url(#ar)"/>
+      </svg>
+      <div class="mt-3 flex gap-4 text-[10px]">
+        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-100 border border-emerald-500"></span>REUSE 14</span>
+        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-amber-100 border border-amber-500"></span>REFACTOR 50</span>
+        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-blue-100 border border-blue-500"></span>NEW 49</span>
+        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-slate-100 border border-slate-400"></span>ARCHIVE 9 (非表示)</span>
+        <span class="flex items-center gap-1.5"><span class="w-4 h-0.5 bg-rose-500"></span>クリティカルパス</span>
+      </div>
+    </div>
+  </div>
+<footer class="h-9 bg-white border-t border-slate-200 flex items-center justify-between px-6 text-[11px] text-slate-500 shrink-0 mono">
+    <span>S-029 task_dag_view · F-007 · T-007-03</span>
+    <span><a href="../index.html" class="hover:underline">← Index</a></span>
+  </footer>
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>

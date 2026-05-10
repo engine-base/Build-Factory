@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>S-026 HTML エディタ — Build-Factory Mock</title>
+<meta name="screen-id" content="S-026" />
+<meta name="feature-id" content="S-3" />
+<meta name="task-ids" content="T-S3-01" />
+<meta name="phase" content="P1.5" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      colors: { eb: { 50:'#e6f0ec', 100:'#c4dccf', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+      fontFamily: { sans: ['"Noto Sans JP"','system-ui','sans-serif'], mono: ['"JetBrains Mono"','ui-monospace','monospace'] }
+    } }
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body { font-family:"Noto Sans JP", system-ui, sans-serif; }
+  .mono { font-family:"JetBrains Mono", ui-monospace, monospace; }
+  .pulse-dot { animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex">
+<aside class="w-[230px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-5 border-b border-eb-600">
+    <div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div>
+    <div class="text-sm font-bold mt-1">受託EC構築 #4</div>
+    <div class="text-[11px] text-eb-100 mt-0.5 mono">ws_8f3a2c · P1</div>
+  </div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5">
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../account/S-006-account-dashboard.html">← Account</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../workspace/S-012-workspace-dashboard.html">Workspace ホーム</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../spec/S-020-hearing-session.html">ヒアリング</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../spec/S-022-spec-viewer.html">仕様書</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../moat/S-017-dependency-graph.html">機能 / 依存</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-027-task-kanban.html">タスク Kanban</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-031-swarm-grid.html">Swarm 並列実行</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../review/S-033-pr-review.html">レビュー</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../ops/S-040-cost-dashboard.html">運用 / メトリクス</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 text-[11px] text-eb-100">masato (owner)</div>
+</aside>
+
+<main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+  <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 gap-4 shrink-0 sticky top-0 z-10">
+    <h1 class="text-base font-bold text-slate-900">HTML エディタ (GrapesJS · Phase 1.5)</h1>
+    <span class='px-2 py-0.5 text-[10px] bg-amber-100 text-amber-800 rounded font-bold'>P1.5</span>
+  </header>
+  <div class="p-6 max-w-[1200px] w-full mx-auto">
+    <div class="bg-white border border-slate-200 rounded-lg overflow-hidden flex" style="height:calc(100vh - 180px)">
+      <aside class="w-64 border-r border-slate-200 p-3 overflow-y-auto">
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">Blocks</div>
+        <div class="grid grid-cols-2 gap-1.5 text-[10px]">
+          <button class="px-2 py-3 bg-slate-50 hover:bg-slate-100 rounded">Section</button>
+          <button class="px-2 py-3 bg-slate-50 hover:bg-slate-100 rounded">Hero</button>
+          <button class="px-2 py-3 bg-slate-50 hover:bg-slate-100 rounded">Card</button>
+          <button class="px-2 py-3 bg-slate-50 hover:bg-slate-100 rounded">Form</button>
+          <button class="px-2 py-3 bg-slate-50 hover:bg-slate-100 rounded">Table</button>
+          <button class="px-2 py-3 bg-slate-50 hover:bg-slate-100 rounded">Chart</button>
+        </div>
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold mt-4 mb-2">Pages (43)</div>
+        <div class="text-[11px] mono space-y-0.5">
+          <div class="px-2 py-1 bg-eb-50 text-eb-700 rounded font-bold">S-006 dashboard</div>
+          <div class="px-2 py-1 hover:bg-slate-50 rounded">S-012 workspace</div>
+          <div class="text-slate-400 pl-2">…</div>
+        </div>
+      </aside>
+      <section class="flex-1 bg-slate-100 p-4 flex flex-col">
+        <div class="bg-white border border-slate-300 px-3 py-1.5 flex items-center gap-2 text-xs mb-2">
+          <button class="hover:bg-slate-100 px-2 py-0.5 rounded"><i data-lucide="undo-2" class="w-3.5 h-3.5 inline"></i></button>
+          <button class="hover:bg-slate-100 px-2 py-0.5 rounded"><i data-lucide="redo-2" class="w-3.5 h-3.5 inline"></i></button>
+          <span class="border-l h-4 mx-1"></span>
+          <button class="hover:bg-slate-100 px-2 py-0.5 rounded"><i data-lucide="smartphone" class="w-3.5 h-3.5 inline"></i></button>
+          <button class="hover:bg-slate-100 px-2 py-0.5 rounded font-bold bg-eb-50 text-eb-700"><i data-lucide="monitor" class="w-3.5 h-3.5 inline"></i></button>
+          <div class="flex-1 text-center text-slate-500 mono">S-006-account-dashboard.html · 編集中</div>
+          <button class="px-3 py-1 bg-eb-500 text-white rounded text-xs font-bold">保存</button>
+        </div>
+        <div class="flex-1 bg-white rounded shadow-sm border-2 border-dashed border-eb-500/50 flex items-center justify-center text-slate-400">
+          <div class="text-center">
+            <div class="text-3xl mb-2"><i data-lucide="palette" class="w-3.5 h-3.5 inline"></i></div>
+            <div class="text-sm">GrapesJS Editor (BSD-3) — Phase 1.5</div>
+            <div class="text-[11px] mt-1">既存モック HTML を読み込んで自由編集 → そのまま実装に渡せる</div>
+          </div>
+        </div>
+      </section>
+      <aside class="w-64 border-l border-slate-200 p-3 overflow-y-auto">
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">Properties</div>
+        <div class="space-y-2 text-xs">
+          <div><label class="block mb-1">Width</label><input class="w-full px-2 py-1 border border-slate-300 rounded mono text-[11px]" value="100%"/></div>
+          <div><label class="block mb-1">Padding</label><input class="w-full px-2 py-1 border border-slate-300 rounded mono text-[11px]" value="24px"/></div>
+          <div><label class="block mb-1">BG Color</label><div class="flex gap-1"><div class="w-6 h-6 bg-white border border-slate-300 rounded"></div><div class="w-6 h-6 bg-slate-50 border border-slate-300 rounded"></div><div class="w-6 h-6 bg-eb-50 rounded"></div></div></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+<footer class="h-9 bg-white border-t border-slate-200 flex items-center justify-between px-6 text-[11px] text-slate-500 shrink-0 mono">
+    <span>S-026 design_html_editor · S-3 · T-S3-01</span>
+    <span><a href="../index.html" class="hover:underline">← Index</a></span>
+  </footer>
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>

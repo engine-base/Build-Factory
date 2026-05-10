@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>S-012 案件ダッシュボード — Build-Factory Mock</title>
+<meta name="screen-id" content="S-012" />
+<meta name="feature-id" content="F-003" />
+<meta name="task-ids" content="T-003-02,T-003-03" />
+<meta name="entities" content="workspaces,project_brief,specs,tasks,sessions" />
+<meta name="phase" content="P1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      colors: { eb: { 50:'#e6f0ec', 100:'#c4dccf', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+      fontFamily: { sans: ['"Noto Sans JP"','system-ui','sans-serif'], mono: ['"JetBrains Mono"','ui-monospace','monospace'] }
+    }}
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body { font-family:"Noto Sans JP", system-ui, sans-serif; }
+  .mono { font-family:"JetBrains Mono", ui-monospace, monospace; }
+  .pulse-dot { animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex">
+
+<aside class="w-[230px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-5 border-b border-eb-600">
+    <div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div>
+    <div class="text-sm font-bold mt-1">受託EC構築 #4</div>
+    <div class="text-[11px] text-eb-100 mt-0.5 mono">ws_8f3a2c · P1</div>
+  </div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5">
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../account/S-006-account-dashboard.html">← Account</a>
+    <a class="block px-3 py-1.5 rounded bg-eb-600 text-white font-bold" href="#">Workspace ホーム</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../spec/S-020-hearing-session.html">ヒアリング</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../spec/S-022-spec-viewer.html">仕様書</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../moat/S-017-dependency-graph.html">機能 / 依存</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-027-task-kanban.html">タスク Kanban</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-031-swarm-grid.html">Swarm 並列実行</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="#">レビュー</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="#">運用 / メトリクス</a>
+  </nav>
+</aside>
+
+<main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+  <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 gap-4 shrink-0 sticky top-0 z-10">
+    <h1 class="text-base font-bold text-slate-900">受託EC構築 #4</h1>
+    <span class="px-2 py-0.5 text-[10px] bg-amber-100 text-amber-800 rounded font-bold">P1.5 実装フェーズ</span>
+    <span class="text-[11px] mono text-slate-500">納期 2026-08-15 (残 97 日)</span>
+    <div class="flex-1"></div>
+    <button class="px-3 py-1.5 text-xs border border-slate-300 rounded hover:bg-slate-50">設定</button>
+    <button class="px-3 py-1.5 text-xs bg-eb-500 text-white rounded font-bold"><i data-lucide="play" class="w-3.5 h-3.5 inline"></i> 次タスク再生</button>
+  </header>
+
+  <div class="p-6 space-y-6 max-w-[1400px] mx-auto w-full">
+    <!-- KPI row -->
+    <div class="grid grid-cols-5 gap-4">
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold">進捗</div>
+        <div class="text-2xl font-bold text-slate-900 mt-1">67<span class="text-sm text-slate-500">%</span></div>
+        <div class="text-[10px] text-emerald-600 mt-1">+12% / 過去7日</div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold">完了タスク</div>
+        <div class="text-2xl font-bold text-slate-900 mt-1">76<span class="text-sm text-slate-500">/113</span></div>
+        <div class="text-[10px] text-slate-500 mt-1">残 37 件</div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold">稼働セッション</div>
+        <div class="text-2xl font-bold text-amber-600 mt-1 flex items-center gap-2">
+          <span class="w-2 h-2 bg-amber-500 rounded-full pulse-dot"></span>4
+        </div>
+        <div class="text-[10px] text-slate-500 mt-1">queued: 8 件</div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold">月間コスト</div>
+        <div class="text-2xl font-bold text-slate-900 mt-1">$<span>187</span><span class="text-sm text-slate-500">.42</span></div>
+        <div class="text-[10px] text-amber-600 mt-1">予算 $300 の 62%</div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold">承認待ち</div>
+        <div class="text-2xl font-bold text-rose-600 mt-1">3</div>
+        <div class="text-[10px] text-slate-500 mt-1">最古: 2時間前</div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-3 gap-6">
+      <!-- Pipeline phases -->
+      <div class="col-span-2 bg-white border border-slate-200 rounded-lg p-5">
+        <h2 class="text-sm font-bold text-slate-700 tracking-wider mb-4">フェーズ進捗</h2>
+        <div class="space-y-3">
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-bold text-emerald-700">① ヒアリング</span>
+              <span class="text-[11px] mono text-slate-500">100% · 完了</span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-100 rounded"><div class="h-full bg-emerald-500 rounded" style="width:100%"></div></div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-bold text-emerald-700">② 要件定義</span>
+              <span class="text-[11px] mono text-slate-500">100% · 完了</span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-100 rounded"><div class="h-full bg-emerald-500 rounded" style="width:100%"></div></div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-bold text-emerald-700">③ アーキ設計</span>
+              <span class="text-[11px] mono text-slate-500">100% · 完了</span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-100 rounded"><div class="h-full bg-emerald-500 rounded" style="width:100%"></div></div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-bold text-emerald-700">④ 機能 / 依存</span>
+              <span class="text-[11px] mono text-slate-500">100% · 完了</span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-100 rounded"><div class="h-full bg-emerald-500 rounded" style="width:100%"></div></div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-bold text-emerald-700">⑤ タスク分解</span>
+              <span class="text-[11px] mono text-slate-500">100% · 完了 (113 件)</span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-100 rounded"><div class="h-full bg-emerald-500 rounded" style="width:100%"></div></div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-bold text-eb-600">⑥ 実装 (現在)</span>
+              <span class="text-[11px] mono text-eb-600 font-bold">67% · 進行中</span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-100 rounded"><div class="h-full bg-eb-500 rounded" style="width:67%"></div></div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs text-slate-400">⑦ レビュー</span>
+              <span class="text-[11px] mono text-slate-400">12% · 待機</span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-100 rounded"><div class="h-full bg-slate-300 rounded" style="width:12%"></div></div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs text-slate-400">⑧ 納品</span>
+              <span class="text-[11px] mono text-slate-400">0%</span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-100 rounded"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick links -->
+      <div class="bg-white border border-slate-200 rounded-lg p-5">
+        <h2 class="text-sm font-bold text-slate-700 tracking-wider mb-4">クイックアクセス</h2>
+        <div class="space-y-2 text-sm">
+          <a href="../spec/S-020-hearing-session.html" class="flex items-center gap-3 px-3 py-2 border border-slate-200 rounded hover:border-eb-500 hover:bg-eb-50">
+            <span class="text-base"><i data-lucide="message-circle" class="w-3.5 h-3.5 inline"></i></span>
+            <span class="flex-1">ヒアリング再開</span>
+            <span class="text-[10px] text-slate-400 mono">12/18</span>
+          </a>
+          <a href="../spec/S-022-spec-viewer.html" class="flex items-center gap-3 px-3 py-2 border border-slate-200 rounded hover:border-eb-500 hover:bg-eb-50">
+            <span class="text-base"><i data-lucide="file-text" class="w-3.5 h-3.5 inline"></i></span>
+            <span class="flex-1">仕様書 v1.2</span>
+            <span class="text-[10px] text-amber-600 font-bold">承認待ち</span>
+          </a>
+          <a href="../moat/S-017-dependency-graph.html" class="flex items-center gap-3 px-3 py-2 border border-slate-200 rounded hover:border-eb-500 hover:bg-eb-50">
+            <span class="text-base"><i data-lucide="link" class="w-3.5 h-3.5 inline"></i></span>
+            <span class="flex-1">機能依存グラフ</span>
+            <span class="text-[10px] text-slate-400 mono">30 features</span>
+          </a>
+          <a href="../task/S-027-task-kanban.html" class="flex items-center gap-3 px-3 py-2 border border-slate-200 rounded hover:border-eb-500 hover:bg-eb-50">
+            <span class="text-base"><i data-lucide="clipboard-list" class="w-3.5 h-3.5 inline"></i></span>
+            <span class="flex-1">タスク Kanban</span>
+            <span class="text-[10px] text-slate-400 mono">37 残</span>
+          </a>
+          <a href="../task/S-031-swarm-grid.html" class="flex items-center gap-3 px-3 py-2 border border-slate-200 rounded hover:border-eb-500 hover:bg-eb-50">
+            <span class="text-base"><i data-lucide="boxes" class="w-3.5 h-3.5 inline"></i></span>
+            <span class="flex-1">Swarm 並列実行</span>
+            <span class="text-[10px] text-amber-600 font-bold mono">4 RUN</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active sessions + recent activity -->
+    <div class="grid grid-cols-2 gap-6">
+      <div class="bg-white border border-slate-200 rounded-lg p-5">
+        <h2 class="text-sm font-bold text-slate-700 tracking-wider mb-3">稼働中セッション</h2>
+        <div class="space-y-2 text-xs">
+          <a href="../task/S-032-swarm-session-detail.html" class="block px-3 py-2 border border-slate-200 rounded hover:border-eb-500">
+            <div class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-amber-500 rounded-full pulse-dot"></span>
+              <span class="mono text-slate-700">T-010b-04</span>
+              <span class="text-slate-600 truncate">spec_viewer タブUI</span>
+              <span class="ml-auto text-amber-700 font-bold">14:23</span>
+            </div>
+          </a>
+          <div class="block px-3 py-2 border border-slate-200 rounded">
+            <div class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-amber-500 rounded-full pulse-dot"></span>
+              <span class="mono text-slate-700">T-008b-02</span>
+              <span class="text-slate-600 truncate">EARS バリデータ</span>
+              <span class="ml-auto text-amber-700 font-bold">8:14</span>
+            </div>
+          </div>
+          <div class="block px-3 py-2 border border-slate-200 rounded">
+            <div class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-amber-500 rounded-full pulse-dot"></span>
+              <span class="mono text-slate-700">T-011-03</span>
+              <span class="text-slate-600 truncate">swarm grid React Flow</span>
+              <span class="ml-auto text-amber-700 font-bold">2:41</span>
+            </div>
+          </div>
+          <div class="block px-3 py-2 border border-slate-200 rounded">
+            <div class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-amber-500 rounded-full pulse-dot"></span>
+              <span class="mono text-slate-700">T-014-01</span>
+              <span class="text-slate-600 truncate">cost_tracker tier集計</span>
+              <span class="ml-auto text-amber-700 font-bold">0:52</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-lg p-5">
+        <h2 class="text-sm font-bold text-slate-700 tracking-wider mb-3">直近アクティビティ</h2>
+        <div class="space-y-2 text-xs">
+          <div class="flex gap-2"><span class="text-[10px] mono text-slate-400 shrink-0">14:23</span><span class="text-slate-600">devon が <span class="mono text-eb-600">T-010b-04</span> を開始</span></div>
+          <div class="flex gap-2"><span class="text-[10px] mono text-slate-400 shrink-0">14:18</span><span class="text-slate-600">quinn が <span class="mono">T-005b-03</span> を承認</span></div>
+          <div class="flex gap-2"><span class="text-[10px] mono text-slate-400 shrink-0">14:02</span><span class="text-slate-600">mary がヒアリング再開</span></div>
+          <div class="flex gap-2"><span class="text-[10px] mono text-slate-400 shrink-0">13:47</span><span class="text-slate-600">winston が仕様書 v1.2 を発行</span></div>
+          <div class="flex gap-2"><span class="text-[10px] mono text-slate-400 shrink-0">12:15</span><span class="text-slate-600">PR #42 マージ済み (T-010-02)</span></div>
+          <div class="flex gap-2"><span class="text-[10px] mono text-slate-400 shrink-0">11:39</span><span class="text-slate-600"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 inline"></i> T-008b-01 失敗 → 自動再試行</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="h-9 bg-white border-t border-slate-200 flex items-center justify-between px-6 text-[11px] text-slate-500 shrink-0 mono mt-auto">
+    <span>S-012 workspace_dashboard · F-003 · T-003-02/03</span>
+    <span><a href="../index.html" class="hover:underline">← Index</a></span>
+  </footer>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

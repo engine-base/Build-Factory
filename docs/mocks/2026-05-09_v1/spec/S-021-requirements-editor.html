@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>S-021 要件定義エディタ — Build-Factory Mock</title>
+<meta name="screen-id" content="S-021" />
+<meta name="feature-id" content="F-005/F-025" />
+<meta name="task-ids" content="T-005-03,T-025-02" />
+<meta name="phase" content="P1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      colors: { eb: { 50:'#e6f0ec', 100:'#c4dccf', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+      fontFamily: { sans: ['"Noto Sans JP"','system-ui','sans-serif'], mono: ['"JetBrains Mono"','ui-monospace','monospace'] }
+    } }
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body { font-family:"Noto Sans JP", system-ui, sans-serif; }
+  .mono { font-family:"JetBrains Mono", ui-monospace, monospace; }
+  .pulse-dot { animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex">
+<aside class="w-[230px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-5 border-b border-eb-600">
+    <div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div>
+    <div class="text-sm font-bold mt-1">受託EC構築 #4</div>
+    <div class="text-[11px] text-eb-100 mt-0.5 mono">ws_8f3a2c · P1</div>
+  </div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5">
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../account/S-006-account-dashboard.html">← Account</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../workspace/S-012-workspace-dashboard.html">Workspace ホーム</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../spec/S-020-hearing-session.html">ヒアリング</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../spec/S-022-spec-viewer.html">仕様書</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../moat/S-017-dependency-graph.html">機能 / 依存</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-027-task-kanban.html">タスク Kanban</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-031-swarm-grid.html">Swarm 並列実行</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../review/S-033-pr-review.html">レビュー</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../ops/S-040-cost-dashboard.html">運用 / メトリクス</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 text-[11px] text-eb-100">masato (owner)</div>
+</aside>
+
+<main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+  <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 gap-4 shrink-0 sticky top-0 z-10">
+    <h1 class="text-base font-bold text-slate-900">要件定義エディタ — 受託EC構築 #4</h1>
+    
+  </header>
+  <div class="p-6 max-w-[1200px] w-full mx-auto">
+    <div class="grid grid-cols-[1fr_320px] gap-4">
+      <div class="bg-white border border-slate-200 rounded-lg overflow-hidden flex flex-col" style="height:calc(100vh - 180px)">
+        <div class="border-b border-slate-200 px-4 py-2 flex items-center gap-2 text-xs">
+          <button class="px-2 py-1 hover:bg-slate-100 rounded font-bold">B</button>
+          <button class="px-2 py-1 hover:bg-slate-100 rounded italic">I</button>
+          <button class="px-2 py-1 hover:bg-slate-100 rounded">H1</button>
+          <button class="px-2 py-1 hover:bg-slate-100 rounded">H2</button>
+          <button class="px-2 py-1 hover:bg-slate-100 rounded">•</button>
+          <button class="px-2 py-1 hover:bg-slate-100 rounded mono">code</button>
+          <span class="border-l border-slate-200 h-4 mx-1"></span>
+          <button class="px-2 py-1 hover:bg-slate-100 rounded text-eb-600 font-bold">+ EARS</button>
+          <div class="flex-1"></div>
+          <span class="text-[10px] mono text-slate-400">自動保存: 30秒前</span>
+        </div>
+        <textarea class="flex-1 p-4 text-sm font-mono leading-relaxed focus:outline-none resize-none">
+# 受託EC構築 #4 — 要件定義書
+
+## 1. 機能要件
+
+### 1.1 商品管理
+- SKU 単位の在庫管理（複数倉庫対応）
+- 商品バリアント（色 × サイズ × 素材 の最大 3 軸）
+- 取引先別個別単価（卸価格 5 段階 + 取引先個別）
+
+### 1.2 バンドル販売
+複数 SKU を組み合わせた「バンドル商品」を販売できる。
+
+#### EARS Acceptance Criteria
+- UBIQUITOUS: The system shall support BtoB pricing tiers for every product SKU.
+- EVENT: When a customer places a bundle order, the system shall deduct stock for each constituent SKU.
+- STATE: While a subscription is paused, the system shall not generate billing.
+- UNWANTED: If payment authorization fails, the system shall not ship the order.
+
+</textarea>
+      </div>
+      <aside class="space-y-3">
+        <div class="bg-white border border-slate-200 rounded-lg p-4">
+          <h3 class="text-xs font-bold mb-2">EARS 検証</h3>
+          <div class="space-y-1 text-[11px]">
+            <div class="flex items-center gap-2 px-2 py-1 bg-emerald-50 rounded"><span class="text-emerald-600"><i data-lucide="check" class="w-3 h-3 inline"></i></span>UBIQUITOUS (1)</div>
+            <div class="flex items-center gap-2 px-2 py-1 bg-emerald-50 rounded"><span class="text-emerald-600"><i data-lucide="check" class="w-3 h-3 inline"></i></span>EVENT (1)</div>
+            <div class="flex items-center gap-2 px-2 py-1 bg-emerald-50 rounded"><span class="text-emerald-600"><i data-lucide="check" class="w-3 h-3 inline"></i></span>STATE (1)</div>
+            <div class="flex items-center gap-2 px-2 py-1 bg-amber-50 rounded"><span class="text-amber-600">!</span>OPTIONAL (0)</div>
+            <div class="flex items-center gap-2 px-2 py-1 bg-emerald-50 rounded"><span class="text-emerald-600"><i data-lucide="check" class="w-3 h-3 inline"></i></span>UNWANTED (1)</div>
+          </div>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-lg p-4">
+          <h3 class="text-xs font-bold mb-2">プレビュー</h3>
+          <a href="S-022-spec-viewer.html" class="block text-[11px] text-eb-600 hover:underline">→ HTML レンダリング表示</a>
+        </div>
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
+          <h3 class="text-xs font-bold text-amber-900 mb-1"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 inline"></i> 未解決</h3>
+          <ul class="text-[11px] text-amber-800 space-y-0.5">
+            <li>· §1.3 スキップ可能回数の上限</li>
+            <li>· §2 SLA 再検討 (Vercel 制約)</li>
+          </ul>
+        </div>
+        <button class="w-full py-2 bg-eb-500 text-white rounded text-sm font-bold">v1.3 として保存</button>
+      </aside>
+    </div>
+  </div>
+<footer class="h-9 bg-white border-t border-slate-200 flex items-center justify-between px-6 text-[11px] text-slate-500 shrink-0 mono">
+    <span>S-021 requirements_editor · F-005/F-025 · T-005-03,T-025-02</span>
+    <span><a href="../index.html" class="hover:underline">← Index</a></span>
+  </footer>
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>

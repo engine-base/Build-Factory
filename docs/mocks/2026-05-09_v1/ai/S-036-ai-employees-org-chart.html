@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>S-036 AI 社員 組織図 — Build-Factory Mock</title>
+<meta name="screen-id" content="S-036" />
+<meta name="feature-id" content="F-022" />
+<meta name="task-ids" content="T-022-01" />
+<meta name="phase" content="P1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      colors: { eb: { 50:'#e6f0ec', 100:'#c4dccf', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+      fontFamily: { sans: ['"Noto Sans JP"','system-ui','sans-serif'], mono: ['"JetBrains Mono"','ui-monospace','monospace'] }
+    } }
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body { font-family:"Noto Sans JP", system-ui, sans-serif; }
+  .mono { font-family:"JetBrains Mono", ui-monospace, monospace; }
+  .pulse-dot { animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex">
+<aside class="w-[230px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-5 border-b border-eb-600">
+    <div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div>
+    <div class="text-sm font-bold mt-1">受託EC構築 #4</div>
+    <div class="text-[11px] text-eb-100 mt-0.5 mono">ws_8f3a2c · P1</div>
+  </div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5">
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../account/S-006-account-dashboard.html">← Account</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../workspace/S-012-workspace-dashboard.html">Workspace ホーム</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../spec/S-020-hearing-session.html">ヒアリング</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../spec/S-022-spec-viewer.html">仕様書</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../moat/S-017-dependency-graph.html">機能 / 依存</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-027-task-kanban.html">タスク Kanban</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-031-swarm-grid.html">Swarm 並列実行</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../review/S-033-pr-review.html">レビュー</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../ops/S-040-cost-dashboard.html">運用 / メトリクス</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 text-[11px] text-eb-100">masato (owner)</div>
+</aside>
+
+<main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+  <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 gap-4 shrink-0 sticky top-0 z-10">
+    <h1 class="text-base font-bold text-slate-900">AI 社員 組織図</h1>
+    
+  </header>
+  <div class="p-6 max-w-[1200px] w-full mx-auto">
+    <div class="bg-white border border-slate-200 rounded-lg p-5">
+      <div class="flex items-center gap-3 mb-4">
+        <h2 class="text-sm font-bold flex-1">AI 社員 組織図</h2>
+        <button class="px-3 py-1.5 text-xs border border-slate-300 rounded">+ メンバー追加</button>
+        <button class="px-3 py-1.5 text-xs bg-eb-500 text-white rounded font-bold">スキル管理</button>
+      </div>
+      <svg viewBox="0 0 1100 600" class="w-full" style="min-height:500px">
+        <!-- masato at top -->
+        <g><circle cx="550" cy="50" r="32" fill="#1a6648"/><text x="550" y="48" class="text-[12px] fill-white font-bold" text-anchor="middle">masato</text><text x="550" y="62" class="text-[8px] fill-eb-100" text-anchor="middle">CEO / Owner</text></g>
+
+        <!-- secretary -->
+        <g><circle cx="550" cy="160" r="28" fill="#155238"/><text x="550" y="158" class="text-[11px] fill-white font-bold" text-anchor="middle">secretary</text><text x="550" y="172" class="text-[8px] fill-eb-100" text-anchor="middle">分身AI</text></g>
+        <line x1="550" y1="82" x2="550" y2="132" stroke="#1a6648" stroke-width="2"/>
+
+        <!-- BMAD 6 ロール --><g><circle cx="200" cy="290" r="24" fill="#3b82f6"/><text x="200" y="287" class="text-[9px] fill-white font-bold" text-anchor="middle">mary</text><text x="200" y="298" class="text-[7px] fill-white" text-anchor="middle">BA</text></g>
+        <line x1="550" y1="188" x2="200" y2="266" stroke="#94a3b8" stroke-dasharray="2 2"/><g><circle cx="310" cy="290" r="24" fill="#8b5cf6"/><text x="310" y="287" class="text-[9px] fill-white font-bold" text-anchor="middle">preston</text><text x="310" y="298" class="text-[7px] fill-white" text-anchor="middle">PM</text></g>
+        <line x1="550" y1="188" x2="310" y2="266" stroke="#94a3b8" stroke-dasharray="2 2"/><g><circle cx="420" cy="290" r="24" fill="#ec4899"/><text x="420" y="287" class="text-[9px] fill-white font-bold" text-anchor="middle">winston</text><text x="420" y="298" class="text-[7px] fill-white" text-anchor="middle">Architect</text></g>
+        <line x1="550" y1="188" x2="420" y2="266" stroke="#94a3b8" stroke-dasharray="2 2"/><g><circle cx="550" cy="290" r="24" fill="#f59e0b"/><text x="550" y="287" class="text-[9px] fill-white font-bold" text-anchor="middle">sally</text><text x="550" y="298" class="text-[7px] fill-white" text-anchor="middle">PO</text></g>
+        <line x1="550" y1="188" x2="550" y2="266" stroke="#94a3b8" stroke-dasharray="2 2"/><g><circle cx="680" cy="290" r="24" fill="#10b981"/><text x="680" y="287" class="text-[9px] fill-white font-bold" text-anchor="middle">devon</text><text x="680" y="298" class="text-[7px] fill-white" text-anchor="middle">Dev</text></g>
+        <line x1="550" y1="188" x2="680" y2="266" stroke="#94a3b8" stroke-dasharray="2 2"/><g><circle cx="790" cy="290" r="24" fill="#06b6d4"/><text x="790" y="287" class="text-[9px] fill-white font-bold" text-anchor="middle">quinn</text><text x="790" y="298" class="text-[7px] fill-white" text-anchor="middle">QA</text></g>
+        <line x1="550" y1="188" x2="790" y2="266" stroke="#94a3b8" stroke-dasharray="2 2"/><g><circle cx="900" cy="290" r="24" fill="#ef4444"/><text x="900" y="287" class="text-[9px] fill-white font-bold" text-anchor="middle">reviewer</text><text x="900" y="298" class="text-[7px] fill-white" text-anchor="middle">Review</text></g>
+        <line x1="550" y1="188" x2="900" y2="266" stroke="#94a3b8" stroke-dasharray="2 2"/>
+
+        <!-- P1.5 leaders --><g><circle cx="250" cy="420" r="22" fill="#a855f7"/><text x="250" y="417" class="text-[9px] fill-white font-bold" text-anchor="middle">sam</text><text x="250" y="428" class="text-[7px] fill-white" text-anchor="middle">Brand</text></g>
+        <line x1="550" y1="188" x2="250" y2="398" stroke="#94a3b8" stroke-dasharray="2 2"/><g><circle cx="350" cy="420" r="22" fill="#f97316"/><text x="350" y="417" class="text-[9px] fill-white font-bold" text-anchor="middle">dani</text><text x="350" y="428" class="text-[7px] fill-white" text-anchor="middle">Mockup</text></g>
+        <line x1="550" y1="188" x2="350" y2="398" stroke="#94a3b8" stroke-dasharray="2 2"/><g><circle cx="450" cy="420" r="22" fill="#0ea5e9"/><text x="450" y="417" class="text-[9px] fill-white font-bold" text-anchor="middle">quinn-l</text><text x="450" y="428" class="text-[7px] fill-white" text-anchor="middle">QA-Lead</text></g>
+        <line x1="550" y1="188" x2="450" y2="398" stroke="#94a3b8" stroke-dasharray="2 2"/><g><circle cx="550" cy="420" r="22" fill="#84cc16"/><text x="550" y="417" class="text-[9px] fill-white font-bold" text-anchor="middle">logan</text><text x="550" y="428" class="text-[7px] fill-white" text-anchor="middle">Curator</text></g>
+        <line x1="550" y1="188" x2="550" y2="398" stroke="#94a3b8" stroke-dasharray="2 2"/><g><circle cx="650" cy="420" r="22" fill="#ec4899"/><text x="650" y="417" class="text-[9px] fill-white font-bold" text-anchor="middle">brand</text><text x="650" y="428" class="text-[7px] fill-white" text-anchor="middle">DesignSys</text></g>
+        <line x1="550" y1="188" x2="650" y2="398" stroke="#94a3b8" stroke-dasharray="2 2"/><g><circle cx="750" cy="420" r="22" fill="#06b6d4"/><text x="750" y="417" class="text-[9px] fill-white font-bold" text-anchor="middle">mockup</text><text x="750" y="428" class="text-[7px] fill-white" text-anchor="middle">UI</text></g>
+        <line x1="550" y1="188" x2="750" y2="398" stroke="#94a3b8" stroke-dasharray="2 2"/><g><circle cx="850" cy="420" r="22" fill="#f59e0b"/><text x="850" y="417" class="text-[9px] fill-white font-bold" text-anchor="middle">client</text><text x="850" y="428" class="text-[7px] fill-white" text-anchor="middle">Client</text></g>
+        <line x1="550" y1="188" x2="850" y2="398" stroke="#94a3b8" stroke-dasharray="2 2"/>
+
+        <!-- Phase 2 -->
+        <g><circle cx="350" cy="540" r="20" fill="#cbd5e1" stroke="#94a3b8" stroke-dasharray="3 3"/><text x="350" y="538" class="text-[9px] fill-slate-700 font-bold" text-anchor="middle">COO</text><text x="350" y="548" class="text-[7px] fill-slate-500" text-anchor="middle">Phase2</text></g>
+        <g><circle cx="450" cy="540" r="20" fill="#cbd5e1" stroke="#94a3b8" stroke-dasharray="3 3"/><text x="450" y="538" class="text-[8px] fill-slate-700 font-bold" text-anchor="middle">CFO</text><text x="450" y="548" class="text-[7px] fill-slate-500" text-anchor="middle">Phase2</text></g>
+        <g><circle cx="550" cy="540" r="20" fill="#cbd5e1" stroke="#94a3b8" stroke-dasharray="3 3"/><text x="550" y="538" class="text-[8px] fill-slate-700 font-bold" text-anchor="middle">CMO</text><text x="550" y="548" class="text-[7px] fill-slate-500" text-anchor="middle">Phase2</text></g>
+        <g><circle cx="650" cy="540" r="20" fill="#cbd5e1" stroke="#94a3b8" stroke-dasharray="3 3"/><text x="650" y="538" class="text-[8px] fill-slate-700 font-bold" text-anchor="middle">Sales</text><text x="650" y="548" class="text-[7px] fill-slate-500" text-anchor="middle">Phase2</text></g>
+        <g><circle cx="750" cy="540" r="20" fill="#cbd5e1" stroke="#94a3b8" stroke-dasharray="3 3"/><text x="750" y="538" class="text-[8px] fill-slate-700 font-bold" text-anchor="middle">CS</text><text x="750" y="548" class="text-[7px] fill-slate-500" text-anchor="middle">Phase2</text></g>
+      </svg>
+      <div class="mt-3 grid grid-cols-3 gap-3 text-xs">
+        <div class="px-3 py-2 bg-eb-50 rounded"><div class="font-bold text-eb-700">秘書 (1)</div><div class="text-slate-600">松本の複製</div></div>
+        <div class="px-3 py-2 bg-slate-50 rounded"><div class="font-bold">P1 (10)</div><div class="text-slate-600">BMAD + Logan/Brand 等</div></div>
+        <div class="px-3 py-2 bg-slate-50 rounded text-slate-500"><div class="font-bold">P2 (5)</div><div>COO/CFO/CMO/Sales/CS</div></div>
+      </div>
+    </div>
+  </div>
+<footer class="h-9 bg-white border-t border-slate-200 flex items-center justify-between px-6 text-[11px] text-slate-500 shrink-0 mono">
+    <span>S-036 ai_employees_org_chart · F-022 · T-022-01</span>
+    <span><a href="../index.html" class="hover:underline">← Index</a></span>
+  </footer>
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>

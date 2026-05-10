@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>アーキテクチャ設計書 v1.0 — Build-Factory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:true,theme:'base',themeVariables:{primaryColor:'#1a6648',primaryTextColor:'#fff',lineColor:'#1a6648',fontFamily:'Noto Sans JP'}});</script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; scroll-behavior: smooth; }
+body { font-family: "Noto Sans JP", -apple-system, BlinkMacSystemFont, sans-serif; background: #f0f2f5; color: #1a1a1a; line-height: 1.7; -webkit-font-smoothing: antialiased; font-feature-settings: "palt"; }
+.layout { display: flex; min-height: 100vh; }
+.sidebar { width: 230px; flex-shrink: 0; background: #1a6648; position: fixed; top: 0; left: 0; bottom: 0; overflow-y: auto; z-index: 100; }
+.sidebar-logo { padding: 20px 18px 14px; border-bottom: 1px solid rgba(255,255,255,0.12); }
+.sidebar-logo .doc-badge { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.5); display: block; margin-bottom: 4px; }
+.sidebar-logo .doc-title { font-size: 11px; font-weight: 600; color: #fff; line-height: 1.4; }
+.sidebar-logo .doc-version { font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 6px; }
+.toc { padding: 10px 0 20px; }
+.toc a { display: flex; align-items: center; gap: 8px; padding: 6px 18px; text-decoration: none; color: rgba(255,255,255,0.65); font-size: 11.5px; transition: all 0.15s; border-left: 2px solid transparent; }
+.toc a:hover { color: #fff; background: rgba(255,255,255,0.07); border-left-color: rgba(255,255,255,0.3); }
+.toc-num { min-width: 18px; font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.35); }
+.main { margin-left: 230px; padding: 32px 32px 80px; max-width: 1080px; }
+.doc-cover { background: #fff; border-radius: 8px; padding: 36px 40px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.cover-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #94a3b8; margin-bottom: 10px; }
+.cover-title { font-size: 22px; font-weight: 700; color: #1a6648; line-height: 1.3; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
+.cover-meta { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.meta-item { display: flex; flex-direction: column; gap: 2px; }
+.meta-label { font-size: 10px; font-weight: 600; color: #94a3b8; letter-spacing: 0.06em; text-transform: uppercase; }
+.meta-value { font-size: 13px; color: #1a1a1a; font-weight: 500; }
+.section-card { background: #fff; border-radius: 8px; padding: 28px 32px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid #e2e8f0; }
+.section-num { width: 28px; height: 28px; background: #1a6648; color: #fff; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+.section-title { font-size: 16px; font-weight: 700; color: #1a6648; }
+.subsection-title { font-size: 13px; font-weight: 700; color: #334155; margin: 18px 0 10px; padding-left: 10px; border-left: 3px solid #1a6648; }
+.table-wrap { overflow-x: auto; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+thead th { background: #1a6648; color: #fff; font-weight: 600; padding: 9px 12px; text-align: left; font-size: 12px; }
+tbody td { padding: 8px 12px; border-top: 1px solid #f1f5f9; vertical-align: top; color: #334155; }
+tbody tr:nth-child(even) td { background: #f8fafc; }
+.badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+.badge-confirmed { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+.badge-p1 { background: #e6f4ee; color: #1a6648; border: 1px solid #b3d9c8; }
+.badge-p15 { background: #cffafe; color: #0e7490; border: 1px solid #a5f3fc; }
+.badge-p2 { background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; }
+.badge-zero { background: #dcfce7; color: #166534; border: 1px solid #86efac; font-weight: 700; }
+.diagram-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 16px; margin: 12px 0; overflow-x: auto; }
+.callout { background: #f7fdf9; border: 1px solid #1a6648; border-radius: 6px; padding: 12px 16px; margin: 10px 0; font-size: 12.5px; color: #1a6648; }
+.callout-warn { background: #fffbeb; border: 1px solid #f59e0b; color: #92400e; }
+code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 11.5px; background: #f1f5f9; padding: 1px 5px; border-radius: 3px; }
+@media print { .sidebar { display: none; } .main { margin-left: 0; max-width: 100%; } .section-card { box-shadow: none; } }
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <span class="doc-badge">ARCH DOC</span>
+    <div class="doc-title">Build-Factory<br>アーキテクチャ設計書</div>
+    <div class="doc-version">v1.0 / 2026-05-09</div>
+  </div>
+  <nav class="toc">
+    <a href="#overview"><span class="toc-num">1</span>全体方針</a>
+    <a href="#system"><span class="toc-num">2</span>システム構成</a>
+    <a href="#modules"><span class="toc-num">3</span>13 モジュール</a>
+    <a href="#tech"><span class="toc-num">4</span>技術スタック</a>
+    <a href="#db"><span class="toc-num">5</span>DB 設計方針</a>
+    <a href="#infra"><span class="toc-num">6</span>インフラ・デプロイ</a>
+    <a href="#security"><span class="toc-num">7</span>セキュリティ</a>
+    <a href="#monitoring"><span class="toc-num">8</span>監視・ログ</a>
+    <a href="#tradeoffs"><span class="toc-num">9</span>トレードオフ</a>
+  </nav>
+</aside>
+
+<main class="main">
+
+<div class="doc-cover">
+  <div class="cover-label">Architecture Design Document</div>
+  <div class="cover-title">Build-Factory　アーキテクチャ設計書</div>
+  <div class="cover-meta">
+    <div class="meta-item"><span class="meta-label">クライアント</span><span class="meta-value">株式会社 ENGINE BASE</span></div>
+    <div class="meta-item"><span class="meta-label">作成者</span><span class="meta-value">ENGINE BASE</span></div>
+    <div class="meta-item"><span class="meta-label">バージョン</span><span class="meta-value">v1.0</span></div>
+    <div class="meta-item"><span class="meta-label">作成日</span><span class="meta-value">2026 年 5 月 9 日</span></div>
+    <div class="meta-item"><span class="meta-label">前提</span><span class="meta-value">要件定義 v1.0</span></div>
+    <div class="meta-item"><span class="meta-label">次スキル</span><span class="meta-value">tech-stack / functional-breakdown</span></div>
+  </div>
+</div>
+
+<div class="callout"><strong>Phase 1 = 初期コスト ¥0 構成</strong>　Vercel Hobby + Oracle Cloud Free Tier (4 vCPU + 24GB RAM 永久無料) + Supabase Free + Sentry / Better Stack 無料枠で月 ¥0 達成。API / Claude プランは別。</div>
+
+<!-- 1 -->
+<div class="section-card" id="overview">
+  <div class="section-header"><div class="section-num">1</div><div class="section-title">全体方針</div></div>
+  <div class="subsection-title">アーキパターン</div>
+  <p><strong>モジュラーモノリス</strong>（FastAPI + Next.js）<span class="badge badge-confirmed">確定</span></p>
+  <div class="subsection-title">選定理由</div>
+  <ul style="padding-left:20px;font-size:12.5px;color:#334155;">
+    <li>1 人開発（dogfooding）+ Claude Code 実装エンジンで運用負荷を最小化</li>
+    <li>swarm 50 並列セッション + WebSocket は単一プロセスが状態同期しやすい</li>
+    <li>Supabase が DB / Auth / Realtime / Storage を一手に担うため Backend を軽量化</li>
+    <li>13 モジュール境界を明確化することで Phase 2/3 で必要箇所のみマイクロサービス化可能</li>
+  </ul>
+  <div class="subsection-title">採用しなかった選択肢</div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>選択肢</th><th>採用しない理由</th></tr></thead>
+    <tbody>
+      <tr><td>モノリス（無構造）</td><td>Phase 1.5 以降で機能間の境界が曖昧化し分離困難</td></tr>
+      <tr><td>マイクロサービス</td><td>1 人運用で K8s / service mesh / gRPC は持続不可・over-engineering</td></tr>
+      <tr><td>サーバレス全面</td><td>subprocess + 長時間 swarm + WebSocket は Lambda 不向き</td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<!-- 2 -->
+<div class="section-card" id="system">
+  <div class="section-header"><div class="section-num">2</div><div class="section-title">システム構成図</div></div>
+  <div class="diagram-box">
+    <pre class="mermaid">
+flowchart TB
+  Browser["ブラウザ (Chrome / Edge / Safari / Firefox)"]
+  Vercel["Vercel CDN<br/>(Frontend ホスト + CDN + DDoS)"]
+  Next["Next.js 15 App Router<br/>(SSR / RSC / Server Actions)"]
+  FastAPI["FastAPI<br/>(モジュラーモノリス・13 ドメイン)"]
+  Worker["Worker (asyncio)<br/>+ claude-agent-sdk subprocess pool"]
+  ClaudeCode["Claude Code processes<br/>(各ユーザの Pro/Max OAuth)"]
+  Anthropic["Anthropic API<br/>(各ユーザプラン消費)"]
+  Supabase["Supabase Cloud<br/>Postgres+RLS+Auth+Realtime+Storage<br/>+pgsodium+pgvector+pg_trgm+pg_cron"]
+  Langfuse["Langfuse self-host<br/>(LLM 観測 + cost + eval)"]
+  LiteLLM["LiteLLM self-host<br/>(LLM プロバイダー抽象化)"]
+  External["外部 LLM<br/>Anthropic / OpenAI / Gemini"]
+  Slack["Slack<br/>(Bolt SDK / Webhook / MCP)"]
+  GitHub["GitHub<br/>(gh CLI / MCP / OAuth)"]
+  Obsidian["Obsidian Vault<br/>(P1: Storage MD / P1.5: Headless Sync)"]
+
+  Browser -->|HTTPS / wss://| Vercel
+  Vercel --> Next
+  Next -->|API / WebSocket| FastAPI
+  FastAPI --> Worker
+  FastAPI <--> Supabase
+  FastAPI <--> LiteLLM
+  FastAPI --> Langfuse
+  Worker --> ClaudeCode
+  ClaudeCode --> Anthropic
+  LiteLLM --> External
+  FastAPI --> Slack
+  FastAPI --> GitHub
+  FastAPI --> Obsidian
+    </pre>
+  </div>
+</div>
+
+<!-- 3 -->
+<div class="section-card" id="modules">
+  <div class="section-header"><div class="section-num">3</div><div class="section-title">13 ドメインモジュール（モジュラーモノリス）</div></div>
+  <p style="font-size:12px;color:#64748b;margin-bottom:10px;">各モジュールは <code>internal/</code>（private 実装）+ <code>shared/</code>（他モジュールが import 可能な API）構造。モジュール間通信は shared 経由のみ。</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>モジュール</th><th>責務</th><th>関連 Must</th></tr></thead>
+    <tbody>
+      <tr><td><code>auth_tenant</code></td><td>account / workspace / members / invitations</td><td>M-1, M-4</td></tr>
+      <tr><td><code>ai_employee</code></td><td>AI 社員管理（BMAD ペルソナ + 3 階層 + 個人クローン）</td><td>M-3, M-22</td></tr>
+      <tr><td><code>skill</code></td><td>skill 管理 / skill_executions / skill-creator</td><td>M-2</td></tr>
+      <tr><td><code>hearing_spec</code></td><td>hearing → 仕様 + 画面モック HTML パイプライン</td><td>M-5, M-5b, M-15, M-25</td></tr>
+      <tr><td><code>phase_dependency</code></td><td>プロジェクト・フェーズ管理 + 依存グラフ <strong>(moat)</strong></td><td>M-8, M-9</td></tr>
+      <tr><td><code>task</code></td><td>タスク CRUD + 多 view + acceptance-criteria</td><td>M-6, M-7</td></tr>
+      <tr><td><code>session_swarm</code></td><td>Claude Code セッション管理（▶︎ + 並列 swarm + WebSocket）</td><td>M-10b/c/d</td></tr>
+      <tr><td><code>mcp_server</code></td><td>MCP サーバー（5 ツール）</td><td>M-10a</td></tr>
+      <tr><td><code>reviewer_loop</code></td><td>リーダー AI 壁打ちループ（Plan/Gen/Eval + 3 ターン）<strong>(moat)</strong></td><td>M-11</td></tr>
+      <tr><td><code>safety</code></td><td>赤線リスト + Constitution 階層管理</td><td>M-12, M-26</td></tr>
+      <tr><td><code>permission</code></td><td>custom_permissions UI + 権限評価 + monitor ロール</td><td>M-21</td></tr>
+      <tr><td><code>integration_*</code></td><td>github / slack / obsidian の各連携</td><td>M-13, M-14, M-16</td></tr>
+      <tr><td><code>observability</code></td><td>Langfuse 統合 + 監査ログ + バックアップ</td><td>M-17, M-18</td></tr>
+      <tr><td><code>search</code></td><td>グローバル検索（FTS + pgvector）</td><td>M-24</td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<!-- 4 -->
+<div class="section-card" id="tech">
+  <div class="section-header"><div class="section-num">4</div><div class="section-title">技術スタック</div></div>
+  <div class="subsection-title">Frontend</div>
+  <div class="table-wrap"><table>
+    <tbody>
+      <tr><td>Framework</td><td>Next.js 15 (App Router) + TypeScript</td></tr>
+      <tr><td>UI</td><td>shadcn/ui + Tailwind CSS 4</td></tr>
+      <tr><td>State</td><td>Zustand + TanStack Query</td></tr>
+      <tr><td>Graph 可視化</td><td>React Flow（DAG / 組織図 / 画面遷移）</td></tr>
+      <tr><td>Chart</td><td>Recharts</td></tr>
+      <tr><td>HTML Editor</td><td>GrapesJS Studio SDK <span class="badge badge-p15">P1.5</span></td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="subsection-title">Backend</div>
+  <div class="table-wrap"><table>
+    <tbody>
+      <tr><td>Framework</td><td>FastAPI（モジュラーモノリス・13 ドメイン）+ Python 3.13 + uv</td></tr>
+      <tr><td>Subprocess 管理</td><td><strong>claude-agent-sdk（Python・公式 SDK）</strong></td></tr>
+      <tr><td>MCP Server</td><td>Anthropic MCP Python SDK</td></tr>
+      <tr><td>ORM</td><td>SQLAlchemy 2.0 async + Pydantic + Supabase Python SDK</td></tr>
+      <tr><td>Worker</td><td>asyncio.Semaphore + Queue（P1）→ Celery + Redis（P2 必要時）</td></tr>
+      <tr><td>Lint / Format</td><td>ruff</td></tr>
+      <tr><td>Type Check</td><td>pyright</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="subsection-title">DB / 認証 / Realtime</div>
+  <div class="table-wrap"><table>
+    <tbody>
+      <tr><td>DB</td><td>Supabase Postgres（Cloud → P3 で self-host 可能性）</td></tr>
+      <tr><td>Extensions</td><td>pgvector / pg_trgm / pgsodium / pg_cron / pg_partman（P2）</td></tr>
+      <tr><td>Auth</td><td>Supabase Auth（JWT + 2FA + OAuth）</td></tr>
+      <tr><td>Realtime</td><td><strong>2 系統ハイブリッド</strong>：Supabase Realtime（DB 変更通知）+ 自前 WebSocket（swarm ライブログ・100ms 要件）</td></tr>
+      <tr><td>Storage</td><td>Supabase Storage（S3 互換）</td></tr>
+      <tr><td>Migration</td><td><strong>Supabase CLI</strong>（既存 alembic は archive）</td></tr>
+      <tr><td>暗号化</td><td>pgsodium（API キー / OAuth トークン）</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="subsection-title">AI / LLM</div>
+  <div class="table-wrap"><table>
+    <tbody>
+      <tr><td>AI 社員フレームワーク</td><td>BMAD 思想流用 + 自前統合 + Anthropic Agent Teams + 既存 96 スキル ハイブリッド（3 階層）</td></tr>
+      <tr><td>LLM 抽象化</td><td><strong>LiteLLM</strong>（self-host・Langfuse 統合・100+ プロバイダー）</td></tr>
+      <tr><td>実装層 LLM</td><td>各ユーザの Claude Pro/Max（OAuth）</td></tr>
+      <tr><td>チャット層 LLM</td><td>自社 API + BYOK の 2 系統（Claude / OpenAI / Gemini / 拡張容易）</td></tr>
+      <tr><td>観測</td><td>Langfuse self-host（MIT）</td></tr>
+      <tr><td>Long-term Memory</td><td>Mem0（既存）</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="subsection-title">インフラ <span class="badge badge-zero">Phase 1 = ¥0</span></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>レイヤー</th><th>採用</th><th>月額</th></tr></thead>
+    <tbody>
+      <tr><td>Frontend</td><td>Vercel Hobby</td><td>¥0</td></tr>
+      <tr><td>Backend / Worker / Langfuse</td><td>Oracle Cloud Free Tier（4 vCPU + 24GB RAM 永久無料）or 自宅 + Cloudflare Tunnel</td><td>¥0</td></tr>
+      <tr><td>DB / Auth / Storage</td><td>Supabase Free</td><td>¥0</td></tr>
+      <tr><td>エラートラッキング</td><td>Sentry 無料（5K events/月）</td><td>¥0</td></tr>
+      <tr><td>Uptime</td><td>Better Stack 無料（10 monitors）</td><td>¥0</td></tr>
+      <tr><td>CI/CD</td><td>GitHub Actions 無料</td><td>¥0</td></tr>
+      <tr><td>合計</td><td>Phase 1 dogfood</td><td><strong>¥0</strong></td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<!-- 5 -->
+<div class="section-card" id="db">
+  <div class="section-header"><div class="section-num">5</div><div class="section-title">DB 設計方針（要点）</div></div>
+  <div class="subsection-title">設計原則</div>
+  <ul style="padding-left:20px;font-size:12.5px;color:#334155;">
+    <li><strong>PK</strong>：UUID v7（時系列ソート可能）</li>
+    <li><strong>削除</strong>：ソフトデリート（<code>deleted_at</code>）+ RLS で auto フィルタ</li>
+    <li><strong>マルチテナント</strong>：<code>account_id</code> / <code>workspace_id</code> 全テーブル必須 + RLS で auto enforce</li>
+    <li><strong>命名</strong>：snake_case / 複数形 / FK は <code>&lt;table&gt;_id</code></li>
+    <li><strong>タイムスタンプ</strong>：<code>created_at</code> / <code>updated_at</code>（trigger 自動更新）</li>
+    <li><strong>監査</strong>：主要テーブルに変更検出 trigger → <code>audit_logs</code> に自動 INSERT</li>
+    <li><strong>時系列</strong>：BRIN index + pg_partman 月次 partition（P2）</li>
+  </ul>
+  <div class="subsection-title">主要テーブル（42）</div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>カテゴリ</th><th>数</th><th>主要テーブル</th></tr></thead>
+    <tbody>
+      <tr><td>認証・テナント</td><td>6</td><td>accounts / account_members / workspaces / workspace_members / workspace_invitations / users</td></tr>
+      <tr><td>AI・スキル</td><td>5</td><td>ai_employees / skills / skill_executions / user_knowledge_namespace / user_interaction_log</td></tr>
+      <tr><td>プロジェクト管理 (moat)</td><td>6</td><td>phases / phase_gates / tasks / task_dependencies / acceptance_criteria / constitutions</td></tr>
+      <tr><td>仕様・モック</td><td>5</td><td>artifacts / artifact_versions / screens / components / screen_components</td></tr>
+      <tr><td>実装・レビュー</td><td>7</td><td>sessions / session_logs / session_artifacts / prs / pr_reviews / red_lines / red_line_violations</td></tr>
+      <tr><td>連携・運用</td><td>11</td><td>llm_providers / api_keys / slack_webhooks / github_repos / obsidian_vaults / notifications / cost_logs / token_limits / audit_logs / backups / user_settings</td></tr>
+      <tr><td>補助</td><td>2</td><td>workspace_settings / schema_versions</td></tr>
+    </tbody>
+  </table></div>
+  <p style="font-size:12.5px;color:#334155;">→ 詳細な ER 図 + テーブル定義 + インデックス設計は <code><a href="er-diagram-v1.html" style="color:#1a6648;">er-diagram-v1.html</a></code> 参照</p>
+
+  <div class="subsection-title">Constitution + 赤線リストの階層管理</div>
+  <div class="diagram-box">
+    <pre class="mermaid">
+flowchart LR
+  C["constitutions<br/>(プロジェクト不変原則・上位)"]
+  R["red_lines<br/>(検出ルール・FK constitution_id)"]
+  V["red_line_violations<br/>(抵触ログ)"]
+  C --> R
+  R --> V
+    </pre>
+  </div>
+
+  <div class="subsection-title">個人クローン opt-in（M-22）</div>
+  <ul style="padding-left:20px;font-size:12.5px;color:#334155;">
+    <li><code>users.user_clone_opt_in DEFAULT FALSE</code></li>
+    <li><code>user_interaction_log</code> への INSERT は trigger で <code>opt_in = TRUE</code> 時のみ許可</li>
+    <li>UI で「学習データを蓄積します」明示同意 + いつでも OFF + 全削除可（GDPR ready）</li>
+  </ul>
+</div>
+
+<!-- 6 -->
+<div class="section-card" id="infra">
+  <div class="section-header"><div class="section-num">6</div><div class="section-title">インフラ・デプロイ構成</div></div>
+  <div class="subsection-title">環境構成</div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>環境</th><th>用途</th><th>ホスティング</th><th>立ち上げ</th></tr></thead>
+    <tbody>
+      <tr><td>development</td><td>ローカル dogfooding</td><td>Docker Compose + Supabase Cloud</td><td>P1 開始時</td></tr>
+      <tr><td>staging</td><td>テスト・社内公開</td><td>Production 同等構成</td><td><span class="badge badge-p15">P1.5</span></td></tr>
+      <tr><td>production</td><td>本番</td><td><strong>Vercel + Oracle Free Tier</strong></td><td>P1 中盤</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="subsection-title">CI/CD パイプライン（GitHub Actions）</div>
+  <div class="table-wrap"><table>
+    <tbody>
+      <tr><td><code>ci.yml</code></td><td>全 PR で実行：lint / typecheck / test</td></tr>
+      <tr><td><code>license-check.yml</code></td><td>AGPL 等の禁止ライセンス検出</td></tr>
+      <tr><td><code>deploy-staging.yml</code></td><td>main push で staging 自動 deploy</td></tr>
+      <tr><td><code>deploy-prod.yml</code></td><td>tag (v*) push で production deploy（手動承認）</td></tr>
+      <tr><td><code>nightly-backup.yml</code></td><td>日次 DB / Storage バックアップ + 検証</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="subsection-title">ブランチ戦略</div>
+  <p style="font-size:12.5px;color:#334155;"><code>main</code>（production）/ <code>staging</code>（P1.5+）/ <code>feature/*</code>（PR 起点）/ <code>claude/*</code>（Claude Code 自動ブランチ）</p>
+</div>
+
+<!-- 7 -->
+<div class="section-card" id="security">
+  <div class="section-header"><div class="section-num">7</div><div class="section-title">セキュリティ方針</div></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>領域</th><th>対策</th></tr></thead>
+    <tbody>
+      <tr><td>認証</td><td>Supabase Auth JWT + 2FA + OAuth（Anthropic / Slack / GitHub）</td></tr>
+      <tr><td>認可</td><td>Supabase RLS + custom_permissions JSONB / OpenFGA（P2 補完）</td></tr>
+      <tr><td>通信</td><td>HTTPS + wss:// + CORS ホワイトリスト + CSP + CSRF（SameSite=Lax）</td></tr>
+      <tr><td>DB at rest</td><td>Supabase disk encryption + pgsodium で API キー / トークン暗号化</td></tr>
+      <tr><td>クライアント側 JWT</td><td>httpOnly + Secure + SameSite cookie</td></tr>
+      <tr><td>NDA 案件機密</td><td>workspace 機密ラベル + AI 取得時フィルタ + 横断検索除外</td></tr>
+      <tr><td>個人クローン</td><td>opt-in 必須（DEFAULT FALSE）+ namespace 完全分離 + GDPR ready</td></tr>
+      <tr><td>レートリミット</td><td>API 1000/5min/user / Cloudflare 10000/5min/IP / LLM コスト workspace 上限</td></tr>
+      <tr><td>秘匿情報</td><td>Coolify Secrets / GitHub Actions Secrets / .env / pre-commit gitleaks</td></tr>
+      <tr><td>赤線 5 項目 + Constitution</td><td>ミドルウェア層で全アクション前チェック → 該当時 block + 監査ログ + 承認待ち</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="subsection-title">赤線リスト 5 項目（自動防御）</div>
+  <ol style="padding-left:24px;font-size:12.5px;color:#334155;">
+    <li>顧客 API キー / 秘密情報の漏洩</li>
+    <li>本番 DB への破壊的書込み（DROP TABLE / DELETE 全件 / TRUNCATE）</li>
+    <li>GitHub force push / 他人ブランチ書換</li>
+    <li>AI コール無限ループ（コスト爆発）</li>
+    <li>デプロイ判断の独断</li>
+  </ol>
+</div>
+
+<!-- 8 -->
+<div class="section-card" id="monitoring">
+  <div class="section-header"><div class="section-num">8</div><div class="section-title">監視・ログ・バックアップ</div></div>
+  <div class="subsection-title">監視</div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>領域</th><th>採用</th></tr></thead>
+    <tbody>
+      <tr><td>LLM observability</td><td><strong>Langfuse self-host</strong>（MIT・LiteLLM 統合）</td></tr>
+      <tr><td>アプリエラー</td><td>Sentry（無料 5K events/月）</td></tr>
+      <tr><td>Uptime</td><td>Better Stack（無料 10 monitors / 1 分間隔）</td></tr>
+      <tr><td>構造化ログ</td><td>structlog（Python）+ pino（Node.js）JSON 形式</td></tr>
+      <tr><td>パフォーマンス</td><td>Vercel Analytics + Sentry Performance + pg_stat_statements</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="subsection-title">バックアップ・復元</div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>対象</th><th>頻度</th><th>保持</th><th>方法</th></tr></thead>
+    <tbody>
+      <tr><td>Supabase Postgres</td><td>日次</td><td>90 日</td><td>Supabase 自動 + 手動 export 二重化</td></tr>
+      <tr><td>Supabase Storage</td><td>週次</td><td>90 日</td><td>rclone で別 S3 互換</td></tr>
+      <tr><td>Obsidian Vault</td><td>リアルタイム（P1.5）</td><td>永続</td><td>Headless Sync + GitHub bidirectional</td></tr>
+      <tr><td>監査ログ（DB 内）</td><td>-</td><td><strong>7 年</strong></td><td>pg_partman 月次 partition</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="subsection-title">インシデント対応フロー</div>
+  <div class="diagram-box">
+    <pre class="mermaid">
+flowchart TD
+  A["障害検知<br/>(Sentry / Uptime / Langfuse alert / Slack)"]
+  B["一次対応<br/>(高本まさん P1 / monitor P1.5+)"]
+  C{重要度判定}
+  D1["critical<br/>即時対応 + 顧客通知 (P2+)"]
+  D2["high<br/>24h 以内"]
+  D3["medium / low<br/>業務時間内"]
+  E["対応<br/>(rollback / hotfix / 監査ログ確認 / 復元)"]
+  F["ポストモーテム HTML"]
+  G["Constitution / 赤線リスト更新<br/>(再発防止)"]
+  A --> B --> C
+  C --> D1 --> E
+  C --> D2 --> E
+  C --> D3 --> E
+  E --> F --> G
+    </pre>
+  </div>
+</div>
+
+<!-- 9 -->
+<div class="section-card" id="tradeoffs">
+  <div class="section-header"><div class="section-num">9</div><div class="section-title">設計トレードオフ一覧</div></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>採用</th><th>犠牲になるもの</th><th>受容理由</th></tr></thead>
+    <tbody>
+      <tr><td>モジュラーモノリス</td><td>1 サービス障害で全停止</td><td>1 人運用なら許容・冗長化は P3</td></tr>
+      <tr><td>Supabase 採用</td><td>中程度のベンダーロックイン</td><td>標準 SQL + RLS portable で緩和 / 統合性のメリット大</td></tr>
+      <tr><td>LiteLLM self-host</td><td>VPS 運用負荷</td><td>Langfuse 統合と OSS / コストメリット大</td></tr>
+      <tr><td>自前 WebSocket（swarm）</td><td>開発コスト + sticky session</td><td>swarm の 100ms 要件は Supabase Realtime 不向き</td></tr>
+      <tr><td>Vercel + Oracle Free Tier</td><td>環境分散</td><td>初期コスト ¥0 / dogfood に十分</td></tr>
+      <tr><td>pgsodium</td><td>Supabase Vault GA で再検討</td><td>現時点での標準 + Postgres ネイティブ</td></tr>
+      <tr><td>GitHub Actions</td><td>GitHub 依存（P3 で問題なら GitLab 移行可）</td><td>M-13 GitHub 連携と統合性高</td></tr>
+      <tr><td>個人クローン opt-in OFF デフォルト</td><td>学習データ集まりにくい</td><td>プライバシー保守 / 信頼獲得</td></tr>
+      <tr><td>Supabase CLI（alembic 廃止）</td><td>既存資産の一部破棄</td><td>DB 統一性 / RLS 管理性</td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<div style="text-align:center;margin-top:30px;font-size:11px;color:#94a3b8;">
+  <p>Build-Factory アーキテクチャ設計書 v1.0 / 株式会社 ENGINE BASE / 2026-05-09</p>
+  <p style="margin-top:4px;">関連: <code>er-diagram-v1.html</code> · <code>architecture-v1.md</code> · <code>architecture_design.json</code> · <code>architecture_decision_log.json</code></p>
+  <p style="margin-top:4px;">前提: <code>../../requirements/2026-05-09_v1/</code> (要件定義 v1.0) / <code>../../hearing/2026-05-09_re-hearing/</code> (ヒアリング v2.1)</p>
+</div>
+
+</main>
+</div>
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-006 account_dashboard — Build-Factory</title>
+<meta name="bf-screen-id" content="S-006">
+<meta name="bf-feature-id" content="F-024,F-018,F-008,F-007,F-017">
+<meta name="bf-task-ids" content="T-024-01,T-024-02,T-024-03,T-018-02,T-008-02,T-007-01">
+<meta name="bf-spec-link" content="../../../requirements/2026-05-09_v1/requirements-v1.html#screens">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+body{font-family:"Noto Sans JP",sans-serif;font-feature-settings:"palt"}
+.bf-primary{color:#1a6648}.bf-bg-primary{background:#1a6648}.bf-bg-primary-light{background:#e6f4ee}
+.sidebar-link{display:flex;align-items:center;gap:8px;padding:6px 14px;color:rgba(255,255,255,.65);font-size:12.5px;border-left:2px solid transparent;transition:all .15s}
+.sidebar-link:hover{color:#fff;background:rgba(255,255,255,.07);border-left-color:rgba(255,255,255,.3)}
+.sidebar-link.active{color:#fff;background:rgba(255,255,255,.1);border-left-color:#00c97a}
+.kpi-card{background:#fff;border-radius:10px;padding:18px;border:1px solid #e2e8f0;transition:all .15s}
+.kpi-card:hover{border-color:#1a6648;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.gauge{position:relative;height:6px;background:#e2e8f0;border-radius:9999px;overflow:hidden}
+.gauge-fill{height:100%;border-radius:9999px;transition:width .5s}
+.dot{width:6px;height:6px;border-radius:9999px;display:inline-block}
+.alert-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:6px;font-size:12.5px;border-left:3px solid}
+</style></head>
+<body class="bg-slate-100">
+
+<!-- Sidebar -->
+<aside class="w-[230px] h-screen fixed left-0 top-0 bg-[#1a6648] text-white overflow-y-auto z-10">
+  <div class="px-5 py-5 border-b border-white/10">
+    <div class="text-[9px] font-bold uppercase tracking-wider text-white/50 mb-1">Build-Factory</div>
+    <div class="text-sm font-semibold">高本まさと の Account</div>
+    <div class="text-[10px] text-white/45 mt-1">Pro plan · 4 workspaces</div>
+  </div>
+  <nav class="py-3">
+    <div class="text-[9px] font-bold uppercase tracking-wider text-white/35 px-5 pt-3 pb-1">Account</div>
+    <a class="sidebar-link active"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Dashboard</a>
+    <a class="sidebar-link"><i data-lucide="briefcase" class="w-4 h-4"></i>Workspaces</a>
+    <a class="sidebar-link"><i data-lucide="users" class="w-4 h-4"></i>Members</a>
+    <a class="sidebar-link"><i data-lucide="bell" class="w-4 h-4"></i>Notifications<span class="ml-auto bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">3</span></a>
+    <a class="sidebar-link"><i data-lucide="search" class="w-4 h-4"></i>Search<span class="ml-auto text-white/30 text-[9px]"><i data-lucide="command" class="w-3 h-3 inline"></i>K</span></a>
+    <div class="text-[9px] font-bold uppercase tracking-wider text-white/35 px-5 pt-4 pb-1">Workspaces</div>
+    <a class="sidebar-link"><span class="dot bg-emerald-400"></span>Build-Factory dogfood</a>
+    <a class="sidebar-link"><span class="dot bg-amber-400"></span>受託案件 ABC社</a>
+    <a class="sidebar-link"><span class="dot bg-amber-400"></span>受託案件 XYZ社</a>
+    <a class="sidebar-link"><span class="dot bg-blue-400"></span>自社 KPI ダッシュボード</a>
+    <div class="text-[9px] font-bold uppercase tracking-wider text-white/35 px-5 pt-4 pb-1">Settings</div>
+    <a class="sidebar-link"><i data-lucide="user" class="w-4 h-4"></i>Profile</a>
+    <a class="sidebar-link"><i data-lucide="credit-card" class="w-4 h-4"></i>Billing</a>
+    <a class="sidebar-link"><i data-lucide="settings" class="w-4 h-4"></i>Settings</a>
+  </nav>
+</aside>
+
+<!-- Main -->
+<main class="ml-[230px] p-6 max-w-[1240px]">
+
+<!-- Top bar -->
+<div class="flex items-center justify-between mb-5">
+  <div>
+    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Account Dashboard</div>
+    <h1 class="text-xl font-bold text-slate-900">10 案件 俯瞰</h1>
+  </div>
+  <div class="flex items-center gap-2">
+    <button class="text-xs px-3 py-1.5 border border-slate-300 rounded-md bg-white hover:border-[#1a6648] flex items-center gap-1.5"><i data-lucide="filter" class="w-3.5 h-3.5"></i>今週</button>
+    <button class="text-xs px-3 py-1.5 border border-slate-300 rounded-md bg-white hover:border-[#1a6648] flex items-center gap-1.5"><i data-lucide="download" class="w-3.5 h-3.5"></i>HTML レポート</button>
+    <div class="w-8 h-8 rounded-full bg-[#1a6648] text-white flex items-center justify-center text-xs font-bold">M</div>
+  </div>
+</div>
+
+<!-- Hero KPIs -->
+<div class="grid grid-cols-4 gap-4 mb-5">
+  <div class="kpi-card">
+    <div class="flex items-center justify-between mb-2">
+      <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Active Projects</div>
+      <i data-lucide="briefcase" class="w-4 h-4 text-[#1a6648]"></i>
+    </div>
+    <div class="flex items-baseline gap-2"><div class="text-3xl font-black text-[#1a6648]">7</div><div class="text-xs text-slate-500">/ 10 total</div></div>
+    <div class="text-[11px] text-emerald-600 mt-1.5 flex items-center gap-1"><i data-lucide="trending-up" class="w-3 h-3"></i>+2 today</div>
+  </div>
+  <div class="kpi-card">
+    <div class="flex items-center justify-between mb-2">
+      <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Running Sessions</div>
+      <i data-lucide="zap" class="w-4 h-4 text-amber-500"></i>
+    </div>
+    <div class="flex items-baseline gap-2"><div class="text-3xl font-black text-amber-600">12</div><div class="text-xs text-slate-500">/ 50 並列上限</div></div>
+    <div class="gauge mt-2"><div class="gauge-fill bg-amber-500" style="width:24%"></div></div>
+  </div>
+  <div class="kpi-card">
+    <div class="flex items-center justify-between mb-2">
+      <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Monthly Cost</div>
+      <i data-lucide="dollar-sign" class="w-4 h-4 text-blue-500"></i>
+    </div>
+    <div class="flex items-baseline gap-2"><div class="text-3xl font-black text-blue-600">¥8,420</div><div class="text-xs text-slate-500">/ ¥30K limit</div></div>
+    <div class="gauge mt-2"><div class="gauge-fill bg-blue-500" style="width:28%"></div></div>
+    <div class="text-[10px] text-slate-500 mt-1">28% used · ↑ from ¥6,200</div>
+  </div>
+  <div class="kpi-card">
+    <div class="flex items-center justify-between mb-2">
+      <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Anomalies (24h)</div>
+      <i data-lucide="alert-triangle" class="w-4 h-4 text-red-500"></i>
+    </div>
+    <div class="flex items-baseline gap-2"><div class="text-3xl font-black text-red-600">3</div><div class="text-xs text-slate-500">要対応</div></div>
+    <div class="text-[11px] text-red-600 mt-1.5 flex items-center gap-1"><span class="dot bg-red-500"></span>赤線抵触 1 / 失敗 2</div>
+  </div>
+</div>
+
+<!-- Main grid -->
+<div class="grid grid-cols-3 gap-4 mb-5">
+
+<!-- Pending reviews -->
+<div class="bg-white rounded-xl p-5 border border-slate-200">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-sm font-bold text-[#1a6648] flex items-center gap-2"><i data-lucide="check-circle" class="w-4 h-4"></i>Pending Reviews</h2>
+    <span class="text-[10px] font-semibold bg-amber-100 text-amber-800 px-2 py-0.5 rounded">5 件</span>
+  </div>
+  <div class="space-y-2">
+    <div class="alert-row bg-red-50 border-red-500"><i data-lucide="shield-alert" class="w-4 h-4 text-red-600"></i><div class="flex-1"><div class="font-semibold">赤線抵触</div><div class="text-[11px] text-slate-600">XYZ社・API キー漏洩疑い</div></div><span class="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded font-bold">承認待ち</span></div>
+    <div class="alert-row bg-blue-50 border-blue-500"><i data-lucide="git-pull-request" class="w-4 h-4 text-blue-600"></i><div class="flex-1"><div class="font-semibold">PR #42 レビュー</div><div class="text-[11px] text-slate-600">Build-Factory dogfood・ログイン機能</div></div></div>
+    <div class="alert-row bg-blue-50 border-blue-500"><i data-lucide="git-pull-request" class="w-4 h-4 text-blue-600"></i><div class="flex-1"><div class="font-semibold">PR #38 レビュー</div><div class="text-[11px] text-slate-600">ABC社・決済 API 統合</div></div></div>
+    <div class="alert-row bg-emerald-50 border-emerald-500"><i data-lucide="package-check" class="w-4 h-4 text-emerald-600"></i><div class="flex-1"><div class="font-semibold">納品承認</div><div class="text-[11px] text-slate-600">ABC社・Phase 1 完了</div></div></div>
+  </div>
+</div>
+
+<!-- Phase progress -->
+<div class="bg-white rounded-xl p-5 border border-slate-200">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-sm font-bold text-[#1a6648] flex items-center gap-2"><i data-lucide="layers" class="w-4 h-4"></i>Phase 進捗</h2>
+    <span class="text-[10px] text-slate-500">workspace 別</span>
+  </div>
+  <div class="space-y-3">
+    <div><div class="flex justify-between text-xs mb-1"><span class="font-semibold">Build-Factory dogfood</span><span class="text-slate-500">Phase 1: 64%</span></div><div class="gauge"><div class="gauge-fill bg-[#1a6648]" style="width:64%"></div></div></div>
+    <div><div class="flex justify-between text-xs mb-1"><span class="font-semibold">受託案件 ABC社</span><span class="text-slate-500">Phase 2: 88%</span></div><div class="gauge"><div class="gauge-fill bg-emerald-500" style="width:88%"></div></div></div>
+    <div><div class="flex justify-between text-xs mb-1"><span class="font-semibold">受託案件 XYZ社</span><span class="text-slate-500">Phase 1: 32%</span></div><div class="gauge"><div class="gauge-fill bg-amber-500" style="width:32%"></div></div></div>
+    <div><div class="flex justify-between text-xs mb-1"><span class="font-semibold">自社 KPI</span><span class="text-slate-500">Phase 1: 12%</span></div><div class="gauge"><div class="gauge-fill bg-slate-400" style="width:12%"></div></div></div>
+  </div>
+</div>
+
+<!-- Completed tasks 7d -->
+<div class="bg-white rounded-xl p-5 border border-slate-200">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-sm font-bold text-[#1a6648] flex items-center gap-2"><i data-lucide="bar-chart-3" class="w-4 h-4"></i>完了タスク (7d)</h2>
+    <span class="text-[10px] text-slate-500">合計 47 件</span>
+  </div>
+  <svg viewBox="0 0 280 110" class="w-full">
+    <defs><linearGradient id="grad1" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#1a6648" stop-opacity="0.3"/><stop offset="100%" stop-color="#1a6648" stop-opacity="0"/></linearGradient></defs>
+    <polyline points="20,80 60,60 100,70 140,40 180,55 220,30 260,45" fill="none" stroke="#1a6648" stroke-width="2"/>
+    <polygon points="20,80 60,60 100,70 140,40 180,55 220,30 260,45 260,100 20,100" fill="url(#grad1)"/>
+    <g font-size="9" fill="#94a3b8" font-family="Noto Sans JP">
+      <text x="20" y="105" text-anchor="middle">月</text>
+      <text x="60" y="105" text-anchor="middle">火</text>
+      <text x="100" y="105" text-anchor="middle">水</text>
+      <text x="140" y="105" text-anchor="middle">木</text>
+      <text x="180" y="105" text-anchor="middle">金</text>
+      <text x="220" y="105" text-anchor="middle">土</text>
+      <text x="260" y="105" text-anchor="middle">日</text>
+    </g>
+    <g font-size="10" fill="#1a6648" font-weight="700">
+      <text x="20" y="74">3</text>
+      <text x="60" y="54">5</text>
+      <text x="100" y="64">4</text>
+      <text x="140" y="34">8</text>
+      <text x="180" y="49">6</text>
+      <text x="220" y="24">12</text>
+      <text x="260" y="39">9</text>
+    </g>
+  </svg>
+  <div class="text-[11px] text-emerald-600 mt-2 flex items-center gap-1"><i data-lucide="trending-up" class="w-3 h-3"></i>+34% week-over-week</div>
+</div>
+
+</div>
+
+<!-- 10 案件 一覧 -->
+<div class="bg-white rounded-xl p-5 border border-slate-200 mb-5">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-sm font-bold text-[#1a6648] flex items-center gap-2"><i data-lucide="briefcase" class="w-4 h-4"></i>全 Workspaces (10 案件並走中)</h2>
+    <button class="text-xs px-3 py-1 bg-[#1a6648] text-white rounded hover:bg-[#155236]">+ 新規案件</button>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-xs">
+      <thead><tr class="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-200"><th class="text-left py-2">Workspace</th><th class="text-left">Phase</th><th class="text-left">Active Tasks</th><th class="text-left">Running</th><th class="text-left">Cost (Mon)</th><th class="text-left">担当 AI</th><th class="text-left">Status</th></tr></thead>
+      <tbody class="divide-y divide-slate-100">
+        <tr class="hover:bg-slate-50"><td class="py-2.5 font-semibold">Build-Factory dogfood</td><td>Phase 1</td><td>34 / 113</td><td><span class="font-bold text-amber-600">5/5</span></td><td>¥3,200</td><td><div class="flex -space-x-1"><div class="w-5 h-5 rounded-full bg-blue-500 text-white text-[9px] flex items-center justify-center border-2 border-white">D</div><div class="w-5 h-5 rounded-full bg-pink-500 text-white text-[9px] flex items-center justify-center border-2 border-white">Q</div><div class="w-5 h-5 rounded-full bg-purple-500 text-white text-[9px] flex items-center justify-center border-2 border-white">W</div></div></td><td><span class="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-semibold">progressing</span></td></tr>
+        <tr class="hover:bg-slate-50"><td class="py-2.5 font-semibold">受託案件 ABC社</td><td>Phase 2</td><td>3 / 24</td><td><span class="font-bold text-amber-600">2/5</span></td><td>¥1,820</td><td><div class="flex -space-x-1"><div class="w-5 h-5 rounded-full bg-blue-500 text-white text-[9px] flex items-center justify-center border-2 border-white">D</div></div></td><td><span class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-semibold">delivery prep</span></td></tr>
+        <tr class="hover:bg-slate-50"><td class="py-2.5 font-semibold">受託案件 XYZ社</td><td>Phase 1</td><td>18 / 56</td><td><span class="font-bold text-red-600">0/5 <i data-lucide="alert-triangle" class="w-3.5 h-3.5 inline"></i></span></td><td>¥1,400</td><td><div class="flex -space-x-1"><div class="w-5 h-5 rounded-full bg-blue-500 text-white text-[9px] flex items-center justify-center border-2 border-white">D</div></div></td><td><span class="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded font-semibold">red line blocked</span></td></tr>
+        <tr class="hover:bg-slate-50"><td class="py-2.5 font-semibold">自社 KPI ダッシュボード</td><td>Phase 1</td><td>8 / 67</td><td>0/5</td><td>¥920</td><td><div class="flex -space-x-1"><div class="w-5 h-5 rounded-full bg-purple-500 text-white text-[9px] flex items-center justify-center border-2 border-white">W</div></div></td><td><span class="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-semibold">planning</span></td></tr>
+        <tr class="hover:bg-slate-50"><td class="py-2.5 font-semibold">DEF株式会社 Web</td><td>Phase 1</td><td>12 / 38</td><td>2/5</td><td>¥780</td><td><div class="flex -space-x-1"><div class="w-5 h-5 rounded-full bg-pink-500 text-white text-[9px] flex items-center justify-center border-2 border-white">M</div></div></td><td><span class="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-semibold">progressing</span></td></tr>
+        <tr class="hover:bg-slate-50"><td class="py-2.5 font-semibold">GHI 社内ツール</td><td>Phase 2</td><td>5 / 22</td><td>1/5</td><td>¥240</td><td><div class="flex -space-x-1"><div class="w-5 h-5 rounded-full bg-blue-500 text-white text-[9px] flex items-center justify-center border-2 border-white">D</div></div></td><td><span class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-semibold">review</span></td></tr>
+        <tr class="hover:bg-slate-50"><td class="py-2.5 font-semibold">JKL EC サイト</td><td>Phase 1</td><td>22 / 45</td><td>2/5</td><td>¥60</td><td><div class="flex -space-x-1"><div class="w-5 h-5 rounded-full bg-amber-500 text-white text-[9px] flex items-center justify-center border-2 border-white">B</div></div></td><td><span class="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-semibold">design</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="text-[11px] text-slate-400 mt-3 text-center">+ 3 件の workspace を非表示中 ↓ <a class="text-[#1a6648] underline cursor-pointer">すべて表示</a></p>
+</div>
+
+<!-- AI Employee usage -->
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-white rounded-xl p-5 border border-slate-200">
+  <h2 class="text-sm font-bold text-[#1a6648] flex items-center gap-2 mb-4"><i data-lucide="bot" class="w-4 h-4"></i>AI 社員 使用率（今週）</h2>
+  <div class="space-y-2.5 text-xs">
+    <div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-[11px]">D</div><div class="flex-1"><div class="font-semibold">Devon (Senior Dev)</div><div class="gauge mt-1"><div class="gauge-fill bg-blue-500" style="width:78%"></div></div></div><div class="text-slate-600 font-mono">¥2,840</div></div>
+    <div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-pink-500 text-white flex items-center justify-center font-bold text-[11px]">Q</div><div class="flex-1"><div class="font-semibold">Quinn (QA)</div><div class="gauge mt-1"><div class="gauge-fill bg-pink-500" style="width:62%"></div></div></div><div class="text-slate-600 font-mono">¥1,920</div></div>
+    <div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-purple-500 text-white flex items-center justify-center font-bold text-[11px]">W</div><div class="flex-1"><div class="font-semibold">Winston (Architect)</div><div class="gauge mt-1"><div class="gauge-fill bg-purple-500" style="width:48%"></div></div></div><div class="text-slate-600 font-mono">¥1,540</div></div>
+    <div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-[11px]">M</div><div class="flex-1"><div class="font-semibold">Mary (BA)</div><div class="gauge mt-1"><div class="gauge-fill bg-amber-500" style="width:38%"></div></div></div><div class="text-slate-600 font-mono">¥980</div></div>
+    <div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-[11px]">R</div><div class="flex-1"><div class="font-semibold">Reviewer</div><div class="gauge mt-1"><div class="gauge-fill bg-emerald-500" style="width:32%"></div></div></div><div class="text-slate-600 font-mono">¥720</div></div>
+    <div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-slate-400 text-white flex items-center justify-center font-bold text-[11px]">+5</div><div class="flex-1"><div class="font-semibold text-slate-500">他 5 体</div></div><div class="text-slate-500 font-mono">¥420</div></div>
+  </div>
+</div>
+
+<div class="bg-white rounded-xl p-5 border border-slate-200">
+  <h2 class="text-sm font-bold text-[#1a6648] flex items-center gap-2 mb-4"><i data-lucide="activity" class="w-4 h-4"></i>直近の Activity</h2>
+  <div class="space-y-2 text-xs">
+    <div class="flex items-start gap-2 py-1.5"><span class="dot bg-emerald-500 mt-1.5"></span><div class="flex-1"><div><b>Devon</b> が <code class="bg-slate-100 px-1 rounded text-[11px]">T-010b-04</code> を完了</div><div class="text-[10px] text-slate-400">2 分前 · Build-Factory dogfood</div></div></div>
+    <div class="flex items-start gap-2 py-1.5"><span class="dot bg-amber-500 mt-1.5"></span><div class="flex-1"><div><b>Reviewer</b> が PR #42 にコメント</div><div class="text-[10px] text-slate-400">5 分前 · Build-Factory dogfood</div></div></div>
+    <div class="flex items-start gap-2 py-1.5"><span class="dot bg-red-500 mt-1.5"></span><div class="flex-1"><div>赤線検出: API キー疑い <span class="text-[10px] text-red-600 font-semibold">[要承認]</span></div><div class="text-[10px] text-slate-400">12 分前 · 受託案件 XYZ社</div></div></div>
+    <div class="flex items-start gap-2 py-1.5"><span class="dot bg-blue-500 mt-1.5"></span><div class="flex-1"><div><b>Mary</b> がヒアリング Step 4 完了</div><div class="text-[10px] text-slate-400">28 分前 · DEF株式会社 Web</div></div></div>
+    <div class="flex items-start gap-2 py-1.5"><span class="dot bg-purple-500 mt-1.5"></span><div class="flex-1"><div><b>Winston</b> が architecture-design 完了</div><div class="text-[10px] text-slate-400">1 時間前 · 自社 KPI ダッシュボード</div></div></div>
+    <div class="flex items-start gap-2 py-1.5"><span class="dot bg-emerald-500 mt-1.5"></span><div class="flex-1"><div>セッション 5 並列 完走</div><div class="text-[10px] text-slate-400">2 時間前 · ABC社</div></div></div>
+  </div>
+  <div class="mt-3 text-center"><a class="text-[11px] text-[#1a6648] underline cursor-pointer">すべて表示 →</a></div>
+</div>
+</div>
+
+<!-- Footer -->
+<div class="mt-6 text-center text-[10px] text-slate-400 border-t border-slate-200 pt-4">
+  <p><strong>S-006 account_dashboard</strong> · F-024/F-018/F-008/F-007/F-017 関連</p>
+  <p class="mt-1">関連: <a class="text-[#1a6648] underline" href="../index.html">← Index</a> · <a class="text-[#1a6648] underline" href="../../../requirements/2026-05-09_v1/requirements-v1.html">仕様書</a> · <a class="text-[#1a6648] underline" href="../../../task-decomposition/2026-05-09_v1/tickets.html">タスク</a> · <a class="text-[#1a6648] underline" href="../../../architecture/2026-05-09_v1/er-diagram-v1.html">ER 図</a></p>
+</div>
+
+</main>
+
+<script>lucide.createIcons();</script>
+</body></html>

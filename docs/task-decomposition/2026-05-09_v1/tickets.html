@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tickets v1.0 — Build-Factory</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px}body{font-family:"Noto Sans JP",sans-serif;background:#f0f2f5;color:#1a1a1a;line-height:1.6;font-feature-settings:"palt"}
+.layout{max-width:1280px;margin:0 auto;padding:24px}
+.cover{background:#fff;border-radius:8px;padding:24px 32px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.cover h1{font-size:22px;font-weight:900;color:#1a6648;margin-bottom:6px}
+.cover .meta{font-size:11px;color:#94a3b8;letter-spacing:.06em;text-transform:uppercase}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:16px 0}
+.s-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:12px;text-align:center}
+.s-card .num{font-size:22px;font-weight:900;color:#1a6648}
+.s-card .lbl{font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+.legend{background:#f7fdf9;border:1px solid #b3d9c8;border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:12px;display:flex;gap:16px;flex-wrap:wrap}
+.sprint{background:#fff;border-radius:8px;padding:16px 20px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.sprint h2{font-size:15px;font-weight:700;color:#1a6648;margin-bottom:6px;padding-bottom:8px;border-bottom:2px solid #1a6648;display:flex;align-items:center;gap:8px}
+.sprint .week{font-size:10px;font-weight:600;color:#64748b;background:#e2e8f0;padding:2px 8px;border-radius:3px}
+.sprint .stats{font-size:11px;color:#94a3b8;font-weight:500}
+.tickets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:8px;margin-top:10px}
+.tc{border:1px solid #e2e8f0;border-radius:6px;padding:10px 12px;background:#fff;font-size:12px;display:flex;flex-direction:column;gap:4px}
+.tc .h{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tc .id{font-family:'SF Mono',monospace;font-size:11px;font-weight:700;color:#1a6648;background:#e6f4ee;padding:1px 5px;border-radius:3px}
+.tc .title{font-weight:600;color:#1a1a1a;flex:1}
+.tc .meta-row{display:flex;gap:6px;font-size:10px;color:#64748b;align-items:center}
+.tc .layer{background:#f1f5f9;padding:1px 5px;border-radius:3px;font-weight:500}
+.tc .deps{font-size:10px;color:#94a3b8}
+.tc .files{font-size:10px;color:#475569;background:#f8fafc;border-radius:3px;padding:3px 6px;font-family:monospace}
+.label{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;text-transform:uppercase}
+.l-reuse{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.l-refactor{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+.l-new{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+.critical{border-left:4px solid #ef4444;padding-left:8px;background:#fef2f2}
+.days{color:#1a6648;font-weight:600}
+.references{color:#7c3aed;font-style:italic}
+@media print{.tc{break-inside:avoid}}
+</style></head><body>
+
+<div class="layout">
+
+<div class="cover">
+<h1>Build-Factory タスク一覧 v1.0</h1>
+<p class="meta">作成日：2026-05-09 / 113 タスク（104 機能 + 8 統合 + 1 監査）</p>
+<div class="summary">
+  <div class="s-card"><div class="num">113</div><div class="lbl">Total Tickets</div></div>
+  <div class="s-card"><div class="num">14</div><div class="lbl">REUSE 🟢</div></div>
+  <div class="s-card"><div class="num">50</div><div class="lbl">REFACTOR 🟡</div></div>
+  <div class="s-card"><div class="num">49</div><div class="lbl">NEW 🔴</div></div>
+  <div class="s-card"><div class="num">12</div><div class="lbl">Critical Path</div></div>
+  <div class="s-card"><div class="num">57.6</div><div class="lbl">人間日</div></div>
+  <div class="s-card"><div class="num">17.5</div><div class="lbl">Claude Code 並列日</div></div>
+</div>
+<div class="legend">
+  <span><span class="label l-reuse">REUSE</span> 既存活用</span>
+  <span><span class="label l-refactor">REFACTOR</span> 既存基礎 + v2.1 改修</span>
+  <span><span class="label l-new">NEW</span> 全面新規</span>
+  <span style="border-left:4px solid #ef4444;padding-left:6px">Critical Path</span>
+</div>
+</div>
+
+<div class="sprint">
+<h2><span class="week">Sprint 0 / Week 1-2</span> 基盤 + 監査 <span class="stats">36 tickets · 11.0 人間日 · 3-4 並列日</span></h2>
+<div class="tickets-grid">
+<div class="tc critical"><div class="h"><span class="id">T-019-01</span><span class="title">bootstrap archive 9 ファイル</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">OPS</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-019-02</span><span class="title">modify Issue 化</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">OPS</span><span class="days">0.5d</span><span class="deps">deps: T-019-01</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-019-03</span><span class="title">bootstrap 動作確認</span><span class="label l-reuse">REUSE</span></div><div class="meta-row"><span class="layer">TST</span><span class="days">0.5d</span></div></div>
+<div class="tc critical"><div class="h"><span class="id">T-S0-13</span><span class="title">既存実装インベントリ監査</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">OPS</span><span class="days">1.0d</span></div><div class="files">→ existing-inventory.json</div></div>
+<div class="tc"><div class="h"><span class="id">T-S0-01</span><span class="title">docker-compose.yml</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">OPS</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-S0-02</span><span class="title">GitHub Actions ci.yml</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">OPS</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-S0-03</span><span class="title">license-check.yml (AGPL 防御)</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">OPS</span><span class="days">0.3d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-S0-04</span><span class="title">deploy-staging.yml</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">OPS</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-S0-05</span><span class="title">shadcn/ui setup + Tailwind</span><span class="label l-reuse">REUSE</span></div><div class="meta-row"><span class="layer">FE</span><span class="days">0.3d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-S0-06</span><span class="title">共通 UI components</span><span class="label l-reuse">REUSE</span></div><div class="meta-row"><span class="layer">FE</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-S0-07</span><span class="title">Supabase FE wrapper</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">FE</span><span class="days">0.3d</span></div></div>
+<div class="tc critical"><div class="h"><span class="id">T-S0-08</span><span class="title">Supabase BE wrapper</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">BE</span><span class="days">0.3d</span></div><div class="files">supabase_client.py 拡張</div></div>
+<div class="tc critical"><div class="h"><span class="id">T-S0-09</span><span class="title">RLS helper</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">BE</span><span class="days">0.3d</span></div><div class="files">auth_middleware.py 拡張</div></div>
+<div class="tc"><div class="h"><span class="id">T-S0-10</span><span class="title">Sentry 設定</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">OPS</span><span class="days">0.3d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-S0-11</span><span class="title">structlog + pino</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">OPS</span><span class="days">0.3d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-S0-12</span><span class="title">Better Stack uptime</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">OPS</span><span class="days">0.2d</span></div></div>
+<div class="tc critical"><div class="h"><span class="id">T-001-01</span><span class="title">Supabase project init</span><span class="label l-reuse">REUSE</span></div><div class="meta-row"><span class="layer">OPS</span><span class="days">0.2d</span></div></div>
+<div class="tc critical"><div class="h"><span class="id">T-001-02</span><span class="title">認証 6 テーブル DDL</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">DB</span><span class="days">0.3d</span></div><div class="files">existing initial_schema.sql 拡張</div></div>
+<div class="tc"><div class="h"><span class="id">T-001-03</span><span class="title">AI 5 テーブル DDL (hierarchy + clone)</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">DB</span><span class="days">0.3d</span></div></div>
+<div class="tc critical"><div class="h"><span class="id">T-001-04</span><span class="title">プロジェクト 11 テーブル DDL</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">DB</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-001-05</span><span class="title">実装・連携 20 テーブル + ChatThread/Message/Template</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">DB</span><span class="days">0.7d</span></div></div>
+<div class="tc critical"><div class="h"><span class="id">T-001-06</span><span class="title">RLS 全テーブル + custom_permissions 連動</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">DB</span><span class="days">0.7d</span></div><div class="files">existing rls_skeleton.sql 拡張</div></div>
+<div class="tc"><div class="h"><span class="id">T-001-07</span><span class="title">拡張 (pgvector/pg_trgm/pgsodium/pg_cron) + 100+ index</span><span class="label l-reuse">REUSE</span></div><div class="meta-row"><span class="layer">DB</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-001-08</span><span class="title">クローン opt-in trigger</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">DB</span><span class="days">0.3d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-001-09</span><span class="title">循環依存防止 trigger</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">DB</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-001-10</span><span class="title">seed.sql + BF_ENV ガード</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">DB</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-001-11</span><span class="title">DB 統合テスト</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">TST</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-002-01</span><span class="title">スキル管理 UI</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">FE</span><span class="days">0.3d</span></div><div class="files">existing skills.py 拡張</div></div>
+<div class="tc"><div class="h"><span class="id">T-002-02</span><span class="title">archive スクリプト</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">BE</span><span class="days">0.2d</span></div><div class="files">skill_manager.py 拡張</div></div>
+<div class="tc"><div class="h"><span class="id">T-004-01</span><span class="title">account 作成</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">BE+FE</span><span class="days">0.3d</span></div><div class="files">accounts.py 拡張</div></div>
+<div class="tc"><div class="h"><span class="id">T-004-02</span><span class="title">workspace 作成</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">BE+FE</span><span class="days">0.3d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-004-03</span><span class="title">invitations 発行</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">BE</span><span class="days">0.3d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-004-04</span><span class="title">招待受入 + signup</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">BE+FE</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-004-05</span><span class="title">owner 移譲 UI</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">FE</span><span class="days">0.3d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-004-06</span><span class="title">テナント階層統合テスト</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">TST</span><span class="days">0.3d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-IT-S0</span><span class="title">Sprint 0 統合テスト</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">TST</span><span class="days">0.5d</span></div></div>
+</div>
+</div>
+
+<div class="sprint">
+<h2><span class="week">Sprint 1 / Week 2-3</span> 認可・UX <span class="stats">10 tickets · 4.6 人間日 · 1.5 並列日</span></h2>
+<div class="tickets-grid">
+<div class="tc"><div class="h"><span class="id">T-021-01</span><span class="title">6 ロール enum + permission matrix</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">DB+BE</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-021-02</span><span class="title">custom_permissions JSONB バリデータ</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">BE</span><span class="days">0.3d</span></div></div>
+<div class="tc critical"><div class="h"><span class="id">T-021-03</span><span class="title">permission middleware</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">BE</span><span class="days">0.5d</span></div><div class="files">auth_middleware.py 拡張</div></div>
+<div class="tc"><div class="h"><span class="id">T-021-04</span><span class="title">permission matrix UI grid</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">FE</span><span class="days">0.7d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-021-05</span><span class="title">self-strip block + owner 保護</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">BE+FE</span><span class="days">0.3d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-023-01</span><span class="title">プロフィール編集 UI</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">FE</span><span class="days">0.3d</span></div><div class="files">user_profile.py 活用</div></div>
+<div class="tc"><div class="h"><span class="id">T-023-02</span><span class="title">API キー管理 UI</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">FE+BE</span><span class="days">0.5d</span></div><div class="files">credentials_store.py 活用</div></div>
+<div class="tc"><div class="h"><span class="id">T-023-03</span><span class="title">pgsodium 暗号化保管</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">BE</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-023-04</span><span class="title">OAuth 連携 (Slack/GitHub/Anthropic)</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">FE+BE</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-023-05</span><span class="title">クローン opt-in toggle + GDPR</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">FE+BE</span><span class="days">0.5d</span></div></div>
+</div>
+</div>
+
+<div class="sprint">
+<h2><span class="week">Sprint 2 / Week 3-4</span> AI 基盤 + Runtime（最重要・26 tickets）<span class="stats">9.7 人間日 · 3 並列日</span></h2>
+<div class="tickets-grid">
+<div class="tc"><div class="h"><span class="id">T-020-01</span><span class="title">LiteLLM docker</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">OPS</span><span class="days">0.5d</span></div></div>
+<div class="tc critical"><div class="h"><span class="id">T-020-02</span><span class="title">LiteLLM wrapper</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">BE</span><span class="days">0.5d</span></div><div class="files">llm.py / llm_providers.py 統合</div></div>
+<div class="tc"><div class="h"><span class="id">T-020-03</span><span class="title">provider adapter 3 個</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">BE</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-020-04</span><span class="title">BYOK + prompt cache</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">BE</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-022-01</span><span class="title">ai_employees DDL 確認</span><span class="label l-reuse">REUSE</span></div><div class="meta-row"><span class="layer">DB</span><span class="days">0.2d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-022-02</span><span class="title">階層循環 trigger</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">DB</span><span class="days">0.3d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-022-03</span><span class="title">AI 社員 CRUD API</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">BE</span><span class="days">0.5d</span></div><div class="files">employees.py / staff_service.py 拡張</div></div>
+<div class="tc"><div class="h"><span class="id">T-022-04</span><span class="title">組織図 UI (React Flow tree)</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">FE</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-003-01</span><span class="title">BMAD → 10 メンバー persona prompt</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">BE</span><span class="days">0.5d</span></div></div>
+<div class="tc critical"><div class="h"><span class="id">T-003-02</span><span class="title">AI 社員召喚 API</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">BE</span><span class="days">0.7d</span></div><div class="files">secretary_chat.py + delegation_service.py + LangGraph</div></div>
+<div class="tc"><div class="h"><span class="id">T-003-03</span><span class="title">parent guideline 継承</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">BE</span><span class="days">0.3d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-003-04</span><span class="title">スキル context 注入</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">BE</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-003-05</span><span class="title">artifact 保存 + AC 検証</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">BE</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-M27-01</span><span class="title">LangGraph base + entry node</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">RUN</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-M27-02</span><span class="title">Intent 分類</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">RUN</span><span class="days">0.5d</span></div><div class="references">参考: openai/codex</div></div>
+<div class="tc"><div class="h"><span class="id">T-M27-03</span><span class="title">Agent / Role Selector + handoff</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">RUN</span><span class="days">0.5d</span></div></div>
+<div class="tc critical"><div class="h"><span class="id">T-M28-01</span><span class="title">Context Builder skeleton</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">RUN</span><span class="days">0.7d</span></div><div class="references">参考: openai/codex + Claude API compaction</div></div>
+<div class="tc"><div class="h"><span class="id">T-M28-02</span><span class="title">Tier 1 tool result trimming</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">RUN</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-M28-03</span><span class="title">Tier 2 prompt cache (cache_control)</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">RUN</span><span class="days">0.3d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-M28-04</span><span class="title">Tier 3 9-section structured summary</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">RUN</span><span class="days">0.7d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-M28-05</span><span class="title">semantic retrieval</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">RUN</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-M30-01</span><span class="title">ChatThread/ChatMessage CRUD</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">BE</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-M30-02</span><span class="title">短期 layer (FIFO)</span><span class="label l-reuse">REUSE</span></div><div class="meta-row"><span class="layer">BE</span><span class="days">0.3d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-M30-03</span><span class="title">中期 layer</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">BE</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-M30-04</span><span class="title">長期 layer (Mem0+Obsidian)</span><span class="label l-refactor">REFACTOR</span></div><div class="meta-row"><span class="layer">BE</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-M30-05</span><span class="title">Memory 統合テスト</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">TST</span><span class="days">0.5d</span></div></div>
+<div class="tc"><div class="h"><span class="id">T-IT-S2</span><span class="title">Sprint 2 統合テスト</span><span class="label l-new">NEW</span></div><div class="meta-row"><span class="layer">TST</span><span class="days">0.5d</span></div></div>
+</div>
+</div>
+
+<div class="sprint">
+<h2><span class="week">Sprint 3-7（要約）</span> <span class="stats">残 41 tickets · 32.4 人間日 · 10 並列日</span></h2>
+<p style="font-size:12px;color:#475569;line-height:1.7;">Sprint 3：F-025 EARS / F-015 HTML レポート 7 種 / F-005 hearing+spec / F-005b モック / F-006 タスク分解（17 tickets）</p>
+<p style="font-size:12px;color:#475569;line-height:1.7;">Sprint 4：F-008 フェーズ管理 / F-009 依存グラフ + 影響分析 / F-007 多 view UI / F-024 グローバル検索（16 tickets）</p>
+<p style="font-size:12px;color:#475569;line-height:1.7;">Sprint 5：F-026 Constitution / F-012 赤線 + OS sandbox / F-010a MCP / F-010b ▶︎ スポナー / F-011 壁打ちループ（21 tickets）</p>
+<p style="font-size:12px;color:#475569;line-height:1.7;">Sprint 6：M-29 git worktree / F-010c 並列 swarm + crash detection + resume / F-010d WebSocket UI（13 tickets）</p>
+<p style="font-size:12px;color:#475569;line-height:1.7;">Sprint 7：F-013 GitHub / F-014 Slack / F-016 Obsidian / F-017 Langfuse / F-018 監査・バックアップ + 最終統合（16 tickets）</p>
+<p style="font-size:11px;color:#94a3b8;margin-top:8px">→ 全 113 tickets の詳細は <code>tickets.json</code> 参照</p>
+</div>
+
+<div style="text-align:center;margin-top:20px;font-size:11px;color:#94a3b8">
+<p>Build-Factory Tickets v1.0 / 株式会社 ENGINE BASE / 2026-05-09</p>
+<p>関連: <code>tickets.json</code> · <code>client-summary.md</code> · <code>interfaces.md</code> · <code>decision-log.json</code></p>
+</div>
+
+</div>
+</body></html>

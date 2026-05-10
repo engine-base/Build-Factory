@@ -1,0 +1,2832 @@
+{
+  "meta": {
+    "project": "Build-Factory",
+    "version": "1.0",
+    "created_at": "2026-05-09",
+    "skill": "task-decomposition",
+    "ticket_count": 113,
+    "labels": {
+      "reuse": "🟢",
+      "refactor": "🟡",
+      "new": "🔴",
+      "archive": "⚫"
+    }
+  },
+  "summary": {
+    "total_tickets": 113,
+    "feature_tasks": 104,
+    "integration_tests": 8,
+    "audit_task": 1,
+    "estimated_human_days": 57.6,
+    "estimated_claude_code_parallel_days": 17.5,
+    "human_weeks": "9-10",
+    "claude_code_parallel_weeks": "4-5",
+    "dogfood_partial_start_week": 5,
+    "dogfood_full_start_week": 8,
+    "total_tasks": 165,
+    "by_label": {
+      "REFACTOR": 58,
+      "NEW": 94,
+      "REUSE": 13
+    }
+  },
+  "critical_path": [
+    "T-019-01",
+    "T-S0-13",
+    "T-001-01",
+    "T-001-02",
+    "T-001-04",
+    "T-001-06",
+    "T-S0-08",
+    "T-S0-09",
+    "T-021-03",
+    "T-020-02",
+    "T-003-02",
+    "T-M28-01"
+  ],
+  "v21_compliance_rule": "全 REFACTOR タスクに『v2.1 仕様適合性確認』AC を必須追加（不足列 / RLS / index / enum / M-21/M-28/F-026 連携を検証）",
+  "tickets": [
+    {
+      "id": "T-019-01",
+      "title": "bootstrap archive 9 ファイル",
+      "sprint": "S0",
+      "feature": "F-019",
+      "layer": "OPS",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 1,
+      "deps": [],
+      "blocks": "all",
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-19",
+      "mock_link": null,
+      "existing_files": [
+        "onlook/",
+        "penpot/",
+        "frontend/src/components/onlook/"
+      ],
+      "entities": [],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The repository shall not contain the onlook/ or penpot/ directories after this task."
+        },
+        {
+          "type": "EVENT",
+          "text": "When `git status` is run, the system shall report no remaining onlook references."
+        },
+        {
+          "type": "STATE",
+          "text": "While the build process runs, the system shall not import any onlook modules."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If any reference to onlook remains in package.json or imports, the lint script shall fail."
+        }
+      ]
+    },
+    {
+      "id": "T-019-02",
+      "title": "modify 対象 GitHub Issue 化",
+      "sprint": 0,
+      "feature": "F-019",
+      "layer": "OPS",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-019-01"
+      ]
+    },
+    {
+      "id": "T-019-03",
+      "title": "bootstrap 動作確認",
+      "sprint": 0,
+      "feature": "F-019",
+      "layer": "TST",
+      "label": "REUSE",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-019-02"
+      ]
+    },
+    {
+      "id": "T-S0-13",
+      "title": "既存実装インベントリ監査 → existing-inventory.json",
+      "sprint": "S0",
+      "feature": "META",
+      "layer": "OPS",
+      "label": "NEW",
+      "human_days": 1.0,
+      "claude_code_hours": 4,
+      "deps": [
+        "T-019-01"
+      ],
+      "critical": true,
+      "output_file": "existing-inventory.json",
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "mock_link": null,
+      "existing_files": [
+        "backend/main.py",
+        "backend/routers/",
+        "backend/services/"
+      ],
+      "entities": [],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The backend scaffold shall expose `/health` returning 200 OK with version metadata."
+        },
+        {
+          "type": "EVENT",
+          "text": "When the FastAPI app starts, the system shall load all 13 domain modules without errors."
+        },
+        {
+          "type": "STATE",
+          "text": "While running in development mode, the system shall enable hot reload."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If a domain module fails to import, the system shall fail fast and log the missing dependency."
+        }
+      ]
+    },
+    {
+      "id": "T-S0-01",
+      "title": "docker-compose.yml 全サービス",
+      "sprint": 0,
+      "feature": "META",
+      "layer": "OPS",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": []
+    },
+    {
+      "id": "T-S0-02",
+      "title": "GitHub Actions ci.yml",
+      "sprint": 0,
+      "feature": "META",
+      "layer": "OPS",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": []
+    },
+    {
+      "id": "T-S0-03",
+      "title": "license-check.yml (AGPL 防御)",
+      "sprint": 0,
+      "feature": "META",
+      "layer": "OPS",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": []
+    },
+    {
+      "id": "T-S0-04",
+      "title": "deploy-staging.yml",
+      "sprint": 0,
+      "feature": "META",
+      "layer": "OPS",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-S0-02"
+      ]
+    },
+    {
+      "id": "T-S0-05",
+      "title": "shadcn/ui setup + Tailwind config",
+      "sprint": 0,
+      "feature": "META",
+      "layer": "FE",
+      "label": "REUSE",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": []
+    },
+    {
+      "id": "T-S0-06",
+      "title": "共通 UI components (Button/Input/Modal/Toast/Badge)",
+      "sprint": 0,
+      "feature": "META",
+      "layer": "FE",
+      "label": "REUSE",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-S0-05"
+      ]
+    },
+    {
+      "id": "T-S0-07",
+      "title": "Supabase FE wrapper",
+      "sprint": 0,
+      "feature": "META",
+      "layer": "FE",
+      "label": "REFACTOR",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": []
+    },
+    {
+      "id": "T-S0-08",
+      "title": "Supabase BE wrapper (既存 supabase_client.py 拡張)",
+      "sprint": "S0",
+      "feature": "META",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [],
+      "critical": true,
+      "existing_files": [
+        "backend/integrations/skill_runner.py"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "mock_link": "../../mocks/2026-05-09_v1/task/S-032-swarm-session-detail.html",
+      "entities": [
+        "sessions",
+        "session_logs"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The claude-runner shall spawn Claude Code as a subprocess via claude-agent-sdk and capture all stdout/stderr."
+        },
+        {
+          "type": "EVENT",
+          "text": "When a task starts, the system shall create a session row with status=running and stream logs to session_logs."
+        },
+        {
+          "type": "STATE",
+          "text": "While the runner is active, the system shall send heartbeat every 30s; absent heartbeat marks the session crashed."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If the subprocess crashes, the system shall mark status=crashed and offer 4-choice resume (checkpoint/rerun/manual/cancel)."
+        }
+      ]
+    },
+    {
+      "id": "T-S0-09",
+      "title": "RLS helper (既存 auth_middleware.py 拡張)",
+      "sprint": "S0",
+      "feature": "META",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-S0-08"
+      ],
+      "critical": true,
+      "existing_files": [],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30",
+      "mock_link": null,
+      "entities": [
+        "sessions"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall execute all bash commands inside an OS-level sandbox (Seatbelt on macOS, Landlock+seccomp on Linux)."
+        },
+        {
+          "type": "EVENT",
+          "text": "When a sandboxed process attempts to write outside the workspace path, the system shall block the syscall."
+        },
+        {
+          "type": "STATE",
+          "text": "While running in sandbox, the system shall deny network access except to listed allowlist hosts."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If a process attempts to escape the sandbox, the system shall kill the session and log a redline event."
+        }
+      ]
+    },
+    {
+      "id": "T-S0-10",
+      "title": "Sentry 設定 (FE+BE)",
+      "sprint": 0,
+      "feature": "META",
+      "layer": "OPS",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": []
+    },
+    {
+      "id": "T-S0-11",
+      "title": "structlog + pino",
+      "sprint": 0,
+      "feature": "META",
+      "layer": "OPS",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": []
+    },
+    {
+      "id": "T-S0-12",
+      "title": "Better Stack uptime monitor",
+      "sprint": 0,
+      "feature": "META",
+      "layer": "OPS",
+      "label": "NEW",
+      "human_days": 0.2,
+      "claude_code_hours": 1,
+      "deps": []
+    },
+    {
+      "id": "T-001-01",
+      "title": "Supabase project init + 環境変数",
+      "sprint": "S0",
+      "feature": "F-001",
+      "layer": "OPS",
+      "label": "REUSE",
+      "human_days": 0.2,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-S0-13"
+      ],
+      "critical": true,
+      "existing_files": [
+        "backend/main.py",
+        "backend/domains/"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "mock_link": null,
+      "entities": [],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall organize backend code into 13 bounded-context domain modules."
+        },
+        {
+          "type": "UBIQUITOUS",
+          "text": "Each domain module shall expose only its public interface to other modules."
+        },
+        {
+          "type": "EVENT",
+          "text": "When a domain imports another domain's internal model, the linter shall report a violation."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If circular dependencies are detected between domains, the build shall fail."
+        }
+      ]
+    },
+    {
+      "id": "T-001-02",
+      "title": "認証 6 テーブル DDL (existing initial_schema.sql 拡張)",
+      "sprint": "S0",
+      "feature": "F-001",
+      "layer": "DB",
+      "label": "REFACTOR",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-001-01"
+      ],
+      "critical": true,
+      "existing_files": [
+        "backend/integrations/auth/",
+        "backend/routers/auth.py"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-2",
+      "mock_link": "../../mocks/2026-05-09_v1/auth/S-001-login.html",
+      "entities": [
+        "users",
+        "auth_sessions"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall integrate Supabase Auth (GoTrue) for all user authentication flows."
+        },
+        {
+          "type": "EVENT",
+          "text": "When a user submits valid credentials, the system shall return a JWT and refresh token within 500ms."
+        },
+        {
+          "type": "STATE",
+          "text": "While 2FA is enabled, the system shall require a TOTP code on every new device login."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If the JWT is expired or tampered, the system shall return 401 and shall not grant access."
+        }
+      ]
+    },
+    {
+      "id": "T-001-03",
+      "title": "AI 5 テーブル DDL (hierarchy + clone)",
+      "sprint": 0,
+      "feature": "F-001",
+      "layer": "DB",
+      "label": "REFACTOR",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-001-02"
+      ]
+    },
+    {
+      "id": "T-001-04",
+      "title": "プロジェクト 11 テーブル DDL (Phase/Task/Constitution/AC)",
+      "sprint": "S0",
+      "feature": "F-001",
+      "layer": "DB",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-001-02"
+      ],
+      "critical": true,
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4",
+      "mock_link": null,
+      "existing_files": [
+        "backend/middleware/"
+      ],
+      "entities": [
+        "audit_logs"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall apply request-id, CORS, rate-limit, and auth middleware to every request."
+        },
+        {
+          "type": "EVENT",
+          "text": "When a request enters the API, the system shall assign a unique request-id and propagate it through all logs."
+        },
+        {
+          "type": "STATE",
+          "text": "While a request is rate-limited, the system shall return 429 with retry-after header."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If a request fails authentication middleware, the system shall not reach domain handlers."
+        }
+      ]
+    },
+    {
+      "id": "T-001-05",
+      "title": "実装・連携・運用 20 テーブル DDL + ChatThread/ChatMessage/Template",
+      "sprint": 0,
+      "feature": "F-001",
+      "layer": "DB",
+      "label": "NEW",
+      "human_days": 0.7,
+      "claude_code_hours": 3,
+      "deps": [
+        "T-001-02"
+      ]
+    },
+    {
+      "id": "T-001-06",
+      "title": "RLS 全テーブル enable + custom_permissions 連動 (existing rls_skeleton.sql 拡張)",
+      "sprint": "S0",
+      "feature": "F-001",
+      "layer": "DB",
+      "label": "REFACTOR",
+      "human_days": 0.7,
+      "claude_code_hours": 3,
+      "deps": [
+        "T-001-02",
+        "T-001-04",
+        "T-001-05"
+      ],
+      "critical": true,
+      "existing_files": [
+        "data/migrations/"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-21",
+      "mock_link": "../../mocks/2026-05-09_v1/workspace/S-014-workspace-members.html",
+      "entities": [
+        "users",
+        "accounts",
+        "workspaces",
+        "workspace_members"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall enforce Row Level Security (RLS) on all 43 user-data tables."
+        },
+        {
+          "type": "EVENT",
+          "text": "When a user queries a row outside their workspace, the system shall return zero rows."
+        },
+        {
+          "type": "STATE",
+          "text": "While operating as service_role, the system shall bypass RLS only in trusted backend code."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where the user is account_owner, the system shall grant cross-workspace read access within their account."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If RLS is disabled on any user-data table, the migration test suite shall fail."
+        }
+      ]
+    },
+    {
+      "id": "T-001-07",
+      "title": "拡張機能 (pgvector/pg_trgm/pgsodium/pg_cron) + 100+ index",
+      "sprint": 0,
+      "feature": "F-001",
+      "layer": "DB",
+      "label": "REUSE",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-001-05"
+      ],
+      "existing_files": [
+        "supabase/migrations/20260501220100_pgvector.sql"
+      ]
+    },
+    {
+      "id": "T-001-08",
+      "title": "クローン opt-in trigger (user_clone_opt_in)",
+      "sprint": 0,
+      "feature": "F-001",
+      "layer": "DB",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-001-03"
+      ]
+    },
+    {
+      "id": "T-001-09",
+      "title": "循環依存防止 trigger (recursive CTE)",
+      "sprint": 0,
+      "feature": "F-001",
+      "layer": "DB",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-001-04"
+      ]
+    },
+    {
+      "id": "T-001-10",
+      "title": "seed.sql + BF_ENV ガード",
+      "sprint": 0,
+      "feature": "F-001",
+      "layer": "DB",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-001-06"
+      ]
+    },
+    {
+      "id": "T-001-11",
+      "title": "DB 統合テスト (RLS/権限/soft delete/拡張)",
+      "sprint": 0,
+      "feature": "F-001",
+      "layer": "TST",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-001-08",
+        "T-001-09",
+        "T-001-10"
+      ]
+    },
+    {
+      "id": "T-002-01",
+      "title": "スキル管理 UI (existing skills.py 拡張)",
+      "sprint": 0,
+      "feature": "F-002",
+      "layer": "FE",
+      "label": "REFACTOR",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-S0-06"
+      ],
+      "existing_files": [
+        "backend/routers/skills.py",
+        "frontend/src/app/skills/"
+      ]
+    },
+    {
+      "id": "T-002-02",
+      "title": "archive スクリプト (existing skill_manager.py 拡張)",
+      "sprint": 0,
+      "feature": "F-002",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.2,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-002-01"
+      ]
+    },
+    {
+      "id": "T-004-01",
+      "title": "account 作成 API+UI (existing accounts.py 拡張)",
+      "sprint": 0,
+      "feature": "F-004",
+      "layer": "BE+FE",
+      "label": "REFACTOR",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-001-02"
+      ],
+      "existing_files": [
+        "backend/routers/accounts.py"
+      ]
+    },
+    {
+      "id": "T-004-02",
+      "title": "workspace 作成 API+UI (existing workspaces.py 拡張)",
+      "sprint": 0,
+      "feature": "F-004",
+      "layer": "BE+FE",
+      "label": "REFACTOR",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-004-01"
+      ]
+    },
+    {
+      "id": "T-004-03",
+      "title": "workspace_invitations 発行 API",
+      "sprint": 0,
+      "feature": "F-004",
+      "layer": "BE",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-004-02"
+      ]
+    },
+    {
+      "id": "T-004-04",
+      "title": "招待受入 API + signup",
+      "sprint": 0,
+      "feature": "F-004",
+      "layer": "BE+FE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-004-03"
+      ]
+    },
+    {
+      "id": "T-004-05",
+      "title": "owner 移譲 UI",
+      "sprint": 0,
+      "feature": "F-004",
+      "layer": "FE",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-004-01"
+      ]
+    },
+    {
+      "id": "T-004-06",
+      "title": "テナント階層統合テスト",
+      "sprint": 0,
+      "feature": "F-004",
+      "layer": "TST",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-004-04"
+      ]
+    },
+    {
+      "id": "T-IT-S0",
+      "title": "Sprint 0 統合テスト",
+      "sprint": 0,
+      "feature": "META",
+      "layer": "TST",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "all_sprint_0"
+      ]
+    },
+    {
+      "id": "T-021-01",
+      "title": "6 ロール enum + permission matrix JSON",
+      "sprint": 1,
+      "feature": "F-021",
+      "layer": "DB+BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-001-02"
+      ]
+    },
+    {
+      "id": "T-021-02",
+      "title": "custom_permissions JSONB バリデータ",
+      "sprint": 1,
+      "feature": "F-021",
+      "layer": "BE",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-021-01"
+      ]
+    },
+    {
+      "id": "T-021-03",
+      "title": "permission 評価 middleware (existing auth_middleware.py 拡張)",
+      "sprint": "S1",
+      "feature": "F-021",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-021-02"
+      ],
+      "critical": true,
+      "existing_files": [],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-11",
+      "mock_link": "../../mocks/2026-05-09_v1/task/S-031-swarm-grid.html",
+      "entities": [
+        "sessions",
+        "swarm_pools"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall support spawning 4, 9, 16, or 64 parallel sessions in a single swarm pool."
+        },
+        {
+          "type": "EVENT",
+          "text": "When a swarm is started, the system shall allocate one git worktree + one branch per session to prevent file conflicts."
+        },
+        {
+          "type": "STATE",
+          "text": "While a swarm is running, the system shall display per-cell live log previews and aggregate stats (queued/running/done/failed)."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If two sessions in the same swarm modify the same file, the system shall not allow both to commit; the second shall be marked conflicted."
+        }
+      ]
+    },
+    {
+      "id": "T-021-04",
+      "title": "permission matrix UI grid",
+      "sprint": 1,
+      "feature": "F-021",
+      "layer": "FE",
+      "label": "NEW",
+      "human_days": 0.7,
+      "claude_code_hours": 3,
+      "deps": [
+        "T-S0-06"
+      ]
+    },
+    {
+      "id": "T-021-05",
+      "title": "self-strip block + owner 保護",
+      "sprint": 1,
+      "feature": "F-021",
+      "layer": "BE+FE",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-021-03"
+      ]
+    },
+    {
+      "id": "T-023-01",
+      "title": "プロフィール編集 UI (existing user_profile 拡張)",
+      "sprint": 1,
+      "feature": "F-023",
+      "layer": "FE",
+      "label": "REFACTOR",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-S0-06"
+      ],
+      "existing_files": [
+        "backend/services/user_profile.py",
+        "backend/routers/account_settings.py"
+      ]
+    },
+    {
+      "id": "T-023-02",
+      "title": "API キー管理 UI (existing credentials_store 活用)",
+      "sprint": 1,
+      "feature": "F-023",
+      "layer": "FE+BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-001-05"
+      ],
+      "existing_files": [
+        "backend/services/credentials_store.py"
+      ]
+    },
+    {
+      "id": "T-023-03",
+      "title": "pgsodium 暗号化保管",
+      "sprint": 1,
+      "feature": "F-023",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-001-07"
+      ]
+    },
+    {
+      "id": "T-023-04",
+      "title": "OAuth 連携 (Slack/GitHub/Anthropic)",
+      "sprint": 1,
+      "feature": "F-023",
+      "layer": "FE+BE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-S0-08"
+      ]
+    },
+    {
+      "id": "T-023-05",
+      "title": "クローン opt-in toggle + GDPR 削除権 (30 日 grace)",
+      "sprint": 1,
+      "feature": "F-023",
+      "layer": "FE+BE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-001-08"
+      ]
+    },
+    {
+      "id": "T-020-01",
+      "title": "LiteLLM docker-compose 追加",
+      "sprint": 2,
+      "feature": "F-020",
+      "layer": "OPS",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-S0-01"
+      ]
+    },
+    {
+      "id": "T-020-02",
+      "title": "LiteLLM wrapper service (existing llm.py/llm_providers.py 統合)",
+      "sprint": "S2",
+      "feature": "F-020",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-020-01"
+      ],
+      "critical": true,
+      "existing_files": [
+        "backend/services/memory_service.py"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28",
+      "mock_link": null,
+      "entities": [
+        "chat_threads",
+        "chat_messages",
+        "audit_logs"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall maintain a 3-tier memory: short (raw), mid (compressed + 9-section summary), long (Mem0 + Obsidian + Constitution)."
+        },
+        {
+          "type": "EVENT",
+          "text": "When the context window reaches 95%, the system shall auto-generate the 9-section structured summary and replace older raw messages."
+        },
+        {
+          "type": "STATE",
+          "text": "While prompt caching is active, the system shall apply cache_control: ephemeral with 5-min TTL to stable prefixes."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If summarization fails, the system shall not silently drop data; it shall keep raw messages and alert the operator."
+        }
+      ]
+    },
+    {
+      "id": "T-020-03",
+      "title": "provider adapter 3 個 (Anthropic/OpenAI/Gemini)",
+      "sprint": 2,
+      "feature": "F-020",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-020-02"
+      ]
+    },
+    {
+      "id": "T-020-04",
+      "title": "BYOK + Anthropic prompt cache (cache_control: ephemeral)",
+      "sprint": 2,
+      "feature": "F-020",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-023-03"
+      ]
+    },
+    {
+      "id": "T-022-01",
+      "title": "ai_employees DDL 拡張確認",
+      "sprint": 2,
+      "feature": "F-022",
+      "layer": "DB",
+      "label": "REUSE",
+      "human_days": 0.2,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-001-03"
+      ]
+    },
+    {
+      "id": "T-022-02",
+      "title": "階層循環参照 trigger",
+      "sprint": 2,
+      "feature": "F-022",
+      "layer": "DB",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-022-01"
+      ]
+    },
+    {
+      "id": "T-022-03",
+      "title": "AI 社員 CRUD API (existing employees.py/staff_service.py 拡張)",
+      "sprint": 2,
+      "feature": "F-022",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-022-01"
+      ],
+      "existing_files": [
+        "backend/routers/employees.py",
+        "backend/services/staff_service.py"
+      ]
+    },
+    {
+      "id": "T-022-04",
+      "title": "組織図 UI (React Flow tree)",
+      "sprint": 2,
+      "feature": "F-022",
+      "layer": "FE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-S0-05"
+      ]
+    },
+    {
+      "id": "T-003-01",
+      "title": "BMAD 12 ペルソナ → 10 メンバー persona prompt 整理",
+      "sprint": 2,
+      "feature": "F-003",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-022-03"
+      ]
+    },
+    {
+      "id": "T-003-02",
+      "title": "AI 社員召喚 API (existing secretary_chat/delegation_service 統合 + LangGraph)",
+      "sprint": "S2",
+      "feature": "F-003",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.7,
+      "claude_code_hours": 3,
+      "deps": [
+        "T-020-02",
+        "T-M28-01"
+      ],
+      "critical": true,
+      "existing_files": [
+        "frontend/src/app/workspaces/",
+        "backend/routers/workspaces.py"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-3",
+      "mock_link": "../../mocks/2026-05-09_v1/workspace/S-012-workspace-dashboard.html",
+      "entities": [
+        "workspaces",
+        "phases",
+        "tasks",
+        "sessions"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The dashboard shall display 5 KPI cards (progress, completed tasks, running sessions, monthly cost, pending approvals)."
+        },
+        {
+          "type": "EVENT",
+          "text": "When the user opens the dashboard, the system shall load aggregated stats within 800ms (P95)."
+        },
+        {
+          "type": "STATE",
+          "text": "While sessions are running, the system shall show pulse-dot animation on the running count."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where the user has access to multiple workspaces, the system shall provide quick switch via the sidebar."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If the user tries to access a workspace without permission, the system shall return 403 and shall not render the dashboard."
+        }
+      ]
+    },
+    {
+      "id": "T-003-03",
+      "title": "parent guideline 継承",
+      "sprint": 2,
+      "feature": "F-003",
+      "layer": "BE",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-003-02"
+      ]
+    },
+    {
+      "id": "T-003-04",
+      "title": "スキル context 注入 (CLAUDE.md ルール準拠)",
+      "sprint": 2,
+      "feature": "F-003",
+      "layer": "BE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-003-02"
+      ]
+    },
+    {
+      "id": "T-003-05",
+      "title": "artifact 保存 + AC 検証連携 (existing artifact_service 活用)",
+      "sprint": 2,
+      "feature": "F-003",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-003-02"
+      ],
+      "existing_files": [
+        "backend/services/artifact_service.py"
+      ]
+    },
+    {
+      "id": "T-M27-01",
+      "title": "LangGraph base setup + entry node",
+      "sprint": 2,
+      "feature": "M-27",
+      "layer": "RUN",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-S0-08"
+      ]
+    },
+    {
+      "id": "T-M27-02",
+      "title": "Intent 分類 (existing intent_preprocessor/mode_detector 統合)",
+      "sprint": 2,
+      "feature": "M-27",
+      "layer": "RUN",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-020-02"
+      ],
+      "existing_files": [
+        "backend/services/intent_preprocessor.py",
+        "backend/services/mode_detector.py"
+      ],
+      "reference_oss": "openai/codex"
+    },
+    {
+      "id": "T-M27-03",
+      "title": "Agent / Role Selector + handoff",
+      "sprint": 2,
+      "feature": "M-27",
+      "layer": "RUN",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-M27-02",
+        "T-003-02"
+      ]
+    },
+    {
+      "id": "T-M28-01",
+      "title": "Context Builder skeleton (existing conversation_memory/rag_context 統合)",
+      "sprint": "S3",
+      "feature": "M-28",
+      "layer": "RUN",
+      "label": "REFACTOR",
+      "human_days": 0.7,
+      "claude_code_hours": 3,
+      "deps": [
+        "T-S0-08"
+      ],
+      "critical": true,
+      "existing_files": [],
+      "reference_oss": "openai/codex + Claude API compaction",
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28",
+      "mock_link": null,
+      "entities": [
+        "mem0_collections",
+        "obsidian_notes",
+        "constitutions"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The long-tier memory shall expose Mem0 vector search, Obsidian markdown read/write, and Constitution decision lookup as a unified API."
+        },
+        {
+          "type": "EVENT",
+          "text": "When a user message references a past decision (D-XXX), the system shall retrieve the related constitution entry within 200ms."
+        },
+        {
+          "type": "STATE",
+          "text": "While the secretary AI is active, the system shall preload the constitution into the system prompt."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If Mem0 returns conflicting facts, the system shall surface the conflict and shall not silently pick one."
+        }
+      ]
+    },
+    {
+      "id": "T-M28-02",
+      "title": "Tier 1 tool result trimming",
+      "sprint": 2,
+      "feature": "M-28",
+      "layer": "RUN",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-M28-01"
+      ]
+    },
+    {
+      "id": "T-M28-03",
+      "title": "Tier 2 prompt cache friendly (cache_control: ephemeral 5min)",
+      "sprint": 2,
+      "feature": "M-28",
+      "layer": "RUN",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-020-04"
+      ]
+    },
+    {
+      "id": "T-M28-04",
+      "title": "Tier 3 9-section structured summary (background task)",
+      "sprint": 2,
+      "feature": "M-28",
+      "layer": "RUN",
+      "label": "NEW",
+      "human_days": 0.7,
+      "claude_code_hours": 3,
+      "deps": [
+        "T-M28-01"
+      ]
+    },
+    {
+      "id": "T-M28-05",
+      "title": "semantic retrieval (existing embedding_service 活用)",
+      "sprint": 2,
+      "feature": "M-28",
+      "layer": "RUN",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-001-07"
+      ],
+      "existing_files": [
+        "backend/services/embedding_service.py"
+      ]
+    },
+    {
+      "id": "T-M30-01",
+      "title": "ChatThread/ChatMessage CRUD (existing threads.py 拡張)",
+      "sprint": 2,
+      "feature": "M-30",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-001-05"
+      ],
+      "existing_files": [
+        "backend/routers/threads.py"
+      ]
+    },
+    {
+      "id": "T-M30-02",
+      "title": "短期 layer (FIFO 直近 N=20)",
+      "sprint": 2,
+      "feature": "M-30",
+      "layer": "BE",
+      "label": "REUSE",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-M30-01"
+      ]
+    },
+    {
+      "id": "T-M30-03",
+      "title": "中期 layer (existing conversation_summarizer 活用)",
+      "sprint": 2,
+      "feature": "M-30",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-M28-04"
+      ],
+      "existing_files": [
+        "backend/services/conversation_summarizer.py"
+      ]
+    },
+    {
+      "id": "T-M30-04",
+      "title": "長期 layer (existing long_term_memory + obsidian_sync 統合)",
+      "sprint": 2,
+      "feature": "M-30",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-016-01"
+      ],
+      "existing_files": [
+        "backend/services/long_term_memory.py",
+        "backend/services/obsidian_sync.py"
+      ]
+    },
+    {
+      "id": "T-M30-05",
+      "title": "Memory 統合テスト (3 層 → context 組立)",
+      "sprint": 2,
+      "feature": "M-30",
+      "layer": "TST",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-M30-04"
+      ]
+    },
+    {
+      "id": "T-IT-S2",
+      "title": "Sprint 2 統合テスト",
+      "sprint": 2,
+      "feature": "META",
+      "layer": "TST",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "all_sprint_2"
+      ]
+    },
+    {
+      "id": "T-025-01",
+      "title": "EARS 5 形式テンプレ + JSON Schema バリデータ",
+      "sprint": 3,
+      "feature": "F-025",
+      "layer": "BE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-001-04"
+      ]
+    },
+    {
+      "id": "T-025-02",
+      "title": "EARS 形式分類 AI prompt + 書き直し suggest UI",
+      "sprint": 3,
+      "feature": "F-025",
+      "layer": "FE+BE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-003-02"
+      ]
+    },
+    {
+      "id": "T-015-01",
+      "title": "共通テンプレ (existing artifact_export 拡張)",
+      "sprint": 3,
+      "feature": "F-015",
+      "layer": "FE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-S0-05"
+      ],
+      "existing_files": [
+        "backend/services/artifact_export.py"
+      ]
+    },
+    {
+      "id": "T-015-02",
+      "title": "SVG 図解自動生成 (existing output_processor 拡張)",
+      "sprint": 3,
+      "feature": "F-015",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-015-01"
+      ],
+      "existing_files": [
+        "backend/services/output_processor.py"
+      ]
+    },
+    {
+      "id": "T-015-03",
+      "title": "Storage upload + 共有リンク + Markdown 併記",
+      "sprint": 3,
+      "feature": "F-015",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-S0-08"
+      ]
+    },
+    {
+      "id": "T-005-01",
+      "title": "hearing AI (Mary) 4STEP (existing hearing.py/hearing_service 拡張)",
+      "sprint": 3,
+      "feature": "F-005",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-003-02"
+      ],
+      "existing_files": [
+        "backend/routers/hearing.py",
+        "backend/services/hearing_service.py"
+      ]
+    },
+    {
+      "id": "T-005-02",
+      "title": "対話 UI + slot 永続化 (existing slot_state/slot_extractor 活用)",
+      "sprint": 3,
+      "feature": "F-005",
+      "layer": "FE+BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-005-01"
+      ],
+      "existing_files": [
+        "backend/services/slot_state.py",
+        "backend/services/slot_extractor.py"
+      ]
+    },
+    {
+      "id": "T-005-03",
+      "title": "requirements AI (Preston) 6STEP (existing requirements.py 拡張)",
+      "sprint": 3,
+      "feature": "F-005",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-005-01"
+      ],
+      "existing_files": [
+        "backend/routers/requirements.py",
+        "backend/services/requirements_service.py"
+      ]
+    },
+    {
+      "id": "T-005-04",
+      "title": "仕様書 HTML 生成",
+      "sprint": 3,
+      "feature": "F-005",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-015-03"
+      ]
+    },
+    {
+      "id": "T-005b-01",
+      "title": "screens/components CRUD (existing design_frames/design_mocks 活用)",
+      "sprint": 3,
+      "feature": "F-005b",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-001-04"
+      ],
+      "existing_files": [
+        "backend/routers/design_frames.py",
+        "backend/routers/design_mocks.py"
+      ]
+    },
+    {
+      "id": "T-005b-02",
+      "title": "ui-mockup スキル統合 (existing designer_ai 拡張)",
+      "sprint": 3,
+      "feature": "F-005b",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.7,
+      "claude_code_hours": 3,
+      "deps": [
+        "T-003-02"
+      ],
+      "existing_files": [
+        "backend/services/designer_ai.py"
+      ]
+    },
+    {
+      "id": "T-005b-03",
+      "title": "コンポーネントカタログ + 画面遷移マップ",
+      "sprint": 3,
+      "feature": "F-005b",
+      "layer": "BE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-015-02"
+      ]
+    },
+    {
+      "id": "T-005b-04",
+      "title": "仕様 ↔ モック双方向リンク",
+      "sprint": 3,
+      "feature": "F-005b",
+      "layer": "BE+FE",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-005-04"
+      ]
+    },
+    {
+      "id": "T-006-01",
+      "title": "feature-decomposition AI (Devon)",
+      "sprint": 3,
+      "feature": "F-006",
+      "layer": "BE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-003-02"
+      ]
+    },
+    {
+      "id": "T-006-02",
+      "title": "task-decomposition AI + EARS AC (existing tasks.py 拡張)",
+      "sprint": 3,
+      "feature": "F-006",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-006-01",
+        "T-025-01"
+      ],
+      "existing_files": [
+        "backend/routers/tasks.py"
+      ]
+    },
+    {
+      "id": "T-006-03",
+      "title": "impact-analysis",
+      "sprint": 3,
+      "feature": "F-006",
+      "layer": "BE",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-009-01"
+      ]
+    },
+    {
+      "id": "T-006-04",
+      "title": "タスク分解 UI",
+      "sprint": 3,
+      "feature": "F-006",
+      "layer": "FE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-006-02"
+      ]
+    },
+    {
+      "id": "T-IT-S3",
+      "title": "Sprint 3 統合テスト",
+      "sprint": 3,
+      "feature": "META",
+      "layer": "TST",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "all_sprint_3"
+      ]
+    },
+    {
+      "id": "T-008-01",
+      "title": "phases CRUD (existing dashboard.py 一部活用)",
+      "sprint": 4,
+      "feature": "F-008",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-001-04"
+      ]
+    },
+    {
+      "id": "T-008-02",
+      "title": "phase_management UI (フェーズ + ガント + ゲート編集)",
+      "sprint": 4,
+      "feature": "F-008",
+      "layer": "FE",
+      "label": "NEW",
+      "human_days": 0.7,
+      "claude_code_hours": 3,
+      "deps": [
+        "T-008-01"
+      ]
+    },
+    {
+      "id": "T-008-03",
+      "title": "ゲート達成判定 + auto unlock",
+      "sprint": 4,
+      "feature": "F-008",
+      "layer": "BE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-008-01"
+      ]
+    },
+    {
+      "id": "T-008-04",
+      "title": "フェーズ削除タスク移動 UI",
+      "sprint": 4,
+      "feature": "F-008",
+      "layer": "FE",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-008-02"
+      ]
+    },
+    {
+      "id": "T-009-01",
+      "title": "task_dependencies CRUD",
+      "sprint": 4,
+      "feature": "F-009",
+      "layer": "BE",
+      "label": "REUSE",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-001-09"
+      ]
+    },
+    {
+      "id": "T-009-02",
+      "title": "DAG 可視化 UI (React Flow)",
+      "sprint": 4,
+      "feature": "F-009",
+      "layer": "FE",
+      "label": "NEW",
+      "human_days": 0.7,
+      "claude_code_hours": 3,
+      "deps": [
+        "T-S0-05"
+      ]
+    },
+    {
+      "id": "T-009-03",
+      "title": "影響範囲 AI ハイライト",
+      "sprint": 4,
+      "feature": "F-009",
+      "layer": "BE+FE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-006-03"
+      ]
+    },
+    {
+      "id": "T-009-04",
+      "title": "DAG 仮想化 + 階層折りたたみ",
+      "sprint": 4,
+      "feature": "F-009",
+      "layer": "FE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-009-02"
+      ]
+    },
+    {
+      "id": "T-009-05",
+      "title": "依存追加/削除 drag&drop",
+      "sprint": 4,
+      "feature": "F-009",
+      "layer": "FE",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-009-02"
+      ]
+    },
+    {
+      "id": "T-007-01",
+      "title": "task_kanban (existing TaskKanban.tsx 拡張・6 列)",
+      "sprint": 4,
+      "feature": "F-007",
+      "layer": "FE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-S0-06"
+      ],
+      "existing_files": [
+        "frontend/src/components/tasks/TaskKanban.tsx"
+      ]
+    },
+    {
+      "id": "T-007-02",
+      "title": "task_list view (table + sort + 一括操作)",
+      "sprint": 4,
+      "feature": "F-007",
+      "layer": "FE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-S0-06"
+      ]
+    },
+    {
+      "id": "T-007-03",
+      "title": "task_dag_view (React Flow)",
+      "sprint": 4,
+      "feature": "F-007",
+      "layer": "FE",
+      "label": "REUSE",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-009-02"
+      ]
+    },
+    {
+      "id": "T-007-04",
+      "title": "仮想スクロール (react-window)",
+      "sprint": 4,
+      "feature": "F-007",
+      "layer": "FE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-007-02"
+      ]
+    },
+    {
+      "id": "T-024-01",
+      "title": "Cmd+K UI modal",
+      "sprint": 4,
+      "feature": "F-024",
+      "layer": "FE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-S0-06"
+      ]
+    },
+    {
+      "id": "T-024-02",
+      "title": "search API (existing knowledge_search/embedding_service 拡張)",
+      "sprint": 4,
+      "feature": "F-024",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-001-07"
+      ],
+      "existing_files": [
+        "backend/routers/knowledge_search.py",
+        "backend/services/embedding_service.py"
+      ]
+    },
+    {
+      "id": "T-024-03",
+      "title": "RLS 連動",
+      "sprint": 4,
+      "feature": "F-024",
+      "layer": "BE",
+      "label": "REUSE",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-S0-09"
+      ]
+    },
+    {
+      "id": "T-IT-S4",
+      "title": "Sprint 4 統合テスト",
+      "sprint": 4,
+      "feature": "META",
+      "layer": "TST",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "all_sprint_4"
+      ]
+    },
+    {
+      "id": "T-026-01",
+      "title": "constitutions DDL 確認",
+      "sprint": 5,
+      "feature": "F-026",
+      "layer": "DB",
+      "label": "REUSE",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-001-04"
+      ]
+    },
+    {
+      "id": "T-026-02",
+      "title": "Constitution editor UI (content_md + version diff)",
+      "sprint": 5,
+      "feature": "F-026",
+      "layer": "FE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-S0-06"
+      ]
+    },
+    {
+      "id": "T-026-03",
+      "title": "Constitution context 注入 (M-28 連携)",
+      "sprint": 5,
+      "feature": "F-026",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-M28-01"
+      ]
+    },
+    {
+      "id": "T-012-01",
+      "title": "red_lines DDL + 5 主要 category seed",
+      "sprint": 5,
+      "feature": "F-012",
+      "layer": "DB",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-026-01"
+      ]
+    },
+    {
+      "id": "T-012-02",
+      "title": "pattern 検出 middleware (existing approval.py 拡張)",
+      "sprint": 5,
+      "feature": "F-012",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.7,
+      "claude_code_hours": 3,
+      "deps": [
+        "T-012-01"
+      ],
+      "existing_files": [
+        "backend/routers/approval.py",
+        "backend/workers/approval_worker.py"
+      ]
+    },
+    {
+      "id": "T-012-03",
+      "title": "OS-level sandbox (Codex CLI 参考・Linux Landlock + seccomp)",
+      "sprint": 5,
+      "feature": "F-012",
+      "layer": "BE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [],
+      "reference_oss": "openai/codex"
+    },
+    {
+      "id": "T-012-04",
+      "title": "red_line_approval キュー UI (existing approval ページ拡張)",
+      "sprint": 5,
+      "feature": "F-012",
+      "layer": "FE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-012-02"
+      ],
+      "existing_files": [
+        "frontend/src/app/approval/"
+      ]
+    },
+    {
+      "id": "T-010a-01",
+      "title": "MCP server (existing mcp_server.py + mcp_stdio_server.py 拡張)",
+      "sprint": 5,
+      "feature": "F-010a",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-S0-08"
+      ],
+      "existing_files": [
+        "backend/routers/mcp_server.py",
+        "mcp_stdio_server.py"
+      ]
+    },
+    {
+      "id": "T-010a-02",
+      "title": "bf_get_spec / bf_post_progress / bf_attach_artifact 実装",
+      "sprint": 5,
+      "feature": "F-010a",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-010a-01"
+      ]
+    },
+    {
+      "id": "T-010a-03",
+      "title": "bf_request_review / bf_get_review_feedback 実装",
+      "sprint": 5,
+      "feature": "F-010a",
+      "layer": "BE",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-010a-01"
+      ]
+    },
+    {
+      "id": "T-010a-04",
+      "title": "MCP token scope (workspace 単位)",
+      "sprint": 5,
+      "feature": "F-010a",
+      "layer": "BE",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-021-03"
+      ]
+    },
+    {
+      "id": "T-010b-01",
+      "title": "claude-agent-sdk 統合 (existing task_executor + skill_runner 拡張)",
+      "sprint": 5,
+      "feature": "F-010b",
+      "layer": "BE+WK",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-S0-08"
+      ],
+      "existing_files": [
+        "backend/workers/task_executor.py",
+        "backend/integrations/skill_runner.py"
+      ]
+    },
+    {
+      "id": "T-010b-02",
+      "title": "OAuth フロー (Claude Pro/Max トークン)",
+      "sprint": 5,
+      "feature": "F-010b",
+      "layer": "BE+FE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-023-04"
+      ]
+    },
+    {
+      "id": "T-010b-03",
+      "title": "初期プロンプト構築 (M-28 経由)",
+      "sprint": 5,
+      "feature": "F-010b",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-M28-01",
+        "T-026-03"
+      ]
+    },
+    {
+      "id": "T-010b-04",
+      "title": "▶︎ ボタン UI + session 起動 API",
+      "sprint": 5,
+      "feature": "F-010b",
+      "layer": "FE+BE",
+      "label": "REFACTOR",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-010b-01"
+      ]
+    },
+    {
+      "id": "T-010b-05",
+      "title": "sessions table 状態遷移管理",
+      "sprint": 5,
+      "feature": "F-010b",
+      "layer": "BE",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-001-05"
+      ]
+    },
+    {
+      "id": "T-011-01",
+      "title": "Reviewer AI persona + Plan/Gen/Eval (existing reviewer.py + reviewer_loop 拡張)",
+      "sprint": 5,
+      "feature": "F-011",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-003-01"
+      ],
+      "existing_files": [
+        "backend/routers/reviewer.py",
+        "backend/services/reviewer_loop.py"
+      ]
+    },
+    {
+      "id": "T-011-02",
+      "title": "3 ターンカウンター + state 管理",
+      "sprint": 5,
+      "feature": "F-011",
+      "layer": "BE",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-011-01"
+      ]
+    },
+    {
+      "id": "T-011-03",
+      "title": "エスカレ通知 (Slack DM + UI バッジ)",
+      "sprint": 5,
+      "feature": "F-011",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-014-01"
+      ]
+    },
+    {
+      "id": "T-011-04",
+      "title": "統合テスト指揮 AI",
+      "sprint": 5,
+      "feature": "F-011",
+      "layer": "BE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-011-01"
+      ]
+    },
+    {
+      "id": "T-IT-S5",
+      "title": "Sprint 5 統合テスト",
+      "sprint": 5,
+      "feature": "META",
+      "layer": "TST",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "all_sprint_5"
+      ]
+    },
+    {
+      "id": "T-M29-01",
+      "title": "git worktree manager (作成/cleanup)",
+      "sprint": 6,
+      "feature": "M-29",
+      "layer": "WK",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [],
+      "reference_oss": "openai/codex"
+    },
+    {
+      "id": "T-M29-02",
+      "title": "worktree path → session マッピング",
+      "sprint": 6,
+      "feature": "M-29",
+      "layer": "WK",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-M29-01"
+      ]
+    },
+    {
+      "id": "T-M29-03",
+      "title": "merge conflict 検出 + sequential merge ヘルパー",
+      "sprint": 6,
+      "feature": "M-29",
+      "layer": "BE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-M29-01"
+      ]
+    },
+    {
+      "id": "T-010c-01",
+      "title": "asyncio.Semaphore + Queue (existing task_executor 拡張)",
+      "sprint": 6,
+      "feature": "F-010c",
+      "layer": "WK",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-010b-01"
+      ],
+      "existing_files": [
+        "backend/workers/task_executor.py"
+      ]
+    },
+    {
+      "id": "T-010c-02",
+      "title": "親子昇格 (依存グラフ尊重)",
+      "sprint": 6,
+      "feature": "F-010c",
+      "layer": "WK",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-009-01"
+      ]
+    },
+    {
+      "id": "T-010c-03",
+      "title": "完了次第キュー補充 (FIFO + priority)",
+      "sprint": 6,
+      "feature": "F-010c",
+      "layer": "WK",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-010c-01"
+      ]
+    },
+    {
+      "id": "T-010c-04",
+      "title": "circuit breaker (連続失敗 N で auto-block)",
+      "sprint": 6,
+      "feature": "F-010c",
+      "layer": "WK",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-010c-01"
+      ]
+    },
+    {
+      "id": "T-010c-05",
+      "title": "crash detection (30 分応答なし/メモリ閾値超/予期せぬ exit)",
+      "sprint": 6,
+      "feature": "F-010c",
+      "layer": "WK",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-010b-05"
+      ]
+    },
+    {
+      "id": "T-010c-06",
+      "title": "resume 機能 (4 択: from_checkpoint/再実行/cancel/手動修正)",
+      "sprint": 6,
+      "feature": "F-010c",
+      "layer": "WK+FE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-010c-05"
+      ]
+    },
+    {
+      "id": "T-010d-01",
+      "title": "FastAPI WebSocket endpoint (session subscribe)",
+      "sprint": 6,
+      "feature": "F-010d",
+      "layer": "BE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-S0-08"
+      ]
+    },
+    {
+      "id": "T-010d-02",
+      "title": "swarm_grid UI (4×4 default + 4/9/16/64 + 仮想化)",
+      "sprint": 6,
+      "feature": "F-010d",
+      "layer": "FE",
+      "label": "NEW",
+      "human_days": 0.7,
+      "claude_code_hours": 3,
+      "deps": [
+        "T-S0-06"
+      ]
+    },
+    {
+      "id": "T-010d-03",
+      "title": "swarm_session_detail UI (個別全画面 + ライブログ)",
+      "sprint": 6,
+      "feature": "F-010d",
+      "layer": "FE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-010d-01"
+      ]
+    },
+    {
+      "id": "T-010d-04",
+      "title": "自動 reconnect + 履歴 fetch",
+      "sprint": 6,
+      "feature": "F-010d",
+      "layer": "FE",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-010d-01"
+      ]
+    },
+    {
+      "id": "T-IT-S6",
+      "title": "Sprint 6 統合テスト (5 並列タスク完走)",
+      "sprint": 6,
+      "feature": "META",
+      "layer": "TST",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "all_sprint_6"
+      ]
+    },
+    {
+      "id": "T-013-01",
+      "title": "GitHub OAuth + repo 紐付け UI",
+      "sprint": 7,
+      "feature": "F-013",
+      "layer": "FE+BE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-023-04"
+      ]
+    },
+    {
+      "id": "T-013-02",
+      "title": "Claude Code commit + push wrap (worktree 経由)",
+      "sprint": 7,
+      "feature": "F-013",
+      "layer": "WK",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-M29-01"
+      ]
+    },
+    {
+      "id": "T-013-03",
+      "title": "PR 自動作成 + HTML diff 注釈レビュー資料添付",
+      "sprint": 7,
+      "feature": "F-013",
+      "layer": "BE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-015-03"
+      ]
+    },
+    {
+      "id": "T-013-04",
+      "title": "merge conflict 自動解決試行",
+      "sprint": 7,
+      "feature": "F-013",
+      "layer": "BE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-M29-03"
+      ]
+    },
+    {
+      "id": "T-014-01",
+      "title": "Slack Bolt 統合 (existing slack_client + slack_block_kit 活用)",
+      "sprint": 7,
+      "feature": "F-014",
+      "layer": "BE",
+      "label": "REUSE",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-S0-08"
+      ],
+      "existing_files": [
+        "backend/integrations/slack_client.py",
+        "backend/integrations/slack_block_kit.py"
+      ]
+    },
+    {
+      "id": "T-014-02",
+      "title": "カテゴリ別 push (red_line/pr/progress/invite/system) + ダイジェスト",
+      "sprint": 7,
+      "feature": "F-014",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-014-01"
+      ]
+    },
+    {
+      "id": "T-016-01",
+      "title": "obsidian_vaults 設定 UI (existing obsidian_sync 活用)",
+      "sprint": 7,
+      "feature": "F-016",
+      "layer": "FE+BE",
+      "label": "REFACTOR",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-001-05"
+      ],
+      "existing_files": [
+        "backend/services/obsidian_sync.py"
+      ]
+    },
+    {
+      "id": "T-016-02",
+      "title": "artifact MD 化 (existing obsidian_sync 拡張)",
+      "sprint": 7,
+      "feature": "F-016",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-015-03"
+      ]
+    },
+    {
+      "id": "T-016-03",
+      "title": "export trigger (manual/realtime/hourly/on_completion)",
+      "sprint": 7,
+      "feature": "F-016",
+      "layer": "BE",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-016-02"
+      ]
+    },
+    {
+      "id": "T-017-01",
+      "title": "Langfuse self-host docker-compose",
+      "sprint": 7,
+      "feature": "F-017",
+      "layer": "OPS",
+      "label": "NEW",
+      "human_days": 0.3,
+      "claude_code_hours": 1,
+      "deps": [
+        "T-S0-01"
+      ]
+    },
+    {
+      "id": "T-017-02",
+      "title": "Langfuse SDK 統合 (existing observability 拡張)",
+      "sprint": 7,
+      "feature": "F-017",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-020-02"
+      ],
+      "existing_files": [
+        "backend/services/observability.py"
+      ]
+    },
+    {
+      "id": "T-017-03",
+      "title": "cost dashboard (8 タブ・Recharts)",
+      "sprint": 7,
+      "feature": "F-017",
+      "layer": "FE",
+      "label": "NEW",
+      "human_days": 0.7,
+      "claude_code_hours": 3,
+      "deps": [
+        "T-S0-05"
+      ]
+    },
+    {
+      "id": "T-018-01",
+      "title": "audit_logs trigger (主要テーブルに変更検出)",
+      "sprint": 7,
+      "feature": "F-018",
+      "layer": "DB",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-001-05"
+      ]
+    },
+    {
+      "id": "T-018-02",
+      "title": "audit_log_viewer UI (検索 + before/after diff + CSV/JSON export)",
+      "sprint": 7,
+      "feature": "F-018",
+      "layer": "FE",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-S0-06"
+      ]
+    },
+    {
+      "id": "T-018-03",
+      "title": "nightly-backup workflow (DB + Storage + 検証)",
+      "sprint": 7,
+      "feature": "F-018",
+      "layer": "OPS",
+      "label": "NEW",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-S0-04"
+      ]
+    },
+    {
+      "id": "T-IT-S7",
+      "title": "最終統合テスト (自社 1 案件 End-to-End 完走)",
+      "sprint": 7,
+      "feature": "META",
+      "layer": "TST",
+      "label": "NEW",
+      "human_days": 1.0,
+      "claude_code_hours": 4,
+      "deps": [
+        "all_sprint_7"
+      ],
+      "phase_1_completion_marker": true
+    },
+    {
+      "id": "T-BTSTRAP-01",
+      "title": "テンプレート構造を確定 (templates/project-bootstrap/)",
+      "sprint": "S2",
+      "feature": "F-003",
+      "layer": "L2",
+      "label": "REUSE",
+      "human_days": 0.5,
+      "claude_code_hours": 1,
+      "deps": [],
+      "blocks": [
+        "T-BTSTRAP-02"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-31",
+      "mock_link": null,
+      "existing_files": [
+        "templates/project-bootstrap/",
+        "templates/project-bootstrap/CLAUDE.md.j2",
+        "templates/project-bootstrap/docs/HANDOVER.md.j2",
+        "templates/project-bootstrap/docs/task-decomposition/IMPLEMENTATION_PROTOCOL.md",
+        "templates/project-bootstrap/scripts/lint-mock.sh",
+        "templates/project-bootstrap/scripts/validate-tickets.py",
+        "templates/project-bootstrap/.claude/settings.json",
+        "templates/CHANGELOG.md"
+      ],
+      "entities": [],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The repository shall contain templates/project-bootstrap/ with all required skeleton files (CLAUDE.md.j2, HANDOVER.md.j2, IMPLEMENTATION_PROTOCOL.md, lint-mock.sh, validate-tickets.py, settings.json)."
+        },
+        {
+          "type": "UBIQUITOUS",
+          "text": "The templates/CHANGELOG.md shall record every change to the template with version bump."
+        },
+        {
+          "type": "EVENT",
+          "text": "When the template structure is updated, the system shall update templates/CHANGELOG.md before merging."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If a required skeleton file is missing from templates/project-bootstrap/, the lint script shall fail."
+        }
+      ]
+    },
+    {
+      "id": "T-BTSTRAP-02",
+      "title": "WorkspaceService.bootstrap() — 新案件作成時にテンプレを GitHub repo に展開",
+      "sprint": "S2",
+      "feature": "F-003",
+      "layer": "L2",
+      "label": "REFACTOR",
+      "human_days": 2,
+      "claude_code_hours": 4,
+      "deps": [
+        "T-BTSTRAP-01",
+        "T-BTSTRAP-03",
+        "T-013-01"
+      ],
+      "blocks": [
+        "T-BTSTRAP-04",
+        "T-BTSTRAP-06"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-31",
+      "mock_link": "../../mocks/2026-05-09_v1/account/S-006-account-dashboard.html",
+      "existing_files": [
+        "backend/services/workspace_service.py",
+        "backend/integrations/github_client.py"
+      ],
+      "entities": [
+        "workspaces",
+        "github_repos",
+        "workspace_members"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "When a new workspace is created via POST /api/workspaces, the system shall automatically create a GitHub repo (engine-base/proj-{slug}) and populate it with templates/project-bootstrap/ files."
+        },
+        {
+          "type": "EVENT",
+          "text": "When the bootstrap completes, the system shall make an initial commit with message 'chore: bootstrap project from template v{X}' on the main branch."
+        },
+        {
+          "type": "STATE",
+          "text": "While the bootstrap is in progress, the system shall set workspace.status='bootstrapping' and refuse other operations until status becomes 'ready'."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where the user provided a custom GitHub org, the system shall create the repo under that org instead of the default."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If the GitHub API call fails, the system shall mark workspace.status='bootstrap_failed', preserve the workspace row for retry, and shall not leave a partial repo on GitHub."
+        }
+      ]
+    },
+    {
+      "id": "T-BTSTRAP-03",
+      "title": "Jinja2 プレースホルダ置換エンジン",
+      "sprint": "S2",
+      "feature": "F-003",
+      "layer": "L2",
+      "label": "NEW",
+      "human_days": 1,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-BTSTRAP-01"
+      ],
+      "blocks": [
+        "T-BTSTRAP-02"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-31",
+      "mock_link": null,
+      "existing_files": [],
+      "entities": [],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall render every .j2 file in templates/project-bootstrap/ using Jinja2 with the workspace metadata as context."
+        },
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall support 10 placeholders: project_name, project_slug, client_name, deadline, phase, owner_email, tech_stack, ai_employees, template_version, generated_at."
+        },
+        {
+          "type": "EVENT",
+          "text": "When a required placeholder is missing from the workspace metadata, the system shall raise BootstrapError before writing any file (atomic)."
+        },
+        {
+          "type": "STATE",
+          "text": "While rendering, the system shall apply autoescape=False (Markdown / HTML output preserved)."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If a rendered file still contains {{ }} (unrendered placeholder), the system shall fail validation and shall not commit."
+        }
+      ]
+    },
+    {
+      "id": "T-BTSTRAP-04",
+      "title": "既存案件への遡及適用 (build-factory project migrate)",
+      "sprint": "S3",
+      "feature": "F-003",
+      "layer": "L2",
+      "label": "NEW",
+      "human_days": 2,
+      "claude_code_hours": 3,
+      "deps": [
+        "T-BTSTRAP-02"
+      ],
+      "blocks": [
+        "T-BTSTRAP-05"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-31",
+      "mock_link": null,
+      "existing_files": [
+        "backend/cli/project_commands.py"
+      ],
+      "entities": [
+        "workspaces",
+        "github_repos",
+        "template_migrations"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The CLI command `build-factory project migrate --workspace={id}` shall fetch the workspace's repo, diff with the latest template, and add only missing files."
+        },
+        {
+          "type": "EVENT",
+          "text": "When an existing file would be overwritten, the system shall skip it and report a manual-merge needed."
+        },
+        {
+          "type": "STATE",
+          "text": "While dry-run mode is on (--dry-run), the system shall print the diff but shall not commit or push."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where --all is specified, the system shall iterate through every workspace and migrate sequentially."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If the workspace repo is dirty (uncommitted changes), the system shall abort the migration and shall not force any change."
+        }
+      ]
+    },
+    {
+      "id": "T-BTSTRAP-05",
+      "title": "テンプレ更新時に全案件へ PR 自動作成 (CI 統合)",
+      "sprint": "S4",
+      "feature": "F-013",
+      "layer": "L7",
+      "label": "NEW",
+      "human_days": 1.5,
+      "claude_code_hours": 3,
+      "deps": [
+        "T-BTSTRAP-04",
+        "T-013-03"
+      ],
+      "blocks": [],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-31",
+      "mock_link": "../../mocks/2026-05-09_v1/review/S-033-pr-review.html",
+      "existing_files": [
+        ".github/workflows/template-propagation.yml"
+      ],
+      "entities": [
+        "template_migrations",
+        "prs"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "EVENT",
+          "text": "When templates/CHANGELOG.md is updated on main, the GitHub Action shall trigger a dry-run migrate against every active workspace."
+        },
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall report the total number of files that would change per workspace, awaiting masato approval before proceeding."
+        },
+        {
+          "type": "EVENT",
+          "text": "When masato approves via the workflow_dispatch input, the system shall create a PR titled 'chore: migrate to template v{X}' on each workspace repo."
+        },
+        {
+          "type": "STATE",
+          "text": "While a workspace's last migration is pending review, the system shall not create a duplicate PR for the same template version."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If any workspace migration fails (auth / network), the system shall continue with the others and report failures in the summary, not abort the whole job."
+        }
+      ]
+    },
+    {
+      "id": "T-BTSTRAP-06",
+      "title": "e2e テスト = workspace 作成 → 強制レイヤー検証",
+      "sprint": "S3",
+      "feature": "F-003",
+      "layer": "L7",
+      "label": "NEW",
+      "human_days": 1,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-BTSTRAP-02"
+      ],
+      "blocks": [],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-31",
+      "mock_link": null,
+      "existing_files": [
+        "tests/e2e/test_workspace_bootstrap.py"
+      ],
+      "entities": [
+        "workspaces"
+      ],
+      "acceptance_criteria": [
+        {
+          "type": "EVENT",
+          "text": "When the e2e test creates a new workspace, the resulting GitHub repo shall contain CLAUDE.md, docs/HANDOVER.md, scripts/lint-mock.sh, scripts/validate-tickets.py, and .claude/settings.json."
+        },
+        {
+          "type": "UBIQUITOUS",
+          "text": "The test shall verify that grep -c 'Build-Factory' CLAUDE.md returns >= 1 in the bootstrapped repo."
+        },
+        {
+          "type": "EVENT",
+          "text": "When the test runs `bash scripts/lint-mock.sh` on the bootstrapped repo, it shall pass (no emojis, no AGPL, no missing files)."
+        },
+        {
+          "type": "STATE",
+          "text": "While running CI, this test shall execute under 60 seconds."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If any required file is missing from the bootstrapped repo, the test shall fail with a clear error indicating the missing path."
+        }
+      ]
+    }
+  ]
+}

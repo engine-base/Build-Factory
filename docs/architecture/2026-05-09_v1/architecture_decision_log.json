@@ -1,0 +1,207 @@
+{
+  "meta": {
+    "project": "Build-Factory",
+    "created_at": "2026-05-09",
+    "version": "1.0",
+    "skill_version": "architecture-design 1.0"
+  },
+  "context": {
+    "project_type": "SaaS Web アプリ (開発工場 OS)",
+    "team_size": "1 person + Claude Code (dogfooding)",
+    "scale": "Phase 1: 1 user / Phase 2: 100 / Phase 3: 1000+",
+    "priority": "quality > speed > cost (楽な道に逃げない・長期負債ゼロ)"
+  },
+  "decision_log": [
+    {
+      "decision": "モジュラーモノリス採用",
+      "reason": "1 人開発 + 30 機能 + 50 並列セッション + WebSocket。マイクロサービスは運用不可。モジュール境界 (13) を明確化することで Phase 2/3 で必要箇所のみ分割可能",
+      "alternatives": ["モノリス (無構造)", "マイクロサービス", "サーバレス全面"],
+      "tradeoffs": "1 サービス障害で全停止 → 1 人運用なら許容・冗長化は P3"
+    },
+    {
+      "decision": "BMAD = 思想流用 + 自前統合 (fork なし)",
+      "reason": "BMAD upstream 変更に追従しやすい・自前メンテで自由度確保",
+      "alternatives": ["fork して内蔵", "ライブラリ dependency", "完全自前"],
+      "tradeoffs": "fork ほど深く制御不可 / 完全自前ほどゼロから"
+    },
+    {
+      "decision": "Anthropic Agent Teams = 公式 SDK + 自前壁打ちのハイブリッド",
+      "reason": "Plan/Gen/Eval の公式機能を活用 + Build-Factory 側でリーダー AI 壁打ちを上乗せ",
+      "alternatives": ["公式 SDK 完全採用", "公式パターンを参考に自前実装"],
+      "tradeoffs": "API 変更影響を受けるが抽象化レイヤーで吸収"
+    },
+    {
+      "decision": "個人クローン化 = opt-in 必須・デフォルト OFF",
+      "reason": "プライバシー保守的 / Phase 1 では学習データ量より「安全な土台」優先 / GDPR ready",
+      "alternatives": ["デフォルト ON でいつでも OFF 可", "段階的 opt-in"],
+      "tradeoffs": "学習データが集まりにくい → 信頼獲得の方が重要"
+    },
+    {
+      "decision": "Supabase Cloud から開始 → P3 で self-host 移行可能性",
+      "reason": "managed で楽・無料枠で開始可・将来の制御権も残す",
+      "alternatives": ["Supabase self-host から開始", "Cloud 固定"],
+      "tradeoffs": "ベンダーロックイン中 → 標準 SQL + portable RLS で緩和"
+    },
+    {
+      "decision": "Constitution + 赤線リストの階層管理",
+      "reason": "Constitution = 不変原則 (上位概念) / red_lines = 検出ルール (下位)。FK で参照関係明示",
+      "alternatives": ["同じテーブル (type フィールド)", "完全独立"],
+      "tradeoffs": "join が必要 → 設計の意図が明確になる方が大"
+    },
+    {
+      "decision": "Obsidian P1 = Supabase Storage に MD upload",
+      "reason": "ベンダ非依存 / Phase 1.5 の Headless Sync 移行が容易",
+      "alternatives": ["ファイルシステム直接書込", "GitHub bidirectional"],
+      "tradeoffs": "ローカル Vault からは別 sync ツール必要 → Phase 1 は読み取り重視で問題なし"
+    },
+    {
+      "decision": "claude-agent-sdk (Python) を subprocess 管理に採用",
+      "reason": "公式 SDK・CLI subprocess を自動 wrap・Docker friendly・Langfuse 統合容易",
+      "alternatives": ["subprocess 直叩き (asyncio.create_subprocess_exec)", "Anthropic API を直接呼び出し"],
+      "tradeoffs": "SDK の API 変更追従が必要 → メリット (堅牢性) が大"
+    },
+    {
+      "decision": "LLM プロバイダー抽象化 = LiteLLM (self-host)",
+      "reason": "OSS / BYOK / Langfuse ネイティブ統合 / 100+ プロバイダー対応 / コスト最小 (VPS $20-50)",
+      "alternatives": ["Portkey (managed enterprise)", "OpenRouter (aggregator)", "自前抽象化"],
+      "tradeoffs": "VPS 運用負荷 → Langfuse と同じ VPS で集約・自前抽象化より圧倒的に楽"
+    },
+    {
+      "decision": "Realtime = Supabase Realtime + 自前 WebSocket の 2 系統",
+      "reason": "DB 変更通知 (artifact / 通知) は Supabase Realtime / swarm ライブログは 100ms 要件で自前 WebSocket",
+      "alternatives": ["Supabase Realtime のみ", "自前 WebSocket のみ"],
+      "tradeoffs": "2 系統管理 → 用途別最適化のメリット大"
+    },
+    {
+      "decision": "Migration = Supabase CLI (既存 alembic 廃止)",
+      "reason": "Supabase 統合・SQL ベース・RLS / functions / triggers も同時管理可",
+      "alternatives": ["alembic 継続", "両方並走"],
+      "tradeoffs": "既存資産の一部破棄 → DB 統一性のメリット大"
+    },
+    {
+      "decision": "Frontend ホスト = Vercel (Cloudflare Pages から変更)",
+      "reason": "Next.js ネイティブ最適化 / 個人的に使いやすい (ユーザ希望) / 無料枠で開始可",
+      "alternatives": ["Cloudflare Pages", "Netlify", "Coolify"],
+      "tradeoffs": "Pro plan で $20/mo (P2+) → Hobby で十分開始可能"
+    },
+    {
+      "decision": "Phase 1 = 初期コスト ¥0 構成 (Vercel Hobby + Oracle Free Tier + Supabase Free + 各種無料枠)",
+      "reason": "ユーザ希望 / dogfood 段階で課金不要",
+      "alternatives": ["Coolify on $20-50 VPS", "Vercel + Railway managed"],
+      "tradeoffs": "Free Tier 制約 (RAM / 容量) → dogfood 規模なら十分"
+    },
+    {
+      "decision": "Backend ホスト第一候補 = Oracle Cloud Free Tier (4 vCPU + 24GB RAM 永久無料)",
+      "reason": "永久無料 + ARM Ampere は Build-Factory の subprocess + Worker + Langfuse を 1 台で全部動かせる強さ",
+      "alternatives": ["自宅 PC + Cloudflare Tunnel", "Fly.io 無料", "Render 無料 (spin down あり)"],
+      "tradeoffs": "ARM のみ (一部 Docker image 制約) → claude-agent-sdk は対応済"
+    },
+    {
+      "decision": "暗号化 = pgsodium (Postgres extension)",
+      "reason": "現時点での標準 + Postgres ネイティブ + Supabase 標準サポート",
+      "alternatives": ["Supabase Vault (まだ GA でない)", "AWS KMS", "アプリ層暗号化"],
+      "tradeoffs": "Vault GA したら再検討 → 移行コストは中程度"
+    },
+    {
+      "decision": "CI/CD = GitHub Actions",
+      "reason": "GitHub 連携 (M-13) と統合性 / 無料枠 (2000 分/月 public) で十分 / OSS",
+      "alternatives": ["Vercel CI", "GitLab CI", "CircleCI"],
+      "tradeoffs": "GitHub 依存 → P3 で問題なら GitLab CI 等に移行可能"
+    },
+    {
+      "decision": "staging 環境は Phase 1.5 で立ち上げ (P1 dogfood は production 直行)",
+      "reason": "1 人 dogfood では staging のメリット小 / コストと保守負荷を抑える",
+      "alternatives": ["P1 から staging 立ち上げ"],
+      "tradeoffs": "P1 中の本番障害リスク増 → dogfood なので影響小"
+    },
+    {
+      "decision": "Worker = asyncio.Semaphore + Queue (P1) → Celery + Redis (P2 必要時)",
+      "reason": "dogfood 段階はシンプルに / Redis 不要 / FastAPI 内で完結",
+      "alternatives": ["最初から Celery + Redis", "BullMQ", "pg-boss"],
+      "tradeoffs": "P2 で再構築コスト → 抽象化レイヤーで影響最小化"
+    },
+    {
+      "decision": "テスト = pytest + vitest + Playwright",
+      "reason": "標準セット・既存資産活用",
+      "alternatives": ["独自テストフレームワーク"],
+      "tradeoffs": "学習コスト最小"
+    }
+  ],
+  "architecture_patterns": [
+    {
+      "pattern_name": "モジュラーモノリス (DDD ライト)",
+      "applicable_to": "1 人〜小規模チーム / ドメインが明確 / 将来分割の余地が必要",
+      "description": "domain ごとに internal/ (private) + shared/ (public API) を分離。モジュール間通信は shared 経由のみ。Phase 2/3 で必要箇所だけマイクロサービス化可能"
+    },
+    {
+      "pattern_name": "Supabase + RLS 強制マルチテナント",
+      "applicable_to": "SaaS 商用化前提・データ分離が moat",
+      "description": "全テーブルに account_id / workspace_id NOT NULL + RLS ポリシーで invisible WHERE clause 自動付与。アプリコードが tenant フィルタを忘れても安全"
+    },
+    {
+      "pattern_name": "LLM 抽象化レイヤー (LiteLLM)",
+      "applicable_to": "マルチプロバイダー対応 + BYOK + 観測統合が必要",
+      "description": "プロバイダー固有機能は capability flag で扱い、新規追加は adapter 1 ファイル + 設定で完結"
+    },
+    {
+      "pattern_name": "claude-agent-sdk subprocess pool",
+      "applicable_to": "Claude Code を SaaS 内で並列起動する必要がある場合",
+      "description": "asyncio.Semaphore で並列上限制御 + queue で FIFO + circuit breaker で連続失敗時 auto-block + Hermes 流の親子昇格"
+    },
+    {
+      "pattern_name": "Constitution + 赤線リスト階層管理",
+      "applicable_to": "AI 出力の品質・安全性を確保する SaaS",
+      "description": "プロジェクト不変原則 (Constitution) を上位概念として Markdown で管理 + 検出ルール (red_lines) を FK で参照 + 違反は自動 block + 監査ログ"
+    },
+    {
+      "pattern_name": "個人クローン opt-in",
+      "applicable_to": "ユーザの判断履歴を学習データとして蓄積する SaaS",
+      "description": "デフォルト OFF + DB trigger で opt_in = TRUE 時のみ INSERT 許可 + いつでも OFF + 全削除可 (GDPR ready)"
+    },
+    {
+      "pattern_name": "Realtime ハイブリッド",
+      "applicable_to": "DB 変更通知 + ライブストリームの両方が必要なアプリ",
+      "description": "DB 変更通知は Supabase Realtime (低オーバーヘッド) / ライブログは自前 WebSocket (低レイテンシ) で使い分け"
+    }
+  ],
+  "research": {
+    "research_date": "2026-05-09",
+    "sources": [
+      {"url": "https://claudelab.net/en/articles/claude-code/claude-code-python-fastapi-production-api-guide", "title": "Claude Code × Python FastAPI Production Guide 2026"},
+      {"url": "https://www.augmentcode.com/guides/claude-agent-sdk-python", "title": "Claude Agent SDK in Python"},
+      {"url": "https://github.com/e2b-dev/claude-code-fastapi", "title": "claude-code-fastapi"},
+      {"url": "https://github.com/Razikus/supabase-nextjs-template", "title": "Supabase Next.js Template (production-ready)"},
+      {"url": "https://dev.to/pipipi-dev/building-multi-tenant-saas-as-a-solo-developer-1pi9", "title": "Building Multi-Tenant SaaS as a Solo Developer"},
+      {"url": "https://vladimirsiedykh.com/blog/saas-architecture-patterns-nextjs", "title": "SaaS Architecture Patterns with Next.js"},
+      {"url": "https://github.com/YoraiLevi/modular-monolith-fastapi", "title": "Modular Monolith FastAPI"},
+      {"url": "https://strategictech.substack.com/p/modular-monolith-blueprint", "title": "Modular Monolith Blueprint"},
+      {"url": "https://github.com/zhanymkanov/fastapi-best-practices", "title": "FastAPI Best Practices"},
+      {"url": "https://www.pkgpulse.com/guides/portkey-vs-litellm-vs-openrouter-llm-gateway-2026", "title": "LiteLLM vs Portkey vs OpenRouter 2026"}
+    ],
+    "findings": [
+      "claude-agent-sdk が CLI subprocess を自動 wrap・Docker friendly。FastAPI で「job ID 返却 + poll」パターン推奨。semaphore + queue で並列制御",
+      "Next.js 15 + Supabase RLS は業界標準パターン (Nextbase / Razikus / Makerkit)。subdomain isolation で tenant routing も可 (P3 検討)",
+      "モジュラーモノリスは domain ごと internal/ + shared/ + router/service/repo 分離が標準 (Netflix Dispatch 等)。FastAPI で実装事例豊富",
+      "LiteLLM は self-host + BYOK + Langfuse 統合で Build-Factory 方針と完全一致。VPS $20-50 で十分動作。Portkey は managed enterprise・OpenRouter は aggregator で用途違い",
+      "Supabase RLS = invisible WHERE clauses on every query。アプリコードが tenant フィルタを忘れても安全",
+      "PostgreSQL pg_partman + BRIN index で時系列テーブル (audit_logs / session_logs / cost_logs) を効率管理",
+      "Oracle Cloud Free Tier (ARM Ampere 4 vCPU + 24GB RAM × 2 instances 永久無料) は self-host 系の最強無料枠"
+    ]
+  },
+  "tradeoffs_summary": [
+    "modular-monolith vs microservices: 1 人運用なら前者一択",
+    "Supabase vs self-host PG: 統合性のメリット大 / ロックインは portable SQL で緩和",
+    "LiteLLM self-host vs Portkey managed: コストとカスタマイズ性で前者",
+    "Vercel + Oracle Free Tier vs Coolify on VPS: P1 は ¥0 / P2+ で需要に応じて切替",
+    "Supabase CLI vs alembic: DB 統一性のメリット大 / 既存資産の archive コスト許容",
+    "個人クローン opt-in OFF vs ON: プライバシー保守 / 信頼獲得を優先",
+    "自前 WebSocket vs Supabase Realtime: swarm 100ms 要件は前者必須",
+    "Phase 1 staging スキップ: 1 人 dogfood なら許容 / P1.5 で立ち上げ"
+  ],
+  "next_skill_inputs": [
+    "tech-stack: 候補比較 (LiteLLM 採用詳細 / Supabase plan / OpenFGA 採否 / Sentry / Better Stack 採否 / DPA 確認)",
+    "functional-breakdown: 35 画面 + 機能粒度 + ロール権限マトリクス + 30 エンティティ草案 (このスキルの DB 設計を入力に)",
+    "feature-decomposition: 13 モジュールの境界に従って機能を分散開発粒度に分解",
+    "task-decomposition: Phase 1 Must 30 項目を実装単位に + 工数見積もり"
+  ]
+}

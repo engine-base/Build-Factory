@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>S-017 機能依存グラフ — Build-Factory Mock</title>
+<meta name="screen-id" content="S-017" />
+<meta name="feature-id" content="F-007" />
+<meta name="task-ids" content="T-007-02,T-007-03" />
+<meta name="entities" content="features,feature_dependencies,specs" />
+<meta name="phase" content="P1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      colors: {
+        eb: { 50:'#e6f0ec', 100:'#c4dccf', 500:'#1a6648', 600:'#155238', 700:'#103e2a' },
+      },
+      fontFamily: { sans: ['"Noto Sans JP"','system-ui','sans-serif'], mono: ['"JetBrains Mono"','ui-monospace','monospace'] }
+    }}
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body { font-family:"Noto Sans JP", system-ui, sans-serif; }
+  .mono { font-family:"JetBrains Mono", ui-monospace, monospace; }
+  .node { cursor:pointer; }
+  .node rect { transition: all 0.15s; }
+  .node:hover rect { stroke:#1a6648; stroke-width:2.5; }
+  .node.selected rect { stroke:#1a6648; stroke-width:3; }
+  .edge { stroke:#94a3b8; stroke-width:1.5; fill:none; marker-end:url(#arrow); }
+  .edge.critical { stroke:#dc2626; stroke-width:2; }
+  .edge.highlighted { stroke:#1a6648; stroke-width:2.5; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex">
+
+<!-- Sidebar -->
+<aside class="w-[230px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-5 border-b border-eb-600">
+    <div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div>
+    <div class="text-sm font-bold mt-1">受託EC構築 #4</div>
+    <div class="text-[11px] text-eb-100 mt-0.5 mono">ws_8f3a2c · P1.5</div>
+  </div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5">
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../account/S-006-account-dashboard.html">← Account</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="#">Workspace ホーム</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="#">ヒアリング</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="#">仕様書</a>
+    <a class="block px-3 py-1.5 rounded bg-eb-600 text-white font-bold" href="#">機能 / 依存</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-027-task-kanban.html">タスク Kanban</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../task/S-031-swarm-grid.html">Swarm 並列実行</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="#">レビュー</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="#">運用 / メトリクス</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 text-[11px] text-eb-100">
+    masato (owner)
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="flex-1 flex flex-col min-w-0">
+  <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 gap-4 shrink-0">
+    <h1 class="text-base font-bold text-slate-900">機能依存グラフ</h1>
+    <span class="text-[11px] mono text-slate-500">30 features · 47 edges · 9 layers</span>
+    <div class="flex-1"></div>
+    <select class="px-2 py-1 text-xs border border-slate-300 rounded">
+      <option>レイアウト: 階層 (DAG)</option>
+      <option>レイアウト: フォース</option>
+      <option>レイアウト: 円形</option>
+    </select>
+    <button class="px-3 py-1.5 text-xs border border-slate-300 rounded hover:bg-slate-50">クリティカルパス強調</button>
+    <button class="px-3 py-1.5 text-xs bg-eb-500 text-white rounded font-bold">Sprint 別表示</button>
+  </header>
+
+  <div class="flex-1 grid grid-cols-[1fr_320px] min-h-0">
+    <!-- Graph canvas -->
+    <section class="overflow-hidden bg-slate-100 relative">
+      <!-- Toolbar overlay -->
+      <div class="absolute top-3 left-3 bg-white border border-slate-200 rounded-lg shadow-sm p-1.5 flex items-center gap-1 z-10">
+        <button class="w-7 h-7 rounded hover:bg-slate-100 text-sm">＋</button>
+        <button class="w-7 h-7 rounded hover:bg-slate-100 text-sm">−</button>
+        <button class="w-7 h-7 rounded hover:bg-slate-100 text-xs"><i data-lucide="maximize" class="w-3 h-3 inline"></i></button>
+        <span class="mx-1 text-[10px] mono text-slate-500">100%</span>
+      </div>
+      <!-- Legend overlay -->
+      <div class="absolute bottom-3 left-3 bg-white border border-slate-200 rounded-lg shadow-sm p-3 text-[10px] z-10">
+        <div class="font-bold text-slate-700 mb-1.5">凡例</div>
+        <div class="flex items-center gap-1.5 mb-1"><span class="w-3 h-3 rounded bg-emerald-100 border border-emerald-500"></span>REUSE</div>
+        <div class="flex items-center gap-1.5 mb-1"><span class="w-3 h-3 rounded bg-amber-100 border border-amber-500"></span>REFACTOR</div>
+        <div class="flex items-center gap-1.5 mb-1"><span class="w-3 h-3 rounded bg-blue-100 border border-blue-500"></span>NEW</div>
+        <div class="flex items-center gap-1.5 mb-1"><span class="w-4 h-0.5 bg-rose-500"></span>クリティカルパス</div>
+        <div class="flex items-center gap-1.5"><span class="w-4 h-0.5 bg-slate-400"></span>通常依存</div>
+      </div>
+      <!-- Filter overlay -->
+      <div class="absolute top-3 right-3 bg-white border border-slate-200 rounded-lg shadow-sm p-2 text-[11px] z-10">
+        <input type="text" placeholder="検索: F-001 ..." class="w-40 px-2 py-1 border border-slate-200 rounded mono"/>
+      </div>
+
+      <!-- SVG graph -->
+      <svg viewBox="0 0 1100 700" class="w-full h-full">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/>
+          </marker>
+          <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"/>
+          </marker>
+        </defs>
+
+        <!-- Layer labels -->
+        <g class="text-[10px] fill-slate-400 mono">
+          <text x="20" y="25">L0 基盤</text>
+          <text x="20" y="105">L1 認証</text>
+          <text x="20" y="185">L2 案件</text>
+          <text x="20" y="265">L3 ヒアリング</text>
+          <text x="20" y="345">L4 設計</text>
+          <text x="20" y="425">L5 タスク</text>
+          <text x="20" y="505">L6 実行</text>
+          <text x="20" y="585">L7 レビュー</text>
+          <text x="20" y="665">L8 運用</text>
+        </g>
+
+        <!-- Edges (drawn first so nodes overlay) -->
+        <!-- L0 -> L1 -->
+        <path class="edge critical" d="M 220 30 C 220 60, 220 80, 220 90" marker-end="url(#arrow-red)"/>
+        <!-- L1 -> L2 -->
+        <path class="edge critical" d="M 220 110 C 220 140, 220 160, 220 170" marker-end="url(#arrow-red)"/>
+        <path class="edge" d="M 320 110 C 320 140, 320 160, 320 170"/>
+        <!-- L2 -> L3 -->
+        <path class="edge critical" d="M 220 190 C 220 220, 220 240, 220 250" marker-end="url(#arrow-red)"/>
+        <path class="edge" d="M 320 190 C 320 220, 320 240, 320 250"/>
+        <path class="edge" d="M 420 190 C 420 220, 420 240, 420 250"/>
+        <!-- L3 -> L4 -->
+        <path class="edge critical" d="M 220 270 C 220 300, 220 320, 220 330" marker-end="url(#arrow-red)"/>
+        <path class="edge" d="M 320 270 C 320 300, 320 320, 320 330"/>
+        <!-- L4 -> L5 -->
+        <path class="edge critical" d="M 220 350 C 220 380, 220 400, 220 410" marker-end="url(#arrow-red)"/>
+        <path class="edge" d="M 320 350 C 320 380, 320 400, 320 410"/>
+        <path class="edge" d="M 420 350 C 420 380, 420 400, 420 410"/>
+        <!-- L5 -> L6 -->
+        <path class="edge critical" d="M 220 430 C 220 460, 220 480, 220 490" marker-end="url(#arrow-red)"/>
+        <path class="edge" d="M 420 430 C 420 460, 420 480, 420 490"/>
+        <!-- L6 -> L7 -->
+        <path class="edge" d="M 220 510 C 220 540, 220 560, 220 570"/>
+        <path class="edge" d="M 320 510 C 320 540, 320 560, 320 570"/>
+        <!-- L7 -> L8 -->
+        <path class="edge" d="M 220 590 C 220 620, 220 640, 220 650"/>
+        <!-- cross-cutting -->
+        <path class="edge" d="M 520 30 C 600 100, 600 200, 520 250"/>
+        <path class="edge" d="M 620 110 C 700 200, 700 300, 620 410"/>
+        <path class="edge" d="M 720 350 C 800 400, 800 460, 720 510"/>
+
+        <!-- Nodes : column 1 (x=180-260) =critical path  -->
+        <!-- L0 F-001 platform-base (REUSE) -->
+        <g class="node selected" transform="translate(180,5)">
+          <rect width="120" height="35" rx="4" fill="#d1fae5" stroke="#10b981" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-emerald-800">F-001</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">platform-base</text>
+        </g>
+        <!-- L1 F-002 auth (REFACTOR) -->
+        <g class="node" transform="translate(180,85)">
+          <rect width="120" height="35" rx="4" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-amber-800">F-002</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">auth-supabase</text>
+        </g>
+        <g class="node" transform="translate(280,85)">
+          <rect width="120" height="35" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-blue-800">F-002b</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">2fa-totp</text>
+        </g>
+        <!-- L2 -->
+        <g class="node" transform="translate(180,165)">
+          <rect width="120" height="35" rx="4" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-amber-800">F-003</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">workspace-mgmt</text>
+        </g>
+        <g class="node" transform="translate(280,165)">
+          <rect width="120" height="35" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-blue-800">F-004</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">role-rls</text>
+        </g>
+        <g class="node" transform="translate(380,165)">
+          <rect width="120" height="35" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-blue-800">F-004b</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">audit-log</text>
+        </g>
+        <!-- L3 -->
+        <g class="node" transform="translate(180,245)">
+          <rect width="120" height="35" rx="4" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-amber-800">F-005</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">hearing-flow</text>
+        </g>
+        <g class="node" transform="translate(280,245)">
+          <rect width="120" height="35" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-blue-800">F-005b</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">slack-bridge</text>
+        </g>
+        <g class="node" transform="translate(380,245)">
+          <rect width="120" height="35" rx="4" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-amber-800">F-005c</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">moat-builder</text>
+        </g>
+        <!-- L4 -->
+        <g class="node" transform="translate(180,325)">
+          <rect width="120" height="35" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-blue-800">F-006</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">spec-generation</text>
+        </g>
+        <g class="node" transform="translate(280,325)">
+          <rect width="120" height="35" rx="4" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-amber-800">F-010b</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">spec-viewer</text>
+        </g>
+        <g class="node" transform="translate(380,325)">
+          <rect width="120" height="35" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-blue-800">F-007</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">dependency-map</text>
+        </g>
+        <!-- L5 -->
+        <g class="node" transform="translate(180,405)">
+          <rect width="120" height="35" rx="4" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-amber-800">F-008</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">task-decomp</text>
+        </g>
+        <g class="node" transform="translate(280,405)">
+          <rect width="120" height="35" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-blue-800">F-008b</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">ears-validator</text>
+        </g>
+        <g class="node" transform="translate(380,405)">
+          <rect width="120" height="35" rx="4" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-amber-800">F-009</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">kanban</text>
+        </g>
+        <!-- L6 -->
+        <g class="node" transform="translate(180,485)">
+          <rect width="120" height="35" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-blue-800">F-010</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">claude-runner</text>
+        </g>
+        <g class="node" transform="translate(380,485)">
+          <rect width="120" height="35" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-blue-800">F-011</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">swarm-grid</text>
+        </g>
+        <!-- L7 -->
+        <g class="node" transform="translate(180,565)">
+          <rect width="120" height="35" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-blue-800">F-012</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">review-workflow</text>
+        </g>
+        <g class="node" transform="translate(280,565)">
+          <rect width="120" height="35" rx="4" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-amber-800">F-013</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">github-pr</text>
+        </g>
+        <!-- L8 -->
+        <g class="node" transform="translate(180,645)">
+          <rect width="120" height="35" rx="4" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-amber-800">F-014</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">cost-tracker</text>
+        </g>
+
+        <!-- Cross-cutting nodes (right side) -->
+        <g class="node" transform="translate(480,5)">
+          <rect width="120" height="35" rx="4" fill="#d1fae5" stroke="#10b981" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-emerald-800">F-M28</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">memory-3tier</text>
+        </g>
+        <g class="node" transform="translate(580,85)">
+          <rect width="120" height="35" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-blue-800">F-M27</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">cache-control</text>
+        </g>
+        <g class="node" transform="translate(680,325)">
+          <rect width="120" height="35" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-blue-800">F-M30</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">sandbox-exec</text>
+        </g>
+        <g class="node" transform="translate(680,485)">
+          <rect width="120" height="35" rx="4" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+          <text x="8" y="14" class="text-[10px] mono font-bold fill-amber-800">F-M12</text>
+          <text x="8" y="28" class="text-[11px] fill-slate-700">litellm-router</text>
+        </g>
+      </svg>
+    </section>
+
+    <!-- Right inspector -->
+    <aside class="border-l border-slate-200 bg-white overflow-y-auto p-5 space-y-5">
+      <div class="text-[10px] tracking-wider text-slate-500 font-bold">選択中のノード</div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="px-1.5 py-0.5 text-[10px] bg-emerald-100 text-emerald-800 rounded mono font-bold">REUSE</span>
+          <span class="mono text-sm font-bold text-slate-700">F-001</span>
+        </div>
+        <h2 class="text-base font-bold mt-1.5">platform-base</h2>
+        <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+          FastAPI + Next.js のモジュラーモノリス基盤。bootstrap 済み 40 ルーター + 50 サービスをそのまま流用する。
+        </p>
+      </div>
+
+      <div>
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">メタ</div>
+        <div class="text-xs space-y-1">
+          <div class="flex justify-between"><span class="text-slate-500">レイヤー</span><span class="mono text-slate-700">L0 基盤</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Sprint</span><span class="mono text-slate-700">S0</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">タスク数</span><span class="mono text-slate-700">2 (S0-13, M28-01)</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">担当</span><span class="text-slate-700">Winston (Architect)</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">関連画面</span><span class="text-slate-700">—</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">下流（依存される側）</div>
+        <div class="text-xs space-y-1">
+          <div class="flex items-center gap-2 px-2 py-1.5 bg-slate-50 rounded">
+            <span class="mono text-slate-700">F-002</span><span class="text-slate-600 truncate">auth-supabase</span>
+            <span class="ml-auto text-[10px] text-rose-600 font-bold">CRITICAL</span>
+          </div>
+          <div class="flex items-center gap-2 px-2 py-1.5 bg-slate-50 rounded">
+            <span class="mono text-slate-700">F-M28</span><span class="text-slate-600 truncate">memory-3tier</span>
+            <span class="ml-auto text-[10px] text-slate-500">normal</span>
+          </div>
+          <div class="flex items-center gap-2 px-2 py-1.5 bg-slate-50 rounded">
+            <span class="mono text-slate-700">F-M27</span><span class="text-slate-600 truncate">cache-control</span>
+            <span class="ml-auto text-[10px] text-slate-500">normal</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">クリティカルパス</div>
+        <div class="text-[11px] mono text-slate-600 leading-relaxed bg-rose-50 border border-rose-200 rounded p-2">
+          F-001 → F-002 → F-003 → F-005 → F-006 → F-008 → F-010
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-100">
+        <a href="../task/S-027-task-kanban.html" class="block px-3 py-2 text-xs bg-eb-500 text-white rounded text-center font-bold">関連タスクを開く</a>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="h-9 bg-white border-t border-slate-200 flex items-center justify-between px-6 text-[11px] text-slate-500 shrink-0 mono">
+    <span>S-017 dependency_graph · F-007 · T-007-02/03</span>
+    <span><a href="../index.html" class="hover:underline">← Index</a></span>
+  </footer>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

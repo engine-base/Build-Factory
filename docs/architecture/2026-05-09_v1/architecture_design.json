@@ -1,0 +1,227 @@
+{
+  "project": "Build-Factory",
+  "version": "1.0",
+  "based_on_requirements": "docs/requirements/2026-05-09_v1/",
+  "based_on_hearing": "docs/hearing/2026-05-09_re-hearing/ (v2.1)",
+  "created_at": "2026-05-09",
+  "architecture": {
+    "type": "modular-monolith",
+    "reason": "1 人開発 (dogfooding) + 30 機能 + 50 並列セッション + WebSocket。マイクロサービスは over-engineering。モジュール境界 (13 ドメイン) を明確化することで Phase 2/3 で必要箇所のみ分割可能。"
+  },
+  "modules": [
+    {"name": "auth_tenant", "responsibility": "account / workspace / members / invitations"},
+    {"name": "ai_employee", "responsibility": "AI 社員管理 (BMAD ペルソナ + 3 階層 + 個人クローン)"},
+    {"name": "skill", "responsibility": "skill 管理 / skill_executions / skill-creator"},
+    {"name": "hearing_spec", "responsibility": "hearing → 仕様 + 画面モック HTML パイプライン (M-5 / M-5b / M-15 / M-25)"},
+    {"name": "phase_dependency", "responsibility": "プロジェクト・フェーズ管理 + 依存グラフ (moat / M-8 / M-9)"},
+    {"name": "task", "responsibility": "タスク CRUD + 多 view / acceptance-criteria"},
+    {"name": "session_swarm", "responsibility": "Claude Code セッション管理 (M-10b/c/d)"},
+    {"name": "mcp_server", "responsibility": "MCP サーバー (M-10a)"},
+    {"name": "reviewer_loop", "responsibility": "リーダー AI 壁打ちループ (M-11)"},
+    {"name": "safety", "responsibility": "赤線リスト + Constitution (M-12 / M-26)"},
+    {"name": "permission", "responsibility": "custom_permissions UI + 権限評価 (M-21)"},
+    {"name": "integration_github", "responsibility": "GitHub 連携 (M-13)"},
+    {"name": "integration_slack", "responsibility": "Slack 通知 (M-14)"},
+    {"name": "integration_obsidian", "responsibility": "Obsidian 連携 (M-16 / S-4)"},
+    {"name": "observability", "responsibility": "Langfuse + 監査ログ + バックアップ (M-17 / M-18)"},
+    {"name": "search", "responsibility": "グローバル検索 FTS + pgvector (M-24)"}
+  ],
+  "tech_stack": {
+    "frontend": {
+      "framework": "Next.js",
+      "version": "15",
+      "router": "App Router",
+      "language": "TypeScript",
+      "ui": "shadcn/ui + Tailwind CSS 4",
+      "state": "Zustand + TanStack Query",
+      "graph": "React Flow",
+      "chart": "Recharts",
+      "html_editor_phase_1_5": "GrapesJS Studio SDK"
+    },
+    "backend": {
+      "framework": "FastAPI",
+      "structure": "modular-monolith (13 domains, internal/+shared/ pattern)",
+      "runtime": "Python 3.13",
+      "language": "Python",
+      "package_manager": "uv",
+      "lint": "ruff",
+      "type_check": "pyright",
+      "orm": "SQLAlchemy 2.0 async + Pydantic + Supabase Python SDK",
+      "subprocess_management": "claude-agent-sdk (Python・公式 SDK)",
+      "mcp_sdk": "Anthropic MCP Python SDK",
+      "worker_phase_1": "asyncio.Semaphore + asyncio.Queue",
+      "worker_phase_2_optional": "Celery + Redis"
+    },
+    "database": {
+      "type": "PostgreSQL",
+      "host": "Supabase (managed → Phase 3 で self-host 可能性)",
+      "extensions": ["pgvector", "pg_trgm", "pgsodium", "pg_cron", "pg_partman (Phase 2)"],
+      "migration_tool": "Supabase CLI (alembic は archive)",
+      "naming_convention": "snake_case",
+      "pk_type": "UUID v7",
+      "soft_delete": true
+    },
+    "auth": "Supabase Auth (JWT + 2FA + OAuth)",
+    "authz": {
+      "phase_1": "Supabase RLS + custom_permissions JSONB",
+      "phase_2": "OpenFGA で fine-grained 補完"
+    },
+    "realtime": {
+      "type": "hybrid",
+      "data_change_notifications": "Supabase Realtime",
+      "live_streaming": "自前 WebSocket (FastAPI) for swarm session logs"
+    },
+    "storage": "Supabase Storage (S3 互換)",
+    "encryption": "pgsodium (Postgres extension) → Supabase Vault が GA したら再検討",
+    "llm_abstraction": {
+      "library": "LiteLLM (self-host)",
+      "providers": ["Anthropic Claude", "OpenAI", "Google Gemini", "(extensible adapter)"],
+      "implementation_layer": "各ユーザの Claude Pro/Max (OAuth)",
+      "chat_layer": "自社 API + BYOK 2 系統",
+      "local_llm_saas_offered": false,
+      "local_llm_self_host_supported": true
+    },
+    "ai_employee_framework": "BMAD 思想流用 + 自前統合 + Anthropic Agent Teams + 既存 96 スキル ハイブリッド (3 階層: csuite / lead / member / personal_clone)",
+    "observability": {
+      "llm": "Langfuse self-host (MIT)",
+      "error_tracking": "Sentry (free 5K events/mo)",
+      "uptime": "Better Stack (free 10 monitors)",
+      "structured_logging": "structlog (Python) + pino (Node.js) JSON"
+    },
+    "search": {
+      "fts": "Postgres FTS",
+      "fuzzy": "pg_trgm",
+      "semantic": "pgvector ivfflat (vector_cosine_ops)"
+    },
+    "knowledge": {
+      "primary": "Obsidian (P1: Storage MD upload / P1.5: Headless Sync 双方向)",
+      "memory": "Mem0 (existing)"
+    },
+    "hosting_phase_1": {
+      "frontend": "Vercel Hobby (free)",
+      "backend_worker_langfuse": "Oracle Cloud Free Tier (4 vCPU + 24GB RAM 永久無料) or 自宅 PC + Cloudflare Tunnel",
+      "supabase": "Free (500MB DB / 1GB Storage / 50K MAU)",
+      "monthly_cost_excluding_api": "¥0"
+    },
+    "hosting_phase_2_3": {
+      "frontend": "Vercel Pro $20/mo",
+      "backend": "Coolify on VPS $20-50 or Railway",
+      "supabase": "Pro $25/mo",
+      "deploy_adapter_p2": "Vercel / Netlify / Coolify / Cloud Run / SSH"
+    },
+    "ci_cd": "GitHub Actions",
+    "container": "Docker Compose (dev) + 個別 Dockerfile (prod)",
+    "test": {
+      "backend": "pytest",
+      "frontend": "vitest + React Testing Library",
+      "e2e": "Playwright (Phase 2 で MCP 統合)"
+    }
+  },
+  "database_design": {
+    "table_count": 42,
+    "groups": {
+      "auth_tenant": ["accounts", "account_members", "workspaces", "workspace_members", "workspace_invitations", "users"],
+      "ai_skill": ["ai_employees", "skills", "skill_executions", "user_knowledge_namespace", "user_interaction_log"],
+      "project_management_moat": ["phases", "phase_gates", "tasks", "task_dependencies", "acceptance_criteria", "constitutions"],
+      "spec_mock": ["artifacts", "artifact_versions", "screens", "components", "screen_components"],
+      "execution_review": ["sessions", "session_logs", "session_artifacts", "prs", "pr_reviews", "red_lines", "red_line_violations"],
+      "integration_ops": ["llm_providers", "api_keys", "slack_webhooks", "github_repos", "obsidian_vaults", "notifications", "cost_logs", "token_limits", "audit_logs", "backups", "user_settings"],
+      "auxiliary": ["workspace_settings", "schema_versions"]
+    },
+    "design_principles": {
+      "soft_delete": true,
+      "pk_type": "UUID v7",
+      "tenant_isolation": "RLS + account_id/workspace_id 全テーブル必須",
+      "naming_convention": "snake_case + 複数形 + <table>_id FK",
+      "timestamps": ["created_at", "updated_at"],
+      "audit_via": "audit_logs テーブル + DB trigger",
+      "json_b_for": ["custom_permissions", "project_meta", "capabilities"],
+      "enums": "Postgres ENUM + check constraint",
+      "time_series_partitioning": "BRIN index + pg_partman (Phase 2)"
+    },
+    "indexing_strategy": {
+      "rls_columns": "全テーブル必須 + partial index (deleted_at IS NULL)",
+      "foreign_keys": "全 FK にインデックス",
+      "search": "GIN (tsv / tags / array) + ivfflat (embedding)",
+      "time_series": "BRIN (audit_logs / session_logs / cost_logs)",
+      "composite": "kanban / swarm / dependencies の頻出クエリパターン特化"
+    },
+    "constitution_red_line_hierarchy": "constitutions (上位) ←< red_lines (検出ルール) ←< red_line_violations (抵触ログ)",
+    "personal_clone_opt_in": {
+      "default": false,
+      "trigger_enforced": true,
+      "deletion_supported": true
+    },
+    "migration_strategy": {
+      "tool": "Supabase CLI",
+      "alembic_status": "archive (Phase 1 で廃止)",
+      "production_strategy": "expand-and-contract (zero-downtime)",
+      "seed": "supabase/seed.sql (BF_ENV=development guard only)"
+    }
+  },
+  "infrastructure": {
+    "environments": ["development", "staging (P1.5+)", "production"],
+    "phase_1_zero_cost": true,
+    "production_first_choice_phase_1": "Vercel + Oracle Cloud Free Tier",
+    "production_alternative": "Vercel + Coolify on VPS or Railway",
+    "ci_cd_pipelines": ["ci.yml", "license-check.yml", "deploy-staging.yml", "deploy-prod.yml", "nightly-backup.yml"],
+    "branch_strategy": ["main", "staging (P1.5+)", "feature/*", "claude/*"],
+    "docker_compose_dev_services": ["next", "backend", "worker", "langfuse", "langfuse-db"]
+  },
+  "security": {
+    "auth_method": "Supabase Auth JWT + 2FA + OAuth",
+    "authz_method": "Supabase RLS + custom_permissions JSONB (+ OpenFGA Phase 2)",
+    "https": true,
+    "websocket_secure": true,
+    "rate_limiting": {
+      "api_per_user": "1000 req / 5min",
+      "api_per_ip": "10000 req / 5min (Cloudflare)",
+      "llm_per_workspace": "token_limits 80%/95%/100% threshold",
+      "mcp_session": "5 並列 / workspace + circuit breaker"
+    },
+    "encryption_at_rest": "Supabase disk + pgsodium (API keys / OAuth tokens)",
+    "client_side_jwt_storage": "httpOnly + Secure + SameSite cookie",
+    "cors_strategy": "ホワイトリスト",
+    "csp": true,
+    "csrf": "SameSite=Lax + Origin check",
+    "log_masking": "structlog processor で API key / token / email 自動マスク",
+    "secrets_management": ["Coolify Secrets", "GitHub Actions Secrets", ".env (gitignore)", "pre-commit gitleaks"],
+    "secret_rotation_recommended": "90 days",
+    "red_line_5_items": ["api_key_leak", "db_destructive", "force_push", "infinite_loop", "deploy_decision"],
+    "constitution_integration": "ミドルウェア層で全アクション前にチェック → 該当時 block + 監査ログ + 承認待ち"
+  },
+  "monitoring_logging": {
+    "llm_observability": "Langfuse self-host",
+    "error_tracking": "Sentry (free tier)",
+    "uptime": "Better Stack (free 10 monitors / 1 min interval)",
+    "structured_logs": "structlog + pino JSON",
+    "audit_log_retention_years": 7,
+    "audit_log_partitioning": "monthly via pg_partman (Phase 2)",
+    "performance_monitoring": ["Vercel Analytics", "Sentry Performance", "pg_stat_statements"]
+  },
+  "backup_strategy": {
+    "db_full_daily": {"retention_days": 90, "method": "Supabase + manual export"},
+    "storage_weekly": {"retention_days": 90, "method": "rclone to S3-compatible"},
+    "obsidian_realtime_p1_5": {"method": "Headless Sync + GitHub bidirectional"},
+    "audit_logs_in_db": {"retention_years": 7}
+  },
+  "incident_response_flow": [
+    "障害検知 (Sentry / Uptime / Langfuse alert / Slack)",
+    "高本まさん (P1) または monitor (P1.5+) 一次対応",
+    "重要度判定 (critical / high / medium / low)",
+    "対応 (rollback / hotfix / 監査ログ確認 / バックアップ復元)",
+    "ポストモーテム HTML 生成 (M-15 レポート種別)",
+    "Constitution / 赤線リスト更新 (再発防止)"
+  ],
+  "tradeoffs": [
+    {"adopted": "modular-monolith", "sacrificed": "1 サービス障害で全停止", "reason": "1 人運用で許容"},
+    {"adopted": "Supabase", "sacrificed": "中程度のベンダーロックイン", "reason": "RLS portable + 統合性のメリット大"},
+    {"adopted": "LiteLLM self-host", "sacrificed": "VPS 運用負荷", "reason": "Langfuse 統合 + OSS"},
+    {"adopted": "自前 WebSocket (swarm)", "sacrificed": "開発コスト + sticky session", "reason": "100ms 要件"},
+    {"adopted": "Vercel + Oracle Free Tier (P1)", "sacrificed": "環境分散", "reason": "¥0 / dogfood 十分"},
+    {"adopted": "pgsodium", "sacrificed": "Vault GA で再検討", "reason": "現時点標準"},
+    {"adopted": "GitHub Actions", "sacrificed": "GitHub 依存", "reason": "M-13 と統合性"},
+    {"adopted": "personal clone opt-in OFF default", "sacrificed": "学習データ集まりにくい", "reason": "プライバシー保守"},
+    {"adopted": "Supabase CLI (alembic 廃止)", "sacrificed": "既存資産の一部破棄", "reason": "DB 統一性"}
+  ]
+}

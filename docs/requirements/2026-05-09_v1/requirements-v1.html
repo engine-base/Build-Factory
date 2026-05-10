@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>要件定義書 v1.0 — Build-Factory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; scroll-behavior: smooth; }
+body { font-family: "Noto Sans JP", -apple-system, BlinkMacSystemFont, sans-serif; background: #f0f2f5; color: #1a1a1a; line-height: 1.7; -webkit-font-smoothing: antialiased; font-feature-settings: "palt"; }
+.layout { display: flex; min-height: 100vh; }
+.sidebar { width: 230px; flex-shrink: 0; background: #1a6648; position: fixed; top: 0; left: 0; bottom: 0; overflow-y: auto; z-index: 100; border-right: 1px solid rgba(255,255,255,0.06); }
+.sidebar-logo { padding: 20px 18px 14px; border-bottom: 1px solid rgba(255,255,255,0.12); }
+.sidebar-logo .doc-badge { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.5); display: block; margin-bottom: 4px; }
+.sidebar-logo .doc-title { font-size: 11px; font-weight: 600; color: #fff; line-height: 1.4; }
+.sidebar-logo .doc-version { font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 6px; }
+.toc { padding: 10px 0 20px; }
+.toc-group-label { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.35); padding: 12px 18px 4px; }
+.toc a { display: flex; align-items: center; gap: 8px; padding: 6px 18px; text-decoration: none; color: rgba(255,255,255,0.65); font-size: 11.5px; transition: all 0.15s; border-left: 2px solid transparent; }
+.toc a:hover { color: #fff; background: rgba(255,255,255,0.07); border-left-color: rgba(255,255,255,0.3); }
+.toc-num { min-width: 18px; font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.35); }
+.main { margin-left: 230px; padding: 32px 32px 80px; max-width: 960px; }
+.doc-cover { background: #fff; border-radius: 8px; padding: 36px 40px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.cover-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #94a3b8; margin-bottom: 10px; }
+.cover-title { font-size: 22px; font-weight: 700; color: #1a6648; line-height: 1.3; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
+.cover-meta { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.meta-item { display: flex; flex-direction: column; gap: 2px; }
+.meta-label { font-size: 10px; font-weight: 600; color: #94a3b8; letter-spacing: 0.06em; text-transform: uppercase; }
+.meta-value { font-size: 13px; color: #1a1a1a; font-weight: 500; }
+.notice-banner { background: #fffbeb; border: 1px solid #fde68a; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 12px 16px; font-size: 12px; color: #92400e; margin-bottom: 20px; display: flex; gap: 8px; align-items: flex-start; }
+.section-card { background: #fff; border-radius: 8px; padding: 28px 32px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid #e2e8f0; }
+.section-num { width: 28px; height: 28px; background: #1a6648; color: #fff; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.section-title { font-size: 16px; font-weight: 700; color: #1a6648; }
+.subsection { margin-bottom: 22px; }
+.subsection:last-child { margin-bottom: 0; }
+.subsection-title { font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 10px; padding-left: 10px; border-left: 3px solid #1a6648; }
+.table-wrap { overflow-x: auto; border-radius: 6px; border: 1px solid #e2e8f0; }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+thead th { background: #1a6648; color: #fff; font-weight: 600; padding: 9px 12px; text-align: left; font-size: 12px; }
+tbody td { padding: 8px 12px; border-top: 1px solid #f1f5f9; vertical-align: top; color: #334155; }
+tbody tr:nth-child(even) td { background: #f8fafc; }
+tbody tr:hover td { background: #e6f4ee; }
+.feature-block { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; margin-bottom: 14px; }
+.feature-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+.feature-id { font-size: 11px; font-weight: 700; color: #1a6648; background: #e6f4ee; padding: 2px 8px; border-radius: 4px; font-family: 'SF Mono','Courier New',monospace; }
+.feature-name { font-size: 13.5px; font-weight: 700; color: #1a6648; }
+.feature-phase { margin-left: auto; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+.feature-phase.p1 { background: #e6f4ee; color: #1a6648; border: 1px solid #b3d9c8; }
+.feature-row { display: grid; grid-template-columns: 100px 1fr; border-bottom: 1px solid #f1f5f9; }
+.feature-row:last-child { border-bottom: none; }
+.feature-row-label { padding: 8px 12px; font-size: 11px; font-weight: 600; color: #64748b; background: #fafafa; border-right: 1px solid #f1f5f9; }
+.feature-row-value { padding: 8px 12px; font-size: 12.5px; color: #334155; }
+.feature-row-value ul { margin: 0; padding-left: 16px; } .feature-row-value li { margin-bottom: 2px; }
+.badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+.badge-must { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+.badge-should { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.badge-could { background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; }
+.badge-wont { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+.badge-p1 { background: #e6f4ee; color: #1a6648; border: 1px solid #b3d9c8; }
+.badge-p15 { background: #cffafe; color: #0e7490; border: 1px solid #a5f3fc; }
+.badge-p2 { background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; }
+.badge-p3 { background: #fce7f3; color: #be185d; border: 1px solid #fbcfe8; }
+.badge-hypothesis { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+.badge-new { background: #fde68a; color: #92400e; border: 1px solid #f59e0b; }
+.info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 12px; }
+.info-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 14px; }
+.info-card-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+.info-card-value { font-size: 12.5px; color: #334155; font-weight: 500; }
+.persona-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; }
+.persona-card.featured { border-color: #1a6648; background: #f7fdf9; }
+.persona-name { font-size: 13.5px; font-weight: 700; color: #1a6648; margin-bottom: 4px; }
+.persona-meta { font-size: 11px; color: #64748b; margin-bottom: 6px; }
+.persona-desc { font-size: 12px; color: #334155; }
+@media print { .sidebar { display: none; } .main { margin-left: 0; max-width: 100%; } .section-card { box-shadow: none; break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <span class="doc-badge">REQ DOC</span>
+    <div class="doc-title">Build-Factory<br>要件定義書</div>
+    <div class="doc-version">v1.0 / 2026-05-09</div>
+  </div>
+  <nav class="toc">
+    <div class="toc-group-label">Document</div>
+    <a href="#overview"><span class="toc-num">1</span>プロジェクト概要</a>
+    <a href="#users"><span class="toc-num">2</span>ターゲットユーザー</a>
+    <a href="#features-list"><span class="toc-num">3</span>主要機能一覧</a>
+    <a href="#functional"><span class="toc-num">4</span>機能要件詳細</a>
+    <a href="#nonfunctional"><span class="toc-num">5</span>非機能要件</a>
+    <a href="#screens"><span class="toc-num">6</span>画面・UX 概要</a>
+    <a href="#data"><span class="toc-num">7</span>データ構造</a>
+    <a href="#integrations"><span class="toc-num">8</span>外部連携</a>
+    <a href="#risks"><span class="toc-num">9</span>リスク・懸念点</a>
+    <a href="#unresolved"><span class="toc-num">10</span>未確認事項</a>
+    <a href="#scope"><span class="toc-num">11</span>スコープ・スケジュール</a>
+    <a href="#history"><span class="toc-num">12</span>改訂履歴</a>
+  </nav>
+</aside>
+
+<main class="main">
+
+<div class="doc-cover">
+  <div class="cover-label">Requirements Definition Document</div>
+  <div class="cover-title">Build-Factory　要件定義書</div>
+  <div class="cover-meta">
+    <div class="meta-item"><span class="meta-label">クライアント</span><span class="meta-value">株式会社 ENGINE BASE　高本 まさと（27 歳）</span></div>
+    <div class="meta-item"><span class="meta-label">作成者</span><span class="meta-value">株式会社 ENGINE BASE</span></div>
+    <div class="meta-item"><span class="meta-label">バージョン</span><span class="meta-value">v1.0（仮説ベース）</span></div>
+    <div class="meta-item"><span class="meta-label">作成日</span><span class="meta-value">2026 年 5 月 9 日</span></div>
+    <div class="meta-item"><span class="meta-label">前提</span><span class="meta-value">ヒアリング v2.1 完了</span></div>
+    <div class="meta-item"><span class="meta-label">次スキル</span><span class="meta-value">architecture-design</span></div>
+  </div>
+</div>
+
+<div class="notice-banner">
+  <span>⚠️</span>
+  <div><strong>v1.0（仮説ベース）</strong>　<span class="badge badge-hypothesis">【仮説】</span> マークの項目は打ち合わせ・後続スキル（architecture-design / tech-stack 等）で確定する必要があります。確定後にバージョンアップします。</div>
+</div>
+
+<!-- 1 -->
+<div class="section-card" id="overview">
+  <div class="section-header"><div class="section-num">1</div><div class="section-title">プロジェクト概要</div></div>
+
+  <div class="subsection">
+    <div class="subsection-title">目的</div>
+    <p><strong>Build-Factory（開発工場 OS）</strong> = 企画から納品までの全工程を 1 つの Web アプリで完璧に進められる SaaS 型開発 OS。</p>
+    <p style="margin-top:10px;background:#fef2f2;border-left:4px solid #ef4444;padding:10px 14px;border-radius:4px;font-size:12.5px;color:#991b1b;"><strong>核心課題：</strong>AI 開発が流行する一方、管理 / 品質の不足で「漏れ」「使えないものになる」事故が頻発している。Build-Factory はこの管理・品質の壁を AI チームと管理盤の一体化で破壊する。</p>
+    <p style="margin-top:10px;"><strong>本質的なゴール：</strong>1 人で 10 案件並走（1 案件 5 並列タスク）しても破綻しない開発体制を作り、SaaS 商用化する。</p>
+  </div>
+
+  <div class="subsection">
+    <div class="subsection-title">現状の課題と影響</div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>課題</th><th>影響</th></tr></thead>
+      <tbody>
+        <tr><td>1 人で複数案件並走で context switch コスト爆発</td><td>案件遅延 / 体力消耗 / 品質低下</td></tr>
+        <tr><td>AI 出力の 8 割が微妙で結局自分で直す</td><td>時間が節約にならない（壁打ち負担）</td></tr>
+        <tr><td>要件 → 仕様化が遅い</td><td>案件初動が重い</td></tr>
+        <tr><td>進捗が見えない（誰がどこで詰まっているか）</td><td>確認コストが増える</td></tr>
+        <tr><td>品質保証の属人化</td><td>スケールしない</td></tr>
+        <tr><td>ナレッジが活用されていない</td><td>過去案件の学びが流れる</td></tr>
+        <tr><td>既存ツール（Linear / Notion / Devin / Cursor）が断片的</td><td>管理盤と実装エンジンが分断</td></tr>
+        <tr><td>company-dashboard がわかりづらい・情報過多</td><td>使われない・整理が必要</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="subsection">
+    <div class="subsection-title">制約条件</div>
+    <div class="info-grid">
+      <div class="info-card"><div class="info-card-label">期限</div><div class="info-card-value">とにかく早く・楽に逃げず長期負債ゼロ</div></div>
+      <div class="info-card"><div class="info-card-label">予算</div><div class="info-card-value">実装 = 各自プラン / チャット = 自社 + BYOK / 観測 self-host</div></div>
+      <div class="info-card"><div class="info-card-label">チーム</div><div class="info-card-value">1 人 + Claude Code（dogfooding）</div></div>
+      <div class="info-card"><div class="info-card-label">ライセンス</div><div class="info-card-value">Apache 2.0 / MIT / BSD / Elastic 2.0 のみ</div></div>
+      <div class="info-card"><div class="info-card-label">既存システム</div><div class="info-card-value">bootstrap 流用 / company-dashboard 切り離し</div></div>
+      <div class="info-card"><div class="info-card-label">法的</div><div class="info-card-value">下請法 / 個人情報保護法 / NDA / 秘密保持</div></div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>層</th><th>採用技術</th></tr></thead>
+      <tbody>
+        <tr><td>Frontend</td><td>Next.js 15 + shadcn/ui + Recharts + React Flow + GrapesJS Studio SDK（P1.5）</td></tr>
+        <tr><td>Backend</td><td>FastAPI（既存継続）+ Supabase クライアント</td></tr>
+        <tr><td>DB / 認証 / Storage</td><td>Supabase（Postgres + Auth + RLS + Realtime + Storage）</td></tr>
+        <tr><td>AI 社員</td><td>BMAD ペルソナ + Anthropic Agent Teams + 既存 96 スキル ハイブリッド（3 階層）</td></tr>
+        <tr><td>LLM 抽象化</td><td>LiteLLM ベース（Claude / OpenAI / Gemini / 拡張容易）</td></tr>
+        <tr><td>実装層 LLM</td><td>各ユーザの Claude Pro/Max（OAuth）</td></tr>
+        <tr><td>観測</td><td>Langfuse self-host</td></tr>
+        <tr><td>RBAC</td><td>Supabase RLS + custom_permissions JSON / OpenFGA（P2）</td></tr>
+        <tr><td>ナレッジ</td><td>Obsidian 母艦（単方向 P1 / 双方向 P1.5）</td></tr>
+        <tr><td>連携</td><td>Slack Bolt / GitHub MCP / Claude Desktop MCP / Mem0</td></tr>
+        <tr><td>デプロイ</td><td>Coolify / Vercel / Netlify / Cloud Run / SSH 連携アダプタ（P2）</td></tr>
+        <tr><td>課金</td><td>Stripe / Lemon Squeezy（P3）</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- 2 -->
+<div class="section-card" id="users">
+  <div class="section-header"><div class="section-num">2</div><div class="section-title">ターゲットユーザー</div></div>
+  <div class="subsection">
+    <div class="subsection-title">ペルソナ（6 種）</div>
+    <div class="info-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+      <div class="persona-card featured"><div class="persona-name">P-1 高本まさと <span class="badge badge-must">主ユーザ</span></div><div class="persona-meta">27 歳 / 1 名運営代表 / IT 高</div><div class="persona-desc">10 案件並走 / dogfood / SaaS 商用化を目指す</div></div>
+      <div class="persona-card"><div class="persona-name">P-2 受託会社 PM <span class="badge badge-p2">P2 主顧客</span></div><div class="persona-meta">30〜40 代 / 案件 5〜10 並行 / IT 高</div><div class="persona-desc">複数案件の AI 標準化 / 若手品質底上げ</div></div>
+      <div class="persona-card"><div class="persona-name">P-3 中小企業 開発リーダー <span class="badge badge-p2">P2 主顧客</span></div><div class="persona-meta">30〜50 代 / メンバー 2〜10 / IT 中〜高</div><div class="persona-desc">少人数で AI 最大活用 / 属人化解消</div></div>
+      <div class="persona-card"><div class="persona-name">P-4 個人開発者・副業 <span class="badge badge-p2">P2</span></div><div class="persona-meta">20〜40 代 / 副業 + 本業 / IT 高</div><div class="persona-desc">BYOK 安価運用 / 5 並列で実装高速化</div></div>
+      <div class="persona-card"><div class="persona-name">P-5 監視担当 <span class="badge badge-should">内部ロール</span></div><div class="persona-meta">QA / 開発バックグラウンド</div><div class="persona-desc">チェックだけで品質担保 / 異常検知</div></div>
+      <div class="persona-card"><div class="persona-name">P-6 クライアント（招待）<span class="badge badge-could">外部</span></div><div class="persona-meta">経営層 / 担当者 / IT 低〜中</div><div class="persona-desc">進捗確認 / コメント反映</div></div>
+    </div>
+  </div>
+  <div class="subsection">
+    <div class="subsection-title">ロール（6 種 + custom_permissions JSON で全ロール個別 override 可）</div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>ロール</th><th>スコープ</th><th>デフォルト権限</th></tr></thead>
+      <tbody>
+        <tr><td><code>account_owner</code></td><td>account 全体</td><td>全権限（課金含む）</td></tr>
+        <tr><td><code>workspace_admin</code></td><td>workspace</td><td>workspace 内ほぼ全権限</td></tr>
+        <tr><td><code>contributor</code></td><td>workspace</td><td>編集 + 実行 + 承認 + 閲覧</td></tr>
+        <tr><td><code>viewer</code></td><td>workspace</td><td>閲覧のみ</td></tr>
+        <tr><td><code>client</code></td><td>workspace + tab ON/OFF</td><td>招待タブのみ閲覧 + コメント</td></tr>
+        <tr><td><code>monitor</code> <span class="badge badge-new">新規</span></td><td>workspace</td><td>全閲覧 + 承認（PR / 赤線 / 納品）</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- 3 -->
+<div class="section-card" id="features-list">
+  <div class="section-header"><div class="section-num">3</div><div class="section-title">主要機能一覧</div></div>
+  <p style="margin-bottom:14px;font-size:12px;color:#64748b;">Phase 1 Must = 30 項目 / Phase 1.5 Should = 12 項目 / Phase 2/3/Future Could = 11 項目 / Won't = 8 項目</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th style="width:60px;">ID</th><th>機能</th><th style="width:110px;">カテゴリ</th><th style="width:80px;">種別</th></tr></thead>
+    <tbody>
+      <tr><td><code>M-1</code></td><td>Supabase 基盤構築 + テストデータ seed</td><td>基盤</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-2</code></td><td>既存 96 スキル整理</td><td>基盤</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-3</code></td><td>AI 社員ハイブリッド統合（BMAD + Agent Teams + 既存）</td><td>AI</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-4</code></td><td>account / workspace / members 階層</td><td>基盤</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-5</code></td><td>ヒアリング → 仕様書 + 画面モック HTML パイプライン</td><td>仕様化</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-5b</code></td><td>画面モック自動生成パイプライン <span class="badge badge-new">新規</span></td><td>仕様化</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-6</code></td><td>機能・タスク分解 + acceptance-criteria（EARS notation）</td><td>仕様化</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-7</code></td><td>多 view タスク管理（Kanban / List / DAG）</td><td>プロジェクト管理</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-8</code></td><td>プロジェクト・フェーズ管理基盤</td><td>プロジェクト管理 (moat)</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-9</code></td><td>依存グラフ + 基本伝搬</td><td>プロジェクト管理 (moat)</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-10a</code></td><td>MCP サーバー（データ流通）</td><td>実装連携</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-10b</code></td><td>Claude Code セッション・スポナー（▶︎ 再生）</td><td>実装連携</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-10c</code></td><td>並列セッション・マネージャ（1 案件 5 並列 + swarm）</td><td>実装連携</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-10d</code></td><td>WebSocket セッション・ストリーミング UI</td><td>実装連携</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-11</code></td><td>リーダー AI 壁打ちループ（Plan / Gen / Eval）</td><td>品質 (moat)</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-12</code></td><td>赤線リスト + 自動停止（主要 5 項目）</td><td>安全</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-13</code></td><td>GitHub 連携（PR + HTML diff 注釈）</td><td>外部連携</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-14</code></td><td>Slack 通知（片方向）</td><td>外部連携</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-15</code></td><td>HTML レポート全種（7 種：仕様 / 進捗 / レビュー / 納品物 + 画面モック / カタログ / 遷移マップ）</td><td>仕様化</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-16</code></td><td>Obsidian ナレッジ母艦（単方向 export）</td><td>外部連携</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-17</code></td><td>Langfuse self-host（観測 + コスト把握）</td><td>運用</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-18</code></td><td>監査ログ + バックアップ</td><td>運用</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-19</code></td><td>既存 bootstrap 振り分け実行</td><td>整理</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-20</code></td><td>LLM プロバイダー抽象化（Claude / OpenAI / Gemini / 拡張容易） <span class="badge badge-new">新規</span></td><td>AI</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-21</code></td><td>ロール custom_permissions UI + monitor ロール <span class="badge badge-new">新規</span></td><td>権限</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-22</code></td><td>AI 社員 3 階層対応 + 個人ナレッジ namespace <span class="badge badge-new">新規</span></td><td>AI</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-23</code></td><td>アカウント設定 / プロフィール画面 <span class="badge badge-new">新規</span></td><td>UX</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-24</code></td><td>グローバル検索（Cmd+K） <span class="badge badge-new">新規</span></td><td>UX</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-25</code></td><td>EARS notation 標準（acceptance-criteria テンプレ） <span class="badge badge-new">新規</span></td><td>仕様化</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td><code>M-26</code></td><td>Constitution（プロジェクト不変原則）= 赤線拡張 <span class="badge badge-new">新規</span></td><td>安全 (moat)</td><td><span class="badge badge-must">Must</span></td></tr>
+      <tr><td colspan="4" style="background:#fef3c7;font-weight:700;padding:10px;">Phase 1.5 Should（12 項目）</td></tr>
+      <tr><td><code>S-1</code></td><td>クライアント / メンバー招待 + タブ ON/OFF</td><td>権限</td><td><span class="badge badge-should">Should</span></td></tr>
+      <tr><td><code>S-2</code></td><td>Slack 双方向 + Claude Desktop MCP 連携</td><td>連携</td><td><span class="badge badge-should">Should</span></td></tr>
+      <tr><td><code>S-3</code></td><td>GrapesJS Studio SDK 統合（HTML/CSS GUI 編集）</td><td>UX</td><td><span class="badge badge-should">Should</span></td></tr>
+      <tr><td><code>S-4</code></td><td>Obsidian Headless Sync 双方向</td><td>連携</td><td><span class="badge badge-should">Should</span></td></tr>
+      <tr><td><code>S-5</code></td><td>impact-analysis + task-propagation</td><td>moat</td><td><span class="badge badge-should">Should</span></td></tr>
+      <tr><td><code>S-6</code></td><td>BYOK 設定 UI</td><td>AI</td><td><span class="badge badge-should">Should</span></td></tr>
+      <tr><td><code>S-7</code></td><td>AI モデル / プロンプトバージョン管理</td><td>運用</td><td><span class="badge badge-should">Should</span></td></tr>
+      <tr><td><code>S-8</code></td><td>通知・アラートフル（停滞 / 依存破綻含む）</td><td>連携</td><td><span class="badge badge-should">Should</span></td></tr>
+      <tr><td><code>S-9</code></td><td>ナレッジ自動キュレーション</td><td>ナレッジ</td><td><span class="badge badge-should">Should</span></td></tr>
+      <tr><td><code>S-10</code></td><td>crash detection / circuit breaker 完成</td><td>運用</td><td><span class="badge badge-should">Should</span></td></tr>
+      <tr><td><code>S-11</code></td><td>部署リーダー AI（開発 / デザイン / QA / ナレッジ） <span class="badge badge-new">新規</span></td><td>AI</td><td><span class="badge badge-should">Should</span></td></tr>
+      <tr><td><code>S-12</code></td><td>オンボーディング / チュートリアル（role 別） <span class="badge badge-new">新規</span></td><td>UX</td><td><span class="badge badge-should">Should</span></td></tr>
+      <tr><td colspan="4" style="background:#e0e7ff;font-weight:700;padding:10px;">Phase 2 / 3 / Future Could（11 項目）</td></tr>
+      <tr><td><code>C-1</code></td><td>OpenFGA 細粒度権限</td><td>権限</td><td><span class="badge badge-could">P2</span></td></tr>
+      <tr><td><code>C-2</code></td><td>AI 評価基盤（壁打ち精度 eval）</td><td>品質</td><td><span class="badge badge-could">P2</span></td></tr>
+      <tr><td><code>C-3</code></td><td>デプロイ連携アダプタ（Vercel / Netlify / Coolify / Cloud Run / SSH）</td><td>連携</td><td><span class="badge badge-could">P2</span></td></tr>
+      <tr><td><code>C-4</code></td><td>テンプレート / Boilerplate</td><td>UX</td><td><span class="badge badge-could">P2</span></td></tr>
+      <tr><td><code>C-5</code></td><td>E2E Playwright MCP 統合</td><td>品質</td><td><span class="badge badge-could">P2</span></td></tr>
+      <tr><td><code>C-10</code></td><td>COO AI（全部署統括） <span class="badge badge-new">新規</span></td><td>AI</td><td><span class="badge badge-could">P2</span></td></tr>
+      <tr><td><code>C-6</code></td><td>Stripe / Lemon Squeezy 課金</td><td>運用</td><td><span class="badge badge-p3">P3</span></td></tr>
+      <tr><td><code>C-7</code></td><td>SaaS マルチテナント本格化（SLA / 障害自動監視）</td><td>運用</td><td><span class="badge badge-p3">P3</span></td></tr>
+      <tr><td><code>C-8</code></td><td>多言語 UI / モバイル最適化</td><td>UX</td><td><span class="badge badge-p3">P3</span></td></tr>
+      <tr><td><code>C-9</code></td><td>テンプレート Marketplace</td><td>UX</td><td><span class="badge badge-p3">P3+</span></td></tr>
+      <tr><td><code>C-11</code></td><td>個人クローン化サービス（別アプリ切り出し） <span class="badge badge-new">新規</span></td><td>AI</td><td><span class="badge badge-could">Future</span></td></tr>
+      <tr><td colspan="4" style="background:#f1f5f9;font-weight:700;padding:10px;">Won't（スコープ外・8 項目）</td></tr>
+      <tr><td><code>W-1</code></td><td>ローカル LLM の SaaS 提供（self-host モード限定）</td><td>-</td><td><span class="badge badge-wont">Won't</span></td></tr>
+      <tr><td><code>W-2</code></td><td>AI 自身による要件発生</td><td>-</td><td><span class="badge badge-wont">Won't</span></td></tr>
+      <tr><td><code>W-3</code></td><td>クライアントが UI を直接編集</td><td>-</td><td><span class="badge badge-wont">Won't</span></td></tr>
+      <tr><td><code>W-4</code></td><td>Build-Factory が直接本番デプロイ</td><td>-</td><td><span class="badge badge-wont">Won't</span></td></tr>
+      <tr><td><code>W-5</code></td><td>Claude Code 以外の実装エンジン</td><td>-</td><td><span class="badge badge-wont">Won't</span></td></tr>
+      <tr><td><code>W-6</code></td><td>モバイルアプリ版</td><td>-</td><td><span class="badge badge-wont">Won't</span></td></tr>
+      <tr><td><code>W-7</code></td><td>Onlook / Open Design 統合</td><td>-</td><td><span class="badge badge-wont">Won't</span></td></tr>
+      <tr><td><code>W-8</code></td><td>案件種別ごとのテンプレート機能</td><td>-</td><td><span class="badge badge-wont">Won't</span></td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<!-- 4 -->
+<div class="section-card" id="functional">
+  <div class="section-header"><div class="section-num">4</div><div class="section-title">機能要件詳細（主要 10 機能・全 30 機能は requirements_internal.json 参照）</div></div>
+
+  <div class="feature-block">
+    <div class="feature-header"><span class="feature-id">M-1</span><span class="feature-name">Supabase 基盤構築 + テストデータ seed</span><span class="feature-phase p1">Phase 1</span></div>
+    <div class="feature-row"><div class="feature-row-label">概要</div><div class="feature-row-value">Supabase Postgres + Auth + RLS を 0 から新規構築。既存ユーザ移行なし。テストデータ seed を投入。</div></div>
+    <div class="feature-row"><div class="feature-row-label">入力</div><div class="feature-row-value"><ul><li>Supabase プロジェクト credentials</li><li>新規スキーマ DDL</li><li>seed JSON（test_account / 6 ロール test_user / 5 sample task / 3 artifact / 2 AI 社員）</li></ul></div></div>
+    <div class="feature-row"><div class="feature-row-label">処理</div><div class="feature-row-value">1. Supabase 新規作成 → DDL 適用 → RLS 全テーブル enable<br>2. seed スクリプト実行（BF_ENV=development のみ）<br>3. Storage に sample HTML upload + Realtime 統合</div></div>
+    <div class="feature-row"><div class="feature-row-label">エラー</div><div class="feature-row-value">RLS 漏れ → 自動テスト追加 / seed ID 衝突 → UUID + 冪等性</div></div>
+    <div class="feature-row"><div class="feature-row-label">制約</div><div class="feature-row-value">標準 SQL 維持 / production では seed 走らない</div></div>
+  </div>
+
+  <div class="feature-block">
+    <div class="feature-header"><span class="feature-id">M-3</span><span class="feature-name">AI 社員ハイブリッド統合（BMAD + Agent Teams + 既存スキル）</span><span class="feature-phase p1">Phase 1</span></div>
+    <div class="feature-row"><div class="feature-row-label">概要</div><div class="feature-row-value">BMAD 12 ペルソナ + Anthropic Agent Teams + 既存 96 スキルを統合。3 階層対応（COO / lead / member / personal_clone）の土台付き。</div></div>
+    <div class="feature-row"><div class="feature-row-label">処理</div><div class="feature-row-value">召喚 → スキル context 注入 → BMAD ペルソナ選択 → parent 継承 → LLM 抽象化（M-20）経由呼び出し → artifact 保存 + AC 検証（M-25）</div></div>
+    <div class="feature-row"><div class="feature-row-label">権限</div><div class="feature-row-value"><code>run_session</code></div></div>
+  </div>
+
+  <div class="feature-block">
+    <div class="feature-header"><span class="feature-id">M-5 + M-5b</span><span class="feature-name">仕様書 + 画面モック HTML パイプライン</span><span class="feature-phase p1">Phase 1</span></div>
+    <div class="feature-row"><div class="feature-row-label">概要</div><div class="feature-row-value">hearing → requirements 連鎖 + 画面ごと 1 HTML モック自動生成 + コンポーネントカタログ + 画面遷移マップ</div></div>
+    <div class="feature-row"><div class="feature-row-label">出力</div><div class="feature-row-value">HTML サマリー / 要件定義書 / 画面モック群 / カタログ / 遷移マップ / Markdown 併記</div></div>
+    <div class="feature-row"><div class="feature-row-label">制約</div><div class="feature-row-value">Tailwind CDN + SVG + 印刷対応 / 1 画面 1MB 以内 / responsive md:(768px+)</div></div>
+  </div>
+
+  <div class="feature-block">
+    <div class="feature-header"><span class="feature-id">M-9</span><span class="feature-name">依存グラフ + 基本伝搬</span><span class="feature-phase p1">Phase 1</span></div>
+    <div class="feature-row"><div class="feature-row-label">概要</div><div class="feature-row-value">タスク・要件・仕様の DAG。1 編集で関連ハイライト。</div></div>
+    <div class="feature-row"><div class="feature-row-label">処理</div><div class="feature-row-value">React Flow で DAG 可視化 → 編集時に AI が影響範囲ハイライト → PM が更新 / 確認 / スキップ選択</div></div>
+    <div class="feature-row"><div class="feature-row-label">エラー</div><div class="feature-row-value">循環依存 → DB 制約 + UI 警告</div></div>
+  </div>
+
+  <div class="feature-block">
+    <div class="feature-header"><span class="feature-id">M-10b/c/d</span><span class="feature-name">▶︎ 再生 + 並列 swarm + WebSocket UI</span><span class="feature-phase p1">Phase 1</span></div>
+    <div class="feature-row"><div class="feature-row-label">概要</div><div class="feature-row-value">タスクカードの ▶︎ で Claude Code セッション起動 / 1 案件 5 並列 / WebSocket でライブログ表示</div></div>
+    <div class="feature-row"><div class="feature-row-label">処理</div><div class="feature-row-value">▶︎ → ユーザ OAuth で Claude Code SDK 起動 → 仕様 + AC + Constitution + ナレッジを初期プロンプトに → Plan/Gen/Eval → WebSocket stream → 親子昇格 + circuit breaker</div></div>
+    <div class="feature-row"><div class="feature-row-label">制約</div><div class="feature-row-value">起動 → 出力 10 秒以内 / WebSocket 100ms 以内 / swarm 16〜64 同時表示</div></div>
+  </div>
+
+  <div class="feature-block">
+    <div class="feature-header"><span class="feature-id">M-11</span><span class="feature-name">リーダー AI 壁打ちループ（Plan / Gen / Eval）</span><span class="feature-phase p1">Phase 1</span></div>
+    <div class="feature-row"><div class="feature-row-label">概要</div><div class="feature-row-value">Evaluator 出力をリーダー AI が壁打ち。3 ターン改善なしで人間エスカレ。</div></div>
+    <div class="feature-row"><div class="feature-row-label">処理</div><div class="feature-row-value">Evaluator PASS → リーダー評価（粒度 / 依存 / コードスタイル / Constitution 遵守）→ FAIL なら修正指示 → 3 ターンで Slack DM + UI バッジ</div></div>
+  </div>
+
+  <div class="feature-block">
+    <div class="feature-header"><span class="feature-id">M-12 + M-26</span><span class="feature-name">赤線リスト + Constitution（プロジェクト不変原則）</span><span class="feature-phase p1">Phase 1</span></div>
+    <div class="feature-row"><div class="feature-row-label">赤線 5 項目</div><div class="feature-row-value">1. API キー漏洩 / 2. 本番 DB 破壊 / 3. GitHub force push / 4. AI 無限ループ / 5. デプロイ独断</div></div>
+    <div class="feature-row"><div class="feature-row-label">Constitution</div><div class="feature-row-value">プロジェクト不変原則 Markdown / 全 AI セッションが context として参照 / 違反は赤線エスカレ</div></div>
+  </div>
+
+  <div class="feature-block">
+    <div class="feature-header"><span class="feature-id">M-20</span><span class="feature-name">LLM プロバイダー抽象化レイヤー</span><span class="feature-phase p1">Phase 1</span></div>
+    <div class="feature-row"><div class="feature-row-label">概要</div><div class="feature-row-value">Claude / OpenAI / Gemini / 軽量 LLM / ローカル LLM（self-host のみ）切替可能 adapter。LiteLLM ベース推奨。</div></div>
+    <div class="feature-row"><div class="feature-row-label">制約</div><div class="feature-row-value">新規プロバイダー追加は adapter 1 ファイル + 設定で完結（拡張容易性）</div></div>
+  </div>
+
+  <div class="feature-block">
+    <div class="feature-header"><span class="feature-id">M-21</span><span class="feature-name">ロール custom_permissions UI + monitor ロール</span><span class="feature-phase p1">Phase 1</span></div>
+    <div class="feature-row"><div class="feature-row-label">概要</div><div class="feature-row-value">6 ロール + custom_permissions JSON で個別 override。クライアント以外も含む全ロール対応。</div></div>
+    <div class="feature-row"><div class="feature-row-label">エラー</div><div class="feature-row-value">自分自身の管理権限剥奪試行 → 他 admin が居なければブロック</div></div>
+  </div>
+
+  <div class="feature-block">
+    <div class="feature-header"><span class="feature-id">M-22</span><span class="feature-name">AI 社員 3 階層対応 + 個人ナレッジ namespace</span><span class="feature-phase p1">Phase 1</span></div>
+    <div class="feature-row"><div class="feature-row-label">概要</div><div class="feature-row-value">ai_employees に hierarchy_level / parent_employee_id / cloned_from_user_id / department 追加 + user_knowledge_namespace + user_interaction_log 新設（クローン化学習素地）</div></div>
+    <div class="feature-row"><div class="feature-row-label">制約</div><div class="feature-row-value">個人クローン化（C-11）は将来別アプリ・データ蓄積は P1 から（opt-in 必須）</div></div>
+  </div>
+
+  <p style="margin-top:14px;font-size:12px;color:#64748b;">→ 残り 20 機能の詳細は <code>requirements_internal.json</code> 参照</p>
+</div>
+
+<!-- 5 -->
+<div class="section-card" id="nonfunctional">
+  <div class="section-header"><div class="section-num">5</div><div class="section-title">非機能要件</div></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>種別</th><th>要件</th><th>根拠・補足</th></tr></thead>
+    <tbody>
+      <tr><td>パフォーマンス（応答）</td><td>UI sub-100ms / セッション起動→出力 10s（中央値 5s） / WebSocket 100ms</td><td>Linear が業界基準（sub-100ms）</td></tr>
+      <tr><td>パフォーマンス（並列）</td><td>1 案件 5 並列 / 10 案件並走 / グローバル検索 500ms 以内</td><td>D-23 / pgvector + FTS</td></tr>
+      <tr><td>パフォーマンス（描画）</td><td>1 view 1000 タスクまで快適 / DAG 数百ノード / swarm 16〜64</td><td>仮想化（react-window / React Flow）</td></tr>
+      <tr><td>セキュリティ（通信）</td><td>HTTPS / wss:// / Cloudflare 経由</td><td>OWASP 標準</td></tr>
+      <tr><td>セキュリティ（認証）</td><td>Supabase Auth JWT / 2FA / OAuth / session 24h</td><td>SaaS 標準</td></tr>
+      <tr><td>セキュリティ（認可）</td><td>RLS + 6 ロール + custom_permissions / Phase 2 で OpenFGA</td><td>D-10 / D-27</td></tr>
+      <tr><td>セキュリティ（機密）</td><td>API キー pgsodium 暗号化 / NDA workspace 機密ラベル / 取得時フィルタ</td><td>下請法 / NDA / 個人情報保護法</td></tr>
+      <tr><td>セキュリティ（赤線）</td><td>5 項目自動停止 + Constitution + 監査ログ</td><td>D-30</td></tr>
+      <tr><td>可用性</td><td>P1: 99% / P2: 99.5% / P3: 99.9%</td><td>Supabase availability 依存</td></tr>
+      <tr><td>拡張性</td><td>1 account 1000 ユーザ / 100 workspace / workspace 1000 タスク快適</td><td>Phase 3 で partition 検討</td></tr>
+      <tr><td>データ保護</td><td>監査ログ 7 年 / DB 日次 90 日 / Storage 週次 / Obsidian リアルタイム</td><td>受託案件法的要件</td></tr>
+      <tr><td>障害許容度</td><td>1 ユーザ中断は許容 / 全 workspace 不可は不許容</td><td>circuit breaker + 親子昇格</td></tr>
+      <tr><td>アクセシビリティ</td><td>WCAG 2.1 AA / aria-* / キーボード完全対応</td><td>Linear 流 keyboard-first</td></tr>
+      <tr><td>国際化</td><td>P1: ja-JP / P3: en-US</td><td>C-8</td></tr>
+      <tr><td>ブラウザ対応</td><td>Chrome / Edge / Safari / Firefox 最新 2 / モバイル P3</td><td>Web 完結方針</td></tr>
+      <tr><td>コンプライアンス</td><td>下請法 / 個人情報保護法 / NDA / P3 で SOC 2 検討</td><td>法的要件</td></tr>
+      <tr><td>観測</td><td>全 LLM 呼び出しを Langfuse 送信 / cost / tokens / response time / error rate を workspace 単位集計</td><td>M-17</td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<!-- 6 -->
+<div class="section-card" id="screens">
+  <div class="section-header"><div class="section-num">6</div><div class="section-title">画面・UX 概要（Phase 1 = 35 画面）</div></div>
+  <div class="subsection">
+    <div class="subsection-title">画面一覧</div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>カテゴリ</th><th>画面名（合計 35）</th></tr></thead>
+      <tbody>
+        <tr><td>認証系（5）</td><td>login / signup / password_reset / mfa_setup / oauth_callback</td></tr>
+        <tr><td>アカウント横断（6）</td><td>account_dashboard（10 案件俯瞰）/ account_settings / account_members / profile_settings / notifications_inbox / global_search</td></tr>
+        <tr><td>Workspace 横断（4）</td><td>workspace_dashboard / workspace_settings / workspace_members / workspace_invite</td></tr>
+        <tr><td>プロジェクト管理 moat（4）</td><td>phase_management / dependency_graph / constitution_editor / red_line_settings</td></tr>
+        <tr><td>仕様化・モック（7）</td><td>hearing_session / requirements_editor / spec_viewer / <strong>screen_mock_viewer</strong> / <strong>component_catalog</strong> / <strong>screen_flow_map</strong> / design_html_editor（P1.5）</td></tr>
+        <tr><td>タスク・実行（6）</td><td>task_kanban / task_list / task_dag_view / task_detail / swarm_grid / swarm_session_detail</td></tr>
+        <tr><td>レビュー・納品（3）</td><td>pr_review / red_line_approval / delivery_approval</td></tr>
+        <tr><td>AI 社員・スキル（3）</td><td>ai_employees_org_chart / ai_employee_detail / skill_manager</td></tr>
+        <tr><td>ナレッジ・観測（3）</td><td>knowledge_base / cost_dashboard / audit_log_viewer</td></tr>
+        <tr><td>クライアント専用（2）</td><td>client_workspace（タブ ON/OFF 制限）/ client_comment</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+  <div class="subsection">
+    <div class="subsection-title">主要ユーザーフロー（5 種）</div>
+    <ol style="padding-left:20px;font-size:12.5px;color:#334155;line-height:1.9;">
+      <li><strong>新規案件キックオフ → 納品</strong>（メイン）：login → 案件作成 → ヒアリング → 仕様書 + 画面モック → クライアント招待 → タスク分解 → ▶︎ Play All（5 並列）→ swarm 監視 → リーダー AI 壁打ち → PR → 納品 HTML</li>
+      <li><strong>朝のルーティン</strong>（10 案件並走）：account_dashboard で全 workspace 俯瞰 → 赤線アラート / レビュー待ち PR 確認 → 優先タスク選択 → ▶︎</li>
+      <li><strong>並列実行 + 監視</strong>：5 タスク選択 → Play All → swarm_grid 監視 → 完了次第キューから次の 5 タスク自動補充</li>
+      <li><strong>赤線抵触 → 承認</strong>：自動停止 → Slack push + UI バッジ → red_line_approval キューで承認 / 拒否 / 「これは安全」マーク</li>
+      <li><strong>クライアント招待 → コメント → 反映</strong>：workspace_invite で client ロール → 招待リンクから signup → client_workspace で許可タブのみ閲覧 → コメント → contributor 反映</li>
+    </ol>
+  </div>
+</div>
+
+<!-- 7 -->
+<div class="section-card" id="data">
+  <div class="section-header"><div class="section-num">7</div><div class="section-title">データ構造（主要 30 テーブル）</div></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>カテゴリ</th><th>テーブル</th></tr></thead>
+    <tbody>
+      <tr><td>認証・テナント（6）</td><td>accounts / account_members / workspaces / workspace_members / workspace_invitations / users</td></tr>
+      <tr><td>AI 社員・スキル（5）</td><td>ai_employees（hierarchy_level / parent / clone）/ skills / skill_executions / user_knowledge_namespace / user_interaction_log</td></tr>
+      <tr><td>プロジェクト管理 moat（6）</td><td>phases / phase_gates / tasks / task_dependencies / acceptance_criteria（EARS）/ constitutions</td></tr>
+      <tr><td>仕様・モック（5）</td><td>artifacts / artifact_versions / screens / components / screen_components</td></tr>
+      <tr><td>実装・レビュー（7）</td><td>sessions / session_logs / session_artifacts / prs / pr_reviews / red_lines / red_line_violations</td></tr>
+      <tr><td>連携・運用（11）</td><td>llm_providers / api_keys / slack_webhooks / github_repos / obsidian_vaults / notifications / cost_logs / token_limits / audit_logs / backups</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:10px;font-size:12px;color:#64748b;">→ 詳細は <code>requirements_internal.json</code> + architecture-design スキルで ER 図を起こす予定</p>
+</div>
+
+<!-- 8 -->
+<div class="section-card" id="integrations">
+  <div class="section-header"><div class="section-num">8</div><div class="section-title">外部連携（17 サービス）</div></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>サービス</th><th>用途</th><th>連携方式</th><th>Phase</th></tr></thead>
+    <tbody>
+      <tr><td>Supabase</td><td>DB / Auth / Storage / Realtime</td><td>SDK</td><td><span class="badge badge-p1">P1</span></td></tr>
+      <tr><td>Anthropic Claude</td><td>実装 LLM（各自プラン）+ チャット LLM</td><td>OAuth + Claude Code SDK / API</td><td><span class="badge badge-p1">P1</span></td></tr>
+      <tr><td>OpenAI</td><td>チャット LLM（BYOK or 自社）</td><td>API（LiteLLM 経由）</td><td><span class="badge badge-p1">P1</span></td></tr>
+      <tr><td>Google Gemini</td><td>チャット LLM（BYOK or 自社）</td><td>API（LiteLLM 経由）</td><td><span class="badge badge-p1">P1</span></td></tr>
+      <tr><td>LiteLLM</td><td>プロバイダー抽象化</td><td>Python ライブラリ</td><td><span class="badge badge-p1">P1</span></td></tr>
+      <tr><td>Langfuse</td><td>LLM 観測 + コスト + eval</td><td>self-host SDK</td><td><span class="badge badge-p1">P1</span></td></tr>
+      <tr><td>Slack</td><td>通知 → 双方向 + Claude Desktop MCP</td><td>Bolt SDK / Webhook / MCP</td><td><span class="badge badge-p1">P1（片）</span> → <span class="badge badge-p15">P1.5（双）</span></td></tr>
+      <tr><td>GitHub</td><td>PR / Issue / Workflow / コードホスティング</td><td>gh CLI / GitHub MCP / OAuth</td><td><span class="badge badge-p1">P1</span></td></tr>
+      <tr><td>Obsidian</td><td>ナレッジ母艦</td><td>File 書込 → Headless Sync npm CLI</td><td><span class="badge badge-p1">P1（単）</span> → <span class="badge badge-p15">P1.5（双）</span></td></tr>
+      <tr><td>Mem0</td><td>長期記憶（既存活用）</td><td>SDK</td><td><span class="badge badge-p1">P1</span></td></tr>
+      <tr><td>Cloudflare</td><td>CDN / DDoS 対策 / Tunnel</td><td>DNS + Worker</td><td><span class="badge badge-p1">P1</span></td></tr>
+      <tr><td>GrapesJS Studio SDK</td><td>HTML/CSS GUI 編集</td><td>embed iframe + JS API</td><td><span class="badge badge-p15">P1.5</span></td></tr>
+      <tr><td>Claude Desktop</td><td>MCP 経由でタスク作成 / 進捗</td><td>MCP サーバー（自社公開）</td><td><span class="badge badge-p15">P1.5</span></td></tr>
+      <tr><td>OpenFGA</td><td>fine-grained 権限</td><td>gRPC / REST</td><td><span class="badge badge-p2">P2</span></td></tr>
+      <tr><td>Coolify / Vercel / Netlify / Cloud Run / SSH</td><td>デプロイ連携アダプタ</td><td>各社 SDK / API + 抽象化</td><td><span class="badge badge-p2">P2</span></td></tr>
+      <tr><td>Playwright MCP</td><td>E2E テスト</td><td>MCP server</td><td><span class="badge badge-p2">P2</span></td></tr>
+      <tr><td>Stripe / Lemon Squeezy</td><td>課金</td><td>API + Webhook</td><td><span class="badge badge-p3">P3</span></td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<!-- 9 -->
+<div class="section-card" id="risks">
+  <div class="section-header"><div class="section-num">9</div><div class="section-title">リスク・懸念点（主要 24 件・全 43 件は decision_log.json 参照）</div></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>ID</th><th>リスク</th><th>影響</th><th>確率</th><th>対応</th></tr></thead>
+    <tbody>
+      <tr><td>R-1</td><td>Supabase 0 セットアップ時のスキーマ設計ミス</td><td>高</td><td>中</td><td>DDL レビュー + RLS テスト + seed 検証</td></tr>
+      <tr><td>R-2</td><td>LLM ハルシネーション</td><td>高</td><td>高</td><td>多層検証 + リーダー壁打ち + monitor 承認</td></tr>
+      <tr><td>R-3</td><td>Claude Code MCP 連携の不安定さ</td><td>高</td><td>中</td><td>公式 SDK + リトライ + crash detection + 30 分 kill</td></tr>
+      <tr><td>R-4</td><td>並列 5 セッションでの Claude プラン上限</td><td>中</td><td>高</td><td>プラン別実測 + UI 警告 + auto throttle</td></tr>
+      <tr><td>R-8</td><td>1 人開発の負荷（Phase 1 = 30 Must）</td><td><strong>高</strong></td><td><strong>高</strong></td><td>dogfooding（BF + Claude Code）+ 着手順序最適化</td></tr>
+      <tr><td>R-10</td><td>フェーズ管理が現場で使われない（過剰機能）</td><td>中</td><td>中</td><td>Phase 1 で自社案件 dogfooding して即改善</td></tr>
+      <tr><td>R-11</td><td>機密情報の workspace 横断リーク</td><td>高</td><td>中</td><td>RLS + 機密ラベル + 監査ログ + 取得時フィルタ</td></tr>
+      <tr><td>R-12</td><td>個人クローン化で本人プライバシー / 倫理問題</td><td>高</td><td>中</td><td>opt-in 必須 + namespace 完全分離 + 別サービス切出し + 法務レビュー</td></tr>
+      <tr><td>R-13</td><td>API キー / OAuth トークン漏洩</td><td>高</td><td>低</td><td>pgsodium 暗号化 + UI masked + admin も平文閲覧不可</td></tr>
+      <tr><td>R-15</td><td>LLM プロンプトインジェクション</td><td>中</td><td>中</td><td>入力サニタイズ + Constitution「外部入力は信頼しない」原則</td></tr>
+      <tr><td>R-20</td><td>Phase 1 が 30 Must で「とにかく早く」と矛盾</td><td><strong>高</strong></td><td><strong>高</strong></td><td>dogfooding + 着手順序最適化（基盤 → コア → 連携 → 観測）</td></tr>
+      <tr><td>R-21</td><td>dogfooding 自己再帰問題（BF バグで開発停止）</td><td>中</td><td>中</td><td>bootstrap を「動く土台」として残す + Claude Code 単独でも開発可</td></tr>
+      <tr><td>R-22</td><td>各自 Claude プラン契約必須化 → SaaS 採用障壁</td><td>中</td><td>中</td><td>BYOK で API キー方式も対応 + ドキュメント明記</td></tr>
+      <tr><td>R-23</td><td>AGPL ソフトウェアの誤混入</td><td>高</td><td>低</td><td>license-checker CI + 採用前のライセンス確認義務</td></tr>
+      <tr><td>R-24</td><td>NDA 案件の AI への context 渡し範囲</td><td>高</td><td>中</td><td>機密ラベル + workspace 隔離 + AI プロバイダー DPA 確認</td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<!-- 10 -->
+<div class="section-card" id="unresolved">
+  <div class="section-header"><div class="section-num">10</div><div class="section-title">未確認事項・今後の確認事項（20 項目）</div></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>項目</th><th>影響</th><th>優先度</th><th>解決先</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>BMAD のどの部分を取り込むか（fork / 思想 / 完全採用）</td><td>M-3 着手不可</td><td><span class="badge badge-must">高</span></td><td>architecture-design</td></tr>
+      <tr><td>2</td><td>Anthropic Agent Teams 最新 API 仕様</td><td>M-11 実装方式不定</td><td><span class="badge badge-must">高</span></td><td>architecture-design</td></tr>
+      <tr><td>3</td><td>削除する既存 router / service の最終リスト</td><td>M-19 着手時に判断揺れ</td><td><span class="badge badge-must">高</span></td><td>feature-decomposition</td></tr>
+      <tr><td>4</td><td>LLM プロバイダー抽象化（LiteLLM / 自前 / openrouter）</td><td>M-20 着手不可</td><td><span class="badge badge-must">高</span></td><td>tech-stack</td></tr>
+      <tr><td>5</td><td>GrapesJS Studio SDK 商用ライセンス費用</td><td>S-3 採用判断不可</td><td><span class="badge badge-should">中</span></td><td>tech-stack</td></tr>
+      <tr><td>6</td><td>EARS notation 具体テンプレ設計</td><td>M-25 / M-6 動かせない</td><td><span class="badge badge-should">中</span></td><td>feature-decomposition</td></tr>
+      <tr><td>7</td><td>Constitution と赤線リストの統合方法</td><td>M-12 / M-26 実装方式</td><td><span class="badge badge-should">中</span></td><td>architecture-design</td></tr>
+      <tr><td>8</td><td>部署リーダー AI / COO AI のスキル構成</td><td>S-11 / C-10 着手不可</td><td><span class="badge badge-should">中</span></td><td>feature-decomposition</td></tr>
+      <tr><td>9</td><td>並列セッション現実的上限（プラン別実測）</td><td>M-10c デフォルト 5 検証</td><td><span class="badge badge-should">中</span></td><td>tech-stack（PoC）</td></tr>
+      <tr><td>10</td><td>リーダー AI 壁打ち 3 ターン具体実装</td><td>M-11 動作仕様</td><td><span class="badge badge-should">中</span></td><td>feature-decomposition</td></tr>
+      <tr><td>11</td><td>Phase 1 Must 30 項目の各タスク見積もり工数</td><td>スケジュール立案不可</td><td><span class="badge badge-must">高</span></td><td>task-decomposition</td></tr>
+      <tr><td>12</td><td>クライアント招待 UI のメール文面 / URL 設計</td><td>S-1 着手時</td><td><span class="badge badge-could">低</span></td><td>feature-decomposition</td></tr>
+      <tr><td>13</td><td>Obsidian P1 簡易代替（単方向 export）の実装方式</td><td>M-16 着手不可</td><td><span class="badge badge-should">中</span></td><td>architecture-design</td></tr>
+      <tr><td>14</td><td>個人クローン化サービスの切り出しタイミング</td><td>C-11 ロードマップ</td><td><span class="badge badge-could">低</span></td><td>future / 別計画</td></tr>
+      <tr><td>15</td><td>Supabase plan 確定（無料 / Pro / Team）</td><td>コスト見積もり不可</td><td><span class="badge badge-should">中</span></td><td>tech-stack</td></tr>
+      <tr><td>16</td><td>monitor ロール実運用（兼任 / 委託タイミング）</td><td>監視体制計画</td><td><span class="badge badge-could">低</span></td><td>運用設計</td></tr>
+      <tr><td>17</td><td>赤線リスト 5 項目の最終確定（入れ替えあるか）</td><td>M-12 着手前</td><td><span class="badge badge-should">中</span></td><td>feature-decomposition</td></tr>
+      <tr><td>18</td><td>AI プロバイダーの DPA（Data Processing Addendum）確認</td><td>NDA 案件可否</td><td><span class="badge badge-should">中</span></td><td>tech-stack</td></tr>
+      <tr><td>19</td><td>テストデータ seed の最終内容</td><td>M-1 着手時に追加情報</td><td><span class="badge badge-could">低</span></td><td>architecture-design</td></tr>
+      <tr><td>20</td><td>個人クローン化での opt-in UI / プライバシー方針</td><td>M-22 着手 / 倫理リスク</td><td><span class="badge badge-must">高</span></td><td>architecture-design（法務レビュー含む）</td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<!-- 11 -->
+<div class="section-card" id="scope">
+  <div class="section-header"><div class="section-num">11</div><div class="section-title">開発スコープ・スケジュール</div></div>
+  <div class="subsection">
+    <div class="subsection-title">スコープ（Phase 配分）</div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Phase</th><th>ラベル</th><th>スコープ</th><th>ゴール</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge badge-p1">Phase 1</span></td><td>MVP（自社利用）</td><td>30 Must（M-1〜M-26 + M-5b）</td><td>自社 1 案件を End-to-End 完走</td></tr>
+        <tr><td><span class="badge badge-p15">Phase 1.5</span></td><td>社内拡張</td><td>12 Should（S-1〜S-12）</td><td>社内 / 業務委託 2-3 人で複数案件並走 + 部署リーダー AI</td></tr>
+        <tr><td><span class="badge badge-p2">Phase 2</span></td><td>β 試用</td><td>6 Could（C-1〜C-5 + C-10）</td><td>1-2 社の協力先で受託案件 + COO AI 完成</td></tr>
+        <tr><td><span class="badge badge-p3">Phase 3</span></td><td>商用 SaaS</td><td>4 Could（C-6〜C-9）</td><td>商用提供開始</td></tr>
+        <tr><td><span class="badge badge-could">Future</span></td><td>個人クローン化</td><td>C-11（別アプリ切り出し）</td><td>ユーザの分身 AI 生成・販売</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+  <div class="subsection">
+    <div class="subsection-title">着手順序（依存グラフ最適）</div>
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:14px;font-family:'SF Mono',monospace;font-size:11.5px;color:#334155;line-height:1.8;">
+[最優先] M-1 Supabase 基盤<br>
+↓<br>
+M-2 既存スキル整理 / M-19 bootstrap 振り分け / M-4 階層<br>
+↓<br>
+M-3 AI 社員 / M-22 3 階層対応 / M-21 custom_permissions / M-23 プロフィール / M-20 LLM 抽象化<br>
+↓<br>
+M-5 + M-5b 仕様書 + 画面モック / M-6 タスク分解 / M-25 EARS / M-15 HTML レポート<br>
+↓<br>
+M-7 多 view UI / M-8 フェーズ管理 / M-9 依存グラフ / M-24 グローバル検索<br>
+↓<br>
+M-10a MCP / M-10b ▶︎ / M-11 壁打ち<br>
+↓<br>
+M-10c 並列 swarm / M-10d WebSocket UI<br>
+↓<br>
+M-12 赤線 / M-26 Constitution<br>
+↓<br>
+M-13 GitHub / M-14 Slack / M-16 Obsidian<br>
+↓<br>
+M-17 Langfuse / M-18 監査 + バックアップ
+    </div>
+  </div>
+</div>
+
+<!-- 12 -->
+<div class="section-card" id="history">
+  <div class="section-header"><div class="section-num">12</div><div class="section-title">改訂履歴</div></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>版</th><th>日付</th><th>主な変更</th></tr></thead>
+    <tbody>
+      <tr><td>v1.0</td><td>2026-05-09</td><td>ヒアリング v2.1 → 要件定義 v1 への正式昇格（30 Must / 12 Should / 11 Could / 8 Won't）</td></tr>
+      <tr><td>v2.1（hearing）</td><td>2026-05-09</td><td>requirements-definition STEP 1〜2 確定事項を反映（D-21〜D-31 / Must M-20〜M-26 + M-5b）</td></tr>
+      <tr><td>v2.0（hearing）</td><td>2026-05-09</td><td>v1 PROJECT_BRIEF 白紙化、コンセプトから再設計（hearing 4STEP 完了）</td></tr>
+      <tr><td>v1.0（旧 BRIEF）</td><td>2026-05-01</td><td>初版・廃版（Onlook 統合・並走前提）</td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<div style="text-align:center;margin-top:30px;font-size:11px;color:#94a3b8;">
+  <p>Build-Factory 要件定義書 v1.0 / 株式会社 ENGINE BASE / 2026-05-09</p>
+  <p style="margin-top:4px;">関連: <code>requirements-v1.md</code> · <code>requirements_internal.json</code> · <code>requirements_decision_log.json</code> · <code>../../hearing/2026-05-09_re-hearing/</code></p>
+</div>
+
+</main>
+</div>
+</body>
+</html>

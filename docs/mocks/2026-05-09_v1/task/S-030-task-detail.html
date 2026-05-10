@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>S-030 タスク詳細 — Build-Factory Mock</title>
+<meta name="screen-id" content="S-030" />
+<meta name="feature-id" content="F-006,F-010b" />
+<meta name="task-ids" content="T-010b-04" />
+<meta name="entities" content="tasks,acceptance_criteria,task_dependencies,sessions" />
+<meta name="phase" content="P1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          eb: { 50:'#e6f0ec', 100:'#c4dccf', 500:'#1a6648', 600:'#155238', 700:'#103e2a', 900:'#0a2618' },
+          ok:'#16a34a', warn:'#d97706', err:'#dc2626', info:'#2563eb'
+        },
+        fontFamily: { sans: ['"Noto Sans JP"','system-ui','sans-serif'], mono: ['"JetBrains Mono"','ui-monospace','monospace'] }
+      }
+    }
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body { font-family:"Noto Sans JP", system-ui, sans-serif; }
+  .mono { font-family:"JetBrains Mono", ui-monospace, monospace; }
+  .ears-block { border-left: 3px solid #1a6648; }
+  details > summary { cursor:pointer; list-style:none; }
+  details > summary::-webkit-details-marker { display:none; }
+  .pulse-dot { animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex">
+
+<!-- Sidebar -->
+<aside class="w-[230px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-5 border-b border-eb-600">
+    <div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div>
+    <div class="text-sm font-bold mt-1">受託EC構築 #4</div>
+    <div class="text-[11px] text-eb-100 mt-0.5 mono">ws_8f3a2c · P1.5</div>
+  </div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5">
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="../account/S-006-account-dashboard.html">← Account</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="#">Workspace ホーム</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="#">ヒアリング</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="#">仕様書</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="#">機能 / 依存</a>
+    <a class="block px-3 py-1.5 rounded bg-eb-600 text-white font-bold" href="S-027-task-kanban.html">タスク Kanban</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="S-031-swarm-grid.html">Swarm 並列実行</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="#">レビュー</a>
+    <a class="block px-3 py-1.5 rounded text-eb-100 hover:bg-eb-600" href="#">運用 / メトリクス</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 text-[11px] text-eb-100">
+    masato (owner)<br/>
+    <span class="mono">claude-opus-4-7</span>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="flex-1 flex flex-col min-w-0">
+  <!-- Top bar -->
+  <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 gap-4 shrink-0">
+    <div class="text-[11px] mono text-slate-500">
+      <a href="S-027-task-kanban.html" class="hover:underline">Kanban</a>
+      <span class="mx-1">/</span>
+      <span class="text-slate-700">T-010b-04</span>
+    </div>
+    <div class="flex-1"></div>
+    <button class="px-3 py-1.5 text-sm border border-slate-300 rounded hover:bg-slate-50">編集</button>
+    <button class="px-3 py-1.5 text-sm border border-slate-300 rounded hover:bg-slate-50">複製</button>
+    <button class="px-4 py-1.5 text-sm bg-eb-500 text-white rounded font-bold hover:bg-eb-600 flex items-center gap-1.5">
+      <span><i data-lucide="play" class="w-3.5 h-3.5 inline"></i></span> このタスクを再生
+    </button>
+  </header>
+
+  <div class="flex-1 grid grid-cols-[1fr_360px] min-h-0">
+    <!-- Center column -->
+    <section class="overflow-y-auto p-6 space-y-5">
+      <!-- Title block -->
+      <div class="bg-white border border-slate-200 rounded-lg p-5">
+        <div class="flex items-center gap-2 text-[11px] mono text-slate-500 mb-2">
+          <span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-bold">REFACTOR</span>
+          <span>T-010b-04</span>
+          <span>·</span>
+          <span>F-010b 仕様書ビューア</span>
+          <span>·</span>
+          <span>P1.5</span>
+          <span>·</span>
+          <span>3pt</span>
+        </div>
+        <h1 class="text-xl font-bold text-slate-900 mb-2">仕様書ビューア HTML/MD タブ切替の実装</h1>
+        <p class="text-sm text-slate-600 leading-relaxed">
+          仕様書詳細画面（S-022）で HTML レンダリングと Markdown ソースをタブで切り替えられるようにする。
+          既存 <span class="mono text-eb-600">backend/routers/specs.py</span> の <span class="mono">/specs/{id}</span> は両形式を返却済みなので、フロント側のタブ UI を追加する。
+        </p>
+        <div class="flex items-center gap-3 mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500">
+          <span>担当: <span class="font-bold text-slate-700">devon (Dev)</span></span>
+          <span>·</span>
+          <span>レビュー: <span class="font-bold text-slate-700">quinn (QA)</span></span>
+          <span>·</span>
+          <span>更新: 2026-05-10 09:14</span>
+        </div>
+      </div>
+
+      <!-- EARS Acceptance Criteria -->
+      <div class="bg-white border border-slate-200 rounded-lg p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-sm font-bold text-slate-700 tracking-wider">受け入れ条件 (EARS)</h2>
+          <span class="text-[11px] text-slate-500 mono">5 / 5 verified</span>
+        </div>
+        <div class="space-y-3">
+          <div class="ears-block pl-3 py-1">
+            <div class="text-[10px] mono text-eb-600 font-bold tracking-wider">UBIQUITOUS</div>
+            <div class="text-sm">The viewer <b>shall</b> display HTML rendering and Markdown source for every spec document.</div>
+            <div class="text-[11px] text-slate-500 mt-1">AC-01 · F-010b · 検証済み: e2e/spec-viewer.spec.ts:14</div>
+          </div>
+          <div class="ears-block pl-3 py-1">
+            <div class="text-[10px] mono text-info font-bold tracking-wider">EVENT-DRIVEN</div>
+            <div class="text-sm">When the user clicks the Markdown tab, the viewer <b>shall</b> render the source within 200ms.</div>
+            <div class="text-[11px] text-slate-500 mt-1">AC-02 · F-010b · 検証済み: e2e/spec-viewer.spec.ts:32</div>
+          </div>
+          <div class="ears-block pl-3 py-1">
+            <div class="text-[10px] mono text-info font-bold tracking-wider">EVENT-DRIVEN</div>
+            <div class="text-sm">When the spec contains code blocks, the viewer <b>shall</b> apply syntax highlighting via Shiki.</div>
+            <div class="text-[11px] text-slate-500 mt-1">AC-03 · F-010b · 検証済み: e2e/spec-viewer.spec.ts:51</div>
+          </div>
+          <div class="ears-block pl-3 py-1">
+            <div class="text-[10px] mono text-warn font-bold tracking-wider">STATE-DRIVEN</div>
+            <div class="text-sm">While the spec is loading, the viewer <b>shall</b> show a skeleton placeholder.</div>
+            <div class="text-[11px] text-slate-500 mt-1">AC-04 · F-010b · 検証済み: e2e/spec-viewer.spec.ts:67</div>
+          </div>
+          <div class="ears-block pl-3 py-1">
+            <div class="text-[10px] mono text-err font-bold tracking-wider">UNWANTED</div>
+            <div class="text-sm">If the spec fetch returns 403, the viewer <b>shall not</b> display content and <b>shall</b> show an access denied message.</div>
+            <div class="text-[11px] text-slate-500 mt-1">AC-05 · F-010b · 検証済み: e2e/spec-viewer.spec.ts:83</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Existing files (REFACTOR) -->
+      <div class="bg-white border border-slate-200 rounded-lg p-5">
+        <h2 class="text-sm font-bold text-slate-700 tracking-wider mb-3">REFACTOR 対象（既存実装）</h2>
+        <div class="text-[11px] mono space-y-1.5">
+          <div class="flex items-center gap-2 text-amber-800">
+            <span class="px-1.5 py-0.5 bg-amber-100 rounded">REFACTOR</span>
+            <span class="text-slate-700">frontend/src/app/workspaces/[id]/specs/[specId]/page.tsx</span>
+            <span class="text-slate-400 ml-auto">+87 / -23</span>
+          </div>
+          <div class="flex items-center gap-2 text-amber-800">
+            <span class="px-1.5 py-0.5 bg-amber-100 rounded">REFACTOR</span>
+            <span class="text-slate-700">frontend/src/components/spec-viewer/MarkdownTab.tsx</span>
+            <span class="text-slate-400 ml-auto">+45 / -0</span>
+          </div>
+          <div class="flex items-center gap-2 text-emerald-800">
+            <span class="px-1.5 py-0.5 bg-emerald-100 rounded">REUSE</span>
+            <span class="text-slate-700">backend/routers/specs.py</span>
+            <span class="text-slate-400 ml-auto">変更なし</span>
+          </div>
+        </div>
+        <div class="mt-3 px-3 py-2 bg-amber-50 border border-amber-200 rounded text-[11px] text-amber-800">
+          <b>仕様適合チェック (v2.1):</b> 9 項目のうち <b>7</b> 完了。残: ① shadcn/ui Tabs に統一 ② skeleton ローダー追加。
+        </div>
+      </div>
+
+      <!-- Dependencies + related -->
+      <div class="bg-white border border-slate-200 rounded-lg p-5">
+        <h2 class="text-sm font-bold text-slate-700 tracking-wider mb-3">依存タスク</h2>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">UPSTREAM (前提)</div>
+            <div class="space-y-1.5 text-xs">
+              <div class="flex items-center gap-2 px-2 py-1.5 bg-emerald-50 rounded">
+                <span class="w-1.5 h-1.5 bg-ok rounded-full"></span>
+                <span class="mono text-slate-700">T-010b-01</span>
+                <span class="text-slate-600 truncate">specs API GET エンドポイント</span>
+                <span class="text-[10px] text-emerald-700 ml-auto">DONE</span>
+              </div>
+              <div class="flex items-center gap-2 px-2 py-1.5 bg-emerald-50 rounded">
+                <span class="w-1.5 h-1.5 bg-ok rounded-full"></span>
+                <span class="mono text-slate-700">T-010b-02</span>
+                <span class="text-slate-600 truncate">spec_viewer ページ scaffold</span>
+                <span class="text-[10px] text-emerald-700 ml-auto">DONE</span>
+              </div>
+              <div class="flex items-center gap-2 px-2 py-1.5 bg-emerald-50 rounded">
+                <span class="w-1.5 h-1.5 bg-ok rounded-full"></span>
+                <span class="mono text-slate-700">T-010b-03</span>
+                <span class="text-slate-600 truncate">Shiki プラグイン導入</span>
+                <span class="text-[10px] text-emerald-700 ml-auto">DONE</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">DOWNSTREAM (後続)</div>
+            <div class="space-y-1.5 text-xs">
+              <div class="flex items-center gap-2 px-2 py-1.5 bg-slate-50 rounded">
+                <span class="w-1.5 h-1.5 bg-slate-300 rounded-full"></span>
+                <span class="mono text-slate-700">T-010b-05</span>
+                <span class="text-slate-600 truncate">差分ビュー（バージョン比較）</span>
+                <span class="text-[10px] text-slate-500 ml-auto">READY</span>
+              </div>
+              <div class="flex items-center gap-2 px-2 py-1.5 bg-slate-50 rounded">
+                <span class="w-1.5 h-1.5 bg-slate-300 rounded-full"></span>
+                <span class="mono text-slate-700">T-010b-06</span>
+                <span class="text-slate-600 truncate">PDF エクスポート</span>
+                <span class="text-[10px] text-slate-500 ml-auto">TODO</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-3 pt-3 border-t border-slate-100 flex items-center gap-2 text-xs">
+          <span class="text-slate-500">関連画面:</span>
+          <a href="../spec/S-022-spec-viewer.html" class="px-2 py-0.5 bg-eb-50 text-eb-700 rounded mono">S-022 spec_viewer</a>
+          <a href="../moat/S-017-dependency-graph.html" class="px-2 py-0.5 bg-eb-50 text-eb-700 rounded mono">S-017 dependency_graph</a>
+        </div>
+      </div>
+
+      <!-- Session history -->
+      <div class="bg-white border border-slate-200 rounded-lg p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-sm font-bold text-slate-700 tracking-wider">セッション履歴</h2>
+          <span class="text-[11px] text-slate-500">3 セッション</span>
+        </div>
+        <div class="space-y-2 text-xs">
+          <a href="S-032-swarm-session-detail.html" class="block px-3 py-2 border border-slate-200 rounded hover:border-eb-500 hover:bg-eb-50">
+            <div class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-amber-500 rounded-full pulse-dot"></span>
+              <span class="mono text-slate-700">sess_a4f2 · #3</span>
+              <span class="text-slate-500">claude-opus-4-7</span>
+              <span class="ml-auto text-amber-700 font-bold">RUNNING</span>
+            </div>
+            <div class="text-slate-600 mt-1 truncate">[14:32:14] Editing MarkdownTab.tsx — adding Shiki transformer pipeline...</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">開始: 14:18 · 経過: 14分23秒 · コスト: $0.42</div>
+          </a>
+          <div class="block px-3 py-2 border border-slate-200 rounded">
+            <div class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-rose-500 rounded-full"></span>
+              <span class="mono text-slate-700">sess_91c8 · #2</span>
+              <span class="text-slate-500">claude-opus-4-7</span>
+              <span class="ml-auto text-rose-700 font-bold">FAILED</span>
+            </div>
+            <div class="text-slate-600 mt-1 truncate">テスト失敗: spec-viewer.spec.ts:51 (Shiki theme not found)</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">2026-05-09 23:14 · 8分11秒 · コスト: $0.18</div>
+          </div>
+          <div class="block px-3 py-2 border border-slate-200 rounded">
+            <div class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+              <span class="mono text-slate-700">sess_3e0d · #1</span>
+              <span class="text-slate-500">claude-sonnet-4-6</span>
+              <span class="ml-auto text-emerald-700 font-bold">COMPLETED</span>
+            </div>
+            <div class="text-slate-600 mt-1 truncate">scaffold生成完了 → AC-01,02 達成 → AC-03 で Shiki 導入待ち</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">2026-05-09 19:42 · 12分04秒 · コスト: $0.21</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comments -->
+      <div class="bg-white border border-slate-200 rounded-lg p-5">
+        <h2 class="text-sm font-bold text-slate-700 tracking-wider mb-3">コメント</h2>
+        <div class="space-y-3">
+          <div class="flex gap-3">
+            <div class="w-8 h-8 rounded-full bg-eb-500 text-white flex items-center justify-center text-xs font-bold shrink-0">M</div>
+            <div class="flex-1 text-xs">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-slate-700">masato</span>
+                <span class="text-slate-400">2026-05-10 09:14</span>
+              </div>
+              <div class="text-slate-600 mt-1">スケルトンは shadcn の Skeleton を使ってね。Tabs も。</div>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <div class="w-8 h-8 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-bold shrink-0">D</div>
+            <div class="flex-1 text-xs">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-slate-700">devon (AI)</span>
+                <span class="text-slate-400">2026-05-10 09:18</span>
+              </div>
+              <div class="text-slate-600 mt-1">了解。<span class="mono text-eb-700">@/components/ui/tabs</span> と <span class="mono text-eb-700">@/components/ui/skeleton</span> に統一して再実装します。</div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-3 pt-3 border-t border-slate-100">
+          <textarea class="w-full h-16 px-3 py-2 text-xs border border-slate-300 rounded focus:outline-none focus:border-eb-500" placeholder="コメントを追加..."></textarea>
+          <div class="flex justify-end mt-2">
+            <button class="px-3 py-1 text-xs bg-eb-500 text-white rounded">送信</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right rail -->
+    <aside class="border-l border-slate-200 bg-white overflow-y-auto p-5 space-y-5">
+      <div>
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">ステータス</div>
+        <select class="w-full px-2 py-1.5 text-sm border border-slate-300 rounded bg-amber-50 font-bold text-amber-800">
+          <option>In Progress</option>
+        </select>
+      </div>
+      <div>
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">優先度</div>
+        <div class="flex gap-1.5">
+          <button class="flex-1 py-1 text-xs border border-slate-300 rounded">Low</button>
+          <button class="flex-1 py-1 text-xs border border-slate-300 rounded">Med</button>
+          <button class="flex-1 py-1 text-xs bg-eb-500 text-white border border-eb-500 rounded font-bold">High</button>
+          <button class="flex-1 py-1 text-xs border border-slate-300 rounded">Urgent</button>
+        </div>
+      </div>
+      <div>
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">ラベル</div>
+        <div class="flex flex-wrap gap-1">
+          <span class="px-1.5 py-0.5 text-[10px] bg-amber-100 text-amber-800 rounded mono">REFACTOR</span>
+          <span class="px-1.5 py-0.5 text-[10px] bg-slate-100 text-slate-700 rounded">frontend</span>
+          <span class="px-1.5 py-0.5 text-[10px] bg-slate-100 text-slate-700 rounded">P1.5</span>
+        </div>
+      </div>
+      <div>
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">担当 AI 社員</div>
+        <div class="flex items-center gap-2 px-2 py-1.5 border border-slate-200 rounded">
+          <div class="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-[10px] font-bold">D</div>
+          <div class="text-xs">
+            <div class="font-bold text-slate-700">devon</div>
+            <div class="text-slate-500 mono">claude-opus-4-7</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">推定 / 実績</div>
+        <div class="text-xs space-y-1">
+          <div class="flex justify-between"><span class="text-slate-500">推定</span><span class="mono text-slate-700">3pt / 25分</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">実績</span><span class="mono text-slate-700">22分23秒</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">コスト累計</span><span class="mono text-slate-700">$0.81</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">添付モック</div>
+        <a href="../spec/S-022-spec-viewer.html" class="block px-2 py-1.5 border border-slate-200 rounded hover:border-eb-500 text-xs">
+          <div class="font-bold text-slate-700 mono">S-022 spec_viewer</div>
+          <div class="text-slate-500 text-[10px]">この画面を実装する</div>
+        </a>
+      </div>
+      <div>
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">ブランチ</div>
+        <div class="px-2 py-1.5 border border-slate-200 rounded text-[11px] mono text-slate-700">feat/T-010b-04-spec-tabs</div>
+      </div>
+      <div>
+        <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">アクション</div>
+        <div class="space-y-1.5 text-xs">
+          <button class="w-full px-2 py-1.5 border border-slate-300 rounded hover:bg-slate-50 text-left">セッションを停止</button>
+          <button class="w-full px-2 py-1.5 border border-slate-300 rounded hover:bg-slate-50 text-left">レビュー依頼</button>
+          <button class="w-full px-2 py-1.5 border border-slate-300 rounded hover:bg-slate-50 text-left">PR を開く</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="h-9 bg-white border-t border-slate-200 flex items-center justify-between px-6 text-[11px] text-slate-500 shrink-0 mono">
+    <span>S-030 task_detail · F-006/F-010b · T-010b-04</span>
+    <span><a href="../index.html" class="hover:underline">← Index</a></span>
+  </footer>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>
