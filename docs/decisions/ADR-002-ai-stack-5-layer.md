@@ -1,8 +1,12 @@
 # ADR-002: AI スタック 5 層構成
 
-- **Status**: Accepted
+- **Status**: ⚠️ **Superseded by [ADR-010](ADR-010-ai-stack-anthropic-native.md)** (2026-05-10)
 - **Date**: 2026-05-09
 - **Deciders**: 高本まさと
+
+> **このADRは ADR-010 で置き換えられた**。masato から「Agent ランタイム精度 (会話状態 / コンテキスト管理 / 履歴保持) を最高にしたい」要望を受け、5 層 → 3 層 (Anthropic 純正中心 + LiteLLM サブ復活) に再構成。
+> **新スタックは [ADR-010](ADR-010-ai-stack-anthropic-native.md) を参照**。
+> このファイルは履歴として保存する。
 
 ## Context
 

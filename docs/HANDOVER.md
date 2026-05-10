@@ -123,13 +123,15 @@
 | ADR | テーマ | パス |
 |---|---|---|
 | ADR-001 | モジュラーモノリス採用 | `decisions/ADR-001-modular-monolith.md` |
-| ADR-002 | AI スタック 5 層構成 | `decisions/ADR-002-ai-stack-5-layer.md` |
+| ADR-002 | ⚠️ AI スタック 5 層構成 (Superseded by ADR-010) | `decisions/ADR-002-ai-stack-5-layer.md` |
 | ADR-003 | Memory 3 tier | `decisions/ADR-003-memory-3-tier.md` |
 | ADR-004 | Phase 1 ¥0 ホスティング | `decisions/ADR-004-phase1-zero-cost-hosting.md` |
 | ADR-005 | アイコンは Lucide のみ | `decisions/ADR-005-lucide-icons-only.md` |
 | ADR-006 | タスクラベル REUSE/REFACTOR/NEW/ARCHIVE | `decisions/ADR-006-task-labels.md` |
 | ADR-007 | EARS notation 必須 | `decisions/ADR-007-ears-notation.md` |
 | ADR-008 | Kanban 機能別アコーディオン | `decisions/ADR-008-kanban-by-feature.md` |
+| ADR-009 | 各案件への強制レイヤー自動展開 | `decisions/ADR-009-project-bootstrap-enforcement.md` |
+| ADR-010 | **AI スタック再設計 (3層 / Anthropic 純正中心 + LiteLLM サブ)** | `decisions/ADR-010-ai-stack-anthropic-native.md` |
 
 ---
 
