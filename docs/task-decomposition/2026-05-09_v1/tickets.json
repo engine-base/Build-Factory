@@ -112,7 +112,7 @@
     },
     {
       "id": "T-S0-13",
-      "title": "既存実装インベントリ監査 → existing-inventory.json",
+      "title": "既存実装インベントリ監査 (39 routers + 54 services + 7 migrations) → existing-inventory.json",
       "sprint": "S0",
       "feature": "META",
       "layer": "OPS",
@@ -123,31 +123,37 @@
         "T-019-01"
       ],
       "critical": true,
-      "output_file": "existing-inventory.json",
+      "output_file": "docs/audit/2026-05-10_v1/existing-inventory.json",
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
       "mock_link": null,
       "existing_files": [
         "backend/main.py",
         "backend/routers/",
-        "backend/services/"
+        "backend/services/",
+        "data/",
+        "docs/task-decomposition/2026-05-09_v1/tickets.json"
       ],
       "entities": [],
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The backend scaffold shall expose `/health` returning 200 OK with version metadata."
+          "text": "The audit shall produce existing-inventory.json listing every backend/routers/*.py, backend/services/*.py, and data/db migration with classification (REUSE / REFACTOR / ARCHIVE / NEW / UNDETERMINED) and a 1-line rationale."
         },
         {
           "type": "EVENT",
-          "text": "When the FastAPI app starts, the system shall load all 13 domain modules without errors."
+          "text": "When the audit runs, the system shall cross-reference each file with tickets.json existing_files and report tickets whose listed files do not exist in the repo."
         },
         {
           "type": "STATE",
-          "text": "While running in development mode, the system shall enable hot reload."
+          "text": "While the audit is running, the system shall not modify any source file (read-only) and shall not require external network."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where penpot_client.py / browser_use_service.py are present, the audit shall annotate them with the Phase boundary (Phase 1.5 / Phase 2) under which they will be REFACTORed or ARCHIVEd."
         },
         {
           "type": "UNWANTED",
-          "text": "If a domain module fails to import, the system shall fail fast and log the missing dependency."
+          "text": "If a router/service cannot be confidently classified, the audit shall record it as UNDETERMINED with the specific reason, instead of silently defaulting to REUSE."
         }
       ]
     },
