@@ -85,7 +85,7 @@ async def create_employee(
     personality: str = "",
     tone_style: str = "",
     catchphrase: str = "",
-    avatar_emoji: str = "👤",
+    avatar_emoji: str = "",
     knowledge_folders: Optional[list[str]] = None,
     primary_skill: str = "",
     triggered_by: str = "staff_management",

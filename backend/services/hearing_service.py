@@ -199,7 +199,7 @@ def _extract_common_rules(skill_md: str) -> str:
     """skill md の冒頭「思考品質基準」～「出力フォーマット厳守」までを抽出。"""
     import re
     # 「## 全スキル共通：思考品質基準」開始 ～ 「# hearing スキル」直前 まで
-    m = re.search(r"##\s*🧠\s*全スキル共通[\s\S]*?(?=\n#\s*hearing\s*スキル|\Z)", skill_md)
+    m = re.search(r"##\s*\U0001F9E0\s*全スキル共通[\s\S]*?(?=\n#\s*hearing\s*スキル|\Z)", skill_md)
     if m:
         return m.group(0).strip()
     # フォールバック: 最初の 5000 文字
@@ -207,9 +207,10 @@ def _extract_common_rules(skill_md: str) -> str:
 
 
 def _extract_step_section(skill_md: str, step: int) -> str:
-    """指定 STEP のセクションを抽出 (### ▶ STEP {n}: ... から次の STEP / 最終出力 まで)。"""
+    """指定 STEP のセクションを抽出 (### [arrow] STEP {n}: ... から次の STEP / 最終出力 まで)。"""
     import re
-    pattern = rf"###\s*▶\s*STEP\s*{step}[\s\S]*?(?=###\s*▶\s*STEP\s*{step+1}|\n##\s|\Z)"
+    _arrow = chr(0x25B6)  # BLACK RIGHT-POINTING TRIANGLE
+    pattern = rf"###\s*{_arrow}\s*STEP\s*{step}[\s\S]*?(?=###\s*{_arrow}\s*STEP\s*{step+1}|\n##\s|\Z)"
     m = re.search(pattern, skill_md)
     if m:
         return m.group(0).strip()

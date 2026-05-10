@@ -361,7 +361,7 @@ async def staff_hire(
     personality: str = "",
     tone_style: str = "",
     catchphrase: str = "",
-    avatar_emoji: str = "👤",
+    avatar_emoji: str = "",
 ) -> str:
     """
     新しいAI社員を採用する。staff-managementスキルのHIREフロー実行版。

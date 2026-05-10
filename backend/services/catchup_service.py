@@ -90,7 +90,7 @@ async def _gather_context(since_str: str) -> tuple[dict, str]:
         if emails:
             lines.append("\n## 受信メール")
             for e in emails:
-                mark = {"high": "🔴", "medium": "🟡", "low": "⚪"}.get(e["importance"], "⚪")
+                mark = {"high": "[高]", "medium": "[中]", "low": "[低]"}.get(e["importance"], "[低]")
                 lines.append(f"- {mark} {e['sender_name']}: {e['subject']} ({e['received_at']})")
 
         # 3. 実行ログ（完了・失敗）
@@ -108,11 +108,11 @@ async def _gather_context(since_str: str) -> tuple[dict, str]:
             if completed:
                 lines.append(f"完了: {len(completed)}件")
                 for e in completed[:5]:
-                    lines.append(f"  ✅ {e['skill_name']} ({e['duration_sec']}秒) {e['completed_at']}")
+                    lines.append(f"  [OK] {e['skill_name']} ({e['duration_sec']}秒) {e['completed_at']}")
             if failed:
                 lines.append(f"失敗: {len(failed)}件")
                 for e in failed:
-                    lines.append(f"  ❌ {e['skill_name']} {e['completed_at']}")
+                    lines.append(f"  [FAIL] {e['skill_name']} {e['completed_at']}")
 
         # 4. パイプライン動向
         pipeline = await db.execute_fetchall(
@@ -140,10 +140,10 @@ async def _generate_summary(context: str, since: datetime, hours: int) -> str:
         f"## 指示\n"
         f"上記データをもとに、経営者向けのキャッチアップサマリーを日本語Markdownで生成してください。\n"
         f"以下の構成で簡潔にまとめてください:\n"
-        f"1. ⚡ 即対応が必要な事項（承認待ち・エラーなど）\n"
-        f"2. 📬 重要メッセージ（high/medium のメール）\n"
-        f"3. ✅ 完了した処理\n"
-        f"4. 📊 パイプライン動向（あれば）\n"
+        f"1. 即対応が必要な事項（承認待ち・エラーなど）\n"
+        f"2. 重要メッセージ（high/medium のメール）\n"
+        f"3. 完了した処理\n"
+        f"4. パイプライン動向（あれば）\n"
         f"特記事項がないセクションは「なし」と記載してください。"
     )
 
