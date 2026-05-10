@@ -1,7 +1,7 @@
 """
 Design canvas frames + canvas state CRUD API.
 
-Frontend (Onlook 由来 canvas) からの REST 呼び出しを受け付ける。
+Frontend canvas からの REST 呼び出しを受け付ける。
 
 エンドポイント:
     GET    /api/workspaces/{workspace_id}/design/frames
@@ -20,53 +20,10 @@ from typing import Any, Optional
 from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel, Field
 
-from pathlib import Path
-
 from db import async_db as aiosqlite
 from services import designer_ai
 
 router = APIRouter(prefix="/api/workspaces", tags=["design-frames"])
-
-# ─────────────────────────────────────────
-# Onlook preload script (inline 注入用)
-# 起動時に 1 回読み込みキャッシュ。これを iframe HTML に <script> として埋め込むことで
-# iframe 内で penpal クライアント・DOM 検査・theme API 等が動くようになる。
-# ─────────────────────────────────────────
-
-_PRELOAD_SCRIPT_PATH = (
-    Path(__file__).resolve().parent.parent / "static" / "onlook-preload-script.js"
-)
-
-
-def _load_preload_script() -> str:
-    try:
-        return _PRELOAD_SCRIPT_PATH.read_text(encoding="utf-8")
-    except FileNotFoundError:
-        return ""
-
-
-_PRELOAD_SCRIPT_CONTENT = _load_preload_script()
-
-
-def _inject_preload(html: str) -> str:
-    """生成 HTML に Onlook preload script を inline 注入する。"""
-    if not _PRELOAD_SCRIPT_CONTENT:
-        return html
-    # Build-Factory フラグ用の小さなヘッダ + preload 本体
-    script_tag = (
-        "\n<script id=\"__bf_preload_marker\">"
-        "window.__BF_DESIGN_CANVAS=true;"
-        "</script>\n"
-        "<script type=\"module\" id=\"__onlook_preload\">\n"
-        + _PRELOAD_SCRIPT_CONTENT
-        + "\n</script>\n"
-    )
-    # </body> 直前に挿入。無ければ末尾に追加
-    lower = html.lower()
-    idx = lower.rfind("</body>")
-    if idx == -1:
-        return html + script_tag
-    return html[:idx] + script_tag + html[idx:]
 
 
 # ─────────────────────────────────────────
@@ -431,13 +388,11 @@ async def preview_mockup(workspace_id: int, frame_id: int):
         row = await cur.fetchone()
     if not row or not row.get("content"):
         raise HTTPException(status_code=404, detail="no preview content")
-    html_with_preload = _inject_preload(row["content"])
     return Response(
-        content=html_with_preload,
+        content=row["content"],
         media_type="text/html; charset=utf-8",
         headers={
             "X-Frame-Options": "SAMEORIGIN",
-            # canvas からの cross-origin 読み取りを許可（penpal RPC のため）
             "Access-Control-Allow-Origin": "*",
         },
     )

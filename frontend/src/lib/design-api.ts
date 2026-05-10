@@ -1,8 +1,5 @@
 /**
  * Build-Factory design canvas REST client.
- *
- * Onlook 由来の canvas で `api.frame.create.mutate` のような tRPC 呼び出しを
- * していた箇所をこのクライアントに差し替える。
  */
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8001';
