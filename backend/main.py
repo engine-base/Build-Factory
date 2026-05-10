@@ -50,6 +50,7 @@ from routers.knowledge_search import router as knowledge_search_router
 from routers.design_frames import router as design_frames_router
 from routers.design_mocks import router as design_mocks_router
 from routers.references import router as references_router
+from routers.swarm import router as swarm_router
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 
@@ -150,6 +151,7 @@ app.include_router(knowledge_search_router)
 app.include_router(design_frames_router)
 app.include_router(design_mocks_router)
 app.include_router(references_router)
+app.include_router(swarm_router)
 
 
 @app.get("/health")
