@@ -37,7 +37,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
             <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
             <XAxis dataKey="month" tick={{ fontSize: 11 }} />
             <YAxis tickFormatter={fmt} tick={{ fontSize: 11 }} />
-            <Tooltip formatter={(v: number) => [fmt(v), "売上"]} />
+            <Tooltip formatter={(v) => [fmt(Number(v)), "売上"]} />
             <Area type="monotone" dataKey="revenue" stroke="#6366f1" fill="url(#revenue-grad)" strokeWidth={2} />
           </AreaChart>
         </ResponsiveContainer>
@@ -63,7 +63,7 @@ export function PipelineChart({ data }: PipelineChartProps) {
             <Pie data={labeled} dataKey="total" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name }) => name}>
               {labeled.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
             </Pie>
-            <Tooltip formatter={(v: number) => fmt(v)} />
+            <Tooltip formatter={(v) => fmt(Number(v))} />
           </PieChart>
         </ResponsiveContainer>
         <div className="flex-1 space-y-2">
@@ -98,7 +98,7 @@ export function ExpensesChart({ data }: ExpensesChartProps) {
             <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
             <XAxis type="number" tickFormatter={fmt} tick={{ fontSize: 11 }} />
             <YAxis type="category" dataKey="category" tick={{ fontSize: 11 }} width={80} />
-            <Tooltip formatter={(v: number) => [fmt(v), "金額"]} />
+            <Tooltip formatter={(v) => [fmt(Number(v)), "金額"]} />
             <Bar dataKey="total" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
           </BarChart>
         </ResponsiveContainer>

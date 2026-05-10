@@ -20,6 +20,7 @@ export type SidebarKey =
 export type PhaseId =
   | "hearing"
   | "requirements-definition"
+  | "pricing-design"
   | "proposal"
   | "estimate"
   | "acceptance-criteria"

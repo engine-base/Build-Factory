@@ -21,7 +21,7 @@ const FOLDER_LABELS: Record<string, { label: string; color: string }> = {
   "10_Web": { label: "Web", color: "bg-teal-100 text-teal-700" },
 };
 
-interface Record {
+interface RecordItem {
   path: string;
   name: string;
   folder: string;
@@ -39,7 +39,7 @@ function fmtDate(ts: number) {
 }
 
 export function SkillActivity() {
-  const { data: records = [] } = useQuery<Record[]>({
+  const { data: records = [] } = useQuery<RecordItem[]>({
     queryKey: ["records-recent"],
     queryFn: () => fetch(`${BASE_URL}/api/records`).then(r => r.json()),
     refetchInterval: 15_000,
