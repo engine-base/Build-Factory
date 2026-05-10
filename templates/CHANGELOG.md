@@ -1,5 +1,18 @@
 # project-bootstrap テンプレート 変更履歴
 
+## v1.1.0 (2026-05-10)
+
+完了判定ゲートの統合 (ADR-010 連動)。
+
+### 追加
+- `scripts/pre-commit-check.sh` — 4 段階の完了ゲート (lint / py-syntax / backend-smoke / frontend-tsc)
+- `.claude/settings.json` の Bash hook を強化: `git commit` 検出時に `.last-precommit-check` の有無 / 鮮度 / `exit_code` を確認しブロック警告
+- `permissions.allow` に `bash scripts/pre-commit-check.sh*` を追加
+
+### 影響
+- 新規案件 / migrate 対象案件は `bash scripts/pre-commit-check.sh` を完了報告前に必ず実行する運用に変わる
+- 各案件の `.last-precommit-check` および `.tsc-baseline` は **`.gitignore` 推奨** (環境固有のため)
+
 ## v1.0.0 (2026-05-10)
 
 初版リリース。

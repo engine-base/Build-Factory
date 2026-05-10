@@ -69,22 +69,35 @@ cat <existing_files の各ファイル>
 - shadcn/ui を最優先
 - 既存ファイルがあれば編集、新規作成は最小化
 
-### Step 6. テスト + lint
+### Step 6. テスト + lint (完了判定の単一ソース)
+
+**必ず以下 1 コマンドを実行する。これが「タスク完了」の機械的ゲート。**
+
 ```bash
-# 1. EARS AC 全件に対してテストを書く
-# 各 AC につき最低 1 件のテストケースが紐づく
-
-# 2. テスト実行
-cd backend && pytest                      # backend なら pytest
-cd frontend && pnpm test                  # frontend なら playwright/vitest
-
-# 3. lint で違反を検出
-bash scripts/lint-mock.sh                 # 絵文字 / 非 Lucide / AGPL チェック
-ruff check backend/                       # Python
-pnpm lint                                  # TypeScript
+bash scripts/pre-commit-check.sh
 ```
 
-カバレッジ ≥ 70% (Phase 1 ゲート) を確認。
+このスクリプトは 4 段階の検査を行い、結果を `.last-precommit-check` (JSON) に記録する:
+
+| # | 検査 | 通る条件 |
+|---|---|---|
+| 1 | `lint-mock` | 絵文字なし / AGPL なし / ARCHIVE 残留なし / tickets メタ充足 |
+| 2 | `python-syntax` | backend 全 .py が `ast.parse` を通る |
+| 3 | `backend-smoke` | `main:app` が import でき、削除済 ARCHIVE (onlook 等) routes が残存していない |
+| 4 | `frontend-tsc` | `tsc --noEmit` のエラー数が `.tsc-baseline` 以下 |
+
+**FAIL があれば必ず直す。SKIP がある場合は理由を完了報告に明記する (例: 「依存未インストール」)。**
+
+`.claude/settings.json` の hook が `git commit` を検出した時点で `.last-precommit-check` の有無 / 鮮度 / `exit_code` を確認し、未実行・古い・FAIL の場合は警告/ブロックする。
+
+EARS AC 全件に対してテストを書く義務は変わらない (各 AC に 1 件以上テストを紐づける)。Phase 1 ゲートのカバレッジ ≥ 70% も維持する — pytest/vitest が Sprint 0 で整備された後は本スクリプトに統合する。
+
+#### ⚠ 絶対禁止 (新セッション必読)
+
+- ❌ **「N/A」「該当なし」で適合チェック項目を埋める**: そのタスクで該当しない場合でも「なぜ該当しないか」を 1 行で書く。判断を機械的に明示する。
+- ❌ **`pre-commit-check.sh` 未実行で「完了」と報告する**: 必ず実行し、出力を完了報告に貼る。
+- ❌ **削除タスクだから動作確認を省略する**: ARCHIVE タスクほどリグレッションが起きやすい (削除した参照を他所が触っていないか)。`backend-smoke` は削除タスクにこそ必要。
+- ❌ **ベースラインのエラー数を増やす**: `.tsc-baseline` を増やす変更は別タスク (技術的負債返済) に切り出すこと。本タスクで増やしたら原因を特定して直す。
 
 ### Step 7. v2.1 適合チェック (REFACTOR タスクは必須)
 9 項目チェック:
