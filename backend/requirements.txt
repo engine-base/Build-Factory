@@ -9,6 +9,10 @@ openai>=1.82.0
 # Anthropic SDK (Claude direct)
 anthropic>=0.52.0
 
+# claude-agent-sdk (Layer 3, ADR-010): Claude Code subprocess + session resume
+# 3-tier compaction / prompt cache / Subagent (Task tool) を SDK 内蔵
+claude-agent-sdk>=0.1.80
+
 # Ollama Python client (local LLM)
 ollama>=0.4.0
 
