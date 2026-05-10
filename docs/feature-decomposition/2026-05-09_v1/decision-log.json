@@ -1,0 +1,35 @@
+{
+  "meta": {"project": "Build-Factory", "version": "1.0", "created_at": "2026-05-09", "skill": "feature-decomposition"},
+  "decisions": [
+    {"id": "FD-1", "decision": "Phase 1 Must = 30 → 34 項目", "reason": "AI Runtime 層 (Intent Router / Context Builder / git worktree / Memory 3 層) を Phase 1 から組み込み Claude レベルにする", "added": ["M-27", "M-28", "M-29", "M-30"]},
+    {"id": "FD-2", "decision": "OpenAI Agents SDK 不採用", "reason": "LangGraph で handoff / guardrails / sessions すべて代替実装可能・依存削減"},
+    {"id": "FD-3", "decision": "GrapesJS Studio SDK 不採用 → core (BSD-3) で代替", "reason": "MIT 版で十分・Studio SDK $79+/mo は過剰"},
+    {"id": "FD-4", "decision": "Codex CLI (Apache 2.0) は OSS コードロジック参考のみ・依存なし", "reason": "実装エンジンは Claude Code 継続（dogfood 主軸）・C-13 で Phase 2 に切替対応"},
+    {"id": "FD-5", "decision": "M-31 (実装エンジン抽象化) → C-13 に降格", "reason": "Phase 1 では Claude Code のみ・必要時 Phase 2 で C-13 として対応"},
+    {"id": "FD-6", "decision": "M-12 強化 = OS-level sandbox (Seatbelt / Landlock + seccomp) を組込み", "reason": "Codex CLI のサンドボックス実装パターンを参考・赤線リストの二重防御"},
+    {"id": "FD-7", "decision": "S-13 Real-time Steering を Phase 1.5 に追加", "reason": "Codex CLI の mid-task steering を参考・実行中のユーザ介入機能"},
+    {"id": "FD-8", "decision": "C-12 Knowledge Graph (Apache AGE) を Phase 2 に追加", "reason": "過去判断 → 次判断のリンクで AI 品質向上"},
+    {"id": "FD-9", "decision": "M-28 Context Builder = Claude 流 3-tier compaction + prompt cache + 9-section structured summary", "reason": "Claude API の compaction 仕様完全模倣 (95% トリガ + cache_control + background)"},
+    {"id": "FD-10", "decision": "9-week / Claude Code 並列で 6-7 週間", "reason": "34 機能 = +1 週間追加・dogfood Week 7 から部分 / Week 9-10 でフル"},
+    {"id": "FD-11", "decision": "Sprint 2 に M-27 / M-28 / M-30 を組込み", "reason": "AI 基盤の中核・後付けすると密結合化"},
+    {"id": "FD-12", "decision": "Sprint 6 で M-29 (git worktree) を F-010c の前提として実装", "reason": "並列 swarm は worktree がないと file lock 競合"},
+    {"id": "FD-13", "decision": "AI 社員構成 = 10 メンバー + 4 リーダー + 1 COO + N クローン", "reason": "BMAD 12 ペルソナ思想流用 + 既存スキル活用 + 3 階層 phase 段階導入"},
+    {"id": "FD-14", "decision": "全 AI 社員は LangGraph node として動作・LiteLLM 経由で LLM 呼出", "reason": "統一基盤で provider 切替 + handoff + checkpoint"}
+  ],
+  "open_items": [
+    {"item": "claude-agent-sdk session resume API 詳細", "resolve_in": "Sprint 5 PoC (F-010b 実装中)"},
+    {"item": "Codex CLI から取り込む具体コードパターン", "resolve_in": "Sprint 2 (M-27/28 実装中)"},
+    {"item": "並列セッション実測上限", "resolve_in": "Sprint 6 PoC"},
+    {"item": "9-section structured summary のプロンプト最適化", "resolve_in": "Sprint 2 (M-28 実装)"},
+    {"item": "Apache AGE 採用の Phase 2 タイミング", "resolve_in": "Phase 1 完了後 + 必要性評価"}
+  ],
+  "research_findings": {
+    "LangGraph": "Klarna / Uber / J.P. Morgan 採用・state machine + checkpointing で本番運用実績豊富",
+    "OpenAI_Agents_SDK": "handoff / guardrails / sessions の primitives あるが LangGraph で代替可能",
+    "Codex_CLI": "Apache 2.0 OSS・Rust + TypeScript・OS-level sandbox + real-time steering + mid-task intervention の実装パターンが優秀",
+    "Claude_Compaction": "95% トリガ + 9-section structured summary + prompt cache (cache_control: ephemeral 5min) で context 圧倒的拡張",
+    "GrapesJS": "core (BSD-3) は 25.5k stars / 97k weekly DL・Studio SDK は $79+/mo で過剰",
+    "VvvebJs": "Apache 2.0 / 8.4k stars / vanilla JS / 軽量・予備として残す",
+    "Apache_AGE": "PostgreSQL の Apache 2.0 graph DB extension・Phase 2 Knowledge Graph に最適"
+  }
+}

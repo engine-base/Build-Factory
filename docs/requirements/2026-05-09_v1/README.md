@@ -43,8 +43,28 @@ architecture-design → tech-stack → functional-breakdown
 
 ## 後続成果物
 
-- 🆕 **architecture-design v1.0** → `docs/architecture/2026-05-09_v1/`（要件定義 v1 → アーキ設計 v1 への昇格・2026-05-09）
+- 🆕 **architecture-design v1.0** → `docs/architecture/2026-05-09_v1/`
+- 🆕 **functional-breakdown v1.0** → `docs/functional-breakdown/2026-05-09_v1/`
+- 🆕 **feature-decomposition v1.0** → `docs/feature-decomposition/2026-05-09_v1/`（**Phase 1 Must = 34 に拡張**）
+- 🆕 **tech-stack v1.0** → `docs/tech-stack/2026-05-09_v1/`（OSS / ライセンス / コスト確定）
+
+## v1.1 反映予定（差分）
+
+feature-decomposition / tech-stack で以下が追加・変更されました：
+- **Phase 1 Must M-27 / M-28 / M-29 / M-30 追加**（30 → 34 項目）
+  - M-27 Intent Router（LangGraph entry node）
+  - M-28 Context Builder（Claude 流 3-tier compaction + prompt cache + 9-section summary）
+  - M-29 Workspace Isolation = git worktree
+  - M-30 Memory 3 層統合層（短期 / 中期 / 長期）
+- **Phase 1.5 Should S-13 追加**：Real-time Session Steering（Codex CLI 参考）
+- **Phase 2 Could C-12 / C-13 追加**：
+  - C-12 Knowledge Graph（Apache AGE）
+  - C-13 実装エンジン切替（Codex CLI / Gemini CLI）
+- **M-12 強化**：OS-level sandbox（Seatbelt / Landlock + seccomp・Codex CLI 参考）
+- **GrapesJS Studio SDK 不採用** → GrapesJS core（BSD-3・無料）
+- **OpenAI Agents SDK 不採用** → LangGraph で代替
 
 ## 改訂履歴
 
-- **v1**（2026-05-09）: ヒアリング v2.1 → 要件定義 v1 への正式昇格
+- **v1.0**（2026-05-09）: ヒアリング v2.1 → 要件定義 v1 への正式昇格（30 Must）
+- **v1.1 反映**（2026-05-09）: feature-decomposition / tech-stack で 34 Must / 13 Should / 13 Could に拡張（本フォルダの内容は v1.0 snapshot のまま保持・差分は後続フォルダ参照）

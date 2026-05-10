@@ -6,7 +6,23 @@
 
 **現在のバージョン：v2.1**（2026-05-09 改訂・requirements-definition STEP 1〜2 の確定事項を反映）
 
-**🆕 後続成果物**：requirements-definition の STEP 6 完了出力は `docs/requirements/2026-05-09_v1/` に保管されました（要件定義書 v1.0 確定）。
+**🆕 後続成果物**（2026-05-09 同日に全て確定）：
+- `docs/requirements/2026-05-09_v1/` — 要件定義書 v1.0
+- `docs/architecture/2026-05-09_v1/` — アーキ設計 v1.0（Phase 1 Must = 30）
+- `docs/functional-breakdown/2026-05-09_v1/` — 機能分解 v1.0（43 画面 / 30 機能 / 6 ロール / 43 エンティティ）
+- `docs/feature-decomposition/2026-05-09_v1/` — feature 分解 v1.0（**34 機能・M-27〜M-30 追加**・Sprint 0-7 配分）
+- `docs/tech-stack/2026-05-09_v1/` — tech-stack v1.0（OSS / ライセンス / コスト確定・Phase 1 = ¥0）
+
+**v2.2 反映ポイント**（v2.1 からの差分）：
+- Phase 1 Must = 30 → **34 項目**（M-27 Intent Router / M-28 Context Builder / M-29 git worktree / M-30 Memory 3 層統合）
+- AI Stack 5 層化：**LangGraph + LiteLLM + claude-agent-sdk** + Anthropic Agent Teams（Claude Code 内）+ 参考 Codex CLI（Apache 2.0・依存なし）
+- OpenAI Agents SDK / openai-python は **不採用**（LiteLLM で代替）
+- GrapesJS Studio SDK 不採用 → **GrapesJS core**（BSD-3・無料）
+- M-12 強化：OS-level sandbox（Codex CLI 参考）
+- S-13 Real-time Steering 追加（Phase 1.5）
+- C-12 Knowledge Graph（Apache AGE・Phase 2）
+- C-13 実装エンジン切替（Phase 2）
+- AI 社員構成：Phase 1 = 10 メンバー / Phase 1.5 = +4 リーダー / Phase 2 = +1 COO / Future = +N 個人クローン
 
 ---
 

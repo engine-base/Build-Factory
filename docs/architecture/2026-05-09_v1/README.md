@@ -73,8 +73,50 @@ distributed-dev（Claude Code 実装パッケージ化 + dogfooding 開始）
 
 ## 後続成果物
 
-- 🆕 **functional-breakdown v1.0** → `docs/functional-breakdown/2026-05-09_v1/`（43 画面 / 30 機能 / 6 ロール / 43 エンティティの徹底分解 + 4 JSON + ブログ風 HTML）
+- 🆕 **functional-breakdown v1.0** → `docs/functional-breakdown/2026-05-09_v1/`
+- 🆕 **feature-decomposition v1.0** → `docs/feature-decomposition/2026-05-09_v1/`
+- 🆕 **tech-stack v1.0** → `docs/tech-stack/2026-05-09_v1/`
+
+## v1.1 反映予定（重要差分）
+
+tech-stack / feature-decomposition で以下のアーキ更新が確定：
+
+### AI Stack 5 層化（簡素化）
+```
+LangGraph (MIT) — 全体 Orchestrator
+LiteLLM (MIT・self-host) — Provider 抽象化
+claude-agent-sdk (MIT) — Claude Code subprocess
+Anthropic Agent Teams — Claude Code 内部 Plan/Gen/Eval
+[参考] openai/codex (Apache 2.0) — コードロジック参考のみ・依存なし
+```
+- **不採用**：OpenAI Agents SDK / openai-python 直接利用 / GrapesJS Studio SDK
+
+### 新規 ai_runtime レイヤー（Phase 1 Must 4 項目追加）
+- M-27 Intent Router（LangGraph entry node・分類 → handoff）
+- M-28 Context Builder（**Claude 流 3-tier compaction + prompt cache + 9-section structured summary**）
+- M-29 Workspace Isolation = git worktree（Codex CLI 参考）
+- M-30 Memory 3 層統合層（短期 ChatThread / 中期 ChatMessage 圧縮済 / 長期 Mem0+Obsidian+Constitution）
+
+### M-12 赤線強化
+- OS-level sandbox（Seatbelt / Landlock + seccomp）を組込み（Codex CLI 参考）
+
+### AI 社員構成（10 → 14 → 15 → +N）
+- Phase 1：10 体メンバー（Mary BA / Preston PM / Winston Architect / Sally PO / Devon Dev / Quinn QA / Reviewer / Brand / Mockup / Curator）
+- Phase 1.5：+4 部署リーダー（Sam Eng / Dani Design / Quinn-Lead QA / Logan Knowledge）
+- Phase 2：+1 COO
+- Future：+N 個人クローン（C-11・別アプリ切出し）
+
+### Phase 別コスト
+- Phase 1 dogfood = ¥125/月 + 個人 Claude Max ¥30,000
+- Phase 1.5 = ¥17,000-21,000/月
+- Phase 2 = ¥40,000-80,000/月
+- Phase 3 = ¥120,000-200,000/月
+
+### Phase 2 追加（Could）
+- C-12 Knowledge Graph（Apache AGE）
+- C-13 実装エンジン切替（Codex CLI / Gemini CLI）
 
 ## 改訂履歴
 
-- **v1.0**（2026-05-09）: 要件定義 v1.0 → アーキ設計 v1.0 への正式昇格
+- **v1.0**（2026-05-09）: 要件定義 v1.0 → アーキ設計 v1.0 への正式昇格（30 Must）
+- **v1.1 反映**（2026-05-09）: 5 層 AI スタック簡素化 + ai_runtime レイヤー追加 + Codex CLI 参考方針 + GrapesJS core 確定 + AI 社員構成詳細化（差分は本 README 反映・本フォルダ内ファイルは v1.0 snapshot 保持）

@@ -1,0 +1,139 @@
+{
+  "meta": {
+    "project": "Build-Factory",
+    "version": "1.0",
+    "created_at": "2026-05-09",
+    "skill": "tech-stack"
+  },
+  "license_policy": {
+    "allowed": ["MIT", "Apache 2.0", "BSD-2-Clause", "BSD-3-Clause", "Elastic 2.0", "PostgreSQL License", "BSL 1.1 (self-host only)"],
+    "blocked": ["AGPL", "GPL"],
+    "ci_check": ["license-checker (npm)", "pip-licenses"],
+    "agpl_mixin": false
+  },
+  "ai_stack": {
+    "orchestrator": {"name": "LangGraph", "license": "MIT", "purpose": "全体 state machine + handoff + checkpoint + human-in-the-loop"},
+    "multi_agent_sdk": {"name": "LangGraph (内包実装)", "rejected": ["OpenAI Agents SDK"], "rejection_reason": "LangGraph で代替可能・依存削減"},
+    "llm_gateway": {"name": "LiteLLM", "license": "MIT", "deployment": "self-host docker", "purpose": "Claude / OpenAI / Gemini / 拡張"},
+    "implementation_cli": {"name": "Claude Code + claude-agent-sdk", "license": "MIT (sdk) / Anthropic (Claude Code)", "purpose": "subprocess 起動 + MCP 接続"},
+    "plan_gen_eval": {"name": "Anthropic Agent Teams", "scope": "Claude Code 内部のみ"},
+    "reference_only": {"name": "openai/codex (Codex CLI)", "license": "Apache 2.0", "usage": "コードロジック参考・依存なし・パターン流用先 = M-27 Intent Router / M-28 Context Builder / M-30 Memory / M-12 OS sandbox"}
+  },
+  "frontend_stack": {
+    "framework": {"name": "Next.js 15", "license": "MIT", "router": "App Router"},
+    "ui": {"name": "shadcn/ui + Tailwind CSS 4", "license": "MIT"},
+    "graph": {"name": "React Flow", "license": "MIT"},
+    "chart": {"name": "Recharts", "license": "MIT"},
+    "state": {"name": "Zustand + TanStack Query", "license": "MIT"},
+    "html_editor_phase_1_5": {"name": "GrapesJS core", "license": "BSD-3-Clause", "cost_monthly_usd": 0, "rejected": ["GrapesJS Studio SDK ($79+/mo)"], "fallback": "VvvebJs (Apache 2.0)"},
+    "package": {"name": "pnpm", "license": "MIT"}
+  },
+  "backend_stack": {
+    "framework": {"name": "FastAPI", "license": "MIT", "structure": "modular-monolith (13+ domain modules)"},
+    "language": "Python 3.13",
+    "orm": {"name": "SQLAlchemy 2.0 (async) + Pydantic + Supabase Python SDK", "license": "MIT / Apache 2.0"},
+    "subprocess": {"name": "claude-agent-sdk", "license": "MIT"},
+    "mcp_server": {"name": "Anthropic MCP Python SDK", "license": "MIT"},
+    "worker": {"name": "asyncio.Semaphore + asyncio.Queue", "phase_2_optional": "Celery + Redis"},
+    "package_manager": {"name": "uv", "license": "MIT/Apache 2.0"},
+    "lint": "ruff",
+    "type_check": "pyright"
+  },
+  "database_stack": {
+    "primary": {"name": "Supabase Postgres", "license": "PostgreSQL License", "hosting": "Cloud (P1 Free → P1.5 Pro $25/mo) → P3 self-host 検討"},
+    "extensions": [
+      {"name": "pgvector", "license": "PostgreSQL License", "purpose": "embedding"},
+      {"name": "pg_trgm", "license": "PostgreSQL License", "purpose": "fuzzy"},
+      {"name": "pgsodium", "license": "BSD-2-Clause", "purpose": "API キー暗号化"},
+      {"name": "pg_cron", "license": "PostgreSQL License", "purpose": "定期実行"},
+      {"name": "pg_partman (Phase 2)", "license": "PostgreSQL License", "purpose": "時系列 partition"},
+      {"name": "Apache AGE (Phase 2 / C-12)", "license": "Apache 2.0", "purpose": "Knowledge Graph"}
+    ],
+    "auth": {"name": "Supabase Auth", "license": "Apache 2.0 (OSS)"},
+    "realtime": {"strategy": "hybrid", "data_change": "Supabase Realtime", "live_streaming": "自前 WebSocket (FastAPI)"},
+    "storage": {"name": "Supabase Storage", "s3_compatible": true},
+    "migration": {"name": "Supabase CLI", "license": "Apache 2.0", "alembic": "archived"},
+    "encryption": "pgsodium"
+  },
+  "search_stack": {
+    "fts": "Postgres FTS",
+    "fuzzy": "pg_trgm",
+    "semantic": "pgvector ivfflat (vector_cosine_ops)"
+  },
+  "memory_knowledge_stack": {
+    "short_term": "ChatThread + ChatMessage (current session)",
+    "mid_term": "ChatMessage (compacted) + audit_logs + 9-section structured summary",
+    "long_term": "Mem0 + Obsidian Vault + Constitution",
+    "compaction_strategy": "Claude 流 3-tier（tool result trimming + prompt cache friendly + 9-section summary）",
+    "trigger": "context window 95%",
+    "background": "asyncio task で background compaction",
+    "knowledge_graph_phase_2": "Apache AGE"
+  },
+  "integration_stack": {
+    "slack": {"name": "Slack Bolt SDK (Python)", "license": "MIT"},
+    "github": {"name": "gh CLI + GitHub MCP", "license": "MIT (公式)"},
+    "obsidian": {"strategy_phase_1": "Storage MD upload", "strategy_phase_1_5": "Headless Sync"},
+    "memory": {"name": "Mem0", "license": "Apache 2.0"}
+  },
+  "observability_stack": {
+    "llm": {"name": "Langfuse self-host", "license": "MIT", "cost_monthly": "$50-80 for 5M spans/day"},
+    "error_tracking": {"name": "Sentry", "license": "BSL 1.1", "note": "自社運用 OK・SaaS 再販 NG（Build-Factory は再販しない）", "free_tier": "5K events/mo"},
+    "uptime": {"name": "Better Stack", "license": "SaaS", "free_tier": "10 monitors / 1min interval"},
+    "logging": "structlog (Python) + pino (Node.js) JSON 形式"
+  },
+  "infrastructure_phase_1_zero_cost": {
+    "frontend": {"name": "Vercel Hobby", "cost_monthly_jpy": 0, "note": "個人 use・SaaS 公開時 Pro 必須"},
+    "backend_worker_langfuse": {"name": "Oracle Cloud Free Tier", "spec": "ARM Ampere 4 vCPU + 24GB RAM × 2 instances 永久無料", "cost_monthly_jpy": 0, "alternative": "自宅 + Cloudflare Tunnel"},
+    "supabase": {"plan": "Free", "limit": "500MB DB / 1GB Storage / 50K MAU", "cost_monthly_jpy": 0},
+    "sentry": {"plan": "Free", "limit": "5K events/mo", "cost_monthly_jpy": 0},
+    "uptime": {"plan": "Better Stack Free", "limit": "10 monitors", "cost_monthly_jpy": 0},
+    "ci_cd": {"name": "GitHub Actions", "free_tier": "2000 min/mo public", "cost_monthly_jpy": 0},
+    "dns_cdn": {"name": "Vercel DNS or Cloudflare Free", "cost_monthly_jpy": 0},
+    "domain": {"cost_yearly_jpy": 1500},
+    "total_monthly_jpy": 125,
+    "user_claude_max_jpy": 30000,
+    "grand_total_monthly_jpy": 30125
+  },
+  "infrastructure_phase_1_5_to_3": {
+    "vercel_pro": "$20/mo",
+    "supabase_pro": "$25/mo",
+    "supabase_team_p3": "$599/mo (10 orgs)",
+    "sentry_team": "$26/mo (50K events)",
+    "better_stack_pro": "$25/mo",
+    "coolify_vps": "$20-50/mo",
+    "stripe_p3": "3.6% per transaction"
+  },
+  "ci_cd_pipelines": [
+    "ci.yml (lint/typecheck/test)",
+    "license-check.yml (AGPL detection)",
+    "deploy-staging.yml (auto)",
+    "deploy-prod.yml (manual approval)",
+    "nightly-backup.yml (DB + Storage)"
+  ],
+  "test_stack": {
+    "backend": "pytest",
+    "frontend": "vitest + React Testing Library",
+    "e2e_phase_2": "Playwright + Playwright MCP"
+  },
+  "container_stack": {
+    "engine": {"name": "Docker Engine", "license": "Apache 2.0"},
+    "compose": {"name": "Docker Compose", "license": "Apache 2.0"}
+  },
+  "license_warnings": [
+    {"item": "Sentry", "license": "BSL 1.1", "risk": "SaaS 再販禁止", "resolution": "OK・自社運用のみ（再販しない）"},
+    {"item": "Obsidian", "license": "Proprietary", "risk": "個人/商用契約分離", "resolution": "OK・各ユーザ個別契約・我々は連携のみ"},
+    {"item": "Vercel Hobby", "license": "Personal use", "risk": "本格 SaaS 公開時 Pro 必須", "resolution": "Phase 1.5 で Pro $20/mo 移行"},
+    {"item": "Docker Desktop", "license": "$5-21/user/mo for >250 employees / >$10M revenue", "risk": "大企業有料", "resolution": "OK・ENGINE BASE は対象外・Engine + Compose は無料"}
+  ],
+  "open_items_resolved": [
+    {"item": "LiteLLM 採用詳細", "resolution": "確定・PoC は Sprint 2 (Week 3-4)"},
+    {"item": "GrapesJS Studio SDK 商用ライセンス費", "resolution": "不採用・GrapesJS core で代替"},
+    {"item": "並列セッション現実的上限", "resolution": "Sprint 6 (Week 7-8) で PoC 実測"},
+    {"item": "AI プロバイダー DPA", "resolution": "Anthropic / OpenAI / Google 全 DPA 確認済・商用 OK"}
+  ],
+  "next_skill_inputs": {
+    "feature_decomposition_v1_1": "Must = 34 項目 (M-27/28/29/30 追加)",
+    "task_decomposition": "34 機能を実装単位 + EARS AC + Sprint 配分 + 工数",
+    "distributed_dev": "Claude Code 実装パッケージ化 + dogfooding 開始"
+  }
+}

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tech Stack v1.0 — Build-Factory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px}body{font-family:"Noto Sans JP",sans-serif;background:#f0f2f5;color:#1a1a1a;line-height:1.7;font-feature-settings:"palt"}
+.main{max-width:1080px;margin:0 auto;padding:32px}
+.cover{background:#fff;border-radius:8px;padding:32px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.title{font-size:24px;font-weight:900;color:#1a6648;margin-bottom:8px}
+.meta{font-size:11px;color:#94a3b8;letter-spacing:.06em;text-transform:uppercase}
+.card{background:#fff;border-radius:8px;padding:24px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card h2{font-size:16px;font-weight:700;color:#1a6648;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #e2e8f0}
+.card h3{font-size:13px;font-weight:700;color:#334155;margin:14px 0 8px;padding-left:10px;border-left:3px solid #1a6648}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px}
+thead th{background:#1a6648;color:#fff;padding:8px 10px;text-align:left;font-weight:600}
+tbody td{padding:7px 10px;border-top:1px solid #f1f5f9;color:#334155;vertical-align:top}
+tbody tr:nth-child(even) td{background:#f8fafc}
+.badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:3px}
+.badge-mit{background:#e6f4ee;color:#1a6648;border:1px solid #b3d9c8}
+.badge-apache{background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe}
+.badge-bsd{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+.badge-bsl{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+.badge-other{background:#f1f5f9;color:#475569;border:1px solid #cbd5e1}
+.badge-zero{background:#dcfce7;color:#166534;border:1px solid #86efac;font-weight:700}
+.badge-warn{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+.callout{background:#f7fdf9;border:1px solid #1a6648;border-radius:6px;padding:12px 16px;margin:12px 0;font-size:12.5px;color:#1a6648}
+.callout-warn{background:#fffbeb;border-color:#f59e0b;color:#92400e}
+code{font-family:'SF Mono',monospace;font-size:11.5px;background:#f1f5f9;padding:1px 5px;border-radius:3px}
+</style></head><body>
+
+<main class="main">
+
+<div class="cover">
+<div class="meta">Tech Stack Document v1.0</div>
+<h1 class="title">Build-Factory 技術スタック確定版</h1>
+<p style="color:#475569;font-size:13px;margin-top:8px">作成日：2026-05-09 / 株式会社 ENGINE BASE / ライセンス方針：MIT / Apache 2.0 / BSD / Elastic 2.0 / BSL（self-host のみ）/ <strong>AGPL 完全除外</strong></p>
+</div>
+
+<div class="callout"><strong>Phase 1 = 初期コスト ¥0 / 月</strong>（運用 ¥125 + ドメイン）+ ユーザ Claude Max ¥30,000 個人負担</div>
+
+<!-- AI / LLM -->
+<div class="card">
+<h2>1. AI / LLM スタック（5 層・簡素化版）</h2>
+<table><thead><tr><th>層</th><th>採用</th><th>ライセンス</th><th>用途</th></tr></thead><tbody>
+<tr><td>Orchestrator</td><td><strong>LangGraph</strong></td><td><span class="badge badge-mit">MIT</span></td><td>state machine + handoff + checkpoint + human-in-the-loop</td></tr>
+<tr><td>LLM Gateway</td><td><strong>LiteLLM</strong> (self-host)</td><td><span class="badge badge-mit">MIT</span></td><td>Claude / OpenAI / Gemini / 拡張</td></tr>
+<tr><td>Subprocess</td><td>claude-agent-sdk</td><td><span class="badge badge-mit">MIT</span></td><td>Claude Code 起動 + MCP 接続</td></tr>
+<tr><td>Plan/Gen/Eval</td><td>Anthropic Agent Teams</td><td><span class="badge badge-other">公式</span></td><td>Claude Code 内部のみ</td></tr>
+<tr><td>📚 参考</td><td>openai/codex (Codex CLI)</td><td><span class="badge badge-apache">Apache 2.0</span></td><td><strong>コードロジック参考のみ</strong>・依存なし・M-27/28/30/12 流用</td></tr>
+</tbody></table>
+<div class="callout"><strong>不採用</strong>：OpenAI Agents SDK / openai-python 直接利用（LiteLLM 経由のみ）/ GrapesJS Studio SDK</div>
+</div>
+
+<!-- Frontend -->
+<div class="card">
+<h2>2. Frontend</h2>
+<table><tbody>
+<tr><td>Framework</td><td>Next.js 15 (App Router)</td><td><span class="badge badge-mit">MIT</span></td></tr>
+<tr><td>UI</td><td>shadcn/ui + Tailwind CSS 4</td><td><span class="badge badge-mit">MIT</span></td></tr>
+<tr><td>Graph 可視化</td><td>React Flow</td><td><span class="badge badge-mit">MIT</span></td></tr>
+<tr><td>Chart</td><td>Recharts</td><td><span class="badge badge-mit">MIT</span></td></tr>
+<tr><td>State</td><td>Zustand + TanStack Query</td><td><span class="badge badge-mit">MIT</span></td></tr>
+<tr><td>HTML Editor (P1.5)</td><td><strong>GrapesJS core</strong></td><td><span class="badge badge-bsd">BSD-3</span></td></tr>
+<tr><td>Package</td><td>pnpm</td><td><span class="badge badge-mit">MIT</span></td></tr>
+</tbody></table>
+</div>
+
+<!-- Backend -->
+<div class="card">
+<h2>3. Backend</h2>
+<table><tbody>
+<tr><td>Framework</td><td>FastAPI（モジュラーモノリス・13+ ドメイン）</td><td><span class="badge badge-mit">MIT</span></td></tr>
+<tr><td>ORM</td><td>SQLAlchemy 2.0 + Pydantic + Supabase Python SDK</td><td><span class="badge badge-mit">MIT</span> / <span class="badge badge-apache">Apache</span></td></tr>
+<tr><td>Subprocess</td><td>claude-agent-sdk</td><td><span class="badge badge-mit">MIT</span></td></tr>
+<tr><td>MCP Server</td><td>Anthropic MCP Python SDK</td><td><span class="badge badge-mit">MIT</span></td></tr>
+<tr><td>Worker</td><td>asyncio.Semaphore + Queue (P1) → Celery + Redis (P2)</td><td>標準</td></tr>
+<tr><td>Lint / Type / Pkg</td><td>ruff / pyright / uv</td><td><span class="badge badge-mit">MIT</span> / <span class="badge badge-apache">Apache</span></td></tr>
+</tbody></table>
+</div>
+
+<!-- DB -->
+<div class="card">
+<h2>4. DB / 認証 / Realtime / Storage</h2>
+<table><tbody>
+<tr><td>DB</td><td>Supabase Postgres</td><td><span class="badge badge-other">PG License</span></td></tr>
+<tr><td>Auth</td><td>Supabase Auth + 2FA + OAuth</td><td><span class="badge badge-apache">Apache 2.0</span></td></tr>
+<tr><td>Realtime</td><td>Supabase Realtime + 自前 WebSocket（2 系統）</td><td><span class="badge badge-apache">Apache 2.0</span></td></tr>
+<tr><td>Storage</td><td>Supabase Storage</td><td><span class="badge badge-apache">Apache 2.0</span></td></tr>
+<tr><td>Vector</td><td>pgvector</td><td><span class="badge badge-other">PG License</span></td></tr>
+<tr><td>FTS / Fuzzy</td><td>Postgres FTS + pg_trgm</td><td><span class="badge badge-other">PG License</span></td></tr>
+<tr><td>暗号化</td><td>pgsodium</td><td><span class="badge badge-bsd">BSD-2</span></td></tr>
+<tr><td>定期実行</td><td>pg_cron</td><td><span class="badge badge-other">PG License</span></td></tr>
+<tr><td>Knowledge Graph (C-12 P2)</td><td>Apache AGE</td><td><span class="badge badge-apache">Apache 2.0</span></td></tr>
+<tr><td>Migration</td><td>Supabase CLI</td><td><span class="badge badge-apache">Apache 2.0</span></td></tr>
+</tbody></table>
+</div>
+
+<!-- Memory -->
+<div class="card">
+<h2>5. Memory / Knowledge（Claude 流 3-tier compaction）</h2>
+<table><thead><tr><th>層</th><th>実装</th><th>OSS</th></tr></thead><tbody>
+<tr><td>短期（current chat）</td><td>ChatThread + ChatMessage</td><td>自前 + pgvector</td></tr>
+<tr><td>中期（プロジェクト決定）</td><td>ChatMessage 圧縮済 + audit_logs + 9-section summary</td><td>自前 + pgvector</td></tr>
+<tr><td>長期（横断ナレッジ）</td><td>Mem0 + Obsidian + Constitution</td><td>Mem0（Apache 2.0）</td></tr>
+<tr><td>Compaction trigger</td><td>context window 95% 到達</td><td>asyncio background task</td></tr>
+<tr><td>Prompt cache</td><td>Anthropic <code>cache_control: ephemeral</code></td><td>5 分 cache（90% コスト削減）</td></tr>
+</tbody></table>
+</div>
+
+<!-- 観測 -->
+<div class="card">
+<h2>6. 観測</h2>
+<table><tbody>
+<tr><td>LLM 観測</td><td>Langfuse self-host</td><td><span class="badge badge-mit">MIT</span></td><td>$50-80/mo for 5M spans/day</td></tr>
+<tr><td>エラー</td><td>Sentry</td><td><span class="badge badge-bsl">BSL 1.1</span></td><td>自社運用 OK・SaaS 再販 NG（Build-Factory は再販しない）</td></tr>
+<tr><td>Uptime</td><td>Better Stack</td><td><span class="badge badge-other">SaaS</span></td><td>無料 10 monitors</td></tr>
+</tbody></table>
+</div>
+
+<!-- インフラ -->
+<div class="card">
+<h2>7. インフラ（Phase 1 = ¥0 構成）</h2>
+<table><thead><tr><th>レイヤー</th><th>採用</th><th>コスト</th></tr></thead><tbody>
+<tr><td>Frontend</td><td>Vercel Hobby</td><td><span class="badge badge-zero">¥0</span></td></tr>
+<tr><td>Backend / Worker / Langfuse</td><td>Oracle Cloud Free Tier（4 vCPU + 24GB RAM 永久無料）</td><td><span class="badge badge-zero">¥0</span></td></tr>
+<tr><td>DB / Auth / Storage</td><td>Supabase Free（500MB）</td><td><span class="badge badge-zero">¥0</span></td></tr>
+<tr><td>エラー</td><td>Sentry Free（5K events/mo）</td><td><span class="badge badge-zero">¥0</span></td></tr>
+<tr><td>Uptime</td><td>Better Stack Free（10 monitors）</td><td><span class="badge badge-zero">¥0</span></td></tr>
+<tr><td>CI/CD</td><td>GitHub Actions Free（2000 min/mo public）</td><td><span class="badge badge-zero">¥0</span></td></tr>
+<tr><td>DNS</td><td>Vercel DNS or Cloudflare Free</td><td><span class="badge badge-zero">¥0</span></td></tr>
+<tr><td>ドメイン</td><td>.com 年契約</td><td>¥125/月</td></tr>
+<tr><td><strong>Build-Factory 運用合計</strong></td><td></td><td><strong>¥125/月</strong></td></tr>
+<tr><td>+ 高本まさん Claude Max（個人負担）</td><td></td><td>¥30,000/月</td></tr>
+</tbody></table>
+</div>
+
+<!-- ライセンス警告 -->
+<div class="card">
+<h2>8. ライセンス警告（4 件・全クリア）</h2>
+<table><thead><tr><th>項目</th><th>警告</th><th>対応</th></tr></thead><tbody>
+<tr><td>Sentry（BSL 1.1）</td><td>SaaS 再販禁止</td><td><span class="badge badge-zero">OK</span> 自社運用のみ</td></tr>
+<tr><td>Obsidian</td><td>プロプライエタリ</td><td><span class="badge badge-zero">OK</span> 各ユーザ個別契約・我々は連携のみ</td></tr>
+<tr><td>Vercel Hobby</td><td>個人 use 推奨</td><td><span class="badge badge-warn">P1.5</span> Pro $20/mo 移行</td></tr>
+<tr><td>Docker Desktop</td><td>大企業有料（>250 名 / >$10M）</td><td><span class="badge badge-zero">OK</span> 対象外・Engine + Compose は無料</td></tr>
+</tbody></table>
+</div>
+
+<!-- AI 社員 -->
+<div class="card">
+<h2>9. AI 社員構成（10 + 4 + 1）</h2>
+<table><thead><tr><th>Phase</th><th>数</th><th>構成</th></tr></thead><tbody>
+<tr><td>Phase 1（メンバー）</td><td>10</td><td>Mary BA / Preston PM / Winston Architect / Sally PO / Devon Dev / Quinn QA / Reviewer / Brand / Mockup / Curator</td></tr>
+<tr><td>Phase 1.5（部署リーダー）</td><td>+4</td><td>Sam Engineering / Dani Design / Quinn-Lead QA / Logan Knowledge</td></tr>
+<tr><td>Phase 2（COO）</td><td>+1</td><td>全部署統括 + 経営判断補助</td></tr>
+<tr><td>Future（個人クローン）</td><td>+N</td><td>ユーザ別の分身・C-11 別サービス</td></tr>
+</tbody></table>
+<div class="callout">全 AI 社員は <strong>LangGraph node</strong> として動作・<strong>LiteLLM</strong> 経由で LLM 呼出・既存 96 スキルから選定された persona prompt で構成</div>
+</div>
+
+<!-- 実装エンジン -->
+<div class="card">
+<h2>10. 実装エンジン</h2>
+<table><thead><tr><th>項目</th><th>採用</th><th>備考</th></tr></thead><tbody>
+<tr><td>デフォルト</td><td><strong>Claude Code</strong>（Pro/Max・各ユーザ OAuth）</td><td>dogfooding の主軸・blind eval で 67% win rate</td></tr>
+<tr><td>切替対応</td><td><strong>C-13 Phase 2</strong>（Codex CLI / Gemini CLI 等）</td><td>必要時に adapter 追加</td></tr>
+<tr><td>参考実装</td><td>Codex CLI（Apache 2.0）</td><td>コードロジック参考のみ・依存なし</td></tr>
+</tbody></table>
+</div>
+
+<div style="text-align:center;margin-top:30px;font-size:11px;color:#94a3b8">
+<p>Build-Factory Tech Stack v1.0 / 株式会社 ENGINE BASE / 2026-05-09</p>
+<p style="margin-top:4px">関連: <code>selected-stack.json</code> · <code>tech-stack-v1.md</code> · <code>cost-projection.md</code></p>
+</div>
+
+</main></body></html>

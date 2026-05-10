@@ -64,5 +64,41 @@ distributed-dev（Claude Code 実装パッケージ化 + dogfooding 開始）
 - `../../architecture/2026-05-09_v1/` — アーキ設計 v1.0
 - `../../hearing/2026-05-09_re-hearing/` — ヒアリング v2.1
 
+## v1.1 反映予定（差分）
+
+feature-decomposition / tech-stack で以下が追加・変更されました：
+
+### 機能カウント（30 → 34）
+- **M-27 Intent Router** 追加（ai_runtime カテゴリ）
+- **M-28 Context Builder** 追加（ai_runtime・Claude 流 3-tier compaction + prompt cache + 9-section summary）
+- **M-29 Workspace Isolation = git worktree** 追加
+- **M-30 Memory 3 層統合層** 追加（短期 / 中期 / 長期）
+
+### Phase 1.5 Should（10 → 13）
+- **S-3** GrapesJS Studio SDK → **GrapesJS core**（BSD-3・無料）に置換
+- **S-13** Real-time Session Steering 追加（Codex CLI 参考）
+
+### Phase 2/Future Could（11 → 13）
+- **C-12** Knowledge Graph（Apache AGE）追加
+- **C-13** 実装エンジン切替（Codex CLI / Gemini CLI）追加
+
+### モジュール（13 → 13 + 4）
+- **ai_runtime** 新規モジュール（M-27 / M-28）
+- **memory** 新規モジュール（M-30）
+- **llm_gateway** 明示モジュール（F-020）
+- **migration** 明示モジュール（F-019）
+
+### AI 社員構成
+- Phase 1：10 体メンバー
+- Phase 1.5：+4 部署リーダー（S-11 Sam / Dani / Quinn-Lead / Logan）
+- Phase 2：+1 COO（C-10）
+- Future：+N 個人クローン（C-11 別アプリ）
+
+### 後続成果物
+
+- 🆕 **feature-decomposition v1.0** → `docs/feature-decomposition/2026-05-09_v1/`
+- 🆕 **tech-stack v1.0** → `docs/tech-stack/2026-05-09_v1/`
+
 ## 改訂履歴
-- **v1.0**（2026-05-09）：functional-breakdown 3 STEP 完了・4 JSON + HTML 出力
+- **v1.0**（2026-05-09）：functional-breakdown 3 STEP 完了・4 JSON + HTML 出力（30 Must）
+- **v1.1 反映**（2026-05-09）：feature-decomposition / tech-stack で 34 Must に拡張（差分は本 README + feature-decomposition フォルダ参照）
