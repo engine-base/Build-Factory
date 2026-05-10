@@ -203,6 +203,50 @@
       ]
     },
     {
+      "id": "T-S0-13c",
+      "title": "tickets.json 全件 AC 整合検査 (title ↔ AC + テンプレ転用検出)",
+      "label": "REFACTOR",
+      "feature": "META",
+      "layer": "OPS",
+      "sprint": "S0",
+      "deps": [
+        "T-S0-13",
+        "T-S0-13b"
+      ],
+      "critical": false,
+      "claude_code_hours": 2,
+      "human_days": 0.3,
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "mock_link": null,
+      "entities": [],
+      "existing_files": [
+        "docs/task-decomposition/2026-05-09_v1/tickets.json"
+      ],
+      "output_file": "docs/audit/2026-05-10_v1/ac-coherence-report.md + scripts/audit-ac-coherence.py",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The audit shall enumerate all tickets and flag any whose acceptance_criteria text appears (verbatim) in 2 or more different tickets, treating such duplication as a template-leftover signal."
+        },
+        {
+          "type": "EVENT",
+          "text": "When the audit detects a title↔AC keyword mismatch (e.g., title contains DDL but AC contains no schema/table/migration term), the system shall record it in ac-coherence-report.md with both title and AC excerpt."
+        },
+        {
+          "type": "STATE",
+          "text": "While the audit runs, the system shall not modify tickets.json (read-only) and shall not access external network."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where a ticket already had its AC corrected in a prior PR (T-019-01 / T-S0-13 / T-001-01 / T-001-02 / T-001-04 / T-S0-08 / T-S0-09), the report shall mark it as 'previously_fixed' so reviewers can focus on remaining mismatches."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If the audit cannot determine a verdict (insufficient title or AC), it shall list the ticket as 'review_needed' with reason instead of silently passing."
+        }
+      ]
+    },
+    {
       "id": "T-S0-01",
       "title": "docker-compose.yml 全サービス",
       "sprint": 0,
