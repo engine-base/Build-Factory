@@ -40,7 +40,7 @@ export function RecordsPanel() {
   const { data: folders = [] } = useQuery<string[]>({
     queryKey: ["folders"],
     queryFn: fetchFolders,
-    onSuccess: (data) => {
+    onSuccess: (data: string[]) => {
       // 初回ロード時に最初のフォルダを選択
       if (folder === null && data.length > 0) setFolder(data[0]);
     },
