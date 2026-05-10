@@ -6,11 +6,13 @@
 #   2. AGPL ライセンスパッケージ
 #   3. 未使用の onlook / penpot 参照
 #   4. tickets.json メタ不足 (validate-tickets.py 委譲)
+#   5. 実鍵リーク (Supabase / generic) の検出 (T-001-01 AC-5)
 #
 # Usage:
 #   bash scripts/lint-mock.sh           # 全チェック
 #   bash scripts/lint-mock.sh --emoji   # 絵文字のみ
 #   bash scripts/lint-mock.sh --agpl    # AGPL のみ
+#   bash scripts/lint-mock.sh --secrets # 実鍵リークのみ
 
 set -e
 cd "$(dirname "$0")/.."
@@ -114,10 +116,10 @@ check_agpl() {
 
 # ----------------------------------------------------------------
 # 3. ARCHIVE 対象 (onlook / penpot) の残留検出
-#    Build-Factory W-7 (Won't: Onlook / Open Design):
-#      - onlook/ + penpot/ ディレクトリは削除必須
-#      - ソースコード内の onlook 参照は禁止
-#      - penpot 統合コードは Phase 1.5 (GrapesJS 置換) まで残置可
+#    T-019-01 (W-7 Won't: Onlook / Open Design):
+#      - onlook/ + penpot/ ディレクトリは AC-1 で削除必須
+#      - ソースコード内の onlook 参照は AC-3/4 で削除必須
+#      - penpot 統合コードは Phase 1.5 (S-3) で GrapesJS に置換するまで残置
 # ----------------------------------------------------------------
 check_archive() {
   echo "[3/4] ARCHIVE 対象 (onlook/penpot) 残留検出..."
@@ -131,7 +133,7 @@ check_archive() {
     fi
   done
 
-  # ソースコード内の onlook 参照は禁止
+  # ソースコード内の onlook 参照は禁止 (T-019-01 AC-3/4)
   local refs
   refs=$(grep -rn --include="*.ts" --include="*.tsx" --include="*.py" --include="*.js" "onlook" frontend/src backend 2>/dev/null || true)
   if [ -n "$refs" ]; then
@@ -144,6 +146,29 @@ check_archive() {
     echo -e "${GREEN}OK: ARCHIVE 残留なし${NC}"
   else
     EXIT_CODE=1
+  fi
+}
+
+# ----------------------------------------------------------------
+# 5. 実鍵リーク検出 (T-001-01 AC-5)
+#    sb_publishable_<chars> / sb_secret_<chars> パターンが
+#    .env.example 以外のコミット対象ファイルに混入していたら FAIL
+# ----------------------------------------------------------------
+check_secrets() {
+  echo "[5/5] 実鍵リーク検出..."
+  local pattern='sb_(publishable|secret)_[A-Za-z0-9_-]{20,}'
+  # 除外: .env (gitignore済) / .env.example (placeholder のみ許可) / lock files
+  local hits
+  hits=$(grep -rEn --include="*.py" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.json" --include="*.sh" --include="*.md" --include="*.yaml" --include="*.yml" \
+    --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=__pycache__ --exclude-dir=.git \
+    "$pattern" . 2>/dev/null | grep -v -E "(^|/)\.env(\.example)?:" | grep -v "REPLACE_WITH_" || true)
+  if [ -n "$hits" ]; then
+    echo -e "${RED}NG: 実鍵パターン (sb_publishable_*/sb_secret_*) を検出${NC}"
+    echo "$hits" | head -10
+    echo "→ env 経由で読み込み、コードにハードコードしないこと (CLAUDE.md §5.4)"
+    EXIT_CODE=1
+  else
+    echo -e "${GREEN}OK: 実鍵リークなし${NC}"
   fi
 }
 
@@ -175,14 +200,16 @@ case "$MODE" in
   --agpl)    check_agpl ;;
   --archive) check_archive ;;
   --tickets) check_tickets ;;
+  --secrets) check_secrets ;;
   all|"")
     check_emoji
     check_agpl
     check_archive
     check_tickets
+    check_secrets
     ;;
   *)
-    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|all]"
+    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|all]"
     exit 2
     ;;
 esac
