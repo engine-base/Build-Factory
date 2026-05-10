@@ -550,13 +550,13 @@
     },
     {
       "id": "T-001-04",
-      "title": "プロジェクト 11 テーブル DDL (Phase/Task/Constitution/AC)",
+      "title": "Build-Factory プロジェクト 11 テーブル DDL + RLS (Phase/Feature/Task/AC/Constitution)",
       "sprint": "S0",
       "feature": "F-001",
       "layer": "DB",
       "label": "NEW",
       "human_days": 0.5,
-      "claude_code_hours": 2,
+      "claude_code_hours": 4,
       "deps": [
         "T-001-02"
       ],
@@ -564,29 +564,45 @@
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4",
       "mock_link": null,
       "existing_files": [
-        "backend/middleware/"
+        "supabase/migrations/20260501220000_initial_schema.sql",
+        "supabase/migrations/20260510000000_auth_tables.sql"
       ],
       "entities": [
+        "bf_projects",
+        "bf_phases",
+        "bf_features",
+        "bf_tasks",
+        "bf_task_dependencies",
+        "bf_acceptance_criteria",
+        "bf_constitutions",
+        "bf_constitution_revisions",
+        "bf_mocks",
+        "bf_deliveries",
         "audit_logs"
       ],
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall apply request-id, CORS, rate-limit, and auth middleware to every request."
+          "text": "The migration shall create 11 Build-Factory project tables (bf_projects, bf_phases, bf_features, bf_tasks, bf_task_dependencies, bf_acceptance_criteria, bf_constitutions, bf_constitution_revisions, bf_mocks, bf_deliveries, audit_logs) with workspace_id FK to workspaces(id) and TIMESTAMPTZ DEFAULT NOW() audit columns."
         },
         {
           "type": "EVENT",
-          "text": "When a request enters the API, the system shall assign a unique request-id and propagate it through all logs."
+          "text": "When the migration is applied a second time (CREATE TABLE IF NOT EXISTS), the system shall not error and shall be idempotent."
         },
         {
           "type": "STATE",
-          "text": "While a request is rate-limited, the system shall return 429 with retry-after header."
+          "text": "While RLS is enabled, only workspace members (workspace_members.user_id = auth.uid()::text) and service_role shall read or write rows in workspace-scoped tables."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where a bf_constitution row exists, the principles JSONB column shall not be empty (CHECK jsonb_typeof(principles) = 'object' AND principles <> '{}'::jsonb)."
         },
         {
           "type": "UNWANTED",
-          "text": "If a request fails authentication middleware, the system shall not reach domain handlers."
+          "text": "If bf_acceptance_criteria.ears_type is not one of (UBIQUITOUS, EVENT, STATE, OPTIONAL, UNWANTED), the CHECK constraint shall reject the row; if bf_task_dependencies inserts a self-loop (depends_on = task_id), the CHECK shall reject."
         }
-      ]
+      ],
+      "output_file": "supabase/migrations/20260510000001_bf_project_tables.sql"
     },
     {
       "id": "T-001-05",
