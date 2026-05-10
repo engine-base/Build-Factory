@@ -486,19 +486,18 @@
     },
     {
       "id": "T-001-02",
-      "title": "認証 6 テーブル DDL (existing initial_schema.sql 拡張)",
+      "title": "認証 6 テーブル DDL + RLS (existing initial_schema.sql 拡張)",
       "sprint": "S0",
       "feature": "F-001",
       "layer": "DB",
       "label": "REFACTOR",
       "human_days": 0.3,
-      "claude_code_hours": 1,
+      "claude_code_hours": 3,
       "deps": [
         "T-001-01"
       ],
       "critical": true,
       "existing_files": [
-        "backend/integrations/auth/",
         "supabase/migrations/20260501220000_initial_schema.sql",
         "supabase/migrations/20260501220300_rls_skeleton.sql"
       ],
@@ -506,26 +505,35 @@
       "mock_link": "../../mocks/2026-05-09_v1/auth/S-001-login.html",
       "entities": [
         "users",
-        "auth_sessions"
+        "auth_sessions",
+        "user_2fa_secrets",
+        "user_2fa_recovery_codes",
+        "oauth_connections",
+        "auth_audit_log"
       ],
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall integrate Supabase Auth (GoTrue) for all user authentication flows."
+          "text": "The migration shall create 6 auth tables (users, auth_sessions, user_2fa_secrets, user_2fa_recovery_codes, oauth_connections, auth_audit_log) with explicit FK constraints to auth.users and TIMESTAMPTZ DEFAULT NOW() for created_at columns."
         },
         {
           "type": "EVENT",
-          "text": "When a user submits valid credentials, the system shall return a JWT and refresh token within 500ms."
+          "text": "When the migration is applied a second time (CREATE TABLE IF NOT EXISTS), the system shall not error out and shall be idempotent."
         },
         {
           "type": "STATE",
-          "text": "While 2FA is enabled, the system shall require a TOTP code on every new device login."
+          "text": "While RLS is enabled on auth_sessions / user_2fa_secrets / user_2fa_recovery_codes / oauth_connections, only the row's owner (auth.uid() = user_id) and service_role shall read or write rows."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where 2FA is enabled (user_2fa_secrets row exists with enabled=true), the auth_audit_log shall record every TOTP challenge with success=true|false and user_id."
         },
         {
           "type": "UNWANTED",
-          "text": "If the JWT is expired or tampered, the system shall return 401 and shall not grant access."
+          "text": "If a duplicate (user_id, provider) is inserted into oauth_connections, the UNIQUE constraint shall reject it; if a 2FA secret is stored without encryption (plaintext), the schema shall not allow it (encrypted_secret column NOT NULL)."
         }
-      ]
+      ],
+      "output_file": "supabase/migrations/20260510000000_auth_tables.sql"
     },
     {
       "id": "T-001-03",
