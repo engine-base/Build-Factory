@@ -337,20 +337,18 @@
     },
     {
       "id": "T-S0-09",
-      "title": "RLS helper (既存 auth_middleware.py 拡張)",
+      "title": "OS-level sandbox 基盤 (bwrap on Linux / sandbox-exec on macOS)",
       "sprint": "S0",
       "feature": "META",
-      "layer": "BE",
-      "label": "REFACTOR",
-      "human_days": 0.3,
-      "claude_code_hours": 1,
+      "layer": "OPS",
+      "label": "NEW",
+      "human_days": 0.7,
+      "claude_code_hours": 3,
       "deps": [
         "T-S0-08"
       ],
       "critical": true,
-      "existing_files": [
-        "backend/services/auth_middleware.py"
-      ],
+      "existing_files": [],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30",
       "mock_link": null,
       "entities": [
@@ -359,19 +357,72 @@
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall execute all bash commands inside an OS-level sandbox (Seatbelt on macOS, Landlock+seccomp on Linux)."
+          "text": "The system shall execute all subprocess commands invoked by claude-agent-sdk runner inside an OS-level sandbox: bwrap (bubblewrap) on Linux and sandbox-exec on macOS, configured via SandboxConfig (allow_paths, allow_hosts, read_only_paths)."
         },
         {
           "type": "EVENT",
-          "text": "When a sandboxed process attempts to write outside the workspace path, the system shall block the syscall."
+          "text": "When a sandboxed process attempts to write outside SandboxConfig.allow_paths, the OS layer shall block the syscall (bwrap --ro-bind for read-only roots, sandbox-exec deny for others)."
         },
         {
           "type": "STATE",
-          "text": "While running in sandbox, the system shall deny network access except to listed allowlist hosts."
+          "text": "While running in sandbox, the system shall deny outbound network by default (bwrap --unshare-net) and only open access to SandboxConfig.allow_hosts via an explicit relay or empty by default."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where SandboxConfig.allow_hosts is empty, run_sandboxed shall NOT enable network at all (zero-trust default for runner subprocesses)."
         },
         {
           "type": "UNWANTED",
-          "text": "If a process attempts to escape the sandbox, the system shall kill the session and log a redline event."
+          "text": "If a sandboxed process exits with a sandbox-violation signal (SIGSYS / EPERM from seccomp / bwrap detected escape), the system shall mark the session.status='crashed' with crash_reason='sandbox_violation' and append a redline event to audit_logs (action='sandbox.violation')."
+        }
+      ],
+      "output_file": "backend/sandbox/{__init__.py,config.py,exec.py}"
+    },
+    {
+      "id": "T-S0-09b",
+      "title": "RLS helper (auth_middleware から PostgreSQL session に auth.uid() を伝播)",
+      "label": "REFACTOR",
+      "feature": "F-001",
+      "layer": "BE",
+      "sprint": "S0",
+      "deps": [
+        "T-001-02",
+        "T-001-06",
+        "T-S0-08"
+      ],
+      "critical": false,
+      "claude_code_hours": 2,
+      "human_days": 0.3,
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-21",
+      "mock_link": null,
+      "entities": [
+        "users",
+        "sessions"
+      ],
+      "existing_files": [
+        "backend/services/auth_middleware.py"
+      ],
+      "output_file": "backend/services/auth_middleware.py + backend/services/rls_context.py",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The auth_middleware shall set Postgres SET LOCAL request.jwt.claims = '<jwt_claims>' and SET LOCAL request.jwt.claim.sub = '<user_id>' for every authenticated request before any query."
+        },
+        {
+          "type": "EVENT",
+          "text": "When the request completes (success or error), the system shall RESET the JWT claim variables so the connection can be safely returned to the pool."
+        },
+        {
+          "type": "STATE",
+          "text": "While operating without an Authorization header (BUILD_FACTORY_DEV_BYPASS_AUTH=1), the system shall set a deterministic dev user_id for local development, and shall not bypass RLS in production."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where a request carries custom_permissions JSONB on users, the helper shall expose them to PG via SET LOCAL so RLS policies can read auth.jwt() -> 'custom_permissions'."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If RESET fails or the connection is reused without RESET, the next query shall NOT inherit prior JWT claims (test by issuing a query as anonymous after a logged-in request)."
         }
       ]
     },
