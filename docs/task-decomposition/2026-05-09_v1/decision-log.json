@@ -1,0 +1,118 @@
+{
+  "meta": {"project": "Build-Factory", "version": "1.0", "created_at": "2026-05-09", "skill": "task-decomposition"},
+  "decisions": [
+    {"id": "TD-1", "decision": "152 → 113 タスクに圧縮", "reason": "既存 bootstrap 実装 (40 routers + 50 services + 8 supabase migrations + frontend 24 ページ) を REUSE/REFACTOR ラベルで活用", "savings": "工数 32% 削減・約 30 タスク減"},
+    {"id": "TD-2", "decision": "REUSE/REFACTOR/NEW/ARCHIVE の 4 ラベルでタスク種別管理", "reason": "既存活用率を可視化・distributed-dev での Claude Code 指示が正確に"},
+    {"id": "TD-3", "decision": "T-S0-13 既存実装インベントリ監査を Sprint 0 必須タスク化 (1 日工数)", "reason": "「動いている = OK」ではなく v2.1 仕様適合性を確実に検証"},
+    {"id": "TD-4", "decision": "REFACTOR タスクに『v2.1 仕様適合性確認』AC を必須追加", "reason": "既存実装が古い仕様で書かれている可能性・不足列/RLS/index/enum/permission 連携を強制チェック"},
+    {"id": "TD-5", "decision": "テスト = 実装に含める + Sprint 末統合テスト独立 (8 件)", "reason": "粒度バランス・テスト後回し防止"},
+    {"id": "TD-6", "decision": "粒度 = 人間 0.5-2 日 / Claude Code 0.5-3 時間", "reason": "外部実装者 (Claude Code 主軸) に渡せる self-contained 単位"},
+    {"id": "TD-7", "decision": "Critical Path = 12 タスク・約 6 日 (人間) / 1.5 日 (Claude Code 並列)", "reason": "ブロッカー特定で並列化を最大化"},
+    {"id": "TD-8", "decision": "Sprint 0 に共通基盤 + 監査 + DB を全部入れて 36 タスク", "reason": "後続全 Sprint の前提条件を最初に固める"},
+    {"id": "TD-9", "decision": "Phase 1.5 / Phase 2 のタスク化は完了後に再分解", "reason": "Phase 1 完了後の振り返りで実態を踏まえて精度向上・前倒しは過剰投資"},
+    {"id": "TD-10", "decision": "EARS notation を全タスクの AC に必須化", "reason": "5 形式で機械検証可能な受け入れ基準を統一"},
+    {"id": "TD-11", "decision": "タスクカードフォーマットに reference_oss フィールド追加 (Codex CLI 等の参考実装明示)", "reason": "Apache 2.0 OSS のコードロジック参考方針を distributed-dev で正確に伝達"},
+    {"id": "TD-12", "decision": "Sprint 末の統合テスト = TST レイヤー独立タスク・各 Sprint 0.5-1 日", "reason": "Sprint 単位での品質担保・dogfood 早期化に必要"}
+  ],
+  "label_distribution": {
+    "REUSE_count": 14,
+    "REFACTOR_count": 50,
+    "NEW_count": 49,
+    "ARCHIVE_files": 9
+  },
+  "existing_implementation_mapping": {
+    "high_reuse_backend_routers": [
+      {"file": "accounts.py", "tasks": ["T-004-01"]},
+      {"file": "workspaces.py", "tasks": ["T-004-02"]},
+      {"file": "skills.py", "tasks": ["T-002-01"]},
+      {"file": "employees.py", "tasks": ["T-022-03"]},
+      {"file": "hearing.py", "tasks": ["T-005-01"]},
+      {"file": "requirements.py", "tasks": ["T-005-03"]},
+      {"file": "tasks.py", "tasks": ["T-006-02"]},
+      {"file": "design_frames.py / design_mocks.py", "tasks": ["T-005b-01"]},
+      {"file": "approval.py", "tasks": ["T-012-02", "T-012-04"]},
+      {"file": "mcp_server.py", "tasks": ["T-010a-01"]},
+      {"file": "reviewer.py", "tasks": ["T-011-01"]},
+      {"file": "knowledge_search.py", "tasks": ["T-024-02"]},
+      {"file": "llm.py / llm_providers.py", "tasks": ["T-020-02"]},
+      {"file": "threads.py", "tasks": ["T-M30-01"]},
+      {"file": "account_settings.py", "tasks": ["T-023-01", "T-023-02"]}
+    ],
+    "high_reuse_backend_services": [
+      {"file": "supabase_client.py", "tasks": ["T-S0-08"]},
+      {"file": "auth_middleware.py", "tasks": ["T-S0-09", "T-021-03"]},
+      {"file": "secretary_chat.py / delegation_service.py / secretary_agent.py", "tasks": ["T-003-02"]},
+      {"file": "intent_preprocessor.py / mode_detector.py", "tasks": ["T-M27-02"]},
+      {"file": "conversation_memory.py / rag_context.py", "tasks": ["T-M28-01"]},
+      {"file": "conversation_summarizer.py", "tasks": ["T-M30-03"]},
+      {"file": "long_term_memory.py / obsidian_sync.py", "tasks": ["T-M30-04", "T-016-01", "T-016-02"]},
+      {"file": "embedding_service.py", "tasks": ["T-M28-05", "T-024-02"]},
+      {"file": "artifact_service.py / artifact_export.py / output_processor.py", "tasks": ["T-003-05", "T-015-01", "T-015-02"]},
+      {"file": "skill_manager.py / skill_detector.py", "tasks": ["T-002-02"]},
+      {"file": "designer_ai.py / design_pipeline.py", "tasks": ["T-005b-02"]},
+      {"file": "hearing_service.py / requirements_service.py", "tasks": ["T-005-01", "T-005-03"]},
+      {"file": "slot_state.py / slot_extractor.py", "tasks": ["T-005-02"]},
+      {"file": "credentials_store.py", "tasks": ["T-023-02", "T-023-03"]},
+      {"file": "user_profile.py / account_settings_service.py", "tasks": ["T-023-01"]},
+      {"file": "reviewer_loop.py", "tasks": ["T-011-01"]},
+      {"file": "observability.py", "tasks": ["T-017-02"]}
+    ],
+    "high_reuse_supabase_migrations": [
+      {"file": "20260501220000_initial_schema.sql", "tasks": ["T-001-02"]},
+      {"file": "20260501220100_pgvector.sql", "tasks": ["T-001-07"]},
+      {"file": "20260501220300_rls_skeleton.sql", "tasks": ["T-001-06"]},
+      {"file": "20260501230000_design_frames.sql / design_mocks.sql", "tasks": ["T-001-04 部分"]}
+    ],
+    "high_reuse_workers_integrations": [
+      {"file": "task_executor.py", "tasks": ["T-010b-01", "T-010c-01"]},
+      {"file": "approval_worker.py", "tasks": ["T-012-02", "T-018-01 部分"]},
+      {"file": "skill_runner.py", "tasks": ["T-010b-01"]},
+      {"file": "slack_client.py / slack_block_kit.py / slack_llm_session.py", "tasks": ["T-014-01"]}
+    ],
+    "high_reuse_frontend": [
+      {"file": "components/tasks/TaskKanban.tsx", "tasks": ["T-007-01"]},
+      {"file": "app/skills/", "tasks": ["T-002-01"]},
+      {"file": "app/approval/", "tasks": ["T-012-04"]},
+      {"file": "app/ai-employees/", "tasks": ["T-022-04"]}
+    ],
+    "archive_targets": [
+      "backend/routers/estimate.py",
+      "backend/routers/pricing_design.py",
+      "backend/routers/proposal.py",
+      "backend/routers/records.py",
+      "backend/routers/documents.py",
+      "backend/routers/browser_use.py",
+      "backend/services/sales_service.py",
+      "backend/services/briefing_service.py",
+      "backend/services/penpot_client.py",
+      "backend/services/obsidian_vault_sync.py (旧版・obsidian_sync.py で代替)"
+    ],
+    "alembic_versions_status": "Phase 1 で全 archive (Supabase CLI に統一)"
+  },
+  "v21_compliance_check_template": {
+    "required_for": "全 REFACTOR タスク",
+    "checks": [
+      "既存実装を v2.1 仕様 (requirements / architecture / functional-breakdown) と照合",
+      "不足列 / RLS / index / enum 値 / 必須フィールドを検出",
+      "検出した不足を migration / patch で補う",
+      "検出した過剰機能 (古い仕様) は archive または改修",
+      "M-21 custom_permissions 連携を確認",
+      "M-28 Context Builder 連携を確認",
+      "F-026 Constitution 連携を確認",
+      "EARS notation で書かれた既存 acceptance-criteria に違反していないか確認",
+      "単体テストで v2.1 仕様の振る舞いを検証"
+    ]
+  },
+  "open_items": [
+    {"item": "claude-agent-sdk session resume API 詳細", "resolve_in": "Sprint 5 PoC (T-010b-01 実装中)"},
+    {"item": "Codex CLI から取り込む具体コードパターン", "resolve_in": "Sprint 2 (T-M27-02 / T-M28-01 / T-M28-04 実装中)"},
+    {"item": "並列セッション実測上限 (Pro/Max プラン別)", "resolve_in": "Sprint 6 PoC (T-010c-01 実装中)"},
+    {"item": "9-section structured summary プロンプト最適化", "resolve_in": "Sprint 2 (T-M28-04 実装中)"},
+    {"item": "OS-level sandbox の cross-platform 対応 (Windows サポート)", "resolve_in": "Sprint 5 (T-012-03)・Phase 1 は Linux + macOS のみ"},
+    {"item": "GrapesJS core embed の Phase 1.5 採用詳細", "resolve_in": "Phase 1.5 で再評価"}
+  ],
+  "next_skill_inputs": {
+    "distributed_dev": "tickets.json を入力に・各タスクを Claude Code が単独実装できるブランチ実装パッケージに変換",
+    "user_request_after_step5": "各画面モック作成 (43 screens の HTML モック・F-005b 適用)"
+  }
+}
