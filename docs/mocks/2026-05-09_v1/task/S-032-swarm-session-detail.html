@@ -37,7 +37,7 @@
 </div>
 </div>
 <div class="p-4 mono text-[11px] leading-relaxed h-[calc(100vh-200px)] overflow-y-auto">
-<div class="log-line"><span class="log-time">02:14:32</span><span class="log-status">✓ Plan phase started</span></div>
+<div class="log-line"><span class="log-time">02:14:32</span><span class="log-status"><i data-lucide="check" class="w-3 h-3 inline"></i> Plan phase started</span></div>
 <div class="log-line"><span class="log-time">02:14:35</span><span class="log-stdout">Reading requirements: F-010c circuit breaker</span></div>
 <div class="log-line"><span class="log-time">02:14:38</span><span class="log-tool">→ tool_call: Read backend/workers/task_executor.py</span></div>
 <div class="log-line"><span class="log-time">02:14:39</span><span class="log-stdout">  238 lines, asyncio Queue + Semaphore pattern</span></div>
@@ -49,7 +49,7 @@
 <div class="log-line"><span class="log-time">        </span><span class="log-stdout">  3. Wire into spawn flow</span></div>
 <div class="log-line"><span class="log-time">        </span><span class="log-stdout">  4. Add admin override endpoint</span></div>
 <div class="log-line"><span class="log-time">02:14:52</span><span class="log-tool">→ tool_call: Edit task_executor.py +43 lines</span></div>
-<div class="log-line"><span class="log-time">02:14:55</span><span class="log-status">✓ CircuitBreaker class added</span></div>
+<div class="log-line"><span class="log-time">02:14:55</span><span class="log-status"><i data-lucide="check" class="w-3 h-3 inline"></i> CircuitBreaker class added</span></div>
 <div class="log-line"><span class="log-time">02:14:58</span><span class="log-tool">→ tool_call: Bash pytest backend/tests/test_workers.py</span></div>
 <div class="log-line"><span class="log-time">02:15:12</span><span class="log-stdout">collected 18 tests</span></div>
 <div class="log-line"><span class="log-time">02:15:14</span><span class="log-status">test_circuit_breaker_threshold ............ PASS</span></div>
@@ -60,13 +60,13 @@
 <div class="log-line"><span class="log-time">02:15:24</span><span class="log-tool">→ Re-reading auth_middleware.py</span></div>
 <div class="log-line"><span class="log-time">02:15:28</span><span class="log-stdout">Permission "manage_red_lines" required</span></div>
 <div class="log-line"><span class="log-time">02:15:30</span><span class="log-tool">→ tool_call: Edit task_executor.py decorator</span></div>
-<div class="log-line"><span class="log-time">02:15:33</span><span class="log-status">✓ permission decorator updated</span></div>
+<div class="log-line"><span class="log-time">02:15:33</span><span class="log-status"><i data-lucide="check" class="w-3 h-3 inline"></i> permission decorator updated</span></div>
 <div class="log-line"><span class="log-time">02:15:36</span><span class="log-tool">→ Bash pytest test_admin_override</span></div>
 <div class="log-line"><span class="log-time">02:15:42</span><span class="log-status">test_admin_override ....................... PASS</span></div>
-<div class="log-line"><span class="log-time">02:15:45</span><span class="log-error">⚠ Memory threshold approaching: 480MB / 512MB</span></div>
-<div class="log-line"><span class="log-time">02:15:48</span><span class="log-error">⚠ Memory threshold exceeded: 520MB / 512MB</span></div>
+<div class="log-line"><span class="log-time">02:15:45</span><span class="log-error"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 inline"></i> Memory threshold approaching: 480MB / 512MB</span></div>
+<div class="log-line"><span class="log-time">02:15:48</span><span class="log-error"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 inline"></i> Memory threshold exceeded: 520MB / 512MB</span></div>
 <div class="log-line"><span class="log-time">02:15:50</span><span class="log-error">SIGKILL received - subprocess terminated</span></div>
-<div class="log-line"><span class="log-time">02:15:51</span><span class="log-status">✓ Checkpoint saved at step 7/12</span></div>
+<div class="log-line"><span class="log-time">02:15:51</span><span class="log-status"><i data-lucide="check" class="w-3 h-3 inline"></i> Checkpoint saved at step 7/12</span></div>
 <div class="log-line"><span class="log-time">02:15:52</span><span class="log-tool">→ Awaiting user decision...</span></div>
 </div>
 </div>
@@ -79,10 +79,10 @@
 <div class="flex items-center gap-2 mb-2"><i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600"></i><h3 class="text-sm font-bold text-amber-900">セッション crashed</h3></div>
 <p class="text-xs text-amber-800">memory threshold exceeded で subprocess が kill されました。<br>checkpoint at step 7/12 で保存済み。</p>
 <div class="space-y-2 mt-3">
-<button class="w-full text-left text-xs px-3 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 flex items-center gap-2"><i data-lucide="play" class="w-3.5 h-3.5"></i><div><div class="font-bold">▶ Resume from checkpoint</div><div class="text-[10px] opacity-80">step 7/12 から続行</div></div></button>
+<button class="w-full text-left text-xs px-3 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 flex items-center gap-2"><i data-lucide="play" class="w-3.5 h-3.5"></i><div><div class="font-bold"><i data-lucide="play" class="w-3.5 h-3.5 inline"></i> Resume from checkpoint</div><div class="text-[10px] opacity-80">step 7/12 から続行</div></div></button>
 <button class="w-full text-left text-xs px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i><div><div class="font-bold">↻ Rerun full</div><div class="text-[10px] opacity-80">最初から再実行</div></div></button>
-<button class="w-full text-left text-xs px-3 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 flex items-center gap-2"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i><div><div class="font-bold">✎ Manual fix</div><div class="text-[10px] opacity-80">人間が手動修正</div></div></button>
-<button class="w-full text-left text-xs px-3 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 flex items-center gap-2"><i data-lucide="x" class="w-3.5 h-3.5"></i><div><div class="font-bold">✕ Cancel</div><div class="text-[10px] opacity-80">タスクを blocked へ戻す</div></div></button>
+<button class="w-full text-left text-xs px-3 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 flex items-center gap-2"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i><div><div class="font-bold"><i data-lucide="pencil" class="w-3 h-3 inline"></i> Manual fix</div><div class="text-[10px] opacity-80">人間が手動修正</div></div></button>
+<button class="w-full text-left text-xs px-3 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 flex items-center gap-2"><i data-lucide="x" class="w-3.5 h-3.5"></i><div><div class="font-bold"><i data-lucide="x" class="w-3 h-3 inline"></i> Cancel</div><div class="text-[10px] opacity-80">タスクを blocked へ戻す</div></div></button>
 </div>
 </div>
 

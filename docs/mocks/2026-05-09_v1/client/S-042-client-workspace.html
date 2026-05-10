@@ -8,6 +8,7 @@
 <meta name="task-ids" content="T-021-02" />
 <meta name="phase" content="P1" />
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
   tailwind.config = {
     theme: { extend: {
@@ -83,20 +84,20 @@
           <div class="space-y-2 text-sm">
             <div class="px-4 py-3 border border-amber-200 bg-amber-50 rounded-lg">
               <div class="flex items-center gap-2">
-                <span class="text-amber-600">📄</span>
+                <span class="text-amber-600"><i data-lucide="file-text" class="w-3.5 h-3.5 inline"></i></span>
                 <span class="font-bold">仕様書 v1.2</span>
                 <span class="ml-auto text-[11px] text-amber-700 mono">起票: 4 時間前</span>
               </div>
               <div class="text-[11px] text-slate-600 mt-1">バンドル販売・定期購入の仕様を確定したいです。</div>
               <div class="flex gap-2 mt-3">
-                <button class="px-3 py-1.5 text-xs bg-emerald-600 text-white rounded font-bold">✓ 承認</button>
+                <button class="px-3 py-1.5 text-xs bg-emerald-600 text-white rounded font-bold"><i data-lucide="check" class="w-3 h-3 inline"></i> 承認</button>
                 <button class="px-3 py-1.5 text-xs border border-slate-300 rounded">差し戻し</button>
                 <button class="px-3 py-1.5 text-xs border border-slate-300 rounded">コメント</button>
               </div>
             </div>
             <div class="px-4 py-3 border border-amber-200 bg-amber-50 rounded-lg">
               <div class="flex items-center gap-2">
-                <span class="text-amber-600">🎨</span>
+                <span class="text-amber-600"><i data-lucide="palette" class="w-3.5 h-3.5 inline"></i></span>
                 <span class="font-bold">画面モック (商品詳細)</span>
                 <span class="ml-auto text-[11px] text-amber-700 mono">起票: 1 日前</span>
               </div>
@@ -119,5 +120,6 @@
     <span><a href="../index.html" class="hover:underline">← Index</a></span>
   </footer>
 </main>
+<script>lucide.createIcons();</script>
 </body>
 </html>

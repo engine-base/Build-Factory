@@ -8,6 +8,7 @@
 <meta name="task-ids" content="T-011-03" />
 <meta name="phase" content="P1" />
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
   tailwind.config = {
     theme: { extend: {
@@ -58,20 +59,20 @@
         <h2 class="text-sm font-bold mb-4">納品承認 — 受託EC構築 #4</h2>
         <div class="space-y-3 text-sm">
           <div class="px-4 py-3 bg-emerald-50 border border-emerald-200 rounded">
-            <div class="font-bold text-emerald-900">✓ 全 113 タスク完了</div>
+            <div class="font-bold text-emerald-900"><i data-lucide="check" class="w-3 h-3 inline"></i> 全 113 タスク完了</div>
             <div class="text-[11px] text-emerald-700 mt-1">REUSE 14 + REFACTOR 50 + NEW 49 + ARCHIVE 9 (削除済)</div>
           </div>
           <div class="px-4 py-3 bg-emerald-50 border border-emerald-200 rounded">
-            <div class="font-bold text-emerald-900">✓ EARS AC 全件検証済み (217/217)</div>
+            <div class="font-bold text-emerald-900"><i data-lucide="check" class="w-3 h-3 inline"></i> EARS AC 全件検証済み (217/217)</div>
           </div>
           <div class="px-4 py-3 bg-emerald-50 border border-emerald-200 rounded">
-            <div class="font-bold text-emerald-900">✓ コードカバレッジ 78% (≥70 目標)</div>
+            <div class="font-bold text-emerald-900"><i data-lucide="check" class="w-3 h-3 inline"></i> コードカバレッジ 78% (≥70 目標)</div>
           </div>
           <div class="px-4 py-3 bg-emerald-50 border border-emerald-200 rounded">
-            <div class="font-bold text-emerald-900">✓ E2E (Playwright) 42/42 pass</div>
+            <div class="font-bold text-emerald-900"><i data-lucide="check" class="w-3 h-3 inline"></i> E2E (Playwright) 42/42 pass</div>
           </div>
           <div class="px-4 py-3 bg-amber-50 border border-amber-200 rounded">
-            <div class="font-bold text-amber-900">⚠ 軽微な警告 (3 件)</div>
+            <div class="font-bold text-amber-900"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 inline"></i> 軽微な警告 (3 件)</div>
             <ul class="text-[11px] text-amber-800 mt-1 list-disc list-inside">
               <li>未使用 import 2 件</li>
               <li>console.log 1 件</li>
@@ -79,7 +80,7 @@
             </ul>
           </div>
           <div class="px-4 py-3 bg-emerald-50 border border-emerald-200 rounded">
-            <div class="font-bold text-emerald-900">✓ クライアント承認済み (株式会社XX 田中様 · 2026-08-12)</div>
+            <div class="font-bold text-emerald-900"><i data-lucide="check" class="w-3 h-3 inline"></i> クライアント承認済み (株式会社XX 田中様 · 2026-08-12)</div>
           </div>
         </div>
         <div class="mt-5 pt-4 border-t border-slate-100">
@@ -94,7 +95,7 @@
           </div>
         </div>
         <div class="mt-5 flex gap-2">
-          <button class="px-5 py-2.5 bg-eb-500 text-white rounded font-bold text-sm">✓ 納品承認 → タグ v1.0.0 を打つ</button>
+          <button class="px-5 py-2.5 bg-eb-500 text-white rounded font-bold text-sm"><i data-lucide="check" class="w-3 h-3 inline"></i> 納品承認 → タグ v1.0.0 を打つ</button>
           <button class="px-4 py-2 text-sm border border-slate-300 rounded">差し戻し</button>
         </div>
       </section>
@@ -117,5 +118,6 @@
     <span><a href="../index.html" class="hover:underline">← Index</a></span>
   </footer>
 </main>
+<script>lucide.createIcons();</script>
 </body>
 </html>

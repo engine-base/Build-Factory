@@ -9,6 +9,7 @@
 <meta name="entities" content="specs,spec_versions" />
 <meta name="phase" content="P1" />
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
   tailwind.config = {
     theme: { extend: {
@@ -70,10 +71,10 @@
 
   <!-- Tabs -->
   <div class="bg-white border-b border-slate-200 px-6 flex items-center gap-1 shrink-0">
-    <button class="px-4 py-2 text-sm border-b-2 border-eb-500 text-eb-700 font-bold">📄 HTML</button>
-    <button class="px-4 py-2 text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700">📝 Markdown</button>
-    <button class="px-4 py-2 text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700">📊 メタデータ</button>
-    <button class="px-4 py-2 text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700">🔗 リンク (3)</button>
+    <button class="px-4 py-2 text-sm border-b-2 border-eb-500 text-eb-700 font-bold"><i data-lucide="file-text" class="w-3.5 h-3.5 inline"></i> HTML</button>
+    <button class="px-4 py-2 text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700"><i data-lucide="file-edit" class="w-3.5 h-3.5 inline"></i> Markdown</button>
+    <button class="px-4 py-2 text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700"><i data-lucide="bar-chart-3" class="w-3.5 h-3.5 inline"></i> メタデータ</button>
+    <button class="px-4 py-2 text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700"><i data-lucide="link" class="w-3.5 h-3.5 inline"></i> リンク (3)</button>
     <div class="flex-1"></div>
     <input type="text" placeholder="仕様内検索..." class="my-2 px-3 py-1 text-xs border border-slate-300 rounded w-48"/>
   </div>
@@ -180,7 +181,7 @@
           </div>
           <div class="bg-rose-50 border-l-4 border-rose-400 px-3 py-2 rounded">
             <div class="font-bold text-rose-900 mono text-[10px]">§1.3 定期購入</div>
-            <div class="text-slate-700 mt-1">⚠ スキップ可能回数の上限が未定義</div>
+            <div class="text-slate-700 mt-1"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 inline"></i> スキップ可能回数の上限が未定義</div>
             <div class="text-[10px] text-slate-500 mt-1">masato · 30分前</div>
           </div>
           <div class="bg-slate-50 border-l-4 border-slate-300 px-3 py-2 rounded">
@@ -208,5 +209,6 @@
   </footer>
 </main>
 
+<script>lucide.createIcons();</script>
 </body>
 </html>

@@ -8,6 +8,7 @@
 <meta name="task-ids" content="T-023-01" />
 <meta name="phase" content="P1" />
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
   tailwind.config = {
     theme: { extend: {
@@ -78,9 +79,9 @@
         <div class="bg-white border border-slate-200 rounded-lg p-5">
           <h2 class="text-sm font-bold mb-3">外観</h2>
           <div class="flex gap-2">
-            <button class="px-3 py-1.5 text-xs border-2 border-eb-500 bg-eb-50 rounded font-bold">☀ Light</button>
-            <button class="px-3 py-1.5 text-xs border border-slate-300 rounded">🌙 Dark</button>
-            <button class="px-3 py-1.5 text-xs border border-slate-300 rounded">🖥 System</button>
+            <button class="px-3 py-1.5 text-xs border-2 border-eb-500 bg-eb-50 rounded font-bold"><i data-lucide="sun" class="w-3.5 h-3.5 inline"></i> Light</button>
+            <button class="px-3 py-1.5 text-xs border border-slate-300 rounded"><i data-lucide="moon" class="w-3.5 h-3.5 inline"></i> Dark</button>
+            <button class="px-3 py-1.5 text-xs border border-slate-300 rounded"><i data-lucide="monitor" class="w-3.5 h-3.5 inline"></i> System</button>
           </div>
         </div>
         <div class="flex justify-end gap-2">
@@ -95,5 +96,6 @@
     <span><a href="../index.html" class="hover:underline">← Index</a></span>
   </footer>
 </main>
+<script>lucide.createIcons();</script>
 </body>
 </html>

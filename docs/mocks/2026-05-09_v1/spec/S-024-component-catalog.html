@@ -8,6 +8,7 @@
 <meta name="task-ids" content="T-005b-03" />
 <meta name="phase" content="P1" />
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
   tailwind.config = {
     theme: { extend: {
@@ -88,8 +89,8 @@
             </div>
             <div class="border border-slate-200 rounded p-4">
               <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-3">Ghost / Icon</div>
-              <button class="px-3 py-1.5 hover:bg-slate-100 rounded text-sm">⋯</button>
-              <pre class="mt-3 text-[10px] mono bg-slate-900 text-slate-200 p-2 rounded overflow-x-auto">&lt;IconButton&gt;⋯&lt;/IconButton&gt;</pre>
+              <button class="px-3 py-1.5 hover:bg-slate-100 rounded text-sm"><i data-lucide="more-horizontal" class="w-3.5 h-3.5 inline"></i></button>
+              <pre class="mt-3 text-[10px] mono bg-slate-900 text-slate-200 p-2 rounded overflow-x-auto">&lt;IconButton&gt;<i data-lucide="more-horizontal" class="w-3.5 h-3.5 inline"></i>&lt;/IconButton&gt;</pre>
             </div>
           </div>
         </div>
@@ -111,5 +112,6 @@
     <span><a href="../index.html" class="hover:underline">← Index</a></span>
   </footer>
 </main>
+<script>lucide.createIcons();</script>
 </body>
 </html>

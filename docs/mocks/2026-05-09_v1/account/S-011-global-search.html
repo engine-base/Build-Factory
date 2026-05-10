@@ -8,6 +8,7 @@
 <meta name="task-ids" content="T-024-01" />
 <meta name="phase" content="P1" />
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
   tailwind.config = {
     theme: { extend: {
@@ -57,38 +58,38 @@
     <div class="bg-slate-900/30 backdrop-blur-sm rounded-lg p-12 flex items-start justify-center min-h-[600px]">
       <div class="w-full max-w-2xl bg-white rounded-xl shadow-2xl overflow-hidden">
         <div class="border-b border-slate-200 p-3 flex items-center gap-2">
-          <span class="text-slate-400">🔍</span>
+          <span class="text-slate-400"><i data-lucide="search" class="w-3.5 h-3.5 inline"></i></span>
           <input type="text" class="flex-1 text-base focus:outline-none" placeholder="任意のテキストを入力 — タスク・仕様書・セッション・コメント全文検索…" value="バンドル"/>
-          <span class="text-[10px] mono text-slate-400 px-1.5 py-0.5 bg-slate-100 rounded">⌘ K</span>
+          <span class="text-[10px] mono text-slate-400 px-1.5 py-0.5 bg-slate-100 rounded"><i data-lucide="command" class="w-3 h-3 inline"></i> K</span>
         </div>
         <div class="max-h-96 overflow-y-auto">
           <div class="px-4 py-2 text-[10px] tracking-wider text-slate-400 font-bold bg-slate-50">仕様書 (3)</div>
           <a class="flex items-center gap-3 px-4 py-2 hover:bg-eb-50">
-            <span class="text-base">📄</span>
+            <span class="text-base"><i data-lucide="file-text" class="w-3.5 h-3.5 inline"></i></span>
             <div class="flex-1"><div class="text-sm font-bold">受託EC構築 #4 — 要件定義書</div><div class="text-[11px] text-slate-500">§1.2 <mark class="bg-amber-200">バンドル</mark>販売 …複数 SKU を組み合わせた…</div></div>
             <span class="text-[10px] mono text-slate-400">spec_a8f3</span>
           </a>
           <a class="flex items-center gap-3 px-4 py-2 hover:bg-eb-50">
-            <span class="text-base">📄</span>
+            <span class="text-base"><i data-lucide="file-text" class="w-3.5 h-3.5 inline"></i></span>
             <div class="flex-1"><div class="text-sm font-bold">過去案件 EC #3 仕様書</div><div class="text-[11px] text-slate-500">§3 <mark class="bg-amber-200">バンドル</mark>商品の在庫引当ロジック…</div></div>
             <span class="text-[10px] mono text-slate-400">spec_71ab</span>
           </a>
 
           <div class="px-4 py-2 text-[10px] tracking-wider text-slate-400 font-bold bg-slate-50">タスク (5)</div>
           <a class="flex items-center gap-3 px-4 py-2 hover:bg-eb-50">
-            <span class="text-base">📋</span>
+            <span class="text-base"><i data-lucide="clipboard-list" class="w-3.5 h-3.5 inline"></i></span>
             <div class="flex-1"><div class="text-sm font-bold mono">T-008b-04</div><div class="text-[11px] text-slate-500"><mark class="bg-amber-200">バンドル</mark>商品の単価計算ロジック</div></div>
             <span class="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded mono">REFACTOR</span>
           </a>
           <a class="flex items-center gap-3 px-4 py-2 hover:bg-eb-50">
-            <span class="text-base">📋</span>
+            <span class="text-base"><i data-lucide="clipboard-list" class="w-3.5 h-3.5 inline"></i></span>
             <div class="flex-1"><div class="text-sm font-bold mono">T-010-08</div><div class="text-[11px] text-slate-500"><mark class="bg-amber-200">バンドル</mark>在庫引当 unit テスト</div></div>
             <span class="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded mono">NEW</span>
           </a>
 
           <div class="px-4 py-2 text-[10px] tracking-wider text-slate-400 font-bold bg-slate-50">セッション (2)</div>
           <a class="flex items-center gap-3 px-4 py-2 hover:bg-eb-50">
-            <span class="text-base">⚡</span>
+            <span class="text-base"><i data-lucide="zap" class="w-3.5 h-3.5 inline"></i></span>
             <div class="flex-1"><div class="text-sm font-bold mono">sess_a4f2</div><div class="text-[11px] text-slate-500">…<mark class="bg-amber-200">バンドル</mark>のテストケース 12 件追加…</div></div>
             <span class="text-[10px] mono text-amber-600 font-bold">RUN</span>
           </a>
@@ -105,5 +106,6 @@
     <span><a href="../index.html" class="hover:underline">← Index</a></span>
   </footer>
 </main>
+<script>lucide.createIcons();</script>
 </body>
 </html>

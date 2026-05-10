@@ -9,6 +9,7 @@
 <meta name="entities" content="workspaces,project_brief,specs,tasks,sessions" />
 <meta name="phase" content="P1" />
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
   tailwind.config = {
     theme: { extend: {
@@ -55,7 +56,7 @@
     <span class="text-[11px] mono text-slate-500">納期 2026-08-15 (残 97 日)</span>
     <div class="flex-1"></div>
     <button class="px-3 py-1.5 text-xs border border-slate-300 rounded hover:bg-slate-50">設定</button>
-    <button class="px-3 py-1.5 text-xs bg-eb-500 text-white rounded font-bold">▶︎ 次タスク再生</button>
+    <button class="px-3 py-1.5 text-xs bg-eb-500 text-white rounded font-bold"><i data-lucide="play" class="w-3.5 h-3.5 inline"></i> 次タスク再生</button>
   </header>
 
   <div class="p-6 space-y-6 max-w-[1400px] mx-auto w-full">
@@ -159,27 +160,27 @@
         <h2 class="text-sm font-bold text-slate-700 tracking-wider mb-4">クイックアクセス</h2>
         <div class="space-y-2 text-sm">
           <a href="../spec/S-020-hearing-session.html" class="flex items-center gap-3 px-3 py-2 border border-slate-200 rounded hover:border-eb-500 hover:bg-eb-50">
-            <span class="text-base">💬</span>
+            <span class="text-base"><i data-lucide="message-circle" class="w-3.5 h-3.5 inline"></i></span>
             <span class="flex-1">ヒアリング再開</span>
             <span class="text-[10px] text-slate-400 mono">12/18</span>
           </a>
           <a href="../spec/S-022-spec-viewer.html" class="flex items-center gap-3 px-3 py-2 border border-slate-200 rounded hover:border-eb-500 hover:bg-eb-50">
-            <span class="text-base">📄</span>
+            <span class="text-base"><i data-lucide="file-text" class="w-3.5 h-3.5 inline"></i></span>
             <span class="flex-1">仕様書 v1.2</span>
             <span class="text-[10px] text-amber-600 font-bold">承認待ち</span>
           </a>
           <a href="../moat/S-017-dependency-graph.html" class="flex items-center gap-3 px-3 py-2 border border-slate-200 rounded hover:border-eb-500 hover:bg-eb-50">
-            <span class="text-base">🔗</span>
+            <span class="text-base"><i data-lucide="link" class="w-3.5 h-3.5 inline"></i></span>
             <span class="flex-1">機能依存グラフ</span>
             <span class="text-[10px] text-slate-400 mono">30 features</span>
           </a>
           <a href="../task/S-027-task-kanban.html" class="flex items-center gap-3 px-3 py-2 border border-slate-200 rounded hover:border-eb-500 hover:bg-eb-50">
-            <span class="text-base">📋</span>
+            <span class="text-base"><i data-lucide="clipboard-list" class="w-3.5 h-3.5 inline"></i></span>
             <span class="flex-1">タスク Kanban</span>
             <span class="text-[10px] text-slate-400 mono">37 残</span>
           </a>
           <a href="../task/S-031-swarm-grid.html" class="flex items-center gap-3 px-3 py-2 border border-slate-200 rounded hover:border-eb-500 hover:bg-eb-50">
-            <span class="text-base">🐝</span>
+            <span class="text-base"><i data-lucide="boxes" class="w-3.5 h-3.5 inline"></i></span>
             <span class="flex-1">Swarm 並列実行</span>
             <span class="text-[10px] text-amber-600 font-bold mono">4 RUN</span>
           </a>
@@ -235,7 +236,7 @@
           <div class="flex gap-2"><span class="text-[10px] mono text-slate-400 shrink-0">14:02</span><span class="text-slate-600">mary がヒアリング再開</span></div>
           <div class="flex gap-2"><span class="text-[10px] mono text-slate-400 shrink-0">13:47</span><span class="text-slate-600">winston が仕様書 v1.2 を発行</span></div>
           <div class="flex gap-2"><span class="text-[10px] mono text-slate-400 shrink-0">12:15</span><span class="text-slate-600">PR #42 マージ済み (T-010-02)</span></div>
-          <div class="flex gap-2"><span class="text-[10px] mono text-slate-400 shrink-0">11:39</span><span class="text-slate-600">⚠ T-008b-01 失敗 → 自動再試行</span></div>
+          <div class="flex gap-2"><span class="text-[10px] mono text-slate-400 shrink-0">11:39</span><span class="text-slate-600"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 inline"></i> T-008b-01 失敗 → 自動再試行</span></div>
         </div>
       </div>
     </div>
@@ -247,5 +248,6 @@
   </footer>
 </main>
 
+<script>lucide.createIcons();</script>
 </body>
 </html>

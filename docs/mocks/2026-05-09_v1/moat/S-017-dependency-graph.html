@@ -9,6 +9,7 @@
 <meta name="entities" content="features,feature_dependencies,specs" />
 <meta name="phase" content="P1" />
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
   tailwind.config = {
     theme: { extend: {
@@ -81,7 +82,7 @@
       <div class="absolute top-3 left-3 bg-white border border-slate-200 rounded-lg shadow-sm p-1.5 flex items-center gap-1 z-10">
         <button class="w-7 h-7 rounded hover:bg-slate-100 text-sm">＋</button>
         <button class="w-7 h-7 rounded hover:bg-slate-100 text-sm">−</button>
-        <button class="w-7 h-7 rounded hover:bg-slate-100 text-xs">⤢</button>
+        <button class="w-7 h-7 rounded hover:bg-slate-100 text-xs"><i data-lucide="maximize" class="w-3 h-3 inline"></i></button>
         <span class="mx-1 text-[10px] mono text-slate-500">100%</span>
       </div>
       <!-- Legend overlay -->
@@ -349,5 +350,6 @@
   </footer>
 </main>
 
+<script>lucide.createIcons();</script>
 </body>
 </html>

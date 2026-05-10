@@ -8,6 +8,7 @@
 <meta name="task-ids" content="T-012-01" />
 <meta name="phase" content="P1" />
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
   tailwind.config = {
     theme: { extend: {
@@ -61,7 +62,7 @@
       </div>
       <div class="space-y-2">
         <div class="px-3 py-2 border border-rose-200 bg-rose-50 rounded flex items-center gap-3">
-          <span class="text-rose-600">🚫</span>
+          <span class="text-rose-600"><i data-lucide="ban" class="w-4 h-4 inline"></i></span>
           <div class="flex-1">
             <div class="font-bold text-sm">本番 DB に対する DROP / TRUNCATE / DELETE *</div>
             <div class="text-[11px] text-slate-600">production 環境で実行された場合、即セッション kill + 全 AI 社員に通知</div>
@@ -70,7 +71,7 @@
           <label class="inline-flex items-center"><input type="checkbox" checked class="accent-rose-600"/></label>
         </div>
         <div class="px-3 py-2 border border-rose-200 bg-rose-50 rounded flex items-center gap-3">
-          <span class="text-rose-600">🚫</span>
+          <span class="text-rose-600"><i data-lucide="ban" class="w-4 h-4 inline"></i></span>
           <div class="flex-1">
             <div class="font-bold text-sm">.env / credentials / 鍵ファイル のコミット</div>
             <div class="text-[11px] text-slate-600">git pre-commit + GitHub secret scanning で検知</div>
@@ -79,7 +80,7 @@
           <label class="inline-flex items-center"><input type="checkbox" checked class="accent-rose-600"/></label>
         </div>
         <div class="px-3 py-2 border border-amber-200 bg-amber-50 rounded flex items-center gap-3">
-          <span class="text-amber-600">⚠</span>
+          <span class="text-amber-600"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 inline"></i></span>
           <div class="flex-1">
             <div class="font-bold text-sm">--no-verify / --force push / --amend (公開後)</div>
             <div class="text-[11px] text-slate-600">安全装置のバイパス。明示承認時のみ許可</div>
@@ -88,7 +89,7 @@
           <label class="inline-flex items-center"><input type="checkbox" checked class="accent-amber-600"/></label>
         </div>
         <div class="px-3 py-2 border border-amber-200 bg-amber-50 rounded flex items-center gap-3">
-          <span class="text-amber-600">⚠</span>
+          <span class="text-amber-600"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 inline"></i></span>
           <div class="flex-1">
             <div class="font-bold text-sm">AGPL ライセンスの依存追加</div>
             <div class="text-[11px] text-slate-600">SaaS 化で問題。提案時にレビューキュー行き</div>
@@ -120,5 +121,6 @@
     <span><a href="../index.html" class="hover:underline">← Index</a></span>
   </footer>
 </main>
+<script>lucide.createIcons();</script>
 </body>
 </html>

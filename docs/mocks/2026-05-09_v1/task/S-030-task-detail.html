@@ -9,6 +9,7 @@
 <meta name="entities" content="tasks,acceptance_criteria,task_dependencies,sessions" />
 <meta name="phase" content="P1" />
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
   tailwind.config = {
     theme: {
@@ -74,7 +75,7 @@
     <button class="px-3 py-1.5 text-sm border border-slate-300 rounded hover:bg-slate-50">編集</button>
     <button class="px-3 py-1.5 text-sm border border-slate-300 rounded hover:bg-slate-50">複製</button>
     <button class="px-4 py-1.5 text-sm bg-eb-500 text-white rounded font-bold hover:bg-eb-600 flex items-center gap-1.5">
-      <span>▶︎</span> このタスクを再生
+      <span><i data-lucide="play" class="w-3.5 h-3.5 inline"></i></span> このタスクを再生
     </button>
   </header>
 
@@ -364,5 +365,6 @@
   </footer>
 </main>
 
+<script>lucide.createIcons();</script>
 </body>
 </html>

@@ -8,6 +8,7 @@
 <meta name="task-ids" content="T-S3-01" />
 <meta name="phase" content="P1.5" />
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
   tailwind.config = {
     theme: { extend: {
@@ -73,17 +74,17 @@
       </aside>
       <section class="flex-1 bg-slate-100 p-4 flex flex-col">
         <div class="bg-white border border-slate-300 px-3 py-1.5 flex items-center gap-2 text-xs mb-2">
-          <button class="hover:bg-slate-100 px-2 py-0.5 rounded">↶</button>
-          <button class="hover:bg-slate-100 px-2 py-0.5 rounded">↷</button>
+          <button class="hover:bg-slate-100 px-2 py-0.5 rounded"><i data-lucide="undo-2" class="w-3.5 h-3.5 inline"></i></button>
+          <button class="hover:bg-slate-100 px-2 py-0.5 rounded"><i data-lucide="redo-2" class="w-3.5 h-3.5 inline"></i></button>
           <span class="border-l h-4 mx-1"></span>
-          <button class="hover:bg-slate-100 px-2 py-0.5 rounded">📱</button>
-          <button class="hover:bg-slate-100 px-2 py-0.5 rounded font-bold bg-eb-50 text-eb-700">🖥</button>
+          <button class="hover:bg-slate-100 px-2 py-0.5 rounded"><i data-lucide="smartphone" class="w-3.5 h-3.5 inline"></i></button>
+          <button class="hover:bg-slate-100 px-2 py-0.5 rounded font-bold bg-eb-50 text-eb-700"><i data-lucide="monitor" class="w-3.5 h-3.5 inline"></i></button>
           <div class="flex-1 text-center text-slate-500 mono">S-006-account-dashboard.html · 編集中</div>
           <button class="px-3 py-1 bg-eb-500 text-white rounded text-xs font-bold">保存</button>
         </div>
         <div class="flex-1 bg-white rounded shadow-sm border-2 border-dashed border-eb-500/50 flex items-center justify-center text-slate-400">
           <div class="text-center">
-            <div class="text-3xl mb-2">🎨</div>
+            <div class="text-3xl mb-2"><i data-lucide="palette" class="w-3.5 h-3.5 inline"></i></div>
             <div class="text-sm">GrapesJS Editor (BSD-3) — Phase 1.5</div>
             <div class="text-[11px] mt-1">既存モック HTML を読み込んで自由編集 → そのまま実装に渡せる</div>
           </div>
@@ -104,5 +105,6 @@
     <span><a href="../index.html" class="hover:underline">← Index</a></span>
   </footer>
 </main>
+<script>lucide.createIcons();</script>
 </body>
 </html>

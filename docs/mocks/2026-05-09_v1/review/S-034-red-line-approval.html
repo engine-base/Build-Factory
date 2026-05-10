@@ -8,6 +8,7 @@
 <meta name="task-ids" content="T-012-02" />
 <meta name="phase" content="P1" />
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
   tailwind.config = {
     theme: { extend: {
@@ -61,7 +62,7 @@
       <div class="space-y-3">
         <div class="border border-rose-200 rounded-lg overflow-hidden">
           <div class="bg-rose-50 px-4 py-3 flex items-center gap-3 border-b border-rose-200">
-            <span class="text-rose-600 text-lg">🚫</span>
+            <span class="text-rose-600 text-lg"><i data-lucide="ban" class="w-4 h-4 inline"></i></span>
             <div class="flex-1">
               <div class="font-bold text-sm">レッドライン違反: AGPL ライセンス依存追加検出</div>
               <div class="text-[11px] text-slate-600 mt-0.5">T-014-02 が <code>somelib@4.0</code> を追加 — v3 から v4 で AGPL に変更</div>
@@ -93,7 +94,7 @@
 
         <div class="border border-amber-200 rounded-lg overflow-hidden">
           <div class="bg-amber-50 px-4 py-3 flex items-center gap-3 border-b border-amber-200">
-            <span class="text-amber-600 text-lg">⚠</span>
+            <span class="text-amber-600 text-lg"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 inline"></i></span>
             <div class="flex-1">
               <div class="font-bold text-sm">--no-verify 使用検出</div>
               <div class="text-[11px] text-slate-600 mt-0.5">devon が pre-commit hook を bypass しようとした</div>
@@ -113,5 +114,6 @@
     <span><a href="../index.html" class="hover:underline">← Index</a></span>
   </footer>
 </main>
+<script>lucide.createIcons();</script>
 </body>
 </html>

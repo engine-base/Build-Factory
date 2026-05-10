@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ja"><head><meta charset="utf-8"/><title>OAuth 認証中… — Build-Factory Mock</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>tailwind.config={theme:{extend:{colors:{eb:{50:'#e6f0ec',100:'#c4dccf',500:'#1a6648',600:'#155238',700:'#103e2a'}},fontFamily:{sans:['"Noto Sans JP"','system-ui','sans-serif'],mono:['"JetBrains Mono"','ui-monospace','monospace']}}}};</script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>body{font-family:"Noto Sans JP",system-ui,sans-serif;}.mono{font-family:"JetBrains Mono",monospace;}.gradient-bg{background:radial-gradient(circle at 20% 20%,rgba(26,102,72,0.08) 0%,transparent 50%),#f8fafc;}</style>
@@ -20,10 +21,10 @@
   <div class="mt-8 max-w-xs mx-auto bg-white border border-slate-200 rounded-lg p-4 text-left text-xs">
     <div class="text-[10px] tracking-wider text-slate-500 font-bold mb-2">処理状況</div>
     <div class="space-y-1.5">
-      <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[8px]">✓</span><span>state パラメータ検証</span></div>
-      <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[8px]">✓</span><span>認可コード受領</span></div>
-      <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[8px]">✓</span><span>アクセストークン交換</span></div>
-      <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-400 text-white flex items-center justify-center text-[8px] animate-pulse">⋯</span><span>ユーザー情報取得中</span></div>
+      <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[8px]"><i data-lucide="check" class="w-3 h-3 inline"></i></span><span>state パラメータ検証</span></div>
+      <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[8px]"><i data-lucide="check" class="w-3 h-3 inline"></i></span><span>認可コード受領</span></div>
+      <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[8px]"><i data-lucide="check" class="w-3 h-3 inline"></i></span><span>アクセストークン交換</span></div>
+      <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-400 text-white flex items-center justify-center text-[8px] animate-pulse"><i data-lucide="more-horizontal" class="w-3.5 h-3.5 inline"></i></span><span>ユーザー情報取得中</span></div>
       <div class="flex items-center gap-2 text-slate-400"><span class="w-3 h-3 rounded-full bg-slate-200"></span><span>セッション発行</span></div>
       <div class="flex items-center gap-2 text-slate-400"><span class="w-3 h-3 rounded-full bg-slate-200"></span><span>リダイレクト</span></div>
     </div>
@@ -34,4 +35,5 @@
 <div class="mt-12 text-[10px] text-slate-400 mono text-center">S-005 oauth_callback · F-023 · T-023-04 · <a href="../index.html" class="hover:underline text-eb-600">← Index</a></div>
 
 </div>
+<script>lucide.createIcons();</script>
 </body></html>

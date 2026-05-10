@@ -9,6 +9,7 @@
 <meta name="entities" content="users,auth_sessions,oauth_providers" />
 <meta name="phase" content="P1" />
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
   tailwind.config = {
     theme: { extend: {
@@ -131,7 +132,7 @@
     <!-- 2FA preview -->
     <details class="mt-5 border border-amber-200 bg-amber-50 rounded-lg p-3">
       <summary class="text-xs font-bold text-amber-900 cursor-pointer flex items-center gap-2">
-        🔐 2FA: 認証コードが必要 (プレビュー)
+        <i data-lucide="lock" class="w-3.5 h-3.5 inline"></i> 2FA: 認証コードが必要 (プレビュー)
       </summary>
       <div class="mt-3">
         <p class="text-[11px] text-amber-800 mb-2">Google Authenticator で生成された 6 桁コードを入力</p>
@@ -162,5 +163,6 @@
   </div>
 </main>
 
+<script>lucide.createIcons();</script>
 </body>
 </html>
