@@ -1,9 +1,10 @@
-# ADR-010: 完了判定の単一ゲート (`pre-commit-check.sh`) と「N/A 禁止」原則
+# ADR-011: 完了判定の単一ゲート (`pre-commit-check.sh`) と「N/A 禁止」原則
 
 - **Status**: Accepted
 - **Date**: 2026-05-10
 - **Deciders**: 高本まさと
 - **Trigger**: T-019-01 完了報告時に「v2.1 適合チェックの大半を N/A で埋め、リグレッションテストを実行せず PR を出した」状態が発生したため。
+- **Note**: 当初 ADR-010 として作成したが、同日に並行作業の AI スタック再設計が ADR-010 として merge されたため ADR-011 にリネーム (2026-05-10、PR #11 で衝突解消)。
 
 ## Context
 
@@ -72,3 +73,16 @@ ARCHIVE / REFACTOR で「コード削除のみ」だからと smoke を省略し
 - `.claude/settings.json` (PostToolUse Bash hook)
 - `.tsc-baseline` (現在 9)
 - ADR-009 (project-bootstrap-enforcement) — 各案件にも同等のゲートを展開
+
+## Amendments
+
+### 2026-05-10: deny rule bypass のハードニング (本 ADR と同 PR で実施)
+
+`Bash(git push*--force*)` deny だけでは `+ref:ref` 構文 (例: `git push origin "+branch:branch"`) で force push 相当が回避できることを実運用で発見。 `.claude/settings.json` の deny に下記を追加して網羅:
+
+- `Bash(git push*-f *)` — short flag `-f`
+- `Bash(git push* +*)` — refspec の `+` prefix (force update)
+- `Bash(git push*+refs/*)` — `+refs/heads/...`
+- `Bash(git push*+HEAD*)` — `+HEAD:branch`
+
+PostToolUse Bash hook の警告 regex も `\+(HEAD|refs/|<branch>:)` を含むよう更新。templates/project-bootstrap/.claude/settings.json も同期。

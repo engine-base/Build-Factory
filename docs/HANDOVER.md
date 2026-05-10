@@ -132,6 +132,7 @@
 | ADR-008 | Kanban 機能別アコーディオン | `decisions/ADR-008-kanban-by-feature.md` |
 | ADR-009 | 各案件への強制レイヤー自動展開 | `decisions/ADR-009-project-bootstrap-enforcement.md` |
 | ADR-010 | **AI スタック再設計 (3層 / Anthropic 純正中心 + LiteLLM サブ)** | `decisions/ADR-010-ai-stack-anthropic-native.md` |
+| ADR-011 | 完了判定ゲート (`pre-commit-check.sh`) と N/A 禁止原則 | `decisions/ADR-011-completion-gate.md` |
 
 ---
 
