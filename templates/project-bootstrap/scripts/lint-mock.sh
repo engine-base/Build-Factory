@@ -7,12 +7,14 @@
 #   3. 未使用の onlook / penpot 参照
 #   4. tickets.json メタ不足 (validate-tickets.py 委譲)
 #   5. 実鍵リーク (Supabase / generic) の検出 (T-001-01 AC-5)
+#   6. claude-agent-sdk runner module への LangGraph/LangChain 混入 (T-S0-08 AC-7 / ADR-010)
 #
 # Usage:
-#   bash scripts/lint-mock.sh           # 全チェック
-#   bash scripts/lint-mock.sh --emoji   # 絵文字のみ
-#   bash scripts/lint-mock.sh --agpl    # AGPL のみ
-#   bash scripts/lint-mock.sh --secrets # 実鍵リークのみ
+#   bash scripts/lint-mock.sh             # 全チェック
+#   bash scripts/lint-mock.sh --emoji     # 絵文字のみ
+#   bash scripts/lint-mock.sh --agpl      # AGPL のみ
+#   bash scripts/lint-mock.sh --secrets   # 実鍵リークのみ
+#   bash scripts/lint-mock.sh --no-langgraph  # runner への LangGraph 混入のみ
 
 set -e
 cd "$(dirname "$0")/.."
@@ -150,6 +152,31 @@ check_archive() {
 }
 
 # ----------------------------------------------------------------
+# 6. claude-agent-sdk runner への LangGraph / LangChain 混入検出
+#    T-S0-08 AC-7 + ADR-010: runner module は LangGraph に依存しない
+#    対象: claude_agent_runner.py を含む claude-agent-sdk runner ファイル群
+# ----------------------------------------------------------------
+check_no_langgraph() {
+  echo "[6/6] claude-agent-sdk runner の LangGraph/LangChain 混入検出..."
+  local targets="backend/integrations/claude_agent_runner.py"
+  local found=0
+  for f in $targets; do
+    if [ ! -f "$f" ]; then continue; fi
+    if grep -nE "from langgraph|import langgraph|from langchain|import langchain" "$f" > /dev/null 2>&1; then
+      echo -e "${RED}NG: $f に LangGraph/LangChain import (ADR-010 違反)${NC}"
+      grep -nE "from langgraph|import langgraph|from langchain|import langchain" "$f"
+      found=1
+    fi
+  done
+  if [ "$found" -eq 0 ]; then
+    echo -e "${GREEN}OK: runner module に LangGraph/LangChain 混入なし${NC}"
+  else
+    echo "→ ADR-010 で LangGraph は main path から削除。Subagent (Task tool) + 自前 state で代替"
+    EXIT_CODE=1
+  fi
+}
+
+# ----------------------------------------------------------------
 # 5. 実鍵リーク検出 (T-001-01 AC-5)
 #    sb_publishable_<chars> / sb_secret_<chars> パターンが
 #    .env.example 以外のコミット対象ファイルに混入していたら FAIL
@@ -196,20 +223,22 @@ check_tickets() {
 # Dispatch
 # ----------------------------------------------------------------
 case "$MODE" in
-  --emoji)   check_emoji ;;
-  --agpl)    check_agpl ;;
-  --archive) check_archive ;;
-  --tickets) check_tickets ;;
-  --secrets) check_secrets ;;
+  --emoji)        check_emoji ;;
+  --agpl)         check_agpl ;;
+  --archive)      check_archive ;;
+  --tickets)      check_tickets ;;
+  --secrets)      check_secrets ;;
+  --no-langgraph) check_no_langgraph ;;
   all|"")
     check_emoji
     check_agpl
     check_archive
     check_tickets
     check_secrets
+    check_no_langgraph
     ;;
   *)
-    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|all]"
+    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|all]"
     exit 2
     ;;
 esac

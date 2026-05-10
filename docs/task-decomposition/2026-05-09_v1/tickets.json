@@ -332,7 +332,8 @@
           "type": "UNWANTED",
           "text": "If LangGraph or LangChain imports are introduced anywhere in this module, the lint script shall fail (ADR-010 forbids them in main path)."
         }
-      ]
+      ],
+      "output_file": "backend/integrations/claude_agent_runner.py + supabase/migrations/20260510000003_runner_session_tables.sql"
     },
     {
       "id": "T-S0-09",

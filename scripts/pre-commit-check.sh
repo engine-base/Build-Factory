@@ -76,6 +76,12 @@ else
   print_step FAIL "lint-secrets" "実鍵パターン (sb_publishable_*/sb_secret_*) が検出されました — CLAUDE.md §5.4"
   EXIT_CODE=1
 fi
+if bash scripts/lint-mock.sh --no-langgraph >> "$LINT_LOG" 2>&1; then
+  print_step PASS "lint-no-langgraph"
+else
+  print_step FAIL "lint-no-langgraph" "claude-agent-sdk runner に LangGraph/LangChain import — ADR-010 / T-S0-08 AC-7 違反"
+  EXIT_CODE=1
+fi
 
 # 寛容モード (ベースラインと比較)
 EMOJI_BASELINE_FILE=".lint-baseline-emoji"
