@@ -2,7 +2,7 @@
 
 ## v1.1.0 (2026-05-10)
 
-完了判定ゲートの統合 (ADR-010 連動)。
+完了判定ゲートの統合 (ADR-011 連動)。
 
 ### 追加
 - `scripts/pre-commit-check.sh` — 4 段階の完了ゲート (lint / py-syntax / backend-smoke / frontend-tsc)

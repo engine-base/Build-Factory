@@ -28,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'cmd=\"$CLAUDE_TOOL_INPUT\"; if echo \"$cmd\" | grep -qE \"git commit\"; then if [ ! -f .last-precommit-check ]; then echo \"[BLOCK] 完了判定が未実行です。コミット前に必ず実行してください: bash scripts/pre-commit-check.sh (IMPLEMENTATION_PROTOCOL.md Step 6)\" >&2; else age=$(($(date +%s) - $(stat -c %Y .last-precommit-check 2>/dev/null || stat -f %m .last-precommit-check 2>/dev/null || echo 0))); if [ \"$age\" -gt 1800 ]; then echo \"[WARN] .last-precommit-check が ${age}s 前 (>30min)。再実行推奨: bash scripts/pre-commit-check.sh\" >&2; fi; ec=$(python3 -c \"import json; print(json.load(open(\\\".last-precommit-check\\\"))[\\\"exit_code\\\"])\" 2>/dev/null); if [ \"$ec\" != \"0\" ]; then echo \"[BLOCK] 直近の pre-commit-check が exit=${ec} (FAIL)。修正してから再実行のうえコミットしてください\" >&2; fi; fi; fi; if echo \"$cmd\" | grep -qE \"--no-verify|--force\"; then echo \"[ALERT] --no-verify / --force は CLAUDE.md §5.4 で原則禁止。明示承認が必要です\" >&2; fi'"
+            "command": "bash -c 'cmd=\"$CLAUDE_TOOL_INPUT\"; if echo \"$cmd\" | grep -qE \"git commit\"; then if [ ! -f .last-precommit-check ]; then echo \"[BLOCK] 完了判定が未実行です。コミット前に必ず実行してください: bash scripts/pre-commit-check.sh (IMPLEMENTATION_PROTOCOL.md Step 6)\" >&2; else age=$(($(date +%s) - $(stat -c %Y .last-precommit-check 2>/dev/null || stat -f %m .last-precommit-check 2>/dev/null || echo 0))); if [ \"$age\" -gt 1800 ]; then echo \"[WARN] .last-precommit-check が ${age}s 前 (>30min)。再実行推奨: bash scripts/pre-commit-check.sh\" >&2; fi; ec=$(python3 -c \"import json; print(json.load(open(\\\".last-precommit-check\\\"))[\\\"exit_code\\\"])\" 2>/dev/null); if [ \"$ec\" != \"0\" ]; then echo \"[BLOCK] 直近の pre-commit-check が exit=${ec} (FAIL)。修正してから再実行のうえコミットしてください\" >&2; fi; fi; fi; if echo \"$cmd\" | grep -qE \"--no-verify|--force| -f | \\\\+(HEAD|refs/|[a-zA-Z0-9_/-]+:)\"; then echo \"[ALERT] --no-verify / --force / +ref:ref (force push 同等) は CLAUDE.md §5.4 で原則禁止。明示承認が必要です\" >&2; fi'"
           }
         ]
       }
@@ -56,6 +56,10 @@
     ],
     "deny": [
       "Bash(git push*--force*)",
+      "Bash(git push*-f *)",
+      "Bash(git push* +*)",
+      "Bash(git push*+refs/*)",
+      "Bash(git push*+HEAD*)",
       "Bash(git commit*--no-verify*)",
       "Bash(git*--no-verify*)"
     ]

@@ -24,6 +24,7 @@ Build-Factory プロジェクトの主要な技術判断・設計判断を時系
 | [ADR-008](ADR-008-kanban-by-feature.md) | Kanban を機能別アコーディオン (4 列) | Accepted | 2026-05-10 |
 | [ADR-009](ADR-009-project-bootstrap-enforcement.md) | 各案件への強制レイヤー自動展開 | Accepted | 2026-05-10 |
 | [ADR-010](ADR-010-ai-stack-anthropic-native.md) | AI スタック再設計 (5層→3層 / Anthropic 純正中心 + マルチプロバイダ柔軟性) | Accepted | 2026-05-10 |
+| [ADR-011](ADR-011-completion-gate.md) | 完了判定の単一ゲート (`pre-commit-check.sh`) と「N/A 禁止」原則 | Accepted | 2026-05-10 |
 
 ## 新しい ADR を書くとき
 

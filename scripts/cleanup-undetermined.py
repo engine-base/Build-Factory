@@ -3,7 +3,7 @@
 
 high-confidence マッピング (curated): 各 UNDETERMINED ファイルを既存の REFACTOR
 チケットの existing_files に追加。マッピングできないものは triage_needed として
-オーディット出力に明示する (silently REUSE 化しない: ADR-010)。
+オーディット出力に明示する (silently REUSE 化しない: ADR-011)。
 
 Phase boundary 注釈:
   - Phase 1.5: GrapesJS 統合に伴い REFACTOR or 削除されるもの

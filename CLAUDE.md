@@ -179,8 +179,9 @@ Layer 1: PostgreSQL + Mem0 + Obsidian + Constitution
 | 05-10 | **実装プロトコル + lint script + Hook 整備** (機械的強制レイヤー) |
 | 05-10 | **M-31 / ADR-009 / templates/project-bootstrap/ 追加**: Build-Factory が回す各案件にも強制レイヤーを自動展開する仕組み (T-BTSTRAP-01〜06、6 タスク) |
 | 05-10 | **M-32 / ADR-010 (ADR-002 supersede)**: AI スタック 5層→3層 (Anthropic 純正中心 + LiteLLM サブ復活)、自前実装 8 項目 (T-AI-01〜08) を追加 |
+| 05-10 | **ADR-011 (完了判定ゲート)**: `pre-commit-check.sh` を完了報告の単一ゲートに、N/A 記入禁止を IMPLEMENTATION_PROTOCOL Step 6 に明記。当初 ADR-010 として作成したが ADR-010 (AI スタック) と衝突したため改番 |
 
-ADR は `docs/decisions/` に 10 件 (ADR-002 は superseded、ADR-010 が新方針)。
+ADR は `docs/decisions/` に 11 件 (ADR-002 は superseded、ADR-010 が AI スタック新方針、ADR-011 が完了判定ゲート)。
 **強制レイヤー**: `scripts/lint-mock.sh` + `scripts/validate-tickets.py` + `.claude/settings.json` (PostToolUse hook + permissions deny)
 
 ---
