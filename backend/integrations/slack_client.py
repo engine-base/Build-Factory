@@ -370,7 +370,7 @@ def _register_handlers() -> None:
         os.environ["AI_LLM_OVERRIDE_MODEL"]    = model
 
         try:
-            # Web と同一仕様の統一経路（LangGraph + slot + RAG + skill 全部経由）
+            # Web と同一仕様の統一経路 (orchestrator pipeline + slot + RAG + skill 全部経由)
             from ai_agents.secretary_agent import run_as_employee_unified
             from services.slack_history import load_recent_history
             from routers.threads import get_or_create_thread
