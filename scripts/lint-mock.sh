@@ -167,24 +167,24 @@ check_archive() {
 }
 
 # ----------------------------------------------------------------
-# 6. claude-agent-sdk runner への LangGraph / LangChain 混入検出
-#    T-S0-08 AC-7 + ADR-010: runner module は LangGraph に依存しない
-#    対象: claude_agent_runner.py を含む claude-agent-sdk runner ファイル群
+# 6. backend メイン経路への LangGraph / LangChain 混入検出
+#    T-S0-08 AC-7 + ADR-010: メイン経路は LangGraph に依存しない
+#    対象: claude-agent-sdk runner + 会話オーケストレータ + 秘書エージェント
 # ----------------------------------------------------------------
 check_no_langgraph() {
-  echo "[6/6] claude-agent-sdk runner の LangGraph/LangChain 混入検出..."
-  local targets="backend/integrations/claude_agent_runner.py"
+  echo "[6/6] backend メイン経路の LangGraph/LangChain 混入検出..."
+  local targets="backend/integrations/claude_agent_runner.py backend/services/orchestrator_graph.py backend/ai_agents/secretary_agent.py"
   local found=0
   for f in $targets; do
     if [ ! -f "$f" ]; then continue; fi
-    if grep -nE "from langgraph|import langgraph|from langchain|import langchain" "$f" > /dev/null 2>&1; then
+    if grep -nE "^[[:space:]]*from langgraph|^[[:space:]]*import langgraph|^[[:space:]]*from langchain|^[[:space:]]*import langchain" "$f" > /dev/null 2>&1; then
       echo -e "${RED}NG: $f に LangGraph/LangChain import (ADR-010 違反)${NC}"
-      grep -nE "from langgraph|import langgraph|from langchain|import langchain" "$f"
+      grep -nE "^[[:space:]]*from langgraph|^[[:space:]]*import langgraph|^[[:space:]]*from langchain|^[[:space:]]*import langchain" "$f"
       found=1
     fi
   done
   if [ "$found" -eq 0 ]; then
-    echo -e "${GREEN}OK: runner module に LangGraph/LangChain 混入なし${NC}"
+    echo -e "${GREEN}OK: backend メイン経路に LangGraph/LangChain 混入なし${NC}"
   else
     echo "→ ADR-010 で LangGraph は main path から削除。Subagent (Task tool) + 自前 state で代替"
     EXIT_CODE=1

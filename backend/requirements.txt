@@ -51,10 +51,9 @@ langfuse>=2.50.0
 # Pydantic スキーマで LLM 出力を強制・自動リトライ
 instructor>=1.6.0
 
-# === Phase 3: Orchestration (LangGraph) ===
-# 状態機械・チェックポイント・条件分岐
-langgraph>=0.2.50
-langgraph-checkpoint-sqlite>=2.0.0
+# === Phase 3: Orchestration (sequential async pipeline) ===
+# ADR-010 (2026-05-10): LangGraph 撤去。orchestrator_graph.py の sequential
+# pipeline で会話前処理を実行する。
 
 # === Phase 4: Long-term memory (Mem0) ===
 # 人物・好み・履歴の自動抽出・統合

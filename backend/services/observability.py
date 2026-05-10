@@ -1,7 +1,7 @@
 """
 observability.py — Langfuse 観測ラッパー（Phase 1）
 
-全LLM呼び出し・スロット更新・LangGraph ノード遷移を可視化する。
+全LLM呼び出し・スロット更新・orchestrator ノード遷移を可視化する。
 
 使い方:
   1. Langfuse を self-host で立てる（docker compose）
@@ -61,7 +61,7 @@ def is_enabled() -> bool:
 def trace(name: str, *, user_id: Optional[str] = None,
           session_id: Optional[str] = None, metadata: Optional[dict] = None):
     """1リクエスト全体をくくる最上位トレース。
-    LangGraph の各ノードはこの中で span として記録される。"""
+    orchestrator pipeline の各ノードはこの中で span として記録される。"""
     if not is_enabled():
         yield None
         return

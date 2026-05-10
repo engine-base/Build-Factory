@@ -431,109 +431,6 @@ def _build_message_list(history: Optional[list[dict]], user_message: str) -> lis
     return msgs
 
 
-async def _legacy_prepare(
-    employee_id: int,
-    user_message: str,
-    history: Optional[list[dict]],
-    provider: str,
-    model: str,
-    thread_id: Optional[int],
-    helper_provider: Optional[str],
-    helper_model: Optional[str],
-) -> tuple[dict, str, Optional[str], str]:
-    """レガシー直結経路: emp / mode / triggered_skill / rag_text を返す。
-    LangGraph が無効・失敗時のフォールバック。"""
-    from db import async_db as aiosqlite
-    from db.queries import DB_PATH
-    from services.mode_detector import detect_mode
-    from services.skill_detector import detect_skill
-    from services.user_profile import update_from_message
-    from services.rag_context import build_context, format_for_prompt
-    from services.conversation_summarizer import (
-        generate_summary, format_for_prompt as fmt_summary,
-    )
-    from services import slot_state as ss
-
-    async with aiosqlite.connect(DB_PATH) as db:
-        db.row_factory = aiosqlite.Row
-        cur = await db.execute(
-            "SELECT * FROM ai_employee_config WHERE id = ?", (employee_id,),
-        )
-        row = await cur.fetchone()
-    emp = dict(row) if row else {
-        "persona_name": "秘書", "role_level": "secretary",
-        "primary_skill": "secretary",
-    }
-
-    try:
-        await update_from_message(user_message)
-    except Exception as e:
-        print(f"[legacy_prepare] profile {e}")
-
-    mode = await detect_mode(user_message, history or [])
-    triggered_skill: Optional[str] = None
-    if mode == "task":
-        triggered_skill = detect_skill(
-            message=user_message,
-            history=history or [],
-            employee_primary_skill=emp.get("primary_skill"),
-        )
-
-    rag_text = ""
-    try:
-        ctx = await build_context(
-            message=user_message, thread_id=thread_id,
-            employee_id=employee_id, mode=mode,
-        )
-        rag_text = format_for_prompt(ctx, mode=mode)
-    except Exception as e:
-        print(f"[legacy_prepare] rag {e}")
-
-    if thread_id and history and len(history) >= 1:
-        try:
-            hp = helper_provider if helper_provider else (
-                "openai" if os.environ.get("OPENAI_API_KEY") else provider
-            )
-            hm = helper_model if helper_model else (
-                "gpt-4o-mini" if hp == "openai" else model
-            )
-            await ss.update_slots_from_message(
-                thread_id=thread_id,
-                user_message=user_message,
-                history=history,
-                helper_provider=hp,
-                helper_model=hm,
-            )
-        except Exception as e:
-            print(f"[legacy_prepare] slot update {e}")
-
-    slot_text = ""
-    if thread_id:
-        try:
-            slots = await ss.get_slots(thread_id)
-            slot_text = ss.format_for_prompt(slots)
-        except Exception as e:
-            print(f"[legacy_prepare] slot get {e}")
-    if slot_text:
-        rag_text = (rag_text + "\n\n" + slot_text) if rag_text else slot_text
-
-    summary_text = ""
-    if history and len(history) >= 2:
-        try:
-            summary = await generate_summary(
-                history=history,
-                main_provider=provider, main_model=model,
-                helper_provider=helper_provider, helper_model=helper_model,
-            )
-            summary_text = fmt_summary(summary)
-        except Exception as e:
-            print(f"[legacy_prepare] summary {e}")
-    if summary_text:
-        rag_text = (rag_text + "\n\n" + summary_text) if rag_text else summary_text
-
-    return emp, mode, triggered_skill, rag_text
-
-
 async def stream_as_employee(
     employee_id: int,
     user_message: str,
@@ -547,42 +444,25 @@ async def stream_as_employee(
     """指定社員の persona でエージェント実行をストリーミング配信する。
 
     階層プロンプト + RAG 自動注入 + 会話サマリ + スキル発火検知。
-    雑談時は 軽量プロンプト（~1KB）・業務時は フル装備。
+    雑談時は 軽量プロンプト (~1KB)・業務時は フル装備。
 
-    USE_LANGGRAPH=1 のとき LangGraph で前処理を実行（推奨）。
-    それ以外は従来通り直接呼び出し（互換動作）。
+    前処理は services.orchestrator_graph.prepare_state (sequential async
+    pipeline) で実行する。
     """
-    # ── 前処理: LangGraph 経路 / レガシー経路 ─────
-    use_lg = os.environ.get("USE_LANGGRAPH", "1") == "1"
-    emp: dict = {}
-    mode = "chat"
-    triggered_skill: Optional[str] = None
-    rag_text = ""
-
-    if use_lg:
-        try:
-            from services.orchestrator_graph import prepare_state
-            prep = await prepare_state(
-                thread_id=thread_id,
-                employee_id=employee_id,
-                user_message=user_message,
-                history=history,
-                provider=provider, model=model,
-                helper_provider=helper_provider, helper_model=helper_model,
-            )
-            emp = prep["employee"]
-            mode = prep["mode"]
-            triggered_skill = prep["triggered_skill"]
-            rag_text = prep["rag_text"]
-        except Exception as e:
-            print(f"[stream_as_employee] LangGraph 失敗・旧経路へ: {e}")
-            use_lg = False
-
-    if not use_lg:
-        emp, mode, triggered_skill, rag_text = await _legacy_prepare(
-            employee_id, user_message, history, provider, model,
-            thread_id, helper_provider, helper_model,
-        )
+    # ── 前処理: sequential pipeline (ADR-010 で LangGraph 排除) ─────
+    from services.orchestrator_graph import prepare_state
+    prep = await prepare_state(
+        thread_id=thread_id,
+        employee_id=employee_id,
+        user_message=user_message,
+        history=history,
+        provider=provider, model=model,
+        helper_provider=helper_provider, helper_model=helper_model,
+    )
+    emp: dict = prep["employee"]
+    mode: str = prep["mode"]
+    triggered_skill: Optional[str] = prep["triggered_skill"]
+    rag_text: str = prep["rag_text"]
 
     # ── Agent 構築（階層プロンプト） ──────────
     agent = build_agent_for_employee(
@@ -636,7 +516,7 @@ async def run_as_employee_unified(
 ) -> dict:
     """非ストリーミング統一エントリポイント（Slack 等で使う）。
 
-    内部で stream_as_employee と同じ前処理（LangGraph + slot + RAG + skill）を経由し、
+    内部で stream_as_employee と同じ前処理 (sequential pipeline + slot + RAG + skill) を経由し、
     最終出力を1回で返す。Web の SSE 経路と「全く同じ仕様」を保証する。
 
     Returns: {"output": str, "tool_calls": list[str], "thread_id": int|None}
