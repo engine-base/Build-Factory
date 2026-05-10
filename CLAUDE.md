@@ -30,6 +30,7 @@
 | 10 | レビュー / 納品 | 未着手 | - |
 
 **「最初に読むファイル」** → [`docs/HANDOVER.md`](docs/HANDOVER.md) (全フェーズ成果物の統合インデックス)
+**「実装着手手順」** → [`docs/task-decomposition/IMPLEMENTATION_PROTOCOL.md`](docs/task-decomposition/IMPLEMENTATION_PROTOCOL.md) (タスクごとの 7 ステップ SOP・必須遵守)
 
 ---
 
@@ -156,8 +157,10 @@
 | 05-10 | **S-023 に GUI / AI / HTML 編集モード追加** (M-5b) |
 | 05-10 | **絵文字 175 件 → Lucide Icons に一括置換** |
 | 05-10 | **CLAUDE.md / HANDOVER.md / ADR 整備** (このファイル含む) |
+| 05-10 | **実装プロトコル + lint script + Hook 整備** (機械的強制レイヤー) |
 
 ADR は `docs/decisions/` に 8 件残っている (主要技術判断の根拠)。
+**強制レイヤー**: `scripts/lint-mock.sh` + `scripts/validate-tickets.py` + `.claude/settings.json` (PostToolUse hook + permissions deny)
 
 ---
 
@@ -234,7 +237,17 @@ ls docs/mocks/2026-05-09_v1/             # 43 HTML
 
 # git 履歴で直近セッションの追加を確認
 git log --oneline -10
+
+# 実装着手前の必須チェック (機械的強制)
+bash scripts/lint-mock.sh                # 絵文字 / AGPL / ARCHIVE 残留 / tickets.json メタ検証
+python3 scripts/validate-tickets.py      # クリティカルパス 12 件のメタ完備確認
 ```
+
+### 自動 Hook (`.claude/settings.json`)
+- **SessionStart**: 「CLAUDE.md と HANDOVER.md を読め」と stderr に出力
+- **PostToolUse (Edit/Write)**: 編集ファイルに絵文字混入したら警告
+- **PostToolUse (Bash)**: `git commit/push` 前に lint 推奨、`--no-verify` / `--force` は警告
+- **Permissions**: `git push --force` / `--no-verify` 系は **deny** で機械的に拒否
 
 ---
 
