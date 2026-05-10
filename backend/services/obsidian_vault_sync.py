@@ -314,7 +314,7 @@ async def sync_once(vault: Path = VAULT_ROOT) -> dict[str, int]:
                         ),
                     )
             stats["upserted"] += 1
-            log.info("✓ %s (%s)", rel_str, scope["visibility"])
+            log.info("[OK] %s (%s)", rel_str, scope["visibility"])
 
         # 削除検知（既存エントリで vault に存在しないものを削除）
         to_delete = [r["id"] for path, r in existing.items() if path not in seen_paths]
@@ -324,7 +324,7 @@ async def sync_once(vault: Path = VAULT_ROOT) -> dict[str, int]:
                     "DELETE FROM knowledge_base WHERE id = ANY(%s)", (to_delete,)
                 )
             stats["deleted"] = len(to_delete)
-            log.info("✗ deleted %d entries", len(to_delete))
+            log.info("[DEL] deleted %d entries", len(to_delete))
 
         await conn.commit()
 
@@ -337,12 +337,12 @@ async def sync_once(vault: Path = VAULT_ROOT) -> dict[str, int]:
 
 
 async def watch_loop(interval_sec: float = 5.0):
-    log.info("👀 watching %s (interval=%ss)", VAULT_ROOT, interval_sec)
+    log.info("[WATCH] watching %s (interval=%ss)", VAULT_ROOT, interval_sec)
     while True:
         try:
             stats = await sync_once()
             if stats["upserted"] or stats["deleted"]:
-                log.info("📊 %s", stats)
+                log.info("[STATS] %s", stats)
         except Exception as e:
             log.exception("sync failed: %s", e)
         await asyncio.sleep(interval_sec)
@@ -357,12 +357,12 @@ def main():
     cmd = sys.argv[1] if len(sys.argv) > 1 else "sync"
     if cmd == "sync":
         stats = asyncio.run(sync_once())
-        log.info("✅ done: %s", stats)
+        log.info("[OK] done: %s", stats)
     elif cmd == "watch":
         try:
             asyncio.run(watch_loop())
         except KeyboardInterrupt:
-            log.info("👋 stopped")
+            log.info("[STOP] stopped")
     else:
         print(f"unknown command: {cmd}")
         print("usage: python -m services.obsidian_vault_sync [sync|watch]")

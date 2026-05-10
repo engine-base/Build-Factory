@@ -57,7 +57,7 @@ async def run_inbox_check() -> dict:
             idx = j["index"] - 1
             if 0 <= idx < len(new_messages):
                 msg = new_messages[idx]
-                label = "🔴 高" if j["importance"] == "high" else "🟡 中"
+                label = "[高]" if j["importance"] == "high" else "[中]"
                 summary_lines.append(f"{label} {msg['sender_name']}: {msg['subject']}")
         summary = "\n".join(summary_lines[:10])
         await send_completion_notification(

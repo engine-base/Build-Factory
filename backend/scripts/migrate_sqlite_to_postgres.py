@@ -145,14 +145,14 @@ def migrate_table(
 ) -> int:
     """1 テーブル分のデータをコピーし、行数を返す。"""
     if not table_exists_pg(pg, table):
-        print(f"  ⚠ skip: {table} (Postgres 側に存在しない)")
+        print(f"  [WARN] skip: {table} (Postgres 側に存在しない)")
         return 0
 
     sqlite_cols = get_sqlite_columns(sqlite_conn, table)
     pg_cols = get_pg_columns(pg, table)
     common = [c for c in sqlite_cols if c in pg_cols]
     if not common:
-        print(f"  ⚠ skip: {table} (共通列なし)")
+        print(f"  [WARN] skip: {table} (共通列なし)")
         return 0
 
     cur = sqlite_conn.execute(f"SELECT {', '.join(common)} FROM {table}")
@@ -183,7 +183,7 @@ def migrate_table(
                     [coerce_value(v, t) for v, t in zip(row, types)],
                 )
             except Exception as e:
-                print(f"  ✗ {table}: row insert failed: {e}")
+                print(f"  [FAIL] {table}: row insert failed: {e}")
                 print(f"    row preview: {dict(zip(common, row))}")
                 raise
         # シーケンス再同期（id 列が SERIAL の場合のみ）
@@ -209,11 +209,11 @@ def migrate_table(
 
 def main():
     if not SQLITE_PATH.exists():
-        print(f"❌ SQLite DB が見つかりません: {SQLITE_PATH}")
+        print(f"[ERROR] SQLite DB が見つかりません: {SQLITE_PATH}")
         sys.exit(1)
 
-    print(f"🔌 SQLite : {SQLITE_PATH}")
-    print(f"🔌 Postgres: {PG_DSN}")
+    print(f"[CONN] SQLite : {SQLITE_PATH}")
+    print(f"[CONN] Postgres: {PG_DSN}")
     print()
 
     sqlite_conn = sqlite3.connect(SQLITE_PATH)
@@ -226,7 +226,7 @@ def main():
             t for t in all_tables if t not in PRIORITY
         ]
 
-        print(f"📦 移行対象 {len(ordered)} テーブル")
+        print(f"[INFO] 移行対象 {len(ordered)} テーブル")
         print()
 
         # FK の都合で、コピー中は外部キー制約を一時無効化
@@ -238,7 +238,7 @@ def main():
         for t in ordered:
             n = migrate_table(sqlite_conn, pg, t)
             if n > 0:
-                print(f"  ✓ {t:35s} {n:>6} rows")
+                print(f"  [OK] {t:35s} {n:>6} rows")
                 total_rows += n
                 per_table.append((t, n))
 
@@ -249,7 +249,7 @@ def main():
     sqlite_conn.close()
 
     print()
-    print(f"✅ 完了: {total_rows} 行を {len(per_table)} テーブルに移行")
+    print(f"[OK] 完了: {total_rows} 行を {len(per_table)} テーブルに移行")
 
 
 if __name__ == "__main__":

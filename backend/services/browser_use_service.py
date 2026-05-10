@@ -200,9 +200,9 @@ async def get_connection_status() -> dict:
         "cdp_url": CDP_URL_DEFAULT,
         "mode": "cdp" if cdp_alive else "new_profile",
         "instruction": (
-            "✅ Chromeに接続中（既存ログイン状態を使用）"
+            "[OK] Chromeに接続中（既存ログイン状態を使用）"
             if cdp_alive else
-            "⚠️ Chromeを次のコマンドで起動してください:\n"
+            "[WARN] Chromeを次のコマンドで起動してください:\n"
             '  open -a "Google Chrome" --args --remote-debugging-port=9222\n'
             "起動していない場合は credentials.enc ベースで動きます。"
         ),

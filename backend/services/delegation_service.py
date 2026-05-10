@@ -139,7 +139,7 @@ async def delegate(user_request: str, channel_say=None) -> dict:
     # 単一スキル: 秘書にルーティング判定させる
     routing = await _ask_secretary_routing(user_request)
     if not routing:
-        await say("⚠️ ルーティング判定に失敗しました")
+        await say("[WARN] ルーティング判定に失敗しました")
         return {"status": "error", "error": "routing_failed"}
 
     skill = routing.get("skill", "")
@@ -163,25 +163,25 @@ async def delegate(user_request: str, channel_say=None) -> dict:
         return {"status": "executed", "skill": "secretary", "result": result}
 
     # ステップ4: 該当スキルを実行
-    await say(f"📌 `{skill}` で対応します（理由: {reason}）")
+    await say(f"`{skill}` で対応します（理由: {reason}）")
 
     try:
         from integrations.skill_runner import invoke_skill
         result = await invoke_skill(skill, skill_input, triggered_by="user")
     except FileNotFoundError:
-        await say(f"⚠️ スキル `{skill}` が見つかりません。秘書で対応します。")
+        await say(f"[WARN] スキル `{skill}` が見つかりません。秘書で対応します。")
         result = await invoke_skill("secretary", user_request, triggered_by="user")
         await say(result[:1500])
         return {"status": "executed", "skill": "secretary", "result": result}
     except Exception as e:
-        await say(f"❌ 実行エラー: {e}")
+        await say(f"[ERROR] 実行エラー: {e}")
         return {"status": "error", "error": str(e)}
 
     # ステップ5: 承認が必要 → approval_queue へ
     if needs_approval:
         approval_id = await _create_approval(skill, user_request, result)
         await say(
-            f"✅ 下書き完成 → 承認キューに追加（#{approval_id}）\n"
+            f"[OK] 下書き完成 → 承認キューに追加（#{approval_id}）\n"
             f"確認後 `承認 {approval_id}` で実行されます"
         )
         return {
@@ -192,7 +192,7 @@ async def delegate(user_request: str, channel_say=None) -> dict:
         }
 
     # ステップ6: 承認不要 → そのまま結果を返す
-    await say(f"✅ 完了\n```\n{result[:1500]}\n```")
+    await say(f"[OK] 完了\n```\n{result[:1500]}\n```")
     return {"status": "executed", "skill": skill, "result": result}
 
 

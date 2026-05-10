@@ -99,7 +99,7 @@ async def main():
             )
             personas = await cur.fetchall()
 
-    print(f"📦 Vault root: {VAULT_ROOT}")
+    print(f"[INFO] Vault root: {VAULT_ROOT}")
     VAULT_ROOT.mkdir(parents=True, exist_ok=True)
 
     write_readme(
@@ -184,7 +184,7 @@ async def main():
             "# Design System\n\nこの案件で使用するデザインシステム (DESIGN.md など)\n",
         )
 
-    print("✅ Obsidian vault 初期化完了")
+    print("[OK] Obsidian vault 初期化完了")
     print(f"   accounts:   {len(accounts)}")
     print(f"   workspaces: {len(workspaces)}")
     print(f"   personas/account: {len(AI_PERSONA_SLUGS)}")

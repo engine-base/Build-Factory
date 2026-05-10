@@ -480,15 +480,16 @@ def _load_skill_md() -> str:
 
 def _extract_common_rules(skill_md: str) -> str:
     """skill md の冒頭「思考品質基準」セクションを抽出。"""
-    m = re.search(r"##\s*🧠\s*全スキル共通[\s\S]*?(?=\n#\s*requirements-definition\s*スキル|\Z)", skill_md)
+    m = re.search(r"##\s*\U0001F9E0\s*全スキル共通[\s\S]*?(?=\n#\s*requirements-definition\s*スキル|\Z)", skill_md)
     if m:
         return m.group(0).strip()
     return skill_md[:5000]
 
 
 def _extract_step_section(skill_md: str, step: int) -> str:
-    """指定 STEP セクション抽出 (### ▶ STEP {n} ... ）。"""
-    pattern = rf"###\s*▶\s*STEP\s*{step}[：:][\s\S]*?(?=###\s*▶\s*STEP\s*{step+1}|\n##\s|\Z)"
+    """指定 STEP セクション抽出 (### [arrow] STEP {n} ... ）。"""
+    _arrow = chr(0x25B6)  # BLACK RIGHT-POINTING TRIANGLE (avoid raw emoji char in source)
+    pattern = rf"###\s*{_arrow}\s*STEP\s*{step}[：:][\s\S]*?(?=###\s*{_arrow}\s*STEP\s*{step+1}|\n##\s|\Z)"
     m = re.search(pattern, skill_md)
     if m:
         return m.group(0).strip()

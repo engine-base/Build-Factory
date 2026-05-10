@@ -34,7 +34,7 @@ def upgrade() -> None:
         batch.add_column(sa.Column("personality",   sa.Text()))   # 性格
         batch.add_column(sa.Column("tone_style",    sa.Text()))   # 口調
         batch.add_column(sa.Column("catchphrase",   sa.Text()))   # 口癖
-        batch.add_column(sa.Column("avatar_emoji",  sa.Text()))   # 🎯
+        batch.add_column(sa.Column("avatar_emoji",  sa.Text()))   # avatar identifier (text only)
         batch.add_column(sa.Column("specialty",     sa.Text()))   # 特化分野（メンバーのみ）
         batch.add_column(sa.Column("handles",       sa.Text()))   # 担当範囲（自然文）
 
@@ -77,7 +77,7 @@ def upgrade() -> None:
             personality  = COALESCE(personality, '落ち着いて全体を把握・寄り添い型・気配り上手'),
             tone_style   = COALESCE(tone_style, 'です・ます調・敬語・短く要点'),
             catchphrase  = COALESCE(catchphrase, '承知しました'),
-            avatar_emoji = COALESCE(avatar_emoji, '🎀'),
+            avatar_emoji = COALESCE(avatar_emoji, ''),
             handles      = COALESCE(handles, 'まさととの全窓口・全社俯瞰・タスク振分・組織の最適化'),
             knowledge_folders = COALESCE(knowledge_folders,
                 '["00_まさとの思考・価値観","01_会社・事業","02_共通ナレッジ"]')
@@ -89,7 +89,7 @@ def upgrade() -> None:
             personality  = COALESCE(personality, '受注ハンター気質・前のめり・ポジティブ'),
             tone_style   = COALESCE(tone_style, 'ビジネスカジュアル「〜しましょう！」「いきましょう！」'),
             catchphrase  = COALESCE(catchphrase, 'これチャンスですね'),
-            avatar_emoji = COALESCE(avatar_emoji, '🎯'),
+            avatar_emoji = COALESCE(avatar_emoji, ''),
             handles      = COALESCE(handles, '営業全般の統括・パイプライン管理・案件振分・受注最大化'),
             knowledge_folders = COALESCE(knowledge_folders,
                 '["00_まさとの思考・価値観","01_会社・事業","02_共通ナレッジ","03_スキル別ナレッジ/営業"]')
@@ -101,7 +101,7 @@ def upgrade() -> None:
             personality  = COALESCE(personality, '慎重・数字に厳しい・冷静沈着'),
             tone_style   = COALESCE(tone_style, 'です・ます調・丁寧・ロジカル'),
             catchphrase  = COALESCE(catchphrase, '数字で確認しましょう'),
-            avatar_emoji = COALESCE(avatar_emoji, '💰'),
+            avatar_emoji = COALESCE(avatar_emoji, ''),
             handles      = COALESCE(handles, '経理全般の統括・PL/CF管理・請求/支払い・税務サポート'),
             knowledge_folders = COALESCE(knowledge_folders,
                 '["00_まさとの思考・価値観","01_会社・事業","02_共通ナレッジ","03_スキル別ナレッジ/経理"]')
@@ -113,7 +113,7 @@ def upgrade() -> None:
             personality  = COALESCE(personality, 'クリエイティブ・トレンド大好き・スピード感'),
             tone_style   = COALESCE(tone_style, 'カジュアル・絵文字多め・テンション高め'),
             catchphrase  = COALESCE(catchphrase, 'これバズらせましょう'),
-            avatar_emoji = COALESCE(avatar_emoji, '📣'),
+            avatar_emoji = COALESCE(avatar_emoji, ''),
             handles      = COALESCE(handles, 'マーケ全般の統括・SNS/コンテンツ/広告/SEOの戦略設計'),
             knowledge_folders = COALESCE(knowledge_folders,
                 '["00_まさとの思考・価値観","01_会社・事業","02_共通ナレッジ","03_スキル別ナレッジ/マーケティング"]')
@@ -125,7 +125,7 @@ def upgrade() -> None:
             personality  = COALESCE(personality, '共感型・聞き上手・寄り添い'),
             tone_style   = COALESCE(tone_style, '柔らかい・ですます調・お気持ち重視'),
             catchphrase  = COALESCE(catchphrase, 'お気持ちわかります'),
-            avatar_emoji = COALESCE(avatar_emoji, '💝'),
+            avatar_emoji = COALESCE(avatar_emoji, ''),
             handles      = COALESCE(handles, 'CS全般の統括・問い合わせ対応・FAQ管理・顧客満足度'),
             knowledge_folders = COALESCE(knowledge_folders,
                 '["00_まさとの思考・価値観","01_会社・事業","02_共通ナレッジ","03_スキル別ナレッジ/CS"]')

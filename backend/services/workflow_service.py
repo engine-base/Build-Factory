@@ -64,10 +64,10 @@ async def run_workflow(user_request: str, channel_say=None) -> dict:
     say = channel_say or _print_say
 
     # 1. 秘書にプランを立てさせる
-    await say("🧠 プランを設計中...")
+    await say("プランを設計中...")
     plan = await _ask_planner(user_request)
     if not plan:
-        await say("⚠️ プラン設計に失敗しました。単一スキルで処理します。")
+        await say("[WARN] プラン設計に失敗しました。単一スキルで処理します。")
         return {"status": "fallback_single", "skill": None}
 
     if not plan.get("is_multi_agent", False):
@@ -81,7 +81,7 @@ async def run_workflow(user_request: str, channel_say=None) -> dict:
     workflow_id = await _create_workflow_run(user_request, plan)
 
     summary = plan.get("summary", "")
-    await say(f"📋 プラン: {summary}\n  ステップ数: {len(steps)}")
+    await say(f"プラン: {summary}\n  ステップ数: {len(steps)}")
 
     # 3. ステップを並列グループ単位で実行
     completed_outputs: dict[int, str] = {}
@@ -90,7 +90,7 @@ async def run_workflow(user_request: str, channel_say=None) -> dict:
     for group_steps in grouped:
         group_label = group_steps[0].get("parallel_group") or "順次"
         skill_names = [s["skill"] for s in group_steps]
-        await say(f"  ▶ 実行中: {group_label} ({', '.join(skill_names)})")
+        await say(f"  > 実行中: {group_label} ({', '.join(skill_names)})")
 
         # depends_on の結果を input に追記
         tasks = []
@@ -103,11 +103,11 @@ async def run_workflow(user_request: str, channel_say=None) -> dict:
 
         for step, result in zip(group_steps, results):
             if isinstance(result, Exception):
-                await say(f"    ❌ {step['skill']}: {result}")
+                await say(f"    [FAIL] {step['skill']}: {result}")
                 completed_outputs[step["step"]] = f"[エラー] {result}"
             else:
                 completed_outputs[step["step"]] = result
-                await say(f"    ✅ {step['skill']} 完了")
+                await say(f"    [OK] {step['skill']} 完了")
 
     # 4. synthesis ステップの結果を最終出力にする
     final_step = next((s for s in steps if s.get("synthesis")), None)
@@ -123,9 +123,9 @@ async def run_workflow(user_request: str, channel_say=None) -> dict:
     approval_id = None
     if plan.get("needs_approval", True):
         approval_id = await _create_approval(user_request, final_output, plan)
-        await say(f"✅ ワークフロー完了 → 承認キュー #{approval_id}")
+        await say(f"[OK] ワークフロー完了 → 承認キュー #{approval_id}")
     else:
-        await say(f"✅ ワークフロー完了\n\n{final_output[:1500]}")
+        await say(f"[OK] ワークフロー完了\n\n{final_output[:1500]}")
 
     # 6. workflow_runs を完了状態に
     await _complete_workflow_run(workflow_id, final_output, approval_id)

@@ -47,7 +47,7 @@ class HireBody(BaseModel):
     personality:  str = ""
     tone_style:   str = ""
     catchphrase:  str = ""
-    avatar_emoji: str = "👤"
+    avatar_emoji: str = ""
     knowledge_folders: Optional[list[str]] = None
     primary_skill: str = ""
     inherit_knowledge_ids: Optional[list[int]] = None

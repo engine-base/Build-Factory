@@ -46,13 +46,13 @@ VIEW_TYPES = {
 }
 
 CATEGORIES = {
-    "number":   "📊 数字",
-    "task":     "✅ タスク",
-    "document": "📄 文書",
-    "catalog":  "🗂 一覧",
-    "design":   "🎨 デザイン",
-    "flow":     "🔁 フロー",
-    "time":     "📅 時間",
+    "number":   "数字",
+    "task":     "タスク",
+    "document": "文書",
+    "catalog":  "一覧",
+    "design":   "デザイン",
+    "flow":     "フロー",
+    "time":     "時間",
 }
 
 DEFAULT_USER_ID = "masato"

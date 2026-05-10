@@ -64,7 +64,7 @@ def export_to_excel(artifact: dict, template: str = "minimal") -> Path:
         ws["A3"] = "Done"; ws["B3"] = "Item"
         ws["A3"].font = head_font; ws["B3"].font = head_font
         for i, it in enumerate(data.get("items") or []):
-            ws.cell(row=4 + i, column=1).value = "✓" if it.get("done") else ""
+            ws.cell(row=4 + i, column=1).value = "Yes" if it.get("done") else ""
             ws.cell(row=4 + i, column=2).value = it.get("text", "")
         ws.column_dimensions["B"].width = 60
 
@@ -213,7 +213,7 @@ def export_to_pptx(artifact: dict, template: str = "minimal") -> Path:
     elif t == "list":
         items = data.get("items") or []
         lines = [
-            ("☑ " if it.get("done") else "☐ ") + (it.get("text") or "")
+            ("[x] " if it.get("done") else "[ ] ") + (it.get("text") or "")
             for it in items
         ]
         add_content_slide("項目", lines)
@@ -272,7 +272,7 @@ def export_to_pptx(artifact: dict, template: str = "minimal") -> Path:
             v.runs[0].font.size = Pt(36); v.runs[0].font.bold = True
             if m.get("delta") is not None:
                 d = tx.add_paragraph()
-                d.text = ("▲" if (m.get("delta") or 0) > 0 else "▼") + str(abs(m.get("delta", 0)))
+                d.text = ("+" if (m.get("delta") or 0) > 0 else "-") + str(abs(m.get("delta", 0)))
                 d.runs[0].font.size = Pt(12)
 
     elif t == "compare":
@@ -345,7 +345,7 @@ def export_to_pdf(artifact: dict, template: str = "minimal") -> Path:
 
     if t == "list":
         items = [
-            ("☑ " if it.get("done") else "☐ ") + (it.get("text") or "")
+            ("[x] " if it.get("done") else "[ ] ") + (it.get("text") or "")
             for it in (data.get("items") or [])
         ]
         story.append(ListFlowable([ListItem(Paragraph(x, body)) for x in items], bulletType="bullet"))

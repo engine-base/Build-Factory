@@ -57,7 +57,7 @@ class TaskActionBody(BaseModel):
 async def handle_task_action(body: TaskActionBody):
     """
     タスク完了カードからのアクション処理。
-    Web画面の「✅承認 / ✏️修正 / ❌却下 / 💾ナレッジ化」ボタンから呼ばれる。
+    Web画面の「承認 / 修正 / 却下 / ナレッジ化」ボタンから呼ばれる。
     """
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row

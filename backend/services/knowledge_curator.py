@@ -237,7 +237,7 @@ tags: [{", ".join(tags)}]
 # {title}
 """
         if masato_memo:
-            body += f"\n> 📝 まさとのメモ: {masato_memo}\n"
+            body += f"\n> まさとのメモ: {masato_memo}\n"
         body += f"\n## 内容\n\n{content}\n"
 
         path.write_text(body, encoding="utf-8")

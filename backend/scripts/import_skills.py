@@ -78,13 +78,13 @@ def import_skill(skill_zip: Path, db: sqlite3.Connection) -> bool:
                     break
 
             if not skill_md_path:
-                print(f"  ⚠️  SKILL.md が見つかりません: {skill_zip.name}")
+                print(f"  [WARN] SKILL.md が見つかりません: {skill_zip.name}")
                 return False
 
             content = zf.read(skill_md_path).decode('utf-8')
 
     except Exception as e:
-        print(f"  ❌ ZIP展開失敗 {skill_zip.name}: {e}")
+        print(f"  [FAIL] ZIP展開失敗 {skill_zip.name}: {e}")
         return False
 
     # フロントマター解析
@@ -124,15 +124,15 @@ def import_skill(skill_zip: Path, db: sqlite3.Connection) -> bool:
 
 def main():
     if not SKILL_ZIP_DIR.exists():
-        print(f"❌ スキルフォルダが見つかりません: {SKILL_ZIP_DIR}")
+        print(f"[FAIL] スキルフォルダが見つかりません: {SKILL_ZIP_DIR}")
         return
 
     skill_files = list(SKILL_ZIP_DIR.glob("*.skill"))
     if not skill_files:
-        print("⚠️  .skill ファイルが見つかりません")
+        print("[WARN] .skill ファイルが見つかりません")
         return
 
-    print(f"📦 {len(skill_files)}個の .skill ファイルをインポートします")
+    print(f"[INFO] {len(skill_files)}個の .skill ファイルをインポートします")
     print(f"   → 格納先: {SKILL_STORE}")
     print()
 
@@ -142,7 +142,7 @@ def main():
     for sf in sorted(skill_files):
         success = import_skill(sf, db)
         if success:
-            print(f"  ✅ {sf.stem}")
+            print(f"  [OK] {sf.stem}")
             ok += 1
         else:
             fail += 1

@@ -536,15 +536,15 @@ def format_for_prompt(slots: list[Slot]) -> str:
     for s in slots:
         body = []
         if s.confirmed_value:
-            body.append(f"✓確定: {s.confirmed_value}")
+            body.append(f"確定: {s.confirmed_value}")
         if s.rejected:
             body.append(f"×不採用（再提示禁止）: {', '.join(s.rejected)}")
         if s.hints:
-            body.append(f"💡ヒント: {' / '.join(s.hints)}")
+            body.append(f"ヒント: {' / '.join(s.hints)}")
         if s.history:
             ph = [h for h in s.history if h not in s.rejected and h != s.confirmed_value]
             if ph:
                 body.append(f"履歴: {', '.join(ph[-5:])}")
-        status = "✅" if s.is_resolved else "⏳"
+        status = "[OK]" if s.is_resolved else "[..]"
         lines.append(f"  {status} [{s.slot_name}] " + " / ".join(body))
     return "\n".join(lines)
