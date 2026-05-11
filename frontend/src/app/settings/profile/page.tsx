@@ -30,6 +30,7 @@ import {
   fetchCloneOptin, setCloneOptin, requestUserDeletion,
   type OAuthProvider,
 } from "@/lib/workspace-api";
+import { Button } from "@/components/ui/button";
 
 // TODO(auth): セッション統合後に動的取得
 const USER_ID = "masato";
@@ -199,20 +200,22 @@ function ProfileTab() {
             <Check className="w-3.5 h-3.5" /> 保存しました
           </span>
         )}
-        <button
-          className="px-4 py-2 text-sm border border-slate-300 rounded hover:bg-slate-50"
+        <Button
+          variant="outline"
+          size="default"
           onClick={() => profileQ.data && setDraft(profileQ.data)}
         >
           リセット
-        </button>
-        <button
-          className="px-4 py-2 text-sm bg-eb-500 hover:bg-eb-600 text-white rounded font-bold disabled:opacity-50 inline-flex items-center gap-1"
+        </Button>
+        <Button
+          size="default"
+          className="bg-eb-500 hover:bg-eb-600 text-white font-bold"
           onClick={() => saveMut.mutate()}
           disabled={saveMut.isPending}
         >
           {saveMut.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
           保存
-        </button>
+        </Button>
       </div>
     </>
   );
@@ -363,19 +366,17 @@ function OAuthRow({ provider, onChanged }: { provider: OAuthProvider; onChanged:
       {statusQ.isLoading ? (
         <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
       ) : connected ? (
-        <button
-          onClick={onDisconnect}
-          className="px-3 py-1.5 text-xs border border-slate-300 rounded hover:bg-slate-50 inline-flex items-center gap-1"
-        >
+        <Button variant="outline" size="sm" onClick={onDisconnect}>
           <Unlink className="w-3.5 h-3.5" /> 解除
-        </button>
+        </Button>
       ) : (
-        <button
+        <Button
+          size="sm"
+          className="bg-eb-500 hover:bg-eb-600 text-white font-bold"
           onClick={onConnect}
-          className="px-3 py-1.5 text-xs bg-eb-500 hover:bg-eb-600 text-white rounded font-bold inline-flex items-center gap-1"
         >
           <Link2 className="w-3.5 h-3.5" /> 接続
-        </button>
+        </Button>
       )}
     </div>
   );
@@ -463,29 +464,29 @@ function DeleteAccountCard() {
             onChange={(e) => setReason(e.target.value)}
           />
           <div className="flex gap-2">
-            <button
-              className="px-3 py-1.5 text-xs bg-rose-600 hover:bg-rose-700 text-white rounded font-bold inline-flex items-center gap-1 disabled:opacity-50"
+            <Button
+              size="sm"
+              className="bg-rose-600 hover:bg-rose-700 text-white font-bold"
               onClick={() => deleteMut.mutate()}
               disabled={deleteMut.isPending}
             >
               {deleteMut.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
               30 日後に削除する
-            </button>
-            <button
-              className="px-3 py-1.5 text-xs text-rose-700 hover:text-rose-800"
-              onClick={() => setConfirming(false)}
-            >
+            </Button>
+            <Button variant="ghost" size="sm" className="text-rose-700" onClick={() => setConfirming(false)}>
               キャンセル
-            </button>
+            </Button>
           </div>
         </div>
       ) : (
-        <button
-          className="px-3 py-1.5 text-xs border border-rose-400 text-rose-700 hover:bg-rose-100 rounded inline-flex items-center gap-1"
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-rose-400 text-rose-700 hover:bg-rose-100"
           onClick={() => setConfirming(true)}
         >
           <Trash2 className="w-3.5 h-3.5" /> アカウント削除をリクエスト
-        </button>
+        </Button>
       )}
     </div>
   );

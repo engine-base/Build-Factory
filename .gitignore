@@ -40,3 +40,6 @@ Thumbs.db
 .last-precommit-check
 /tmp/precommit-lint.log
 # .tsc-baseline はリポジトリで管理する (技術的負債の可視化のため)
+backend/.coverage
+backend/.coverage
+.coverage
