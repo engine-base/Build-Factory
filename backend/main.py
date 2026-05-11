@@ -75,6 +75,7 @@ from routers.impact_highlight import router as impact_highlight_router
 from routers.mcp_tokens import router as mcp_tokens_router
 from routers.parallel_runner import router as parallel_runner_router
 from routers.priority_elevation import router as priority_elevation_router
+from routers.priority_queue import router as priority_queue_router
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 
@@ -200,6 +201,7 @@ app.include_router(impact_highlight_router)
 app.include_router(mcp_tokens_router)
 app.include_router(parallel_runner_router)
 app.include_router(priority_elevation_router)
+app.include_router(priority_queue_router)
 
 
 @app.get("/health")
