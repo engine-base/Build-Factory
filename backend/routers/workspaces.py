@@ -164,6 +164,44 @@ async def remove_member(workspace_id: int, user_id: str,
     return {"removed": ok}
 
 
+# ──────────────────────────────────────────
+# T-004-05: owner 移譲 (atomic)
+# ──────────────────────────────────────────
+class TransferOwnershipRequest(BaseModel):
+    current_owner_id: str
+    new_owner_id: str
+
+
+@router.post("/{workspace_id}/transfer-ownership")
+async def transfer_ownership_route(workspace_id: int, body: TransferOwnershipRequest):
+    """T-004-05 AC:
+      - EVENT: owner を current → new に atomic 移譲
+      - STATE: current_owner_id が実際の owner でなければ 403
+      - UNWANTED: new_owner_id がメンバーでなければ 400 (code=target_not_member)
+    """
+    try:
+        return await ws.transfer_ownership(
+            workspace_id,
+            current_owner_id=body.current_owner_id,
+            new_owner_id=body.new_owner_id,
+        )
+    except ws.NotOwnerError as e:
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "not_owner", "message": str(e)},
+        )
+    except ws.TargetNotMemberError as e:
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "target_not_member", "message": str(e)},
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "invalid_request", "message": str(e)},
+        )
+
+
 @router.get("/permissions/matrix")
 async def permission_matrix() -> dict:
     """T-021-04: 6 ロール × 30 permission の matrix を返す (UI grid 用)。"""

@@ -2,23 +2,30 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Workspace, fetchWorkspace, updateWorkspace, archiveWorkspace } from "@/lib/workspaces";
+import {
+  Workspace, fetchWorkspace, updateWorkspace, archiveWorkspace,
+  fetchMembers, transferOwnership, type WorkspaceMember,
+} from "@/lib/workspaces";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import {
   Info, GitBranch, Palette, Cpu, Bell, KeyRound, Archive,
   AlertTriangle, Lock, Navigation, Zap, CheckCircle2,
+  Users, Crown,
 } from "lucide-react";
 
 const NAV_ITEMS = [
-  { id: "info",     label: "基本情報",   icon: Info },
-  { id: "phase",    label: "フェーズ制御", icon: GitBranch },
-  { id: "penpot",   label: "Penpot 連携",  icon: Palette },
-  { id: "ai",       label: "AI モデル",    icon: Cpu },
-  { id: "notify",   label: "通知",         icon: Bell },
-  { id: "tokens",   label: "API トークン", icon: KeyRound },
-  { id: "archive",  label: "アーカイブ",   icon: Archive },
-  { id: "danger",   label: "危険ゾーン",   icon: AlertTriangle, danger: true },
+  { id: "info",        label: "基本情報",   icon: Info },
+  { id: "membership",  label: "メンバーシップ", icon: Users },
+  { id: "phase",       label: "フェーズ制御", icon: GitBranch },
+  { id: "penpot",      label: "Penpot 連携",  icon: Palette },
+  { id: "ai",          label: "AI モデル",    icon: Cpu },
+  { id: "notify",      label: "通知",         icon: Bell },
+  { id: "tokens",      label: "API トークン", icon: KeyRound },
+  { id: "archive",     label: "アーカイブ",   icon: Archive },
+  { id: "danger",      label: "危険ゾーン",   icon: AlertTriangle, danger: true },
 ];
+
+const CURRENT_USER_ID = "masato";  // TODO: auth から取得
 
 export default function SettingsPage() {
   const params = useParams();
@@ -149,8 +156,14 @@ export default function SettingsPage() {
           )}
           {section === "penpot" && <PenpotSection clientEdit={clientCanEdit} setClientEdit={setClientCanEdit} />}
           {section === "ai" && <AiModelSection />}
+          {section === "membership" && (
+            <MembershipSection
+              workspaceId={id}
+              onToast={setToast}
+            />
+          )}
           {section === "danger" && <DangerSection onArchive={handleArchive} />}
-          {!["info", "phase", "penpot", "ai", "danger"].includes(section) && (
+          {!["info", "membership", "phase", "penpot", "ai", "danger"].includes(section) && (
             <SettingsCard title={NAV_ITEMS.find((n) => n.id === section)?.label ?? ""} icon={NAV_ITEMS.find((n) => n.id === section)?.icon ?? Info}>
               <div style={{ padding: "var(--bf-space-12) var(--bf-space-6)", textAlign: "center", color: "var(--bf-text-3)", fontSize: 13 }}>
                 この設定セクションは実装中です。
@@ -501,6 +514,141 @@ function AiModelSection() {
     </SettingsCard>
   );
 }
+
+/**
+ * T-004-05: Owner 移譲 セクション
+ *
+ * AC:
+ *   - UBIQUITOUS: 既存メンバーへの owner 移譲 UI を提供する
+ *   - EVENT: 移譲 submit で current_owner → new_owner を atomic 切替
+ *   - STATE: current user が owner でなければ移譲 UI を hide / disable
+ *   - UNWANTED: target がメンバーでなければ backend 400 (target_not_member)
+ */
+function MembershipSection({
+  workspaceId,
+  onToast,
+}: {
+  workspaceId: number;
+  onToast: (t: { kind: "ok" | "err"; msg: string }) => void;
+}) {
+  const [members, setMembers] = useState<WorkspaceMember[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [targetUserId, setTargetUserId] = useState("");
+  const [transferring, setTransferring] = useState(false);
+
+  useEffect(() => {
+    fetchMembers(workspaceId)
+      .then((m) => setMembers(m))
+      .finally(() => setLoading(false));
+  }, [workspaceId]);
+
+  const currentOwner = members.find((m) => m.role === "owner");
+  const isOwner = currentOwner?.user_id === CURRENT_USER_ID;
+  const eligibleTargets = members.filter(
+    (m) => m.user_id !== CURRENT_USER_ID && m.role !== "owner",
+  );
+
+  const handleTransfer = async () => {
+    if (!isOwner) return;
+    if (!targetUserId) {
+      onToast({ kind: "err", msg: "移譲先メンバーを選択してください" });
+      return;
+    }
+    const target = members.find((m) => m.user_id === targetUserId);
+    if (!confirm(`Owner 権限を ${target?.user_id} に移譲します。あなたの権限は ws_admin に変更されます。よろしいですか?`)) {
+      return;
+    }
+    setTransferring(true);
+    try {
+      const result = await transferOwnership(workspaceId, CURRENT_USER_ID, targetUserId);
+      if (result.ok) {
+        onToast({ kind: "ok", msg: `Owner を ${targetUserId} に移譲しました` });
+        const updated = await fetchMembers(workspaceId);
+        setMembers(updated);
+        setTargetUserId("");
+      } else if (result.detail?.code === "target_not_member") {
+        onToast({ kind: "err", msg: "選択したユーザーはこのワークスペースのメンバーではありません" });
+      } else {
+        onToast({ kind: "err", msg: result.detail?.message ?? "Owner 移譲に失敗しました" });
+      }
+    } catch {
+      onToast({ kind: "err", msg: "Owner 移譲に失敗しました" });
+    } finally {
+      setTransferring(false);
+    }
+  };
+
+  return (
+    <SettingsCard title="メンバーシップ" desc="ワークスペースのオーナーシップ管理" icon={Users}>
+      <div style={{ marginBottom: "var(--bf-space-5)" }}>
+        <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--bf-text-2)", marginBottom: 8 }}>
+          現在の Owner
+        </div>
+        <div className="flex items-center gap-2" style={{
+          padding: "10px 14px",
+          background: "var(--bf-primary-soft)",
+          border: "1px solid var(--bf-primary-bg)",
+          borderRadius: "var(--bf-radius-md)",
+          fontSize: 13,
+        }}>
+          <Crown className="w-4 h-4" style={{ color: "var(--bf-primary)" }} />
+          <span style={{ fontWeight: 600, color: "var(--bf-text-1)" }}>
+            {loading ? "読み込み中…" : currentOwner?.user_id ?? "未割当"}
+          </span>
+          {isOwner && (
+            <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--bf-primary)" }}>
+              (あなた)
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div style={{ borderTop: "1px dashed var(--bf-divider)", paddingTop: "var(--bf-space-4)" }}>
+        <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--bf-text-1)", marginBottom: 4 }}>
+          Owner を移譲する
+        </div>
+        <div style={{ fontSize: 12, color: "var(--bf-text-3)", marginBottom: 12, lineHeight: 1.5 }}>
+          {isOwner
+            ? "別のメンバーを新しい Owner にします。あなたは自動的に ws_admin に降格します。"
+            : "Owner のみがこの操作を実行できます。"}
+        </div>
+
+        {isOwner && (
+          <div className="flex items-center gap-2">
+            <Select
+              value={targetUserId}
+              onChange={(e) => setTargetUserId(e.target.value)}
+              style={{ flex: 1 }}
+            >
+              <option value="">移譲先メンバーを選択…</option>
+              {eligibleTargets.map((m) => (
+                <option key={m.user_id} value={m.user_id}>
+                  {m.user_id} ({m.role})
+                </option>
+              ))}
+            </Select>
+            <button
+              onClick={handleTransfer}
+              disabled={!targetUserId || transferring}
+              className="inline-flex items-center gap-1.5"
+              style={{
+                height: 40, padding: "0 16px",
+                background: targetUserId && !transferring ? "var(--bf-primary)" : "var(--bf-text-4)",
+                color: "#fff", borderRadius: "var(--bf-radius-md)",
+                fontSize: 13, fontWeight: 600, flexShrink: 0,
+                cursor: targetUserId && !transferring ? "pointer" : "not-allowed",
+              }}
+            >
+              <Crown className="w-3.5 h-3.5" />
+              {transferring ? "移譲中…" : "移譲する"}
+            </button>
+          </div>
+        )}
+      </div>
+    </SettingsCard>
+  );
+}
+
 
 function DangerSection({ onArchive }: { onArchive: () => void }) {
   return (
