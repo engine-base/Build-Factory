@@ -101,14 +101,20 @@ async def create_workspace(body: WorkspaceCreate):
 
 
 @router.patch("/{workspace_id}")
-async def update_workspace(workspace_id: int, body: WorkspaceUpdate):
+async def update_workspace(
+    workspace_id: int,
+    body: WorkspaceUpdate,
+    actor_user_id: Optional[str] = None,
+):
     fields = body.model_dump(exclude_unset=True)
+    if actor_user_id is not None:
+        fields["actor_user_id"] = actor_user_id
     return await ws.update_workspace(workspace_id, **fields)
 
 
 @router.delete("/{workspace_id}")
-async def archive_workspace(workspace_id: int):
-    return await ws.archive_workspace(workspace_id)
+async def archive_workspace(workspace_id: int, actor_user_id: Optional[str] = None):
+    return await ws.archive_workspace(workspace_id, actor_user_id=actor_user_id)
 
 
 # ── members ────────────────────────────────

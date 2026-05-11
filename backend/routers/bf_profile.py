@@ -34,6 +34,10 @@ class ProfilePatch(BaseModel):
 
 @router.patch("")
 async def patch(user_id: str, body: ProfilePatch) -> dict:
+    """T-023-01 AC:
+      - EVENT: PATCH /api/bf-profile が呼ばれたら dirty fields を upsert
+      - UNWANTED: invalid theme → 422 (code=invalid_theme)
+    """
     try:
         return await upsert_profile(
             user_id,
@@ -44,4 +48,10 @@ async def patch(user_id: str, body: ProfilePatch) -> dict:
             avatar_url=body.avatar_url,
         )
     except ValueError as e:
-        raise HTTPException(400, str(e))
+        msg = str(e)
+        if msg.startswith("invalid theme"):
+            raise HTTPException(
+                status_code=422,
+                detail={"code": "invalid_theme", "message": msg},
+            )
+        raise HTTPException(400, msg)

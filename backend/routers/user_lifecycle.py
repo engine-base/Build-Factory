@@ -18,6 +18,7 @@ from services.user_lifecycle import (
     set_clone_optin, get_clone_optin,
     request_deletion, cancel_deletion,
     list_pending_deletions, execute_due_deletions,
+    AlreadyPendingError,
     GRACE_DAYS,
 )
 
@@ -55,9 +56,19 @@ class DeletionRequest(BaseModel):
 
 @router.post("/deletion")
 async def request_user_deletion(body: DeletionRequest) -> dict:
-    result = await request_deletion(
-        body.user_id, reason=body.reason, grace_days=body.grace_days,
-    )
+    """T-023-05 AC:
+      - EVENT: deletion を記録、 execute_after を返す
+      - UNWANTED: 既に pending あれば 409 (code=already_pending)
+    """
+    try:
+        result = await request_deletion(
+            body.user_id, reason=body.reason, grace_days=body.grace_days,
+        )
+    except AlreadyPendingError as e:
+        raise HTTPException(
+            status_code=409,
+            detail={"code": "already_pending", "message": str(e)},
+        )
     if not result.get("ok"):
         raise HTTPException(status_code=500, detail=result.get("error", "unknown"))
     return result

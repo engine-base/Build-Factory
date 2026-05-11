@@ -30,7 +30,10 @@ def _db_path():
 # ──────────────────────────────────────────
 
 async def set_clone_optin(user_id: str, opted_in: bool) -> dict:
-    """opt-in toggle を切り替える。default OFF。"""
+    """opt-in toggle を切り替える。default OFF。
+
+    audit_logs に clone_optin.changed event を emit (silent fail)。
+    """
     try:
         async with _db().connect(_db_path()) as db:
             now_col = "opted_in_at" if opted_in else "opted_out_at"
@@ -46,7 +49,16 @@ async def set_clone_optin(user_id: str, opted_in: bool) -> dict:
             await db.commit()
     except Exception as e:
         return {"ok": False, "error": str(e)[:200]}
+    await _audit("clone_optin.changed", user_id, {"opted_in": opted_in})
     return {"ok": True, "user_id": user_id, "opted_in": opted_in}
+
+
+async def _audit(event_type: str, user_id: str, detail: dict) -> None:
+    try:
+        from services.memory_service import emit_event
+        await emit_event(event_type, user_id=user_id, detail=detail)
+    except Exception as e:
+        print(f"[user_lifecycle] audit emit failed: {event_type} -- {e}")
 
 
 async def get_clone_optin(user_id: str) -> bool:
@@ -81,12 +93,29 @@ def _execute_after(days: int = GRACE_DAYS) -> str:
     return (datetime.now(timezone.utc) + timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
 
 
+class AlreadyPendingError(Exception):
+    """T-023-05 AC-UNWANTED: 既に pending な削除リクエストが存在する。"""
+
+
 async def request_deletion(user_id: str, *, reason: Optional[str] = None,
                            grace_days: int = GRACE_DAYS) -> dict:
-    """削除リクエストを記録し execute_after を返す (30 日 grace)。"""
+    """削除リクエストを記録し execute_after を返す (30 日 grace)。
+
+    AC (T-023-05):
+      - EVENT: deletion_requested を記録、 30 日後の execute_after を返す
+      - UNWANTED: 既に pending な request があれば AlreadyPendingError (router で 409)
+    """
     execute_after = _execute_after(grace_days)
     try:
         async with _db().connect(_db_path()) as db:
+            db.row_factory = _db().Row
+            cur = await db.execute(
+                "SELECT id FROM user_deletion_requests WHERE user_id = ? AND status = 'pending'",
+                (user_id,),
+            )
+            existing = await cur.fetchone()
+            if existing:
+                raise AlreadyPendingError(f"deletion already pending (id={dict(existing).get('id')})")
             cur = await db.execute(
                 """INSERT INTO user_deletion_requests (user_id, status, execute_after, reason)
                    VALUES (?, 'pending', ?, ?)""",
@@ -94,8 +123,15 @@ async def request_deletion(user_id: str, *, reason: Optional[str] = None,
             )
             await db.commit()
             req_id = cur.lastrowid or 0
+    except AlreadyPendingError:
+        raise
     except Exception as e:
         return {"ok": False, "error": str(e)[:200]}
+    await _audit(
+        "user.deletion_requested",
+        user_id,
+        {"request_id": req_id, "execute_after": execute_after, "grace_days": grace_days},
+    )
     return {
         "ok": True,
         "request_id": req_id,
@@ -107,8 +143,17 @@ async def request_deletion(user_id: str, *, reason: Optional[str] = None,
 
 async def cancel_deletion(request_id: int) -> bool:
     """削除リクエストをキャンセル (grace 期間内のみ)。"""
+    user_id: Optional[str] = None
     try:
         async with _db().connect(_db_path()) as db:
+            db.row_factory = _db().Row
+            cur = await db.execute(
+                "SELECT user_id FROM user_deletion_requests WHERE id = ? AND status = 'pending'",
+                (request_id,),
+            )
+            row = await cur.fetchone()
+            if row:
+                user_id = dict(row).get("user_id")
             cur = await db.execute(
                 """UPDATE user_deletion_requests
                       SET status = 'cancelled',
@@ -117,9 +162,12 @@ async def cancel_deletion(request_id: int) -> bool:
                 (request_id,),
             )
             await db.commit()
-            return (cur.rowcount or 0) > 0
+            ok = (cur.rowcount or 0) > 0
     except Exception:
         return False
+    if ok and user_id:
+        await _audit("user.deletion_cancelled", user_id, {"request_id": request_id})
+    return ok
 
 
 async def list_pending_deletions(*, due_only: bool = False) -> list[dict]:

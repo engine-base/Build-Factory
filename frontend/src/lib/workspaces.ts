@@ -187,8 +187,11 @@ export async function createWorkspace(body: {
 export async function updateWorkspace(
   id: number,
   patch: Partial<Pick<Workspace, "name" | "description" | "status" | "design_system_ref">>,
+  actorUserId = "masato",
 ): Promise<Workspace> {
-  const r = await fetch(`${BASE}/api/workspaces/${id}`, {
+  const url = new URL(`${BASE}/api/workspaces/${id}`);
+  if (actorUserId) url.searchParams.set("actor_user_id", actorUserId);
+  const r = await fetch(url.toString(), {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(patch),
@@ -196,8 +199,10 @@ export async function updateWorkspace(
   return r.json();
 }
 
-export async function archiveWorkspace(id: number): Promise<Workspace> {
-  const r = await fetch(`${BASE}/api/workspaces/${id}`, { method: "DELETE" });
+export async function archiveWorkspace(id: number, actorUserId = "masato"): Promise<Workspace> {
+  const url = new URL(`${BASE}/api/workspaces/${id}`);
+  if (actorUserId) url.searchParams.set("actor_user_id", actorUserId);
+  const r = await fetch(url.toString(), { method: "DELETE" });
   return r.json();
 }
 
