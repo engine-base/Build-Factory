@@ -223,6 +223,79 @@ class OwnerProtectedError(ValueError):
     """T-021-05: owner ロールは降格/削除できない (最後の 1 人は特に)。"""
 
 
+class TargetNotMemberError(ValueError):
+    """T-004-05 AC-UNWANTED: owner 移譲先がメンバーでない。"""
+
+
+class NotOwnerError(ValueError):
+    """T-004-05 AC-STATE: owner ではないユーザーが移譲しようとした。"""
+
+
+# ──────────────────────────────────────────
+# T-004-05: owner 移譲 (atomic)
+# ──────────────────────────────────────────
+async def transfer_ownership(
+    workspace_id: int,
+    *,
+    current_owner_id: str,
+    new_owner_id: str,
+) -> dict:
+    """Owner を current → new に atomic に移譲する。
+
+    AC (T-004-05):
+      - UBIQUITOUS: 既存メンバーへ移譲できる
+      - EVENT: current_owner を ws_admin に降格、 new_owner を owner に昇格 (atomic)
+      - STATE: current_owner_id が actually owner でない場合 NotOwnerError
+      - UNWANTED: new_owner_id が member でない場合 TargetNotMemberError
+
+    実装方針: 同一トランザクション内で 2 行 UPDATE。
+    """
+    if current_owner_id == new_owner_id:
+        raise ValueError("current_owner_id and new_owner_id are the same")
+
+    # 1. current_owner が実際に owner か確認
+    current = await get_member(workspace_id, current_owner_id)
+    if not current or current.get("role") != "owner":
+        raise NotOwnerError(f"{current_owner_id} is not the current owner of workspace {workspace_id}")
+
+    # 2. new_owner_id が既存メンバーか確認
+    target = await get_member(workspace_id, new_owner_id)
+    if not target:
+        raise TargetNotMemberError(
+            f"target user {new_owner_id} is not a member of workspace {workspace_id}"
+        )
+
+    # 3. atomic な UPDATE 2 件 (同一 connection)
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            "UPDATE workspace_members SET role = 'ws_admin' "
+            "WHERE workspace_id = ? AND user_id = ?",
+            (workspace_id, current_owner_id),
+        )
+        await db.execute(
+            "UPDATE workspace_members SET role = 'owner' "
+            "WHERE workspace_id = ? AND user_id = ?",
+            (workspace_id, new_owner_id),
+        )
+        await db.commit()
+
+    await _emit_audit(
+        "workspace.ownership_transferred",
+        user_id=current_owner_id,
+        detail={
+            "workspace_id": workspace_id,
+            "from_user_id": current_owner_id,
+            "to_user_id": new_owner_id,
+        },
+    )
+    return {
+        "ok": True,
+        "workspace_id": workspace_id,
+        "from_user_id": current_owner_id,
+        "to_user_id": new_owner_id,
+    }
+
+
 async def _count_role(workspace_id: int, role: str) -> int:
     async with aiosqlite.connect(DB_PATH) as db:
         cur = await db.execute(

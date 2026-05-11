@@ -25,13 +25,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   UserPlus, Trash2, Check, AlertTriangle, Loader2, X,
   ShieldCheck, Eye, Hammer, UserCog, Briefcase, Activity,
+  Mail, Copy, Link as LinkIcon,
 } from "lucide-react";
 import {
   fetchWorkspaceMembers, fetchPermissionMatrix,
   updateMemberRole, removeMember, addMember,
   type RoleKey, type WorkspaceMember,
 } from "@/lib/workspace-api";
-import { Workspace, fetchWorkspace } from "@/lib/workspaces";
+import { Workspace, fetchWorkspace, createInvitation } from "@/lib/workspaces";
 import { WorkspaceShell } from "@/components/workspace-shell";
 
 // TODO(auth): セッション統合後に動的取得
@@ -68,6 +69,14 @@ export default function MembersPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [newUserId, setNewUserId] = useState("");
   const [newRole, setNewRole] = useState<RoleKey>("contributor");
+
+  // T-004-03/04: 招待リンク発行
+  const [showInvite, setShowInvite] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<RoleKey>("contributor");
+  const [inviteExpires, setInviteExpires] = useState(7);
+  const [inviteResult, setInviteResult] = useState<{ url: string; expires_at: string } | null>(null);
+  const [inviting, setInviting] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -150,12 +159,20 @@ export default function MembersPage() {
               backend `services/roles.py` の 6 ロール × {permCount} permission を正本としています (T-021-01)。
             </div>
           </div>
-          <button
-            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs bg-eb-500 hover:bg-eb-600 text-white rounded font-bold"
-            onClick={() => setShowAdd((s) => !s)}
-          >
-            <UserPlus className="w-3.5 h-3.5" /> メンバー追加
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded font-bold"
+              onClick={() => { setShowInvite((s) => !s); setShowAdd(false); setInviteResult(null); }}
+            >
+              <Mail className="w-3.5 h-3.5" /> 招待リンク発行
+            </button>
+            <button
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs bg-eb-500 hover:bg-eb-600 text-white rounded font-bold"
+              onClick={() => { setShowAdd((s) => !s); setShowInvite(false); }}
+            >
+              <UserPlus className="w-3.5 h-3.5" /> メンバー追加
+            </button>
+          </div>
         </div>
 
         {errorMsg && (
@@ -165,6 +182,98 @@ export default function MembersPage() {
             <button className="text-rose-500 hover:text-rose-700" onClick={() => setErrorMsg(null)}>
               <X className="w-4 h-4" />
             </button>
+          </div>
+        )}
+
+        {showInvite && (
+          <div className="px-4 py-3 bg-eb-50 border border-eb-100 rounded space-y-3">
+            <div className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+              <LinkIcon className="w-3.5 h-3.5" /> 招待リンクを発行する
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <input
+                type="email"
+                className="px-3 py-1.5 text-sm border border-slate-300 rounded min-w-[220px]"
+                placeholder="招待先メールアドレス"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+              />
+              <select
+                className="px-3 py-1.5 text-sm border border-slate-300 rounded bg-white"
+                value={inviteRole}
+                onChange={(e) => setInviteRole(e.target.value as RoleKey)}
+              >
+                {ROLE_KEYS.map((r) => (
+                  <option key={r} value={r}>{ROLE_META[r].label}</option>
+                ))}
+              </select>
+              <select
+                className="px-3 py-1.5 text-sm border border-slate-300 rounded bg-white"
+                value={inviteExpires}
+                onChange={(e) => setInviteExpires(Number(e.target.value))}
+              >
+                <option value={1}>1 日</option>
+                <option value={7}>7 日</option>
+                <option value={14}>14 日</option>
+                <option value={30}>30 日</option>
+              </select>
+              <button
+                className="px-3 py-1.5 text-xs bg-eb-500 hover:bg-eb-600 text-white rounded font-bold disabled:opacity-50"
+                disabled={!inviteEmail || inviting}
+                onClick={async () => {
+                  setInviting(true);
+                  setInviteResult(null);
+                  try {
+                    const r = await createInvitation(id, {
+                      email: inviteEmail,
+                      role: inviteRole,
+                      expires_in_days: inviteExpires,
+                    });
+                    if (r && (r as any).invitation_url) {
+                      setInviteResult({
+                        url: (r as any).invitation_url,
+                        expires_at: (r as any).expires_at,
+                      });
+                    } else {
+                      setErrorMsg("招待リンク発行に失敗しました");
+                    }
+                  } catch {
+                    setErrorMsg("招待リンク発行に失敗しました");
+                  } finally {
+                    setInviting(false);
+                  }
+                }}
+              >
+                {inviting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "発行"}
+              </button>
+              <button
+                className="px-3 py-1.5 text-xs text-slate-500 hover:text-slate-700"
+                onClick={() => { setShowInvite(false); setInviteResult(null); }}
+              >
+                キャンセル
+              </button>
+            </div>
+            {inviteResult && (
+              <div className="px-3 py-2 bg-white border border-eb-200 rounded text-xs space-y-1.5">
+                <div className="text-slate-500">
+                  招待リンク (期限: {new Date(inviteResult.expires_at).toLocaleString("ja-JP")}):
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    readOnly
+                    className="flex-1 px-2 py-1 text-xs bg-slate-50 border border-slate-200 rounded font-mono"
+                    value={inviteResult.url}
+                    onFocus={(e) => e.target.select()}
+                  />
+                  <button
+                    className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 rounded"
+                    onClick={() => navigator.clipboard?.writeText(inviteResult.url)}
+                  >
+                    <Copy className="w-3 h-3" /> コピー
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

@@ -260,3 +260,27 @@ export async function createInvitation(
   });
   return r.json();
 }
+
+
+// ── T-004-05: Owner 移譲 ────────────────────────────────
+
+export interface TransferOwnershipResult {
+  ok?: boolean;
+  workspace_id?: number;
+  from_user_id?: string;
+  to_user_id?: string;
+  detail?: { code: string; message: string };
+}
+
+export async function transferOwnership(
+  workspaceId: number,
+  currentOwnerId: string,
+  newOwnerId: string,
+): Promise<TransferOwnershipResult> {
+  const r = await fetch(`${BASE}/api/workspaces/${workspaceId}/transfer-ownership`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ current_owner_id: currentOwnerId, new_owner_id: newOwnerId }),
+  });
+  return r.json();
+}
