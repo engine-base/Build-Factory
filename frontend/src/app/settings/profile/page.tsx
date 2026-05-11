@@ -31,6 +31,8 @@ import {
   type OAuthProvider,
 } from "@/lib/workspace-api";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 // TODO(auth): セッション統合後に動的取得
 const USER_ID = "masato";
@@ -167,16 +169,14 @@ function ProfileTab() {
         </div>
         <div className="space-y-3 max-w-xl">
           <Field label="表示名">
-            <input
-              className="w-full px-3 py-2 text-sm border border-slate-300 rounded focus:outline-none focus:border-eb-500"
+            <Input
               value={draft.display_name ?? ""}
               onChange={(e) => setDraft({ ...draft, display_name: e.target.value })}
               maxLength={120}
             />
           </Field>
           <Field label="役割">
-            <input
-              className="w-full px-3 py-2 text-sm border border-slate-300 rounded focus:outline-none focus:border-eb-500"
+            <Input
               value={draft.role_text ?? ""}
               onChange={(e) => setDraft({ ...draft, role_text: e.target.value })}
               maxLength={120}
@@ -184,8 +184,8 @@ function ProfileTab() {
             />
           </Field>
           <Field label="略歴">
-            <textarea
-              className="w-full min-h-[80px] px-3 py-2 text-sm border border-slate-300 rounded focus:outline-none focus:border-eb-500"
+            <Textarea
+              className="min-h-[80px]"
               value={draft.bio ?? ""}
               onChange={(e) => setDraft({ ...draft, bio: e.target.value })}
               maxLength={2000}
@@ -457,8 +457,8 @@ function DeleteAccountCard() {
         </div>
       ) : confirming ? (
         <div className="space-y-2">
-          <textarea
-            className="w-full px-3 py-2 text-sm border border-rose-300 rounded bg-white"
+          <Textarea
+            className="border-rose-300"
             placeholder="削除理由 (任意)"
             value={reason}
             onChange={(e) => setReason(e.target.value)}

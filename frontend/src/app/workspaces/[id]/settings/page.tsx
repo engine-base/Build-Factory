@@ -26,6 +26,8 @@ import {
 } from "@/lib/workspaces";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Info, GitBranch, ShieldAlert, Plug, Wallet, Archive,
   Users, Crown, CheckCircle2, Loader2,
@@ -225,23 +227,13 @@ function Field({ label, help, children }: {
   );
 }
 
-function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <input
-      {...props}
-      className={`w-full max-w-md px-3 py-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-eb-500/30 focus:border-eb-500 ${props.className ?? ""}`}
-    />
-  );
+/** shadcn Input の薄いラッパ — max-w-md を当てる */
+function TextInput(props: React.ComponentProps<typeof Input>) {
+  return <Input {...props} className={`max-w-md ${props.className ?? ""}`} />;
 }
 
-function NumberInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <input
-      type="number"
-      {...props}
-      className={`w-32 px-3 py-2 text-sm border border-slate-300 rounded mono focus:outline-none focus:ring-2 focus:ring-eb-500/30 focus:border-eb-500 ${props.className ?? ""}`}
-    />
-  );
+function NumberInput(props: React.ComponentProps<typeof Input>) {
+  return <Input type="number" {...props} className={`w-32 mono ${props.className ?? ""}`} />;
 }
 
 
@@ -322,8 +314,8 @@ function GeneralSection({
           <TextInput type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
         </Field>
         <Field label="概要">
-          <textarea
-            className="w-full max-w-xl h-24 px-3 py-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-eb-500/30 focus:border-eb-500"
+          <Textarea
+            className="max-w-xl h-24"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
