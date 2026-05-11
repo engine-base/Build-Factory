@@ -142,6 +142,14 @@ async def list_categories():
     return [dict(r) for r in rows]
 
 
+@router.get("/-archived")
+async def list_archived():
+    """archive 済みスキル一覧 (T-002-02). 静的 path のため /{skill_name} より先に定義."""
+    from services.skill_manager import list_archived_skills
+    rows = await list_archived_skills()
+    return rows
+
+
 @router.get("/{skill_name}")
 async def get_skill(skill_name: str):
     """スキルのメタデータ＋本文 (SKILL.md)."""
@@ -350,6 +358,84 @@ async def run_skill(skill_name: str, body: dict):
         detail={"skill_name": name, "input_len": len(str(user_input))},
     )
     return {"skill_name": name, "result": result}
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# T-002-02: archive / restore endpoint
+# ──────────────────────────────────────────────────────────────────────────
+
+
+class ArchiveRequest(BaseModel):
+    actor_user_id: Optional[str] = None
+    reason: Optional[str] = None
+
+
+class RestoreRequest(BaseModel):
+    actor_user_id: Optional[str] = None
+    archived_at: Optional[str] = None
+
+
+@router.post("/{skill_name}/archive")
+async def archive_skill_endpoint(skill_name: str, body: ArchiveRequest):
+    """スキルを archive する (T-002-02)."""
+    _validate_actor(body.actor_user_id)
+    name = _validate_skill_name(skill_name)
+    if body.reason is not None and len(body.reason) > 2000:
+        raise _error("skills.reason_too_large", "reason must be <= 2000 chars")
+
+    from services.skill_manager import (
+        archive_skill,
+        SkillNotFoundError,
+        SkillAlreadyArchivedError,
+    )
+    try:
+        result = await archive_skill(
+            name, actor_user_id=body.actor_user_id, reason=body.reason,
+        )
+    except SkillNotFoundError as e:
+        raise _error("skills.not_found", str(e), status_code=404)
+    except SkillAlreadyArchivedError as e:
+        raise _error("skills.already_archived", str(e), status_code=409)
+    except Exception as e:
+        raise _error("skills.archive_failed", f"archive failed: {e}", status_code=500)
+
+    await _audit(
+        "skills.archived",
+        user_id=body.actor_user_id,
+        detail={"skill_name": name, "reason": body.reason,
+                "archive_dir": result.get("archive_dir")},
+    )
+    return {"status": "archived", **result}
+
+
+@router.post("/{skill_name}/restore")
+async def restore_skill_endpoint(skill_name: str, body: RestoreRequest):
+    """archive からスキルを restore する (T-002-02)."""
+    _validate_actor(body.actor_user_id)
+    name = _validate_skill_name(skill_name)
+
+    from services.skill_manager import (
+        restore_skill,
+        SkillNotFoundError,
+        SkillAlreadyArchivedError,
+    )
+    try:
+        result = await restore_skill(
+            name, actor_user_id=body.actor_user_id, archived_at=body.archived_at,
+        )
+    except SkillNotFoundError as e:
+        raise _error("skills.archive_not_found", str(e), status_code=404)
+    except SkillAlreadyArchivedError as e:
+        raise _error("skills.already_active", str(e), status_code=409)
+    except Exception as e:
+        raise _error("skills.restore_failed", f"restore failed: {e}", status_code=500)
+
+    await _audit(
+        "skills.restored",
+        user_id=body.actor_user_id,
+        detail={"skill_name": name, "restored_from": result.get("restored_from")},
+    )
+    return {"status": "restored", **result}
 
 
 def _extract_description(content: str) -> str:
