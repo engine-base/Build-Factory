@@ -312,15 +312,68 @@ async def permission_matrix() -> dict:
     }
 
 
-# ── invitations ────────────────────────────
+# ── invitations (T-004-03) ────────────────────────────
+
+import re as _re
+
+_EMAIL_RE = _re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+VALID_ROLES = ("owner", "admin", "contributor", "viewer", "reviewer", "guest")
+
 
 @router.post("/{workspace_id}/invitations")
 async def create_invitation(workspace_id: int, body: InvitationCreate):
-    return await ws.create_invitation(
-        workspace_id, body.email,
-        role=body.role, invited_by=body.invited_by,
-        expires_in_days=body.expires_in_days,
+    """T-004-03 / F-004: workspace 招待発行 (token + expires_at 返却)."""
+    if workspace_id <= 0:
+        raise _error("workspaces.invalid_id", "workspace_id must be > 0")
+
+    email = (body.email or "").strip().lower()
+    if not email:
+        raise _error("invitations.invalid_email", "email must not be empty")
+    if len(email) > 254:
+        raise _error("invitations.email_too_long", "email must be <= 254 chars")
+    if not _EMAIL_RE.match(email):
+        raise _error("invitations.invalid_email",
+                     f"email format invalid: {body.email!r}")
+
+    role = (body.role or "contributor").strip().lower()
+    if role not in VALID_ROLES:
+        raise _error(
+            "invitations.invalid_role",
+            f"role must be one of {VALID_ROLES}, got {body.role!r}",
+        )
+
+    invited_by = (body.invited_by or "").strip()
+    if not invited_by:
+        raise _error("invitations.unauthorized",
+                     "invited_by must not be empty", status_code=401)
+
+    if body.expires_in_days <= 0 or body.expires_in_days > 90:
+        raise _error("invitations.invalid_expires_in_days",
+                     "expires_in_days must be 1..90")
+
+    try:
+        result = await ws.create_invitation(
+            workspace_id, email,
+            role=role, invited_by=invited_by,
+            expires_in_days=body.expires_in_days,
+        )
+    except ValueError as e:
+        raise _error("invitations.create_failed", str(e))
+    except Exception as e:
+        raise _error("invitations.create_failed",
+                     f"invitation create failed: {e}", status_code=500)
+
+    await _audit_ws(
+        "workspaces.invitation.created",
+        user_id=invited_by,
+        detail={
+            "workspace_id": workspace_id,
+            "email_hash": str(hash(email)),  # PII を avoid
+            "role": role,
+            "expires_in_days": body.expires_in_days,
+        },
     )
+    return result
 
 
 # ── workspace ↔ project 連携 / タスクサマリ ─────────────
