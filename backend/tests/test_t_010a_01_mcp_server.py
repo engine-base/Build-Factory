@@ -119,15 +119,17 @@ def test_ac2_error_uses_detail_code_message(client):
 
 
 def test_ac3_existing_tool_contract_unchanged(client):
-    """AC-3: tools/list の tool 数 + name + inputSchema が既存と同じ."""
+    """AC-3: tools/list で既存 3 tool の name + inputSchema が不変 (extension 許可)."""
     r = client.post("/mcp/tools/list")
     tools = r.json()["tools"]
-    assert len(tools) == 3
+    # T-010a-02 で BF tools 追加 (extension は許可、既存は不変)
+    assert len(tools) >= 3
     by_name = {t["name"]: t for t in tools}
-    # 既存 inputSchema が保持されている
+    # 既存 3 tool の inputSchema が保持されている
     assert by_name["query_company_db"]["inputSchema"]["required"] == ["sql"]
     assert "sql" in by_name["query_company_db"]["inputSchema"]["properties"]
     assert by_name["get_kpi"]["inputSchema"] == {"type": "object", "properties": {}}
+    assert "list_records" in by_name
 
 
 def test_ac3_existing_response_shape_unchanged(client):
