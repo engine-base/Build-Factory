@@ -196,6 +196,30 @@ check_no_langgraph() {
 }
 
 # ----------------------------------------------------------------
+# 7. claude-runner への LiteLLM 混入検出 (T-M12-01 AC-5 / ADR-010)
+#    メイン経路は claude-agent-sdk + anthropic-python のみ。 LiteLLM はサブ用途専用.
+# ----------------------------------------------------------------
+check_no_litellm_in_runner() {
+  echo "[7/7] backend メイン経路の LiteLLM 混入検出..."
+  local targets="backend/integrations/claude_agent_runner.py backend/services/orchestrator_graph.py backend/ai_agents/secretary_agent.py"
+  local found=0
+  for f in $targets; do
+    if [ ! -f "$f" ]; then continue; fi
+    if grep -nE "^[[:space:]]*from litellm|^[[:space:]]*import litellm" "$f" > /dev/null 2>&1; then
+      echo -e "${RED}NG: $f に LiteLLM import (T-M12-01 AC-5 違反 / ADR-010)${NC}"
+      grep -nE "^[[:space:]]*from litellm|^[[:space:]]*import litellm" "$f"
+      found=1
+    fi
+  done
+  if [ "$found" -eq 0 ]; then
+    echo -e "${GREEN}OK: backend メイン経路に LiteLLM 混入なし${NC}"
+  else
+    echo "→ T-M12-01 / ADR-010: LiteLLM はサブ用途専用 (services/litellm_router.py)。メイン経路は claude-agent-sdk + anthropic-python のみ"
+    EXIT_CODE=1
+  fi
+}
+
+# ----------------------------------------------------------------
 # 5. 実鍵リーク検出 (T-001-01 AC-5)
 #    sb_publishable_<chars> / sb_secret_<chars> パターンが
 #    .env.example 以外のコミット対象ファイルに混入していたら FAIL
@@ -248,6 +272,7 @@ case "$MODE" in
   --tickets)      check_tickets ;;
   --secrets)      check_secrets ;;
   --no-langgraph) check_no_langgraph ;;
+  --no-litellm-in-runner) check_no_litellm_in_runner ;;
   all|"")
     check_emoji
     check_agpl
@@ -255,9 +280,10 @@ case "$MODE" in
     check_tickets
     check_secrets
     check_no_langgraph
+    check_no_litellm_in_runner
     ;;
   *)
-    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|all]"
+    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|all]"
     exit 2
     ;;
 esac
