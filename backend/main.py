@@ -52,6 +52,7 @@ from routers.design_mocks import router as design_mocks_router
 from routers.references import router as references_router
 from routers.swarm import router as swarm_router
 from routers.memory import router as memory_router
+from routers.context import router as context_router
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 
@@ -154,6 +155,7 @@ app.include_router(design_mocks_router)
 app.include_router(references_router)
 app.include_router(swarm_router)
 app.include_router(memory_router)
+app.include_router(context_router)
 
 
 @app.get("/health")
