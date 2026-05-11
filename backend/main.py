@@ -91,6 +91,7 @@ from routers.byok import router as byok_router
 from routers.tier2_cache import router as tier2_cache_router
 from routers.semantic_retrieval import router as semantic_retrieval_router
 from routers.chat_threads import router as chat_threads_router
+from routers.ai_employees import employees_router as ai_employees_router, personas_router as ai_personas_router
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 
@@ -232,6 +233,8 @@ app.include_router(byok_router)
 app.include_router(tier2_cache_router)
 app.include_router(semantic_retrieval_router)
 app.include_router(chat_threads_router)
+app.include_router(ai_employees_router)
+app.include_router(ai_personas_router)
 
 
 @app.get("/health")
