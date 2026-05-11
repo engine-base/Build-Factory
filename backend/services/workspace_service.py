@@ -105,10 +105,18 @@ async def update_workspace(workspace_id: int, **fields) -> dict:
         return await get_workspace(workspace_id) or {}
     actor_user_id = fields.pop("actor_user_id", None)
     cols, vals = [], []
-    for k in ("name", "description", "status", "design_system_ref"):
+    # S-013 一般タブ + S-013 統合タブ + フェーズゲート 列 (migration g4b5c6d7e8f9 で追加)
+    for k in (
+        "name", "description", "status", "design_system_ref",
+        "client_name", "due_date", "github_repo", "slack_channel",
+        "phase_gate_mode",
+    ):
         if k in fields:
             cols.append(f"{k} = ?"); vals.append(fields[k])
-    for k in ("project_meta", "client_visibility"):
+    if "budget_jpy_monthly" in fields:
+        cols.append("budget_jpy_monthly = ?")
+        vals.append(fields["budget_jpy_monthly"])
+    for k in ("project_meta", "client_visibility", "redlines"):
         if k in fields:
             cols.append(f"{k} = ?"); vals.append(json.dumps(fields[k], ensure_ascii=False))
     cols.append("updated_at = datetime('now','localtime')")

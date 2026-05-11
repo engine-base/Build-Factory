@@ -42,6 +42,14 @@ class WorkspaceUpdate(BaseModel):
     project_meta: Optional[dict] = None
     client_visibility: Optional[list] = None
     design_system_ref: Optional[str] = None
+    # S-013 mock 列 (migration g4b5c6d7e8f9)
+    client_name: Optional[str] = None
+    due_date: Optional[str] = None  # ISO 'YYYY-MM-DD'
+    budget_jpy_monthly: Optional[int] = None
+    github_repo: Optional[str] = None
+    slack_channel: Optional[str] = None
+    phase_gate_mode: Optional[str] = None  # strict/guide/free
+    redlines: Optional[list] = None  # JSON 配列
 
 
 class MemberAdd(BaseModel):
