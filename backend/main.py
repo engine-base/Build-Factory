@@ -77,6 +77,7 @@ from routers.parallel_runner import router as parallel_runner_router
 from routers.priority_elevation import router as priority_elevation_router
 from routers.priority_queue import router as priority_queue_router
 from routers.circuit_breaker import router as circuit_breaker_router
+from routers.crash_detector import router as crash_detector_router
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 
@@ -204,6 +205,7 @@ app.include_router(parallel_runner_router)
 app.include_router(priority_elevation_router)
 app.include_router(priority_queue_router)
 app.include_router(circuit_breaker_router)
+app.include_router(crash_detector_router)
 
 
 @app.get("/health")
