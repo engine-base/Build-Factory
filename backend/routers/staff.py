@@ -243,3 +243,35 @@ async def scoped_save(body: ScopedSaveBody):
         triggered_by=body.triggered_by,
     )
     return {"id": knowledge_id, "status": "saved"}
+
+
+# ── T-003-02: AI 社員召喚 API ───────────────────────────
+
+class SummonRequest(BaseModel):
+    prompt: str
+    workspace_id: Optional[int] = None
+    user_id: Optional[str] = None
+    model: str = "claude-sonnet-4-6"
+    cwd: Optional[str] = None
+
+
+@router.post("/{employee_id_or_name}/summon")
+async def summon_staff(employee_id_or_name: str, body: SummonRequest):
+    """AI 社員 (ID or name) を召喚して 1 タスクを実行する (T-003-02)。"""
+    from services.staff_summon import summon
+    # int 解釈可能なら int で渡す
+    try:
+        ident: int | str = int(employee_id_or_name)
+    except ValueError:
+        ident = employee_id_or_name
+    result = await summon(
+        ident,
+        prompt=body.prompt,
+        workspace_id=body.workspace_id,
+        user_id=body.user_id,
+        model=body.model,
+        cwd=body.cwd,
+    )
+    if result["status"] == "not_found":
+        raise HTTPException(status_code=404, detail=result["crash_reason"])
+    return result
