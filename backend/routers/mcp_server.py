@@ -125,6 +125,42 @@ MCP_TOOLS = [
             "required": ["task_id", "artifact_id"],
         },
     },
+    # T-010a-03: review 連携 tools
+    {
+        "name": "bf_request_review",
+        "description": (
+            "Request reviewer AI to review a Build-Factory task's artifacts. "
+            "Returns the review_id which can be polled via bf_get_review_feedback."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "task_id": {"type": "integer"},
+                "workspace_id": {"type": "integer"},
+                "target_artifact_ids": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "list of artifact ids to review",
+                },
+                "summary": {"type": "string"},
+            },
+            "required": ["task_id"],
+        },
+    },
+    {
+        "name": "bf_get_review_feedback",
+        "description": (
+            "Get feedback from a previously-requested review. "
+            "Returns status (pending / approved / changes_requested) and findings."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "review_id": {"type": "integer"},
+            },
+            "required": ["review_id"],
+        },
+    },
 ]
 
 # 既存 tool name set (validation で参照)
@@ -164,7 +200,8 @@ def _validate_call_input(name: str, args: Any) -> dict:
                 status_code=403,
             )
     # T-010a-02: BF tools の入力検査
-    if name in ("bf_get_spec", "bf_post_progress", "bf_attach_artifact"):
+    if name in ("bf_get_spec", "bf_post_progress", "bf_attach_artifact",
+                 "bf_request_review"):
         task_id = args.get("task_id")
         if not isinstance(task_id, int) or task_id <= 0:
             raise _error("mcp.invalid_task_id", "task_id must be a positive int")
@@ -184,6 +221,30 @@ def _validate_call_input(name: str, args: Any) -> dict:
         if len(aid) > 200:
             raise _error("mcp.invalid_artifact_id",
                          "artifact_id must be <= 200 chars")
+    # T-010a-03: review tools の入力検査
+    if name == "bf_request_review":
+        ws = args.get("workspace_id")
+        if ws is not None and (not isinstance(ws, int) or ws <= 0):
+            raise _error("mcp.invalid_workspace_id",
+                         "workspace_id must be > 0 when provided")
+        ids = args.get("target_artifact_ids")
+        if ids is not None:
+            if not isinstance(ids, list) or len(ids) > 50:
+                raise _error("mcp.invalid_artifact_ids",
+                             "target_artifact_ids must be a list (max 50)")
+            for v in ids:
+                if not isinstance(v, str) or not v.strip() or len(v) > 200:
+                    raise _error("mcp.invalid_artifact_ids",
+                                 "each artifact_id must be a non-empty string (<=200)")
+        s = args.get("summary")
+        if s is not None and (not isinstance(s, str) or len(s) > 4000):
+            raise _error("mcp.invalid_summary",
+                         "summary must be str (<= 4000 chars)")
+    if name == "bf_get_review_feedback":
+        rid = args.get("review_id")
+        if not isinstance(rid, int) or rid <= 0:
+            raise _error("mcp.invalid_review_id",
+                         "review_id must be a positive int")
     return args
 
 
@@ -212,8 +273,78 @@ async def handle_tool_call(name: str, args: dict) -> str:
     if name == "bf_attach_artifact":
         result = await _bf_attach_artifact(args["task_id"], args["artifact_id"])
         return json.dumps(result, ensure_ascii=False, default=str)
+    if name == "bf_request_review":
+        result = await _bf_request_review(
+            args["task_id"],
+            workspace_id=args.get("workspace_id"),
+            target_artifact_ids=args.get("target_artifact_ids"),
+            summary=args.get("summary") or "",
+        )
+        return json.dumps(result, ensure_ascii=False, default=str)
+    if name == "bf_get_review_feedback":
+        result = await _bf_get_review_feedback(args["review_id"])
+        return json.dumps(result, ensure_ascii=False, default=str)
     # validator が先に reject するので到達しないが、念のため structured raise
     raise _error("mcp.unknown_tool", f"unknown tool {name!r}", status_code=404)
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# T-010a-03: review tools 実装 (services.reviewer_loop を REUSE)
+# ──────────────────────────────────────────────────────────────────────────
+
+
+async def _bf_request_review(
+    task_id: int,
+    *,
+    workspace_id: Optional[int] = None,
+    target_artifact_ids: Optional[list] = None,
+    summary: str = "",
+) -> dict:
+    """reviewer AI に task のレビューを依頼."""
+    try:
+        from services.reviewer_loop import request_review
+        rec = await request_review(
+            task_id=task_id,
+            workspace_id=workspace_id,
+            review_kind="task_review",
+            target_artifact_ids=target_artifact_ids or [],
+            summary=summary,
+        )
+        return {
+            "task_id": task_id,
+            "review_id": rec.get("id") if isinstance(rec, dict) else None,
+            "status": rec.get("status") if isinstance(rec, dict) else None,
+            "summary": summary,
+        }
+    except ValueError as e:
+        raise _error("mcp.bf_request_review_invalid", str(e))
+    except Exception as e:
+        raise _error("mcp.bf_request_review_failed",
+                     f"bf_request_review failed: {e}", status_code=500)
+
+
+async def _bf_get_review_feedback(review_id: int) -> dict:
+    """review_id から review record を取得."""
+    try:
+        from services.reviewer_loop import get_review
+        rec = await get_review(review_id)
+        if rec is None:
+            raise _error("mcp.review_not_found",
+                         f"review not found: {review_id}", status_code=404)
+        return {
+            "review_id": rec.get("id"),
+            "task_id": rec.get("task_id"),
+            "workspace_id": rec.get("workspace_id"),
+            "status": rec.get("status"),
+            "findings": rec.get("findings_json") or rec.get("findings"),
+            "iteration": rec.get("iteration"),
+            "completed_at": rec.get("completed_at"),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise _error("mcp.bf_get_review_feedback_failed",
+                     f"bf_get_review_feedback failed: {e}", status_code=500)
 
 
 # ──────────────────────────────────────────────────────────────────────────

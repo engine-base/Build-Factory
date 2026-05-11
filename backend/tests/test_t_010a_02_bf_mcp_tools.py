@@ -203,9 +203,12 @@ def test_ac3_existing_three_tools_still_listed(client):
     assert {"query_company_db", "get_kpi", "list_records"} <= names
 
 
-def test_ac3_tool_count_grew_to_6():
+def test_ac3_tool_count_grew_to_at_least_6():
+    """T-010a-02 で 3 BF tool 追加. T-010a-03 で更に 2 件追加されたので >= 6 を確認."""
     from routers.mcp_server import MCP_TOOLS
-    assert len(MCP_TOOLS) == 6
+    assert len(MCP_TOOLS) >= 6
+    names = {t["name"] for t in MCP_TOOLS}
+    assert {"bf_get_spec", "bf_post_progress", "bf_attach_artifact"} <= names
 
 
 def test_ac3_audit_emitted_on_tool_call(client, _capture_audit):
