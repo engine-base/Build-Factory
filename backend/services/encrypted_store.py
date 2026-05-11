@@ -1,24 +1,27 @@
-"""T-023-03: encrypted secret 統一 API (REFACTOR)
+"""T-023-03: encrypted secret 統一 API (REFACTOR + DB 化)
 
-既存 credentials_store.py (local Fernet 暗号化) を「DB backend を選ばない」
-adapter pattern で抽象化する。
+`credentials_store.py` (Fernet ファイルベース) と Supabase Postgres
+(`encrypted_secrets` テーブル + RLS) を adapter pattern で抽象化する。
 
-Phase 1 (現状 SQLite):
-  - credentials_store の Fernet 経路を REUSE (single-tenant local file)
+backend 判定:
+  - DATABASE_URL が `postgres*` スキーム → Postgres backend
+  - それ以外 → Fernet local backend (Phase 1 / single-tenant)
 
-Phase 2 (Supabase Postgres):
-  - pgsodium で DB-level 暗号化 (`encrypted_secrets` テーブル + `pgsodium.crypto_aead_det_encrypt`)
-  - DATABASE_URL が postgres スキームなら自動切替
+Postgres backend (本 PR で実装):
+  - Fernet で app-side 暗号化した文字列を `encrypted_secrets.encrypted_value`
+    に保存する (Phase 1 互換の暗号方式)
+  - Phase 2 で pgsodium.crypto_aead_det_encrypt に切替予定
 
-## 公開 API
+RLS (supabase/migrations/20260511000001_encrypted_secrets.sql):
+  - service_role: 全件 R/W
+  - authenticated: owner_id = auth.uid()::text のみ R/W
+
+## 公開 API (sync)
 
 - `set_secret(scope, key, value, *, owner_id=None) -> None`
-- `get_secret(scope, key) -> Optional[str]`
-- `list_keys(scope) -> list[str]`
-- `delete_secret(scope, key) -> bool`
-
-scope はサービス名 (e.g. "anthropic_api_key", "slack_oauth_token") で、
-owner_id は user ごとに分離したい場合に指定する (将来 multi-tenant 想定)。
+- `get_secret(scope, key, *, owner_id=None) -> Optional[str]`
+- `list_keys(scope, *, owner_id=None) -> list[str]`
+- `delete_secret(scope, key, *, owner_id=None) -> bool`
 """
 from __future__ import annotations
 
@@ -112,26 +115,92 @@ def _fernet_list_keys(scope: str, *, owner_id: Optional[str]) -> list[str]:
 
 
 # ──────────────────────────────────────────
-# Phase 2: Postgres pgsodium backend (stub for now)
+# Postgres backend (encrypted_secrets テーブル)
 #
-# Supabase Postgres 移行時に pgsodium.crypto_aead_det_encrypt を使う実装を
-# 入れる。Phase 1 では Fernet にフォールバックする。
+# DATABASE_URL = postgres スキームの時に使用。 app-side で Fernet 暗号化済み
+# 文字列を encrypted_value 列に保存する (Phase 1 暗号方式互換)。
+# Phase 2 で pgsodium.crypto_aead_det_encrypt に切替予定。
 # ──────────────────────────────────────────
+def _pg_conn():
+    """sync psycopg connection を返す。 import エラー時は RuntimeError。"""
+    import psycopg  # type: ignore
+    url = os.environ.get("DATABASE_URL", "")
+    if not url:
+        raise RuntimeError("DATABASE_URL is not set; cannot use postgres backend")
+    return psycopg.connect(url)
+
+
+def _fernet_encrypt_for_db(value: str) -> str:
+    """app-side で Fernet 暗号化した base64 文字列を返す (encrypted_value 列用)。"""
+    import services.credentials_store as cs
+    cipher = cs._cipher()
+    return cipher.encrypt(value.encode("utf-8")).decode("ascii")
+
+
+def _fernet_decrypt_from_db(encrypted: str) -> str:
+    import services.credentials_store as cs
+    cipher = cs._cipher()
+    return cipher.decrypt(encrypted.encode("ascii")).decode("utf-8")
+
 
 def _pg_set_secret(scope: str, key: str, value: str, *, owner_id: Optional[str]) -> None:
-    # Phase 2 で実装: INSERT INTO encrypted_secrets (scope, key, owner_id,
-    # encrypted_value) VALUES (?, ?, ?, pgsodium.crypto_aead_det_encrypt(?, ...))
-    # 暫定: Fernet にフォールバック
-    _fernet_set_secret(scope, key, value, owner_id=owner_id)
+    encrypted = _fernet_encrypt_for_db(value)
+    with _pg_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """INSERT INTO encrypted_secrets (scope, key, owner_id, encrypted_value)
+                   VALUES (%s, %s, %s, %s)
+                   ON CONFLICT (scope, key, owner_id)
+                   DO UPDATE SET encrypted_value = EXCLUDED.encrypted_value,
+                                 updated_at = NOW()""",
+                (scope, key, owner_id, encrypted),
+            )
+        conn.commit()
 
 
 def _pg_get_secret(scope: str, key: str, *, owner_id: Optional[str]) -> Optional[str]:
-    return _fernet_get_secret(scope, key, owner_id=owner_id)
+    with _pg_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """SELECT encrypted_value FROM encrypted_secrets
+                   WHERE scope = %s AND key = %s AND owner_id IS NOT DISTINCT FROM %s
+                   LIMIT 1""",
+                (scope, key, owner_id),
+            )
+            row = cur.fetchone()
+    if not row:
+        return None
+    try:
+        return _fernet_decrypt_from_db(row[0])
+    except Exception:
+        return None
 
 
 def _pg_delete_secret(scope: str, key: str, *, owner_id: Optional[str]) -> bool:
-    return _fernet_delete_secret(scope, key, owner_id=owner_id)
+    with _pg_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """DELETE FROM encrypted_secrets
+                   WHERE scope = %s AND key = %s AND owner_id IS NOT DISTINCT FROM %s""",
+                (scope, key, owner_id),
+            )
+            deleted = cur.rowcount > 0
+        conn.commit()
+    return deleted
 
 
 def _pg_list_keys(scope: str, *, owner_id: Optional[str]) -> list[str]:
-    return _fernet_list_keys(scope, owner_id=owner_id)
+    with _pg_conn() as conn:
+        with conn.cursor() as cur:
+            if owner_id is None:
+                cur.execute(
+                    "SELECT key FROM encrypted_secrets WHERE scope = %s AND owner_id IS NULL ORDER BY key",
+                    (scope,),
+                )
+            else:
+                cur.execute(
+                    "SELECT key FROM encrypted_secrets WHERE scope = %s AND owner_id = %s ORDER BY key",
+                    (scope, owner_id),
+                )
+            rows = cur.fetchall()
+    return [r[0] for r in rows]
