@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import { Workspace, fetchWorkspace } from "@/lib/workspaces";
+import { useParams, useRouter } from "next/navigation";
+import { Workspace, fetchWorkspace, updateWorkspace, archiveWorkspace } from "@/lib/workspaces";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import {
   Info, GitBranch, Palette, Cpu, Bell, KeyRound, Archive,
-  AlertTriangle, Lock, Navigation, Zap,
+  AlertTriangle, Lock, Navigation, Zap, CheckCircle2,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -22,6 +22,7 @@ const NAV_ITEMS = [
 
 export default function SettingsPage() {
   const params = useParams();
+  const router = useRouter();
   const id = Number(params?.id);
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [section, setSection] = useState("info");
@@ -30,11 +31,29 @@ export default function SettingsPage() {
   const [pmApprovalOn, setPmApprovalOn] = useState(true);
   const [reasonRequiredOn, setReasonRequiredOn] = useState(true);
   const [clientCanEdit, setClientCanEdit] = useState(false);
+  const [toast, setToast] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
 
   useEffect(() => {
     if (!id) return;
     fetchWorkspace(id).then(setWorkspace).catch(() => setWorkspace(null));
   }, [id]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  const handleArchive = async () => {
+    if (!workspace) return;
+    if (!confirm(`プロジェクト「${workspace.name}」をアーカイブします。一覧から非表示になります（後から復元可能）。よろしいですか？`)) return;
+    try {
+      await archiveWorkspace(workspace.id);
+      router.push("/workspaces");
+    } catch {
+      setToast({ kind: "err", msg: "アーカイブに失敗しました" });
+    }
+  };
 
   if (!workspace) return <div className="p-6" style={{ color: "var(--bf-text-3)" }}>読み込み中…</div>;
 
@@ -59,6 +78,26 @@ export default function SettingsPage() {
           基本情報 / フェーズ制御 / Penpot 連携 / 通知 / アーカイブ
         </div>
       </div>
+
+      {toast && (
+        <div
+          role="status"
+          style={{
+            position: "fixed", top: 24, right: 24, zIndex: 60,
+            background: toast.kind === "ok" ? "var(--bf-primary)" : "var(--bf-danger)",
+            color: "#fff",
+            padding: "10px 16px",
+            borderRadius: "var(--bf-radius-md)",
+            fontSize: 13,
+            fontWeight: 600,
+            boxShadow: "0 6px 24px rgba(0,0,0,.18)",
+            display: "flex", alignItems: "center", gap: 8,
+          }}
+        >
+          <CheckCircle2 className="w-4 h-4" />
+          {toast.msg}
+        </div>
+      )}
 
       <div style={{ display: "grid", gridTemplateColumns: "240px 1fr", gap: "var(--bf-space-6)" }}>
         {/* Nav */}
@@ -93,7 +132,13 @@ export default function SettingsPage() {
 
         {/* Content */}
         <div>
-          {section === "info" && <BasicSection workspace={workspace} />}
+          {section === "info" && (
+            <BasicSection
+              workspace={workspace}
+              onSaved={(w) => { setWorkspace(w); setToast({ kind: "ok", msg: "基本情報を保存しました" }); }}
+              onError={(m) => setToast({ kind: "err", msg: m })}
+            />
+          )}
           {section === "phase" && (
             <PhaseControlSection
               mode={phaseMode} setMode={setPhaseMode}
@@ -104,7 +149,7 @@ export default function SettingsPage() {
           )}
           {section === "penpot" && <PenpotSection clientEdit={clientCanEdit} setClientEdit={setClientCanEdit} />}
           {section === "ai" && <AiModelSection />}
-          {section === "danger" && <DangerSection />}
+          {section === "danger" && <DangerSection onArchive={handleArchive} />}
           {!["info", "phase", "penpot", "ai", "danger"].includes(section) && (
             <SettingsCard title={NAV_ITEMS.find((n) => n.id === section)?.label ?? ""} icon={NAV_ITEMS.find((n) => n.id === section)?.icon ?? Info}>
               <div style={{ padding: "var(--bf-space-12) var(--bf-space-6)", textAlign: "center", color: "var(--bf-text-3)", fontSize: 13 }}>
@@ -245,40 +290,101 @@ function SettingRow({ title, desc, control }: { title: string; desc?: string; co
   );
 }
 
-function BasicSection({ workspace }: { workspace: Workspace }) {
+function BasicSection({
+  workspace,
+  onSaved,
+  onError,
+}: {
+  workspace: Workspace;
+  onSaved: (w: Workspace) => void;
+  onError: (msg: string) => void;
+}) {
+  const [name, setName] = useState(workspace.name);
+  const [description, setDescription] = useState(workspace.description ?? "");
+  const [status, setStatus] = useState<Workspace["status"]>(workspace.status);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setName(workspace.name);
+    setDescription(workspace.description ?? "");
+    setStatus(workspace.status);
+  }, [workspace.id, workspace.name, workspace.description, workspace.status]);
+
+  const dirty =
+    name !== workspace.name ||
+    description !== (workspace.description ?? "") ||
+    status !== workspace.status;
+
+  const handleSave = async () => {
+    if (!dirty || saving) return;
+    setSaving(true);
+    try {
+      const updated = await updateWorkspace(workspace.id, {
+        name: name.trim(),
+        description: description.trim() || null,
+        status,
+      } as any);
+      onSaved(updated);
+    } catch {
+      onError("保存に失敗しました");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleReset = () => {
+    setName(workspace.name);
+    setDescription(workspace.description ?? "");
+    setStatus(workspace.status);
+  };
+
   return (
-    <SettingsCard title="基本情報" desc="プロジェクトの名前・クライアント・期限などの基本データ" icon={Info}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--bf-space-4)" }}>
-        <FormGroup label="プロジェクト名">
-          <Input defaultValue={workspace.name} />
-        </FormGroup>
-        <FormGroup label="クライアント">
-          <Input defaultValue="●●株式会社" />
-        </FormGroup>
-      </div>
-      <FormGroup label="概要">
-        <Textarea rows={3} defaultValue={workspace.description ?? "AI-driven Development OS の MVP 構築。"} />
+    <SettingsCard title="基本情報" desc="プロジェクトの名前・概要・ステータス" icon={Info}>
+      <FormGroup label="プロジェクト名">
+        <Input value={name} onChange={(e) => setName(e.target.value)} />
       </FormGroup>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--bf-space-4)" }}>
-        <FormGroup label="開始日"><Input type="date" defaultValue="2026-04-30" /></FormGroup>
-        <FormGroup label="納期"><Input type="date" defaultValue="2026-05-20" /></FormGroup>
-      </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--bf-space-4)" }}>
-        <FormGroup label="ステータス">
-          <Select defaultValue="active">
-            <option value="active">進行中 (active)</option>
-            <option value="paused">一時停止 (paused)</option>
-            <option value="done">完了 (done)</option>
-            <option value="archived">アーカイブ (archived)</option>
-          </Select>
-        </FormGroup>
-        <FormGroup label="予算 (任意)" help="ヒアリングで詳細整理">
-          <Input defaultValue="5,160,000 円" />
-        </FormGroup>
-      </div>
+      <FormGroup label="概要">
+        <Textarea
+          rows={3}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="このワークスペースの目的・コンテキストを記入"
+        />
+      </FormGroup>
+      <FormGroup label="ステータス">
+        <Select value={status} onChange={(e) => setStatus(e.target.value as Workspace["status"])}>
+          <option value="active">進行中 (active)</option>
+          <option value="paused">一時停止 (paused)</option>
+          <option value="archived">アーカイブ (archived)</option>
+        </Select>
+      </FormGroup>
       <div className="flex gap-2" style={{ marginTop: "var(--bf-space-4)" }}>
-        <button className="inline-flex items-center" style={{ height: 34, padding: "0 14px", background: "var(--bf-primary)", color: "#fff", borderRadius: "var(--bf-radius-md)", fontSize: 13, fontWeight: 600 }}>保存</button>
-        <button className="inline-flex items-center" style={{ height: 34, padding: "0 14px", background: "transparent", color: "var(--bf-text-2)", borderRadius: "var(--bf-radius-md)", fontSize: 13, fontWeight: 600 }}>変更を破棄</button>
+        <button
+          onClick={handleSave}
+          disabled={!dirty || saving}
+          className="inline-flex items-center"
+          style={{
+            height: 34, padding: "0 14px",
+            background: dirty && !saving ? "var(--bf-primary)" : "var(--bf-text-4)",
+            color: "#fff", borderRadius: "var(--bf-radius-md)", fontSize: 13, fontWeight: 600,
+            cursor: dirty && !saving ? "pointer" : "not-allowed",
+          }}
+        >
+          {saving ? "保存中…" : "保存"}
+        </button>
+        <button
+          onClick={handleReset}
+          disabled={!dirty || saving}
+          className="inline-flex items-center"
+          style={{
+            height: 34, padding: "0 14px", background: "transparent",
+            color: dirty ? "var(--bf-text-2)" : "var(--bf-text-4)",
+            borderRadius: "var(--bf-radius-md)", fontSize: 13, fontWeight: 600,
+            cursor: dirty ? "pointer" : "not-allowed",
+          }}
+        >
+          変更を破棄
+        </button>
       </div>
     </SettingsCard>
   );
@@ -396,24 +502,24 @@ function AiModelSection() {
   );
 }
 
-function DangerSection() {
+function DangerSection({ onArchive }: { onArchive: () => void }) {
   return (
     <SettingsCard title="危険ゾーン" desc="取り返しのつかない操作。実行前に十分にご確認ください。" icon={AlertTriangle} danger>
       <SettingRow
         title="プロジェクトをアーカイブ"
-        desc="読み取り専用にして一覧から非表示にします。後から復元可能。"
+        desc="読み取り専用にして一覧から非表示にします。後から status を active に戻せば復元可能。"
         control={
-          <button className="inline-flex items-center" style={{ height: 34, padding: "0 14px", background: "var(--bf-bg-elev)", color: "var(--bf-text-1)", border: "1px solid var(--bf-border)", borderRadius: "var(--bf-radius-md)", fontSize: 13, fontWeight: 600 }}>
-            アーカイブ
-          </button>
-        }
-      />
-      <SettingRow
-        title="プロジェクトを削除"
-        desc="タスク・成果物・議事録すべて削除されます。復元不可。"
-        control={
-          <button className="inline-flex items-center" style={{ height: 34, padding: "0 14px", background: "var(--bf-danger)", color: "#fff", borderRadius: "var(--bf-radius-md)", fontSize: 13, fontWeight: 600 }}>
-            削除
+          <button
+            onClick={onArchive}
+            className="inline-flex items-center"
+            style={{
+              height: 34, padding: "0 14px",
+              background: "var(--bf-danger)", color: "#fff",
+              borderRadius: "var(--bf-radius-md)", fontSize: 13, fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            アーカイブする
           </button>
         }
       />
