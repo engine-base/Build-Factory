@@ -146,6 +146,7 @@ async def add_member(workspace_id: int, body: MemberAdd):
 
 @router.patch("/{workspace_id}/members/{user_id}")
 async def update_member(workspace_id: int, user_id: str, body: MemberUpdate):
+    """T-021-05 AC-4: 409 で {detail: {code, message}} を返す."""
     try:
         return await ws.update_member_role(
             workspace_id, user_id,
@@ -153,22 +154,38 @@ async def update_member(workspace_id: int, user_id: str, body: MemberUpdate):
             actor_user_id=body.actor_user_id,
         )
     except ws.SelfStripError as e:
-        raise HTTPException(409, f"self_strip_blocked: {e}")
+        raise HTTPException(
+            status_code=409,
+            detail={"code": "self_strip_blocked", "message": str(e)},
+        )
     except ws.OwnerProtectedError as e:
-        raise HTTPException(409, f"owner_protected: {e}")
+        raise HTTPException(
+            status_code=409,
+            detail={"code": "owner_protected", "message": str(e)},
+        )
     except ValueError as e:
-        raise HTTPException(400, str(e))
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "invalid_request", "message": str(e)},
+        )
 
 
 @router.delete("/{workspace_id}/members/{user_id}")
 async def remove_member(workspace_id: int, user_id: str,
                         actor_user_id: Optional[str] = Query(None)):
+    """T-021-05 AC-4: 409 で {detail: {code, message}} を返す."""
     try:
         ok = await ws.remove_member(workspace_id, user_id, actor_user_id=actor_user_id)
     except ws.SelfStripError as e:
-        raise HTTPException(409, f"self_strip_blocked: {e}")
+        raise HTTPException(
+            status_code=409,
+            detail={"code": "self_strip_blocked", "message": str(e)},
+        )
     except ws.OwnerProtectedError as e:
-        raise HTTPException(409, f"owner_protected: {e}")
+        raise HTTPException(
+            status_code=409,
+            detail={"code": "owner_protected", "message": str(e)},
+        )
     return {"removed": ok}
 
 
