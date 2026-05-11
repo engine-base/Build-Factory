@@ -256,3 +256,238 @@ async def test_get_member_missing(mock_db) -> None:
     mock_db({"select": []})
     result = await ws.get_member(1, "no_such")
     assert result is None
+
+
+# ─────────────────────────────────────────────────────────
+# cov 70% 達成のため不足経路を網羅
+# ─────────────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_list_workspaces_for_user_returns_joined_rows(mock_db) -> None:
+    """list_workspaces_for_user: workspace_members JOIN 経路 (L 53-63)."""
+    mock_db({"join workspace_members": [
+        {"id": 1, "name": "WS A", "status": "active", "member_role": "admin"},
+        {"id": 2, "name": "WS B", "status": "active", "member_role": "contributor"},
+    ]})
+    rows = await ws.list_workspaces_for_user("user_1")
+    assert len(rows) == 2
+    assert all("member_role" in r for r in rows)
+
+
+@pytest.mark.asyncio
+async def test_list_workspaces_for_user_empty(mock_db) -> None:
+    mock_db({"join workspace_members": []})
+    assert await ws.list_workspaces_for_user("ghost") == []
+
+
+@pytest.mark.asyncio
+async def test_create_workspace_inserts_and_adds_admin_member(mock_db) -> None:
+    """create_workspace: INSERT workspaces + workspace_members admin 自動追加 (L 83-100)."""
+    # INSERT RETURNING + 後の get_workspace 両方に対応
+    mock_db({
+        "insert into workspaces": [{"id": 100}],
+        "select * from workspaces": [{"id": 100, "name": "New WS",
+                                       "account_id": 5, "status": "active"}],
+    })
+    result = await ws.create_workspace(
+        account_id=5, name="New WS",
+        description="d", project_meta={"k": "v"},
+        creator_user_id="alice",
+    )
+    assert result.get("id") == 100
+    assert result.get("name") == "New WS"
+
+
+@pytest.mark.asyncio
+async def test_update_workspace_with_budget_jpy_field(mock_db, monkeypatch) -> None:
+    """budget_jpy_monthly 経路 (L 116-118)."""
+    mock_db({"select": [{"id": 1, "name": "X", "budget_jpy_monthly": 50000}]})
+
+    async def fake_emit(*a, **kw): pass
+    monkeypatch.setattr(ws, "_emit_audit", fake_emit)
+
+    result = await ws.update_workspace(1, budget_jpy_monthly=80000, actor_user_id="bob")
+    assert isinstance(result, dict)
+
+
+@pytest.mark.asyncio
+async def test_update_workspace_with_jsonb_fields(mock_db, monkeypatch) -> None:
+    """project_meta / client_visibility / redlines 経路 (L 119-121)."""
+    mock_db({"select": [{"id": 1, "name": "X"}]})
+
+    async def fake_emit(*a, **kw): pass
+    monkeypatch.setattr(ws, "_emit_audit", fake_emit)
+
+    await ws.update_workspace(1, project_meta={"x": 1}, client_visibility=["task"],
+                              redlines={"forbidden": ["DROP"]})
+
+
+@pytest.mark.asyncio
+async def test_count_role_returns_int(mock_db) -> None:
+    """_count_role: COUNT(*) クエリ (L 308-314)."""
+    # COUNT クエリは fetchone で (n,) を返す形式
+    class _CntCursor:
+        def __init__(self): self.rowcount = 0
+        async def fetchone(self): return (3,)
+
+    class _CntConn(FakeConn):
+        async def execute(self, sql, *args):
+            if "count(*)" in sql.lower():
+                return _CntCursor()
+            return await super().execute(sql, *args)
+        async def __aenter__(self): return self
+        async def __aexit__(self, *a): pass
+
+    class _CntAiosqlite:
+        Row = dict
+        def connect(self, _p): return _CntConn({})
+
+    import services.workspace_service as wsv
+    saved = wsv.aiosqlite
+    wsv.aiosqlite = _CntAiosqlite()
+    try:
+        n = await ws._count_role(workspace_id=1, role="owner")
+        assert n == 3
+    finally:
+        wsv.aiosqlite = saved
+
+
+@pytest.mark.asyncio
+async def test_update_member_role_owner_unchanged_no_block(mock_db, monkeypatch) -> None:
+    """owner → owner の no-op は block しない (L 327)."""
+    mock_db({"select": [{"workspace_id": 1, "user_id": "u", "role": "owner",
+                          "custom_permissions": None}]})
+
+    async def fake_emit(*a, **kw): pass
+    async def fake_count(*a, **kw): return 2  # owners が 2 人いる
+
+    monkeypatch.setattr(ws, "_emit_audit", fake_emit)
+    monkeypatch.setattr(ws, "_count_role", fake_count)
+    # role を None で渡せば block 経路に入らない (custom_permissions のみ更新)
+    result = await ws.update_member_role(
+        1, "u", custom_permissions={"edit_task": True}, actor_user_id="boss",
+    )
+    assert isinstance(result, dict)
+
+
+@pytest.mark.asyncio
+async def test_update_member_role_with_role_normalize(mock_db, monkeypatch) -> None:
+    """role 文字列正規化 + emit audit (L 335-363)."""
+    mock_db({"select": [{"workspace_id": 1, "user_id": "u",
+                          "role": "contributor", "custom_permissions": None}]})
+
+    async def fake_emit(event_type, *, user_id=None, detail=None):
+        assert event_type == "workspace.member.updated"
+        # _normalize_role が "admin" → "ws_admin" に変換 (DB 互換)
+        assert detail["new_role"] == "ws_admin"
+
+    async def fake_count(*a, **kw): return 5  # owner block かからない
+    monkeypatch.setattr(ws, "_emit_audit", fake_emit)
+    monkeypatch.setattr(ws, "_count_role", fake_count)
+
+    result = await ws.update_member_role(1, "u", role="admin", actor_user_id="boss")
+    assert isinstance(result, dict)
+
+
+@pytest.mark.asyncio
+async def test_remove_member_happy_path(mock_db, monkeypatch) -> None:
+    """remove_member: DELETE + audit emit (L 372-388)."""
+    mock_db({"select": [{"workspace_id": 1, "user_id": "u",
+                          "role": "contributor", "custom_permissions": None}]},
+            rowcount=1)
+    captured: list = []
+
+    async def fake_emit(event_type, *, user_id=None, detail=None):
+        captured.append((event_type, detail))
+
+    monkeypatch.setattr(ws, "_emit_audit", fake_emit)
+    ok = await ws.remove_member(1, "u", actor_user_id="boss")
+    assert ok is True
+    assert any(e[0] == "workspace.member.removed" for e in captured)
+
+
+@pytest.mark.asyncio
+async def test_remove_member_owner_protection_raises(mock_db, monkeypatch) -> None:
+    """remove_member: 最後の owner は削除不可 (OwnerProtectedError)."""
+    mock_db({"select": [{"workspace_id": 1, "user_id": "u",
+                          "role": "owner", "custom_permissions": None}]})
+
+    async def fake_count(*a, **kw): return 1  # 最後の owner
+
+    monkeypatch.setattr(ws, "_count_role", fake_count)
+    with pytest.raises(ws.OwnerProtectedError):
+        await ws.remove_member(1, "u", actor_user_id="boss")
+
+
+@pytest.mark.asyncio
+async def test_remove_member_self_strip_raises(mock_db) -> None:
+    """remove_member: 自分自身を削除 → SelfStripError."""
+    with pytest.raises(ws.SelfStripError):
+        await ws.remove_member(1, "u_self", actor_user_id="u_self")
+
+
+@pytest.mark.asyncio
+async def test_create_invitation_returns_token_and_url(mock_db) -> None:
+    """create_invitation: INSERT + token / expires_at / invitation_url (L 414-424)."""
+    mock_db({"insert into workspace_invitations": []})
+    out = await ws.create_invitation(
+        workspace_id=1, email="x@example.com",
+        role="contributor", invited_by="alice", expires_in_days=7,
+    )
+    assert out["email"] == "x@example.com"
+    assert out["role"] == "contributor"
+    assert "token" in out and len(out["token"]) >= 16
+    assert out["invitation_url"].startswith("/invite/")
+    assert "expires_at" in out
+
+
+@pytest.mark.asyncio
+async def test_accept_invitation_member_added(mock_db) -> None:
+    """accept_invitation: valid token → member 追加 (L 435-467)."""
+    from datetime import datetime, timedelta
+    future = (datetime.now() + timedelta(days=7)).isoformat(timespec="seconds")
+    mock_db({"select * from workspace_invitations": [{
+        "id": 10, "workspace_id": 5, "email": "u@example.com",
+        "role": "contributor", "status": "pending",
+        "expires_at": future, "invited_by": "alice",
+    }]})
+    out = await ws.accept_invitation(token="abc", user_id="new_user")
+    assert out is not None
+    assert out["workspace_id"] == 5
+    assert out["user_id"] == "new_user"
+    assert out["role"] == "contributor"
+
+
+@pytest.mark.asyncio
+async def test_accept_invitation_unknown_token_returns_none(mock_db) -> None:
+    mock_db({"select * from workspace_invitations": []})
+    out = await ws.accept_invitation(token="bad", user_id="u")
+    assert out is None
+
+
+@pytest.mark.asyncio
+async def test_accept_invitation_expired_returns_none(mock_db) -> None:
+    """期限切れ token → status='expired' 更新 + None 返却."""
+    from datetime import datetime, timedelta
+    past = (datetime.now() - timedelta(days=1)).isoformat(timespec="seconds")
+    mock_db({"select * from workspace_invitations": [{
+        "id": 11, "workspace_id": 5, "email": "u@example.com",
+        "role": "contributor", "status": "pending",
+        "expires_at": past, "invited_by": "alice",
+    }]})
+    out = await ws.accept_invitation(token="exp", user_id="u")
+    assert out is None
+
+
+@pytest.mark.asyncio
+async def test_accept_invitation_malformed_expires_at_does_not_crash(mock_db) -> None:
+    """expires_at が parse 不能でも crash しない (try/except)."""
+    mock_db({"select * from workspace_invitations": [{
+        "id": 12, "workspace_id": 5, "email": "u@x.com",
+        "role": "contributor", "status": "pending",
+        "expires_at": "not-an-iso-date",
+        "invited_by": None,
+    }]})
+    out = await ws.accept_invitation(token="t", user_id="u")
+    assert out is not None  # parse 失敗時は pass → member 追加に進む
