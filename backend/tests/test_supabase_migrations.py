@@ -141,6 +141,42 @@ def test_rls_full_enforcement_has_service_role_bypass() -> None:
 
 
 # ─────────────────────────────────────────────────────────
+# T-023-03 credentials DB 化: encrypted_secrets
+# ─────────────────────────────────────────────────────────
+def test_encrypted_secrets_migration_exists() -> None:
+    """encrypted_secrets migration ファイル存在"""
+    assert (MIGS / "20260511000001_encrypted_secrets.sql").exists()
+
+
+def test_encrypted_secrets_table_definition() -> None:
+    """encrypted_secrets テーブルが必須列を持つ"""
+    src = read("20260511000001_encrypted_secrets.sql")
+    assert re.search(
+        r"CREATE TABLE IF NOT EXISTS\s+encrypted_secrets\b", src, re.IGNORECASE,
+    )
+    for col in ("scope", "key", "owner_id", "encrypted_value"):
+        assert col in src, f"column {col} missing"
+
+
+def test_encrypted_secrets_unique_constraint() -> None:
+    """UNIQUE (scope, key, owner_id)"""
+    src = read("20260511000001_encrypted_secrets.sql")
+    assert re.search(
+        r"UNIQUE\s*\(\s*scope\s*,\s*key\s*,\s*owner_id\s*\)", src, re.IGNORECASE,
+    )
+
+
+def test_encrypted_secrets_rls_enabled() -> None:
+    """RLS enable + service_role + self policy"""
+    src = read("20260511000001_encrypted_secrets.sql")
+    assert re.search(
+        r"ALTER TABLE\s+encrypted_secrets\s+ENABLE ROW LEVEL SECURITY", src, re.IGNORECASE,
+    )
+    assert "service_role" in src
+    assert "auth.uid()" in src
+
+
+# ─────────────────────────────────────────────────────────
 # T-019-01: ARCHIVE (onlook / penpot 削除)
 # ─────────────────────────────────────────────────────────
 def test_onlook_directory_absent() -> None:
