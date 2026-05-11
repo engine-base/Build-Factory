@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard, MessageSquare, FileText, Users, TrendingUp,
   Bot, CheckSquare, BookOpen, ScrollText, Wifi, Cpu, FolderOpen, ListTodo, Sparkles, Package, LayoutGrid,
-  Building2,
+  Building2, User,
 } from "lucide-react";
 
 const AI_NAV = [
@@ -22,6 +22,7 @@ const AI_NAV = [
   { href: "/logs",         label: "実行ログ",         icon: ScrollText },
   { href: "/channels",     label: "チャンネル",       icon: Wifi },
   { href: "/settings/account", label: "会社設定",     icon: Building2 },
+  { href: "/settings/profile", label: "プロフィール",  icon: User },
   { href: "/settings/references", label: "参考資料",   icon: FileText },
 ];
 

@@ -46,6 +46,20 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* === ENGINE BASE green palette (Build-Factory mock 規約) ===
+     CLAUDE.md §5.2 / docs/mocks/2026-05-09_v1/design-tokens.md §1
+     bg-eb-500 = primary ENGINE BASE green (#1a6648) */
+  --color-eb-50: #e6f0ec;
+  --color-eb-100: #c4dccf;
+  --color-eb-200: #9bc4ad;
+  --color-eb-300: #6fa888;
+  --color-eb-400: #428c66;
+  --color-eb-500: #1a6648;
+  --color-eb-600: #155238;
+  --color-eb-700: #103e2a;
+  --color-eb-800: #0c2e1f;
+  --color-eb-900: #081e14;
 }
 
 :root {

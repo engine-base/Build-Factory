@@ -58,6 +58,7 @@ from routers.user_lifecycle import router as user_lifecycle_router
 from routers.memory_facts import router as memory_facts_router
 from routers.mem0_bridge import router as mem0_bridge_router
 from routers.chat_search import router as chat_search_router
+from routers.bf_profile import router as bf_profile_router
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 
@@ -166,6 +167,7 @@ app.include_router(user_lifecycle_router)
 app.include_router(memory_facts_router)
 app.include_router(mem0_bridge_router)
 app.include_router(chat_search_router)
+app.include_router(bf_profile_router)
 
 
 @app.get("/health")
