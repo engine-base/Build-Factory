@@ -65,6 +65,7 @@ from routers.phases import router as phases_router
 from routers.task_dependencies import router as task_dependencies_router
 from routers.slack_integration import router as slack_integration_router
 from routers.agent_runner import router as agent_runner_router
+from routers.admin_seed import router as admin_seed_router
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 
@@ -180,6 +181,7 @@ app.include_router(phases_router)
 app.include_router(task_dependencies_router)
 app.include_router(slack_integration_router)
 app.include_router(agent_runner_router)
+app.include_router(admin_seed_router)
 
 
 @app.get("/health")
