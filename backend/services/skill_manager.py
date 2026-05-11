@@ -278,6 +278,175 @@ async def delete_skill(name: str, *, hard: bool = False) -> dict:
 
 
 # ──────────────────────────────────────────
+# T-002-02: archive / restore
+# ──────────────────────────────────────────
+
+# archive 先: data/skills/_archive/<name>/<timestamp>/
+SKILL_ARCHIVE = SKILL_STORE / "_archive"
+
+
+class SkillNotFoundError(Exception):
+    """archive 対象スキルが skill_definitions に存在しない."""
+
+
+class SkillAlreadyArchivedError(Exception):
+    """既に archive 済みのスキルを再 archive しようとした."""
+
+
+async def archive_skill(
+    name: str,
+    *,
+    actor_user_id: Optional[str] = None,
+    reason: Optional[str] = None,
+) -> dict:
+    """スキルを archive する (T-002-02 REFACTOR).
+
+    - SKILL.md と eval を data/skills/_archive/<name>/<timestamp>/ に move
+    - skill_definitions.is_active = 0, version = 'archived'
+    - mirror (~/.claude/skills) からも削除
+    - 既存 delete_skill(soft) の上位互換: archive_reason を保存 + 物理 move
+    """
+    from db import async_db as aiosqlite
+    from datetime import datetime
+
+    primary, mirror = _both_paths(name)
+    if not primary.is_dir():
+        raise SkillNotFoundError(f"skill not found on disk: {name}")
+
+    # DB 存在確認
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        rows = await db.execute_fetchall(
+            "SELECT id, is_active, version FROM skill_definitions WHERE skill_name=?",
+            (name,),
+        )
+        if not rows:
+            raise SkillNotFoundError(f"skill not found in DB: {name}")
+        row = dict(rows[0])
+        if row.get("version") == "archived":
+            raise SkillAlreadyArchivedError(f"skill {name!r} already archived")
+
+    # 1. archive directory 準備
+    ts = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    archive_dir = SKILL_ARCHIVE / name / ts
+    archive_dir.parent.mkdir(parents=True, exist_ok=True)
+
+    # 2. primary を archive へ move
+    shutil.move(str(primary), str(archive_dir))
+
+    # 3. mirror は削除
+    if mirror.is_dir():
+        shutil.rmtree(mirror)
+
+    # 4. archive メタデータ JSON
+    meta = {
+        "skill_name": name,
+        "archived_at": ts,
+        "actor_user_id": actor_user_id,
+        "reason": reason,
+    }
+    (archive_dir / "_archive_meta.json").write_text(
+        json.dumps(meta, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+    # 5. DB 更新 (is_active=0 + version='archived')
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            "UPDATE skill_definitions SET is_active=0, version='archived', "
+            "updated_at=datetime('now','localtime') WHERE skill_name=?",
+            (name,),
+        )
+        await db.commit()
+
+    return {
+        "name": name,
+        "archived": True,
+        "archive_dir": str(archive_dir),
+        "archived_at": ts,
+        "reason": reason,
+    }
+
+
+async def restore_skill(
+    name: str,
+    *,
+    actor_user_id: Optional[str] = None,
+    archived_at: Optional[str] = None,
+) -> dict:
+    """archive から restore (最新 archive を default).
+
+    - data/skills/_archive/<name>/<latest>/ → data/skills/<name>/ に move
+    - skill_definitions.is_active = 1, version = '1.0' に戻す
+    - mirror も再生成
+    """
+    from db import async_db as aiosqlite
+
+    primary, mirror = _both_paths(name)
+    archive_root = SKILL_ARCHIVE / name
+    if not archive_root.is_dir():
+        raise SkillNotFoundError(f"no archive found for {name!r}")
+
+    # 既に active が存在する場合は restore しない (重複防止)
+    if primary.is_dir():
+        raise SkillAlreadyArchivedError(f"active skill already exists: {name}")
+
+    # 復元対象の timestamp dir を決定
+    versions = sorted([p for p in archive_root.iterdir() if p.is_dir()], reverse=True)
+    if not versions:
+        raise SkillNotFoundError(f"no archive versions for {name!r}")
+    if archived_at:
+        target = archive_root / archived_at
+        if not target.is_dir():
+            raise SkillNotFoundError(f"archive version not found: {archived_at}")
+    else:
+        target = versions[0]
+
+    # move back to primary
+    primary.parent.mkdir(parents=True, exist_ok=True)
+    shutil.move(str(target), str(primary))
+
+    # mirror 再生成
+    try:
+        mirror.parent.mkdir(parents=True, exist_ok=True)
+        if mirror.is_dir():
+            shutil.rmtree(mirror)
+        shutil.copytree(primary, mirror)
+    except Exception:
+        pass
+
+    # DB 更新
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            "UPDATE skill_definitions SET is_active=1, version='1.0', "
+            "updated_at=datetime('now','localtime') WHERE skill_name=?",
+            (name,),
+        )
+        await db.commit()
+
+    return {
+        "name": name,
+        "restored": True,
+        "restored_from": target.name,
+        "actor_user_id": actor_user_id,
+    }
+
+
+async def list_archived_skills() -> list[dict]:
+    """archive 済みスキル一覧 (DB の version='archived' 行)."""
+    from db import async_db as aiosqlite
+
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        rows = await db.execute_fetchall(
+            "SELECT id, skill_name, display_name, category, updated_at "
+            "FROM skill_definitions WHERE version='archived' "
+            "ORDER BY updated_at DESC"
+        )
+    return [dict(r) for r in rows]
+
+
+# ──────────────────────────────────────────
 # テストケース
 # ──────────────────────────────────────────
 
