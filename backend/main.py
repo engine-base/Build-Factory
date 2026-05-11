@@ -84,6 +84,7 @@ from routers.git_wrap import router as git_wrap_router
 from routers.pr_review import router as pr_review_router
 from routers.audit_trigger import router as audit_trigger_router
 from routers.observability import router as observability_router
+from routers.artifact_md import router as artifact_md_router
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 
@@ -218,6 +219,7 @@ app.include_router(git_wrap_router)
 app.include_router(pr_review_router)
 app.include_router(audit_trigger_router)
 app.include_router(observability_router)
+app.include_router(artifact_md_router)
 
 
 @app.get("/health")
