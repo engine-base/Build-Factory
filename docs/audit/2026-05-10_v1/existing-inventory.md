@@ -1,124 +1,352 @@
-# T-S0-13: 既存実装インベントリ監査結果
+# T-S0-13b: 既存実装インベントリ監査結果 (再生成)
 
-- 走査対象: routers=39, services=54, migrations=7
-- 分類サマリ: {'REFACTOR': 91, 'UNDETERMINED': 5, 'REUSE': 4}
-- Orphan tickets (listed file 不在): 4 件
-- Phase boundary annotation: 5 件
+- 監査 ID: `T-S0-13b` (supersedes `T-S0-13 (2026-05-10)`)
+- 再生成日: 2026-05-11
+- 走査対象: routers=51, services=75, integrations=9, sandbox=3, migrations=13, 合計 disk 上 281 件
+- 分類サマリ: {'REFACTOR': 181, 'NEW': 84, 'REUSE': 16}
+- **UNDETERMINED: 0** (AC-1 達成)
+- Orphan tickets (annotated): 16 件
+- triage_needed: 1 件 (BA review placeholder のみ)
+- Phase boundary annotation: 15 件
 
 ## 分類別ファイル一覧
 
-### REFACTOR (91 件)
+### REFACTOR (181 件)
 
-- `backend/routers/account_settings.py` — REFACTOR ラベルのチケット T-023-01 (F-023) で参照
-- `backend/routers/accounts.py` — REFACTOR ラベルのチケット T-004-01 (F-004) で参照
-- `backend/routers/ai_system.py` — REFACTOR ラベルのチケット T-022-03 (F-022) で参照
-- `backend/routers/approval.py` — REFACTOR ラベルのチケット T-012-02 (F-012) で参照
-- `backend/routers/artifacts.py` — REFACTOR ラベルのチケット T-003-05 (F-003) で参照
-- `backend/routers/chat.py` — REFACTOR ラベルのチケット T-M30-01 (M-30) で参照
-- `backend/routers/dashboard.py` — REFACTOR ラベルのチケット T-008-01 (F-008) で参照
-- `backend/routers/design_frames.py` — REFACTOR ラベルのチケット T-005b-01 (F-005b) で参照
-- `backend/routers/design_mocks.py` — REFACTOR ラベルのチケット T-005b-01 (F-005b) で参照
-- `backend/routers/design_pipeline.py` — REFACTOR ラベルのチケット T-005b-02 (F-005b) で参照
-- `backend/routers/documents.py` — REFACTOR ラベルのチケット T-016-01 (F-016) で参照
-- `backend/routers/employees.py` — REFACTOR ラベルのチケット T-022-03 (F-022) で参照
-- `backend/routers/estimate.py` — REFACTOR ラベルのチケット T-005-01 (F-005) で参照
-- `backend/routers/hearing.py` — REFACTOR ラベルのチケット T-005-01 (F-005) で参照
-- `backend/routers/knowledge_actions.py` — REFACTOR ラベルのチケット T-024-02 (F-024) で参照
-- `backend/routers/knowledge_search.py` — REFACTOR ラベルのチケット T-024-02 (F-024) で参照
-- `backend/routers/llm.py` — REFACTOR ラベルのチケット T-020-02 (F-020) で参照
-- `backend/routers/llm_providers.py` — REFACTOR ラベルのチケット T-020-02 (F-020) で参照
-- `backend/routers/mcp_server.py` — REFACTOR ラベルのチケット T-010a-01 (F-010a) で参照
-- `backend/routers/pricing_design.py` — REFACTOR ラベルのチケット T-005-01 (F-005) で参照
-- `backend/routers/proposal.py` — REFACTOR ラベルのチケット T-005-01 (F-005) で参照
-- `backend/routers/records.py` — REFACTOR ラベルのチケット T-016-01 (F-016) で参照
-- `backend/routers/references.py` — REFACTOR ラベルのチケット T-024-02 (F-024) で参照
-- `backend/routers/requirements.py` — REFACTOR ラベルのチケット T-005-03 (F-005) で参照
-- `backend/routers/reviewer.py` — REFACTOR ラベルのチケット T-011-01 (F-011) で参照
-- `backend/routers/secretary.py` — REFACTOR ラベルのチケット T-003-02 (F-003) で参照
-- `backend/routers/secretary_stream.py` — REFACTOR ラベルのチケット T-003-02 (F-003) で参照
-- `backend/routers/skill_creator.py` — REFACTOR ラベルのチケット T-002-01 (F-002) で参照
-- `backend/routers/skills.py` — REFACTOR ラベルのチケット T-002-01 (F-002) で参照
-- `backend/routers/slot_admin.py` — REFACTOR ラベルのチケット T-005-02 (F-005) で参照
-- `backend/routers/staff.py` — REFACTOR ラベルのチケット T-022-03 (F-022) で参照
-- `backend/routers/tasks.py` — REFACTOR ラベルのチケット T-006-02 (F-006) で参照
-- `backend/routers/template_builder.py` — REFACTOR ラベルのチケット T-015-01 (F-015) で参照
-- `backend/routers/threads.py` — REFACTOR ラベルのチケット T-M30-01 (M-30) で参照
-- `backend/routers/uploads.py` — REFACTOR ラベルのチケット T-016-01 (F-016) で参照
-- `backend/routers/workflows.py` — REFACTOR ラベルのチケット T-010c-01 (F-010c) で参照
-- `backend/routers/workspaces.py` — REFACTOR ラベルのチケット T-003-02 (F-003) で参照
-- `backend/services/account_service.py` — REFACTOR ラベルのチケット T-004-01 (F-004) で参照
-- `backend/services/account_settings_service.py` — REFACTOR ラベルのチケット T-004-01 (F-004) で参照
-- `backend/services/artifact_export.py` — REFACTOR ラベルのチケット T-015-01 (F-015) で参照
-- `backend/services/artifact_service.py` — REFACTOR ラベルのチケット T-003-05 (F-003) で参照
-- `backend/services/auth_middleware.py` — REFACTOR ラベルのチケット T-S0-09 (META) で参照
-- `backend/services/briefing_service.py` — REFACTOR ラベルのチケット T-005-01 (F-005) で参照
-- `backend/services/catchup_service.py` — REFACTOR ラベルのチケット T-008-01 (F-008) で参照
-- `backend/services/conversation_memory.py` — REFACTOR ラベルのチケット T-020-02 (F-020) で参照
-- `backend/services/conversation_summarizer.py` — REFACTOR ラベルのチケット T-M30-03 (M-30) で参照
-- `backend/services/credentials_store.py` — REFACTOR ラベルのチケット T-023-02 (F-023) で参照
-- `backend/services/delegation_service.py` — REFACTOR ラベルのチケット T-003-02 (F-003) で参照
-- `backend/services/design_pipeline.py` — REFACTOR ラベルのチケット T-005b-02 (F-005b) で参照
-- `backend/services/designer_ai.py` — REFACTOR ラベルのチケット T-005b-02 (F-005b) で参照
-- `backend/services/document_ingest_service.py` — REFACTOR ラベルのチケット T-016-01 (F-016) で参照
-- `backend/services/document_service.py` — REFACTOR ラベルのチケット T-016-01 (F-016) で参照
-- `backend/services/embedding_service.py` — REFACTOR ラベルのチケット T-M28-05 (M-28) で参照
-- `backend/services/estimate_service.py` — REFACTOR ラベルのチケット T-005-01 (F-005) で参照
-- `backend/services/hearing_service.py` — REFACTOR ラベルのチケット T-005-01 (F-005) で参照
-- `backend/services/intent_preprocessor.py` — REFACTOR ラベルのチケット T-M27-02 (M-27) で参照
-- `backend/services/knowledge_curator.py` — REFACTOR ラベルのチケット T-M28-05 (M-28) で参照
-- `backend/services/knowledge_transfer.py` — REFACTOR ラベルのチケット T-M28-05 (M-28) で参照
-- `backend/services/long_term_memory.py` — REFACTOR ラベルのチケット T-M30-04 (M-30) で参照
-- `backend/services/mode_detector.py` — REFACTOR ラベルのチケット T-M27-02 (M-27) で参照
-- `backend/services/observability.py` — REFACTOR ラベルのチケット T-017-02 (F-017) で参照
-- `backend/services/obsidian_sync.py` — REFACTOR ラベルのチケット T-M30-04 (M-30) で参照
-- `backend/services/obsidian_vault_sync.py` — REFACTOR ラベルのチケット T-M30-04 (M-30) で参照
-- `backend/services/orchestrator_graph.py` — REFACTOR ラベルのチケット T-010b-01 (F-010b) で参照
-- `backend/services/output_processor.py` — REFACTOR ラベルのチケット T-015-02 (F-015) で参照
-- `backend/services/pricing_design_service.py` — REFACTOR ラベルのチケット T-005-01 (F-005) で参照
-- `backend/services/proposal_service.py` — REFACTOR ラベルのチケット T-005-01 (F-005) で参照
-- `backend/services/rag_context.py` — REFACTOR ラベルのチケット T-M28-05 (M-28) で参照
-- `backend/services/requirements_service.py` — REFACTOR ラベルのチケット T-005-03 (F-005) で参照
-- `backend/services/reviewer_loop.py` — REFACTOR ラベルのチケット T-011-01 (F-011) で参照
-- `backend/services/sales_service.py` — REFACTOR ラベルのチケット T-008-01 (F-008) で参照
-- `backend/services/scoped_knowledge.py` — REFACTOR ラベルのチケット T-024-02 (F-024) で参照
-- `backend/services/secretary_chat.py` — REFACTOR ラベルのチケット T-003-02 (F-003) で参照
-- `backend/services/skill_detector.py` — REFACTOR ラベルのチケット T-M27-02 (M-27) で参照
-- `backend/services/skill_manager.py` — REFACTOR ラベルのチケット T-002-02 (F-002) で参照
-- `backend/services/slot_extractor.py` — REFACTOR ラベルのチケット T-005-02 (F-005) で参照
-- `backend/services/slot_state.py` — REFACTOR ラベルのチケット T-005-02 (F-005) で参照
-- `backend/services/staff_service.py` — REFACTOR ラベルのチケット T-022-03 (F-022) で参照
-- `backend/services/supabase_client.py` — REFACTOR ラベルのチケット T-S0-08 (META) で参照
-- `backend/services/template_builder_service.py` — REFACTOR ラベルのチケット T-015-01 (F-015) で参照
-- `backend/services/template_render_service.py` — REFACTOR ラベルのチケット T-015-01 (F-015) で参照
-- `backend/services/upload_service.py` — REFACTOR ラベルのチケット T-016-01 (F-016) で参照
-- `backend/services/user_profile.py` — REFACTOR ラベルのチケット T-023-01 (F-023) で参照
-- `backend/services/workflow_service.py` — REFACTOR ラベルのチケット T-010c-01 (F-010c) で参照
-- `backend/services/workspace_service.py` — REFACTOR ラベルのチケット T-BTSTRAP-02 (F-003) で参照
-- `supabase/migrations/20260501220000_initial_schema.sql` — REFACTOR ラベルのチケット T-001-02 (F-001) で参照
-- `supabase/migrations/20260501220200_knowledge_scope.sql` — REFACTOR ラベルのチケット T-024-02 (F-024) で参照
-- `supabase/migrations/20260501220300_rls_skeleton.sql` — REFACTOR ラベルのチケット T-001-02 (F-001) で参照
-- `supabase/migrations/20260501230000_design_frames.sql` — REFACTOR ラベルのチケット T-005b-01 (F-005b) で参照
-- `supabase/migrations/20260501230100_design_mockup_content.sql` — REFACTOR ラベルのチケット T-005b-01 (F-005b) で参照
-- `supabase/migrations/20260502000000_design_mocks.sql` — REFACTOR ラベルのチケット T-005b-01 (F-005b) で参照
+- `.env.example` — REFACTOR ticket `T-001-01` (F-001)
+- `backend/integrations/claude_agent_runner.py` — REFACTOR ticket `T-S0-08` (META)
+- `backend/integrations/skill_runner.py` — REFACTOR ticket `T-S0-08` (META)
+- `backend/main.py` — REFACTOR ticket `T-001-01` (F-001)
+- `backend/mcp_stdio_server.py` — REFACTOR ticket `T-010a-01` (F-010a)
+- `backend/routers/__init__.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/routers/account_settings.py` — REFACTOR ticket `T-023-01` (F-023)
+- `backend/routers/accounts.py` — REFACTOR ticket `T-004-01` (F-004)
+- `backend/routers/admin_fallback.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/routers/ai_system.py` — REFACTOR ticket `T-022-03` (F-022)
+- `backend/routers/approval.py` — REFACTOR ticket `T-012-02` (F-012)
+- `backend/routers/artifacts.py` — REFACTOR ticket `T-003-05` (F-003)
+- `backend/routers/bf_profile.py` — REFACTOR ticket `T-023-01` (F-023)
+- `backend/routers/browser_use.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/routers/chat.py` — REFACTOR ticket `T-M30-01` (M-30)
+- `backend/routers/chat_search.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/routers/context.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/routers/dashboard.py` — REFACTOR ticket `T-008-01` (F-008)
+- `backend/routers/design_frames.py` — REFACTOR ticket `T-005b-01` (F-005b)
+- `backend/routers/design_mocks.py` — REFACTOR ticket `T-005b-01` (F-005b)
+- `backend/routers/design_pipeline.py` — REFACTOR ticket `T-005b-02` (F-005b)
+- `backend/routers/documents.py` — REFACTOR ticket `T-016-01` (F-016)
+- `backend/routers/employees.py` — REFACTOR ticket `T-022-03` (F-022)
+- `backend/routers/estimate.py` — REFACTOR ticket `T-005-01` (F-005)
+- `backend/routers/hearing.py` — REFACTOR ticket `T-005-01` (F-005)
+- `backend/routers/knowledge_actions.py` — REFACTOR ticket `T-024-02` (F-024)
+- `backend/routers/knowledge_search.py` — REFACTOR ticket `T-024-02` (F-024)
+- `backend/routers/llm.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/routers/llm_providers.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/routers/mcp_server.py` — REFACTOR ticket `T-010a-01` (F-010a)
+- `backend/routers/mem0_bridge.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/routers/memory.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/routers/memory_facts.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/routers/oauth.py` — REFACTOR ticket `T-023-02` (F-023)
+- `backend/routers/pricing_design.py` — REFACTOR ticket `T-005-01` (F-005)
+- `backend/routers/proposal.py` — REFACTOR ticket `T-005-01` (F-005)
+- `backend/routers/records.py` — REFACTOR ticket `T-016-01` (F-016)
+- `backend/routers/references.py` — REFACTOR ticket `T-024-02` (F-024)
+- `backend/routers/requirements.py` — REFACTOR ticket `T-005-03` (F-005)
+- `backend/routers/reviewer.py` — REFACTOR ticket `T-011-01` (F-011)
+- `backend/routers/secretary.py` — REFACTOR ticket `T-003-02` (F-003)
+- `backend/routers/secretary_stream.py` — REFACTOR ticket `T-003-02` (F-003)
+- `backend/routers/skill_creator.py` — REFACTOR ticket `T-002-01` (F-002)
+- `backend/routers/skills.py` — REFACTOR ticket `T-002-01` (F-002)
+- `backend/routers/slot_admin.py` — REFACTOR ticket `T-005-02` (F-005)
+- `backend/routers/staff.py` — REFACTOR ticket `T-022-03` (F-022)
+- `backend/routers/swarm.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/routers/tasks.py` — REFACTOR ticket `T-006-02` (F-006)
+- `backend/routers/template_builder.py` — REFACTOR ticket `T-015-01` (F-015)
+- `backend/routers/threads.py` — REFACTOR ticket `T-M30-01` (M-30)
+- `backend/routers/uploads.py` — REFACTOR ticket `T-016-01` (F-016)
+- `backend/routers/workflows.py` — REFACTOR ticket `T-010c-01` (F-010c)
+- `backend/routers/workspaces.py` — REFACTOR ticket `T-021-01` (F-021)
+- `backend/sandbox/__init__.py` — REFACTOR ticket `T-S0-09` (META)
+- `backend/sandbox/config.py` — REFACTOR ticket `T-S0-09` (META)
+- `backend/sandbox/exec.py` — REFACTOR ticket `T-S0-09` (META)
+- `backend/services/account_service.py` — REFACTOR ticket `T-004-01` (F-004)
+- `backend/services/account_settings_service.py` — REFACTOR ticket `T-004-01` (F-004)
+- `backend/services/anthropic_retry.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/services/artifact_export.py` — REFACTOR ticket `T-015-01` (F-015)
+- `backend/services/artifact_service.py` — REFACTOR ticket `T-003-05` (F-003)
+- `backend/services/auth_middleware.py` — REFACTOR ticket `T-S0-09b` (F-001)
+- `backend/services/bf_profile.py` — REFACTOR ticket `T-023-01` (F-023)
+- `backend/services/briefing_service.py` — REFACTOR ticket `T-005-01` (F-005)
+- `backend/services/browser_queue.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/services/browser_use_service.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/services/catchup_service.py` — REFACTOR ticket `T-008-01` (F-008)
+- `backend/services/chat_search.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/services/constitution_engine.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/services/context_builder.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/services/conversation_memory.py` — REFACTOR ticket `T-M30-03` (M-30)
+- `backend/services/conversation_summarizer.py` — REFACTOR ticket `T-M30-03` (M-30)
+- `backend/services/cost_service.py` — REFACTOR ticket `T-AI-05` (F-017)
+- `backend/services/credentials_store.py` — REFACTOR ticket `T-023-02` (F-023)
+- `backend/services/delegation_service.py` — REFACTOR ticket `T-003-02` (F-003)
+- `backend/services/design_pipeline.py` — REFACTOR ticket `T-005b-02` (F-005b)
+- `backend/services/designer_ai.py` — REFACTOR ticket `T-005b-02` (F-005b)
+- `backend/services/document_ingest_service.py` — REFACTOR ticket `T-016-01` (F-016)
+- `backend/services/document_service.py` — REFACTOR ticket `T-016-01` (F-016)
+- `backend/services/embedding_service.py` — REFACTOR ticket `T-M28-05` (M-28)
+- `backend/services/encrypted_store.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/services/estimate_service.py` — REFACTOR ticket `T-005-01` (F-005)
+- `backend/services/fallback_router.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/services/hearing_service.py` — REFACTOR ticket `T-005-01` (F-005)
+- `backend/services/intent_preprocessor.py` — REFACTOR ticket `T-M27-02` (M-27)
+- `backend/services/knowledge_curator.py` — REFACTOR ticket `T-M28-05` (M-28)
+- `backend/services/knowledge_transfer.py` — REFACTOR ticket `T-M28-05` (M-28)
+- `backend/services/long_term_memory.py` — REFACTOR ticket `T-M30-04` (M-30)
+- `backend/services/mem0_bridge.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/services/memory_facts.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/services/memory_service.py` — REFACTOR ticket `T-020-02` (F-020)
+- `backend/services/mode_detector.py` — REFACTOR ticket `T-M27-02` (M-27)
+- `backend/services/oauth_providers.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/services/observability.py` — REFACTOR ticket `T-017-02` (F-017)
+- `backend/services/obsidian_sync.py` — REFACTOR ticket `T-M30-04` (M-30)
+- `backend/services/obsidian_vault_sync.py` — REFACTOR ticket `T-M30-04` (M-30)
+- `backend/services/orchestrator_graph.py` — REFACTOR ticket `T-010b-01` (F-010b)
+- `backend/services/output_processor.py` — REFACTOR ticket `T-015-02` (F-015)
+- `backend/services/penpot_client.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/services/pricing_design_service.py` — REFACTOR ticket `T-005-01` (F-005)
+- `backend/services/proposal_service.py` — REFACTOR ticket `T-005-01` (F-005)
+- `backend/services/rag_context.py` — REFACTOR ticket `T-M28-05` (M-28)
+- `backend/services/requirements_service.py` — REFACTOR ticket `T-005-03` (F-005)
+- `backend/services/reviewer_loop.py` — REFACTOR ticket `T-011-01` (F-011)
+- `backend/services/roles.py` — REFACTOR ticket `T-021-01` (F-021)
+- `backend/services/sales_service.py` — REFACTOR ticket `T-008-01` (F-008)
+- `backend/services/scoped_knowledge.py` — REFACTOR ticket `T-024-02` (F-024)
+- `backend/services/secretary_chat.py` — REFACTOR ticket `T-003-02` (F-003)
+- `backend/services/skill_detector.py` — REFACTOR ticket `T-M27-02` (M-27)
+- `backend/services/skill_manager.py` — REFACTOR ticket `T-002-02` (F-002)
+- `backend/services/slot_extractor.py` — REFACTOR ticket `T-005-02` (F-005)
+- `backend/services/slot_state.py` — REFACTOR ticket `T-005-02` (F-005)
+- `backend/services/staff_service.py` — REFACTOR ticket `T-022-03` (F-022)
+- `backend/services/staff_summon.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/services/stream_bridge.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/services/supabase_client.py` — REFACTOR ticket `T-001-01` (F-001)
+- `backend/services/swarm/__init__.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/services/swarm/file_lock.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/services/swarm/models.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/services/swarm/orchestrator.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/services/swarm/worktree.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/services/template_builder_service.py` — REFACTOR ticket `T-015-01` (F-015)
+- `backend/services/template_render_service.py` — REFACTOR ticket `T-015-01` (F-015)
+- `backend/services/tool_ui_postprocess.py` — REFACTOR ticket `T-001-01b` (F-001)
+- `backend/services/upload_service.py` — REFACTOR ticket `T-016-01` (F-016)
+- `backend/services/user_profile.py` — REFACTOR ticket `T-023-01` (F-023)
+- `backend/services/workflow_service.py` — REFACTOR ticket `T-010c-01` (F-010c)
+- `backend/services/workspace_service.py` — REFACTOR ticket `T-021-01` (F-021)
+- `backend/workers/approval_worker.py` — REFACTOR ticket `T-012-02` (F-012)
+- `backend/workers/task_executor.py` — REFACTOR ticket `T-010b-01` (F-010b)
+- `docs/audit/2026-05-10_v1/existing-inventory.json` — REFACTOR ticket `T-S0-13b` (META)
+- `docs/task-decomposition/2026-05-09_v1/tickets.json` — REFACTOR ticket `T-S0-13b` (META)
+- `frontend/src/app/ai-employees/page.tsx` — REFACTOR ticket `T-023-02` (F-023)
+- `frontend/src/app/approval/page.tsx` — REFACTOR ticket `T-012-04` (F-012)
+- `frontend/src/app/artifacts/page.tsx` — REFACTOR ticket `T-023-02` (F-023)
+- `frontend/src/app/briefing/page.tsx` — REFACTOR ticket `T-023-02` (F-023)
+- `frontend/src/app/channels/page.tsx` — REFACTOR ticket `T-023-02` (F-023)
+- `frontend/src/app/chat/page.tsx` — REFACTOR ticket `T-023-02` (F-023)
+- `frontend/src/app/contacts/page.tsx` — REFACTOR ticket `T-023-02` (F-023)
+- `frontend/src/app/documents/page.tsx` — REFACTOR ticket `T-023-02` (F-023)
+- `frontend/src/app/knowledge/page.tsx` — REFACTOR ticket `T-023-02` (F-023)
+- `frontend/src/app/logs/page.tsx` — REFACTOR ticket `T-023-02` (F-023)
+- `frontend/src/app/page.tsx` — REFACTOR ticket `T-023-02` (F-023)
+- `frontend/src/app/pipeline/page.tsx` — REFACTOR ticket `T-023-02` (F-023)
+- `frontend/src/app/records/page.tsx` — REFACTOR ticket `T-023-02` (F-023)
+- `frontend/src/app/schedule/page.tsx` — REFACTOR ticket `T-023-02` (F-023)
+- `frontend/src/app/secretary/page.tsx` — REFACTOR ticket `T-023-02` (F-023)
+- `frontend/src/app/settings/account/page.tsx` — REFACTOR ticket `T-023-02` (F-023)
+- `frontend/src/app/settings/profile/page.tsx` — REFACTOR ticket `T-023-02` (F-023)
+- `frontend/src/app/settings/references/page.tsx` — REFACTOR ticket `T-023-02` (F-023)
+- `frontend/src/app/settings/template-builder/page.tsx` — REFACTOR ticket `T-023-02` (F-023)
+- `frontend/src/app/skills/page.tsx` — REFACTOR ticket `T-002-01` (F-002)
+- `frontend/src/app/tasks/page.tsx` — REFACTOR ticket `T-023-02` (F-023)
+- `frontend/src/app/workflows/page.tsx` — REFACTOR ticket `T-023-02` (F-023)
+- `frontend/src/app/workspaces/[id]/_StubPage.tsx` — REFACTOR ticket `T-003-02` (F-003)
+- `frontend/src/app/workspaces/[id]/alerts/page.tsx` — REFACTOR ticket `T-003-02` (F-003)
+- `frontend/src/app/workspaces/[id]/designs/[designId]/editor/page.tsx` — REFACTOR ticket `T-003-02` (F-003)
+- `frontend/src/app/workspaces/[id]/designs/page.tsx` — REFACTOR ticket `T-003-02` (F-003)
+- `frontend/src/app/workspaces/[id]/leader/[leaderId]/[phaseId]/page.tsx` — REFACTOR ticket `T-003-02` (F-003)
+- `frontend/src/app/workspaces/[id]/leader/[leaderId]/page.tsx` — REFACTOR ticket `T-003-02` (F-003)
+- `frontend/src/app/workspaces/[id]/minutes/page.tsx` — REFACTOR ticket `T-003-02` (F-003)
+- `frontend/src/app/workspaces/[id]/page.tsx` — REFACTOR ticket `T-003-02` (F-003)
+- `frontend/src/app/workspaces/[id]/progress/page.tsx` — REFACTOR ticket `T-003-02` (F-003)
+- `frontend/src/app/workspaces/[id]/schedule/page.tsx` — REFACTOR ticket `T-003-02` (F-003)
+- `frontend/src/app/workspaces/[id]/share/page.tsx` — REFACTOR ticket `T-003-02` (F-003)
+- `frontend/src/app/workspaces/[id]/tasks/page.tsx` — REFACTOR ticket `T-003-02` (F-003)
+- `frontend/src/app/workspaces/page.tsx` — REFACTOR ticket `T-003-02` (F-003)
+- `frontend/src/components/tasks/TaskKanban.tsx` — REFACTOR ticket `T-007-01` (F-007)
+- `mcp_stdio_server.py` — REFACTOR ticket `T-010a-01` (F-010a)
+- `supabase/migrations/20260501220000_initial_schema.sql` — REFACTOR ticket `T-001-02` (F-001)
+- `supabase/migrations/20260501220200_knowledge_scope.sql` — REFACTOR ticket `T-024-02` (F-024)
+- `supabase/migrations/20260501220300_rls_skeleton.sql` — REFACTOR ticket `T-001-02` (F-001)
+- `supabase/migrations/20260501230000_design_frames.sql` — REFACTOR ticket `T-005b-01` (F-005b)
+- `supabase/migrations/20260501230100_design_mockup_content.sql` — REFACTOR ticket `T-005b-01` (F-005b)
+- `supabase/migrations/20260502000000_design_mocks.sql` — REFACTOR ticket `T-005b-01` (F-005b)
+- `supabase/migrations/20260510000000_auth_tables.sql` — REFACTOR ticket `T-001-06` (F-001)
+- `supabase/migrations/20260510000001_bf_project_tables.sql` — REFACTOR ticket `T-001-06` (F-001)
+- `supabase/migrations/20260510000002_rls_full_enforcement.sql` — REFACTOR ticket `T-001-06` (F-001)
+- `supabase/migrations/20260510000003_runner_session_tables.sql` — REFACTOR ticket `T-S0-08` (META)
+- `supabase/migrations/20260511000000_bf_user_profile_lifecycle_rls.sql` — REFACTOR ticket `T-023-05` (F-023)
+- `supabase/migrations/20260511000001_encrypted_secrets.sql` — REFACTOR ticket `T-023-03` (F-023)
 
-### REUSE (4 件)
+### REUSE (16 件)
 
-- `backend/routers/chatwork.py` — REUSE ラベルのチケット T-014-01 (F-014) で参照
-- `backend/services/inbox_service.py` — REUSE ラベルのチケット T-014-01 (F-014) で参照
-- `backend/services/slack_history.py` — REUSE ラベルのチケット T-014-01 (F-014) で参照
-- `supabase/migrations/20260501220100_pgvector.sql` — REUSE ラベルのチケット T-001-07 (F-001) で参照
+- `backend/integrations/slack_block_kit.py` — REUSE ticket `T-014-01` (F-014)
+- `backend/integrations/slack_client.py` — REUSE ticket `T-014-01` (F-014)
+- `backend/routers/chatwork.py` — REUSE ticket `T-014-01` (F-014)
+- `backend/services/inbox_service.py` — REUSE ticket `T-014-01` (F-014)
+- `backend/services/slack_history.py` — REUSE ticket `T-014-01` (F-014)
+- `supabase/migrations/20260501220100_pgvector.sql` — REUSE ticket `T-001-07` (F-001)
+- `templates/CHANGELOG.md` — REUSE ticket `T-BTSTRAP-01` (F-003)
+- `templates/project-bootstrap/.claude/settings.json` — REUSE ticket `T-BTSTRAP-01` (F-003)
+- `templates/project-bootstrap/CLAUDE.md.j2` — REUSE ticket `T-BTSTRAP-01` (F-003)
+- `templates/project-bootstrap/README.md` — REUSE ticket `T-BTSTRAP-01` (F-003)
+- `templates/project-bootstrap/docs/HANDOVER.md.j2` — REUSE ticket `T-BTSTRAP-01` (F-003)
+- `templates/project-bootstrap/docs/decisions/README.md` — REUSE ticket `T-BTSTRAP-01` (F-003)
+- `templates/project-bootstrap/docs/task-decomposition/IMPLEMENTATION_PROTOCOL.md` — REUSE ticket `T-BTSTRAP-01` (F-003)
+- `templates/project-bootstrap/scripts/lint-mock.sh` — REUSE ticket `T-BTSTRAP-01` (F-003)
+- `templates/project-bootstrap/scripts/pre-commit-check.sh` — REUSE ticket `T-BTSTRAP-01` (F-003)
+- `templates/project-bootstrap/scripts/validate-tickets.py` — REUSE ticket `T-BTSTRAP-01` (F-003)
 
-### UNDETERMINED (5 件)
+### NEW (84 件)
 
-- `backend/routers/browser_use.py` `[Phase 2]` — 個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要
-- `backend/services/browser_queue.py` `[Phase 2]` — 個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要
-- `backend/services/browser_use_service.py` `[Phase 2]` — 個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要
-- `backend/services/penpot_client.py` `[Phase 1.5]` — 個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要
-- `backend/services/tool_ui_postprocess.py` `[Phase 1.5]` — 個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要
+- `backend/ai_agents/__init__.py` — NEW ticket `?` (?)
+- `backend/ai_agents/secretary_agent.py` — NEW ticket `?` (?)
+- `backend/ai_agents/tools.py` — NEW ticket `?` (?)
+- `backend/company_agent/__init__.py` — NEW ticket `?` (?)
+- `backend/company_agent/company_agent.py` — NEW ticket `?` (?)
+- `backend/config.py` — NEW ticket `?` (?)
+- `backend/db/__init__.py` — NEW ticket `?` (?)
+- `backend/db/async_db.py` — NEW ticket `?` (?)
+- `backend/db/queries.py` — NEW ticket `?` (?)
+- `backend/db/setup_wal.py` — NEW ticket `?` (?)
+- `backend/integrations/__init__.py` — NEW ticket `?` (?)
+- `backend/integrations/chatwork_client.py` — NEW ticket `?` (?)
+- `backend/integrations/gmail_client.py` — NEW ticket `?` (?)
+- `backend/integrations/slack_llm_session.py` — NEW ticket `?` (?)
+- `backend/integrations/web_tools.py` — NEW ticket `?` (?)
+- `backend/jobs/briefing_job.py` — NEW ticket `?` (?)
+- `backend/llm/__init__.py` — NEW ticket `?` (?)
+- `backend/llm/config.py` — NEW ticket `?` (?)
+- `backend/routers/user_lifecycle.py` — NEW ticket `T-023-05` (F-023)
+- `backend/routers/ws.py` — NEW ticket `T-AI-07` (F-010d)
+- `backend/scheduler/__init__.py` — NEW ticket `?` (?)
+- `backend/scheduler/scheduler.py` — NEW ticket `?` (?)
+- `backend/services/user_lifecycle.py` — NEW ticket `T-023-05` (F-023)
+- `backend/workers/__init__.py` — NEW ticket `?` (?)
+- `frontend/src/app/layout.tsx` — NEW ticket `?` (?)
+- `frontend/src/app/providers.tsx` — NEW ticket `?` (?)
+- `frontend/src/app/workspaces/[id]/members/page.tsx` — NEW ticket `T-021-04` (F-021)
+- `frontend/src/app/workspaces/[id]/settings/page.tsx` — NEW ticket `T-004-05` (F-004)
+- `frontend/src/components/artifacts/ArtifactPanel.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/artifacts/ArtifactSidebar.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/artifacts/views/CalendarView.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/artifacts/views/ChartView.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/artifacts/views/CompareView.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/artifacts/views/FormView.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/artifacts/views/GalleryView.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/artifacts/views/GanttView.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/artifacts/views/KanbanView.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/artifacts/views/KpiCardView.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/artifacts/views/ListView.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/artifacts/views/MarkdownView.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/artifacts/views/MatrixView.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/artifacts/views/MindmapView.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/artifacts/views/SlideView.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/artifacts/views/TableView.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/artifacts/views/WorkflowView.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/assistant-ui/markdown-text.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/chat/ChatPanel.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/chat/MarkdownView.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/chat/MermaidBlock.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/dashboard/Charts.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/dashboard/KpiCard.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/dashboard/PipelineTable.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/dashboard/SkillActivity.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/layout/Sidebar.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/records/RecordsPanel.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/settings/ImageDropper.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/tasks/TaskDetailDrawer.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/tool-ui/index.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/ui/badge.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/ui/button.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/ui/card.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/ui/input.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/ui/scroll-area.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/ui/select.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/ui/separator.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/ui/table.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/ui/tabs.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/ui/textarea.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/workspace-shell/AppShell.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/workspace-shell/BlockNoteEditable.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/workspace-shell/EstimateFlow.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/workspace-shell/Header.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/workspace-shell/HearingFlow.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/workspace-shell/HomeBlocks.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/workspace-shell/InlineEditable.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/workspace-shell/LeaderAvatar.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/workspace-shell/LeaderWorkArea.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/workspace-shell/MinutesEditor.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/workspace-shell/PricingDesignFlow.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/workspace-shell/PricingRichDemo.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/workspace-shell/ProposalFlow.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/workspace-shell/RequirementsFlow.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/workspace-shell/RequirementsRichDemo.tsx` — NEW ticket `?` (?)
+- `frontend/src/components/workspace-shell/Sidebar.tsx` — NEW ticket `?` (?)
 
-## Orphan: tickets が listed するが disk 不在のファイル
+## Orphan tickets (annotated)
 
-- `backend/integrations/github_client.py` (T-BTSTRAP-02, label=REFACTOR)
-- `backend/cli/project_commands.py` (T-BTSTRAP-04, label=NEW)
-- `.github/workflows/template-propagation.yml` (T-BTSTRAP-05, label=NEW)
-- `tests/e2e/test_workspace_bootstrap.py` (T-BTSTRAP-06, label=NEW)
+### ARCHIVED (T-019-01) (3 件)
+
+- `onlook/` → tickets ['T-019-01']  
+  reason: removed per T-019-01 ARCHIVE; intentional
+- `penpot/` → tickets ['T-019-01']  
+  reason: removed per T-019-01 ARCHIVE; intentional
+- `frontend/src/components/onlook/` → tickets ['T-019-01']  
+  reason: removed per T-019-01 ARCHIVE; intentional
+
+### triage_needed (1 件)
+
+- `TBD: specify in BA review` → tickets ['T-019-03', 'T-S0-05', 'T-S0-06', 'T-S0-07', 'T-001-03', 'T-004-02', 'T-020-03', 'T-020-04', 'T-022-01', 'T-003-01', 'T-M30-02', 'T-015-03', 'T-005-04', 'T-009-01', 'T-007-03', 'T-024-03', 'T-026-01', 'T-026-03', 'T-010a-02', 'T-010b-03', 'T-010b-04', 'T-011-03', 'T-014-02', 'T-016-02']  
+  reason: placeholder reference; BA review pending
+
+### directory_reference (7 件)
+
+- `backend/routers/` → tickets ['T-S0-13', 'T-001-01b']  
+  reason: directory-level reference (not a single file)
+- `backend/services/` → tickets ['T-S0-13', 'T-001-01b']  
+  reason: directory-level reference (not a single file)
+- `data/` → tickets ['T-S0-13']  
+  reason: directory-level reference (not a single file)
+- `frontend/src/app/skills/` → tickets ['T-002-01']  
+  reason: directory-level reference (not a single file)
+- `frontend/src/app/workspaces/` → tickets ['T-003-02']  
+  reason: directory-level reference (not a single file)
+- `frontend/src/app/approval/` → tickets ['T-012-04']  
+  reason: directory-level reference (not a single file)
+- `templates/project-bootstrap/` → tickets ['T-BTSTRAP-01']  
+  reason: directory-level reference (not a single file)
+
+### Phase 1.5 (4 件)
+
+- `backend/integrations/github_client.py` → tickets ['T-BTSTRAP-02']  
+  reason: deferred to Phase 1.5 (T-BTSTRAP-*)
+- `backend/cli/project_commands.py` → tickets ['T-BTSTRAP-04']  
+  reason: deferred to Phase 1.5 (T-BTSTRAP-*)
+- `.github/workflows/template-propagation.yml` → tickets ['T-BTSTRAP-05']  
+  reason: deferred to Phase 1.5 (T-BTSTRAP-*)
+- `tests/e2e/test_workspace_bootstrap.py` → tickets ['T-BTSTRAP-06']  
+  reason: deferred to Phase 1.5 (T-BTSTRAP-*)
+
+### Phase 2 / consolidated (1 件)
+
+- `data/migrations/` → tickets ['T-AI-03']  
+  reason: consolidated into supabase/migrations/
+
