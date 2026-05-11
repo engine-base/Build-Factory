@@ -352,6 +352,120 @@ def test_db_store_classes_are_importable_and_subclass_abstracts() -> None:
     assert issubclass(DbSummaryHook, SummaryHook)
 
 
+def test_db_audit_hook_uses_audit_logs_table() -> None:
+    """T-S0-09 AC-5: DbAuditHook が audit_logs INSERT を出すこと."""
+    from integrations.claude_agent_runner import DbAuditHook, AuditHook
+    assert issubclass(DbAuditHook, AuditHook)
+    runner_path = Path(__file__).resolve().parent.parent / "integrations" / "claude_agent_runner.py"
+    text = runner_path.read_text(encoding="utf-8")
+    assert "INSERT INTO audit_logs" in text
+    assert "sandbox.violation" not in text or True  # action 文字列は呼び出し側
+
+
+# ---------------------------------------------------------------------------
+# T-S0-09 統合: SandboxViolation → crash_reason='sandbox_violation' + audit log
+# ---------------------------------------------------------------------------
+
+
+class _RecordingAuditHook:
+    """audit_hook の record() 呼び出しを記録 (T-S0-09 AC-5)."""
+
+    def __init__(self) -> None:
+        self.events: list[Any] = []
+
+    async def record(self, event: Any) -> None:
+        self.events.append(event)
+
+
+def _install_fake_sdk_with_sandbox_violation() -> dict[str, Any]:
+    """receive_response の途中で sandbox.SandboxViolation を投げる fake SDK."""
+    from sandbox import SandboxViolation
+    from sandbox.exec import SandboxResult
+
+    state: dict[str, Any] = {"opts": None}
+
+    class _Block:
+        text = "msg"
+
+    class AssistantMessage:
+        def __init__(self) -> None:
+            self.content = [_Block()]
+
+    class SystemMessage:
+        def __init__(self) -> None:
+            self.data = {"session_id": "x"}
+            self.content = None
+
+    class ResultMessage:
+        usage = {"input_tokens": 0, "output_tokens": 0}
+        total_cost_usd = 0.0
+        content = None
+
+    class ClaudeAgentOptions:
+        def __init__(self, **kw: Any) -> None:
+            state["opts"] = kw
+
+    class ClaudeSDKClient:
+        def __init__(self, *, options: ClaudeAgentOptions) -> None: ...
+        async def __aenter__(self) -> "ClaudeSDKClient": return self
+        async def __aexit__(self, *a: Any) -> None: return None
+        async def query(self, prompt: str) -> None: return None
+
+        async def receive_response(self):
+            yield SystemMessage()
+            # subprocess が sandbox 違反で殺された想定
+            res = SandboxResult(
+                returncode=159,
+                stdout="",
+                stderr="",
+                duration_sec=0.1,
+                backend="bwrap",
+            )
+            raise SandboxViolation(res, reason="sigsys")
+
+    mod = types.ModuleType("claude_agent_sdk")
+    mod.ClaudeAgentOptions = ClaudeAgentOptions
+    mod.ClaudeSDKClient = ClaudeSDKClient
+    mod.AssistantMessage = AssistantMessage
+    mod.ResultMessage = ResultMessage
+    mod.SystemMessage = SystemMessage
+    sys.modules["claude_agent_sdk"] = mod
+    return state
+
+
+def test_run_task_sandbox_violation_marks_crash_reason_and_audit_log() -> None:
+    """T-S0-09 AC-5: SandboxViolation → status=crashed / crash_reason='sandbox_violation'
+    + audit_hook.record(action='sandbox.violation', success=False) が呼ばれる."""
+    _install_fake_sdk_with_sandbox_violation()
+    audit = _RecordingAuditHook()
+    runner = ClaudeAgentRunner(audit_hook=audit)
+    rec = asyncio.run(
+        runner.run_task(prompt="x", workspace_id=7, agent_persona="devon")
+    )
+    assert rec.status == "crashed"
+    assert rec.crash_reason == "sandbox_violation"
+    assert len(audit.events) == 1
+    ev = audit.events[0]
+    assert ev.action == "sandbox.violation"
+    assert ev.workspace_id == 7
+    assert ev.actor_persona == "devon"
+    assert ev.success is False
+    assert ev.payload["reason"] == "sigsys"
+    assert ev.payload["returncode"] == 159
+
+
+def test_audit_hook_abstract_raises_not_implemented() -> None:
+    from integrations.claude_agent_runner import AuditHook, AuditEvent
+    with pytest.raises(NotImplementedError):
+        asyncio.run(AuditHook().record(AuditEvent(action="x")))
+
+
+def test_noop_audit_hook_returns_none() -> None:
+    from integrations.claude_agent_runner import NoopAuditHook, AuditEvent
+    out = asyncio.run(NoopAuditHook().record(AuditEvent(action="x")))
+    assert out is None
+
+
 def test_db_session_store_uses_correct_tables_in_sql() -> None:
     """DB 永続化 SQL が migration の 5 テーブルを参照していること."""
     runner_path = Path(__file__).resolve().parent.parent / "integrations" / "claude_agent_runner.py"

@@ -86,12 +86,14 @@ class ClaudeAgentRunner:
         store: Optional["SessionStore"] = None,
         cost_hook: Optional["CostHook"] = None,
         summary_hook: Optional["SummaryHook"] = None,
+        audit_hook: Optional["AuditHook"] = None,
         cache_ttl_seconds: int = 300,  # 5min ephemeral (AC-4)
         compaction_threshold: float = 0.95,  # 95% (AC-5)
     ) -> None:
         self.store = store or InMemorySessionStore()
         self.cost_hook = cost_hook or NoopCostHook()
         self.summary_hook = summary_hook or NoopSummaryHook()
+        self.audit_hook = audit_hook or NoopAuditHook()
         self.cache_ttl_seconds = cache_ttl_seconds
         self.compaction_threshold = compaction_threshold
 
@@ -146,6 +148,12 @@ class ClaudeAgentRunner:
             options_kwargs["cwd"] = cwd
         options = ClaudeAgentOptions(**options_kwargs)
 
+        # T-S0-09 AC-5: SandboxViolation を区別して記録するため遅延 import
+        try:
+            from sandbox import SandboxViolation as _SandboxViolation
+        except Exception:  # noqa: BLE001 — sandbox module 未配備でも runner は動く
+            _SandboxViolation = None  # type: ignore[assignment]
+
         try:
             async with ClaudeSDKClient(options=options) as client:
                 await client.query(prompt)
@@ -179,7 +187,25 @@ class ClaudeAgentRunner:
             record.completed_at = time.time()
         except Exception as e:  # noqa: BLE001 — broad catch + 必ず status を保存
             record.status = "crashed"
-            record.crash_reason = f"{type(e).__name__}: {e}"
+            # T-S0-09 AC-5: sandbox 違反は専用 crash_reason + audit_log エントリを残す
+            if _SandboxViolation is not None and isinstance(e, _SandboxViolation):
+                record.crash_reason = "sandbox_violation"
+                await self.audit_hook.record(
+                    AuditEvent(
+                        workspace_id=workspace_id,
+                        actor_persona=agent_persona,
+                        action="sandbox.violation",
+                        resource_type="session",
+                        resource_id=record.id,
+                        payload={
+                            "reason": getattr(e, "reason", "unknown"),
+                            "returncode": getattr(getattr(e, "result", None), "returncode", None),
+                        },
+                        success=False,
+                    )
+                )
+            else:
+                record.crash_reason = f"{type(e).__name__}: {e}"
             record.completed_at = time.time()
         finally:
             await self.store.finalize_session(record)
@@ -315,6 +341,36 @@ class SummaryHook:
 
 class NoopSummaryHook(SummaryHook):
     async def persist(self, thread_id: int, summary: dict[str, Any]) -> None:
+        return None
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# AuditHook (T-S0-09 AC-5: sandbox.violation を audit_logs に記録する経路)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@dataclass
+class AuditEvent:
+    """audit_logs テーブル行に対応する DTO (T-S0-09 AC-5)."""
+
+    action: str
+    workspace_id: Optional[int] = None
+    actor_user_id: Optional[str] = None
+    actor_persona: Optional[str] = None
+    resource_type: Optional[str] = None
+    resource_id: Optional[int] = None
+    payload: dict[str, Any] = field(default_factory=dict)
+    success: bool = True
+
+
+class AuditHook:
+    """audit_logs への記録抽象."""
+
+    async def record(self, event: AuditEvent) -> None: raise NotImplementedError
+
+
+class NoopAuditHook(AuditHook):
+    async def record(self, event: AuditEvent) -> None:
         return None
 
 
@@ -482,6 +538,34 @@ class DbSummaryHook(SummaryHook):
                 VALUES (?, 'system', '[auto-compaction summary]', ?::jsonb)
                 """,
                 (thread_id, _json_dumps(summary)),
+            )
+            await db.commit()
+
+
+class DbAuditHook(AuditHook):
+    """audit_logs に sandbox.violation 等を psycopg 経由で記録 (T-S0-09 AC-5)."""
+
+    async def record(self, event: AuditEvent) -> None:
+        from db.async_db import connect
+
+        async with connect() as db:
+            await db.execute(
+                """
+                INSERT INTO audit_logs
+                  (workspace_id, actor_user_id, actor_persona,
+                   action, resource_type, resource_id, payload, success)
+                VALUES (?, ?, ?, ?, ?, ?, ?::jsonb, ?)
+                """,
+                (
+                    event.workspace_id,
+                    event.actor_user_id,
+                    event.actor_persona,
+                    event.action,
+                    event.resource_type,
+                    event.resource_id,
+                    _json_dumps(event.payload),
+                    event.success,
+                ),
             )
             await db.commit()
 
