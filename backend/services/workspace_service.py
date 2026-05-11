@@ -128,7 +128,16 @@ async def archive_workspace(workspace_id: int) -> dict:
 # Member 管理
 # ──────────────────────────────────────────
 
-DEFAULT_ROLES = ("admin", "contributor", "viewer", "client")
+# T-021-01: 6 ロール (v2.1)。旧 "admin" は "ws_admin" の互換 alias。
+# 単一ソース: services.roles.ROLE_KEYS
+from services.roles import ROLE_KEYS as _SIX_ROLES, validate_custom_permissions as _validate_cp
+
+DEFAULT_ROLES = _SIX_ROLES + ("admin",)  # "admin" は legacy data 互換のために許容
+
+
+def _normalize_role(role: str) -> str:
+    """旧 "admin" を新 "ws_admin" に正規化 (DB 既存 row 互換)。"""
+    return "ws_admin" if role == "admin" else role
 
 
 async def list_members(workspace_id: int) -> list[dict]:
@@ -152,6 +161,12 @@ async def add_member(
     if role not in DEFAULT_ROLES and not custom_permissions:
         # カスタムロールでも custom_permissions が無いと invalid
         raise ValueError(f"unknown role '{role}' (use {DEFAULT_ROLES} or supply custom_permissions)")
+    # T-021-02 (先取り): custom_permissions key の正当性検証
+    if custom_permissions:
+        unknown = _validate_cp(custom_permissions)
+        if unknown:
+            raise ValueError(f"unknown permission keys in custom_permissions: {unknown}")
+    role = _normalize_role(role)
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute(
             """INSERT OR REPLACE INTO workspace_members
@@ -165,10 +180,45 @@ async def add_member(
     return await get_member(workspace_id, user_id) or {}
 
 
+class SelfStripError(ValueError):
+    """T-021-05: self-strip block — 自分自身の権限を剥奪することは禁止。"""
+
+
+class OwnerProtectedError(ValueError):
+    """T-021-05: owner ロールは降格/削除できない (最後の 1 人は特に)。"""
+
+
+async def _count_role(workspace_id: int, role: str) -> int:
+    async with aiosqlite.connect(DB_PATH) as db:
+        cur = await db.execute(
+            "SELECT COUNT(*) FROM workspace_members WHERE workspace_id = ? AND role = ?",
+            (workspace_id, role),
+        )
+        row = await cur.fetchone()
+    return int(row[0]) if row else 0
+
+
 async def update_member_role(
     workspace_id: int, user_id: str,
     *, role: Optional[str] = None, custom_permissions: Optional[dict] = None,
+    actor_user_id: Optional[str] = None,
 ) -> dict:
+    # T-021-05: self-strip block (DB 不在でも即時 check)
+    if actor_user_id is not None and actor_user_id == user_id and role is not None:
+        raise SelfStripError("cannot change your own role (self-strip blocked)")
+    current = await get_member(workspace_id, user_id)
+    # T-021-05: owner protection (最後の owner 降格を阻止)
+    if current and current.get("role") == "owner" and role and role != "owner":
+        if await _count_role(workspace_id, "owner") <= 1:
+            raise OwnerProtectedError("cannot demote the last owner")
+    # T-021-02: custom_permissions key 検証
+    if custom_permissions:
+        unknown = _validate_cp(custom_permissions)
+        if unknown:
+            raise ValueError(f"unknown permission keys in custom_permissions: {unknown}")
+    if role:
+        role = _normalize_role(role)
+
     cols, vals = [], []
     if role:
         cols.append("role = ?"); vals.append(role)
@@ -187,7 +237,15 @@ async def update_member_role(
     return await get_member(workspace_id, user_id) or {}
 
 
-async def remove_member(workspace_id: int, user_id: str) -> bool:
+async def remove_member(workspace_id: int, user_id: str, *, actor_user_id: Optional[str] = None) -> bool:
+    # T-021-05: self-strip block — 自分自身を削除できない
+    if actor_user_id is not None and actor_user_id == user_id:
+        raise SelfStripError("cannot remove yourself from a workspace (self-strip blocked)")
+    # T-021-05: owner protection — 最後の owner は削除不可
+    current = await get_member(workspace_id, user_id)
+    if current and current.get("role") == "owner":
+        if await _count_role(workspace_id, "owner") <= 1:
+            raise OwnerProtectedError("cannot remove the last owner")
     async with aiosqlite.connect(DB_PATH) as db:
         cur = await db.execute(
             "DELETE FROM workspace_members WHERE workspace_id = ? AND user_id = ?",
