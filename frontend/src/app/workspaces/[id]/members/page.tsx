@@ -33,6 +33,8 @@ import {
   type RoleKey, type WorkspaceMember,
 } from "@/lib/workspace-api";
 import { Workspace, fetchWorkspace, createInvitation } from "@/lib/workspaces";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { WorkspaceShell } from "@/components/workspace-shell";
 
 // TODO(auth): セッション統合後に動的取得
@@ -191,9 +193,9 @@ export default function MembersPage() {
               <LinkIcon className="w-3.5 h-3.5" /> 招待リンクを発行する
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              <input
+              <Input
                 type="email"
-                className="px-3 py-1.5 text-sm border border-slate-300 rounded min-w-[220px]"
+                className="min-w-[220px] max-w-[280px]"
                 placeholder="招待先メールアドレス"
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
@@ -259,9 +261,9 @@ export default function MembersPage() {
                   招待リンク (期限: {new Date(inviteResult.expires_at).toLocaleString("ja-JP")}):
                 </div>
                 <div className="flex items-center gap-2">
-                  <input
+                  <Input
                     readOnly
-                    className="flex-1 px-2 py-1 text-xs bg-slate-50 border border-slate-200 rounded font-mono"
+                    className="flex-1 font-mono text-xs"
                     value={inviteResult.url}
                     onFocus={(e) => e.target.select()}
                   />
@@ -279,8 +281,8 @@ export default function MembersPage() {
 
         {showAdd && (
           <div className="px-4 py-3 bg-eb-50 border border-eb-100 rounded flex items-center gap-2 flex-wrap">
-            <input
-              className="px-3 py-1.5 text-sm border border-slate-300 rounded min-w-[180px]"
+            <Input
+              className="min-w-[180px] max-w-[220px]"
               placeholder="user_id (例: hanako)"
               value={newUserId}
               onChange={(e) => setNewUserId(e.target.value)}
