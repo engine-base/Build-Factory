@@ -95,6 +95,7 @@ from routers.ai_employees import employees_router as ai_employees_router, person
 from routers.hierarchy import router as hierarchy_router
 from routers.long_term_layer import router as long_term_layer_router
 from routers.short_term_layer import router as short_term_layer_router
+from routers.tier3_compaction import router as tier3_compaction_router
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 
@@ -241,6 +242,7 @@ app.include_router(ai_personas_router)
 app.include_router(hierarchy_router)
 app.include_router(long_term_layer_router)
 app.include_router(short_term_layer_router)
+app.include_router(tier3_compaction_router)
 
 
 @app.get("/health")
