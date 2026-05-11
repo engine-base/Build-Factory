@@ -242,3 +242,81 @@ async def resume_session(session_id: int, req: ResumeRequest) -> dict[str, Any]:
         detail={"session_id": session_id, "choice": req.choice, "new_status": rec.status},
     )
     return {"status": rec.status, "choice": req.choice, "session": _serialize(rec)}
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# T-010b-05: session 状態遷移管理 endpoint
+# ──────────────────────────────────────────────────────────────────────────
+
+
+class TransitionRequest(BaseModel):
+    to_status: str = Field(..., description="running / done / crashed / cancelled / paused")
+    reason: Optional[str] = None
+    actor_user_id: Optional[str] = None
+
+
+@router.post("/sessions/{session_id}/transition")
+async def transition_session_endpoint(session_id: int, req: TransitionRequest) -> dict[str, Any]:
+    """T-010b-05: session の status を状態機械に従って遷移させる."""
+    if session_id <= 0:
+        raise _error("agent.invalid_session_id", "session_id must be > 0")
+    if req.actor_user_id is not None and not req.actor_user_id.strip():
+        raise _error("agent.unauthorized",
+                     "actor_user_id must not be empty when provided",
+                     status_code=401)
+
+    from services.session_state_machine import (
+        VALID_STATES, InvalidTransitionError, SessionNotFoundError,
+        SessionStateMachineError, transition_session,
+    )
+    if req.to_status not in VALID_STATES:
+        raise _error(
+            "agent.invalid_to_status",
+            f"to_status must be one of {VALID_STATES}, got {req.to_status!r}",
+        )
+    if req.reason is not None and len(req.reason) > 2000:
+        raise _error("agent.reason_too_large", "reason must be <= 2000 chars")
+
+    runner = get_runner()
+    store = runner.store
+
+    async def load_fn(sid: int):
+        rec = await store.get_session(sid)
+        if rec is None:
+            return None
+        return {"id": rec.id, "status": rec.status}
+
+    async def update_fn(sid: int, new_status: str, reason: Optional[str]):
+        rec = await store.get_session(sid)
+        if rec is None:
+            raise SessionNotFoundError(f"session not found mid-transition: {sid}")
+        rec.status = new_status
+        if reason and new_status == "crashed":
+            rec.crash_reason = reason
+        # finalize_session で永続化
+        await store.finalize_session(rec)
+
+    try:
+        result = await transition_session(
+            session_id, req.to_status,
+            reason=req.reason,
+            load_fn=load_fn,
+            update_fn=update_fn,
+        )
+    except SessionNotFoundError as e:
+        raise _error("agent.session_not_found", str(e), status_code=404)
+    except InvalidTransitionError as e:
+        raise _error("agent.invalid_transition", str(e), status_code=409)
+    except SessionStateMachineError as e:
+        raise _error("agent.transition_invalid", str(e))
+
+    await _audit(
+        "agent.session.transitioned",
+        user_id=req.actor_user_id,
+        detail={
+            "session_id": session_id,
+            "from_status": result.from_status,
+            "to_status": result.to_status,
+        },
+    )
+    return result.to_dict()
