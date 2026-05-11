@@ -73,6 +73,7 @@ from routers.impact_analyzer import router as impact_analyzer_router
 from routers.task_list_view import router as task_list_view_router
 from routers.impact_highlight import router as impact_highlight_router
 from routers.mcp_tokens import router as mcp_tokens_router
+from routers.parallel_runner import router as parallel_runner_router
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 
@@ -196,6 +197,7 @@ app.include_router(impact_analyzer_router)
 app.include_router(task_list_view_router)
 app.include_router(impact_highlight_router)
 app.include_router(mcp_tokens_router)
+app.include_router(parallel_runner_router)
 
 
 @app.get("/health")
