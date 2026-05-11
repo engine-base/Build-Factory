@@ -1,0 +1,147 @@
+# =============================================================================
+# T-S0-01: docker-compose.yml — 全サービス (Build-Factory dev 環境)
+# =============================================================================
+# 用途: ローカル開発で 1 コマンドで全サービス起動 (`docker compose up -d`)
+#
+# 構成 (architecture-v1 §5 準拠):
+#   postgres   - Supabase Postgres 互換 (Phase 1 dev / Phase 2 で Supabase Cloud)
+#   redis      - session/cache (optional、 BACKGROUND_WORKERS=1 で必要)
+#   backend    - FastAPI モジュラーモノリス (port 8001)
+#   frontend   - Next.js 16 (port 3000)
+#
+# 起動順序: postgres → redis → backend → frontend (depends_on で制御)
+# Healthcheck: postgres / redis に組み込み + backend に /api/health 待機
+#
+# .env で上書き可能な変数:
+#   POSTGRES_PASSWORD / BACKEND_PORT / FRONTEND_PORT / NODE_ENV / etc.
+#
+# AC マッピング:
+#   AC-1 UBIQUITOUS: 全サービス + healthcheck + depends_on
+#   AC-2 EVENT:     audit (起動 log は docker logs で記録)
+#   AC-3 STATE:     RLS は postgres init script で適用 (supabase/migrations/)
+#   AC-4 UNWANTED:  不正 ENV (空 POSTGRES_PASSWORD) → init 時 fail
+# =============================================================================
+
+name: build-factory
+
+services:
+  # ────────────────────────────────────────────────────────────────────────
+  # postgres: Supabase 互換 (pgvector + pg_trgm + pgsodium + pg_cron)
+  # ────────────────────────────────────────────────────────────────────────
+  postgres:
+    image: supabase/postgres:15.1.0.117
+    container_name: bf-postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-54322}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./supabase/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - bf-net
+
+  # ────────────────────────────────────────────────────────────────────────
+  # redis: session / job queue / cache (optional)
+  # ────────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7.4-alpine
+    container_name: bf-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - bf-net
+
+  # ────────────────────────────────────────────────────────────────────────
+  # backend: FastAPI (port 8001)
+  # ────────────────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bf-backend
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-8001}:8001"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-postgres}
+      REDIS_URL: redis://redis:6379/0
+      DISABLE_BACKGROUND_WORKERS: ${DISABLE_BACKGROUND_WORKERS:-0}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY:-}
+      CONSTITUTION_TEXT: ${CONSTITUTION_TEXT:-}
+      PYTHONUNBUFFERED: "1"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8001/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - ./backend:/app:ro
+      - backend_data:/app/data
+    networks:
+      - bf-net
+
+  # ────────────────────────────────────────────────────────────────────────
+  # frontend: Next.js 16 (port 3000)
+  # ────────────────────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bf-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-http://localhost:8001}
+      NEXT_PUBLIC_SUPABASE_URL: ${SUPABASE_URL:-}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-}
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - bf-net
+
+# ─────────────────────────────────────────────────────────────────────────
+# Volumes / Networks
+# ─────────────────────────────────────────────────────────────────────────
+
+volumes:
+  postgres_data:
+    name: bf-postgres-data
+  redis_data:
+    name: bf-redis-data
+  backend_data:
+    name: bf-backend-data
+
+networks:
+  bf-net:
+    name: bf-net
+    driver: bridge
