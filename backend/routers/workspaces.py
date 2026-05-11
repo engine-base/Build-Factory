@@ -54,6 +54,7 @@ class MemberAdd(BaseModel):
 class MemberUpdate(BaseModel):
     role: Optional[str] = None
     custom_permissions: Optional[dict] = None
+    actor_user_id: Optional[str] = None  # T-021-05: self-strip / owner protection 判定用
 
 
 class InvitationCreate(BaseModel):
@@ -131,16 +132,41 @@ async def add_member(workspace_id: int, body: MemberAdd):
 
 @router.patch("/{workspace_id}/members/{user_id}")
 async def update_member(workspace_id: int, user_id: str, body: MemberUpdate):
-    return await ws.update_member_role(
-        workspace_id, user_id,
-        role=body.role, custom_permissions=body.custom_permissions,
-    )
+    try:
+        return await ws.update_member_role(
+            workspace_id, user_id,
+            role=body.role, custom_permissions=body.custom_permissions,
+            actor_user_id=body.actor_user_id,
+        )
+    except ws.SelfStripError as e:
+        raise HTTPException(409, f"self_strip_blocked: {e}")
+    except ws.OwnerProtectedError as e:
+        raise HTTPException(409, f"owner_protected: {e}")
+    except ValueError as e:
+        raise HTTPException(400, str(e))
 
 
 @router.delete("/{workspace_id}/members/{user_id}")
-async def remove_member(workspace_id: int, user_id: str):
-    ok = await ws.remove_member(workspace_id, user_id)
+async def remove_member(workspace_id: int, user_id: str,
+                        actor_user_id: Optional[str] = Query(None)):
+    try:
+        ok = await ws.remove_member(workspace_id, user_id, actor_user_id=actor_user_id)
+    except ws.SelfStripError as e:
+        raise HTTPException(409, f"self_strip_blocked: {e}")
+    except ws.OwnerProtectedError as e:
+        raise HTTPException(409, f"owner_protected: {e}")
     return {"removed": ok}
+
+
+@router.get("/permissions/matrix")
+async def permission_matrix() -> dict:
+    """T-021-04: 6 ロール × 30 permission の matrix を返す (UI grid 用)。"""
+    from services.roles import PERMISSION_MATRIX, PERMISSIONS, ROLE_KEYS
+    return {
+        "roles": list(ROLE_KEYS),
+        "permission_keys": list(PERMISSIONS),
+        "matrix": PERMISSION_MATRIX,
+    }
 
 
 # ── invitations ────────────────────────────

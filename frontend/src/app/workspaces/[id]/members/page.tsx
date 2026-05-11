@@ -1,63 +1,140 @@
 "use client";
 
-import { useEffect, useState } from "react";
+/**
+ * S-014 / T-021-04: Workspace メンバー & 権限マトリクス UI (REFACTOR)
+ *
+ * 対応モック: docs/mocks/2026-05-09_v1/workspace/S-014-workspace-members.html
+ * 対応 backend (PR #24 で実装済):
+ *   - GET /api/workspaces/{id}/members
+ *   - GET /api/workspaces/permissions/matrix
+ *   - POST /api/workspaces/{id}/members
+ *   - PATCH /api/workspaces/{id}/members/{user_id}  (actor_user_id 必須)
+ *   - DELETE /api/workspaces/{id}/members/{user_id}?actor_user_id=
+ *
+ * 仕様遵守:
+ *   - 6 ロール (owner / ws_admin / contributor / viewer / client / monitor)
+ *   - 30 permission matrix を backend が正本として提供 (T-021-01)
+ *   - self-strip / owner protection: backend 409 をそのまま表示 (T-021-05)
+ *   - ENGINE BASE green (bg-eb-500) を主色 (CLAUDE.md §5.2)
+ *   - Lucide のみ・絵文字禁止 (CLAUDE.md §5.1)
+ */
+
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { Workspace, fetchWorkspace } from "@/lib/workspaces";
-import { WorkspaceShell, LeaderAvatar, LEADERS } from "@/components/workspace-shell";
-import { Card, CardHeader } from "@/components/workspace-shell/HomeBlocks";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  Users, Bot, ShieldCheck, Link as LinkIcon, UserPlus, MoreHorizontal,
-  CheckCircle2, Eye, XCircle, MessageSquare, PenLine,
+  UserPlus, Trash2, Check, AlertTriangle, Loader2, X,
+  ShieldCheck, Eye, Hammer, UserCog, Briefcase, Activity,
 } from "lucide-react";
+import {
+  fetchWorkspaceMembers, fetchPermissionMatrix,
+  updateMemberRole, removeMember, addMember,
+  type RoleKey, type WorkspaceMember,
+} from "@/lib/workspace-api";
+import { Workspace, fetchWorkspace } from "@/lib/workspaces";
+import { WorkspaceShell } from "@/components/workspace-shell";
 
-const HUMAN_MEMBERS = [
-  { id: 1, name: "高本 まさと", email: "info@engine-base.com", initials: "MA", role: "admin",       scope: "プロジェクト全権 / クライアント窓口", lastSeen: "オンライン", online: true,  bg: "linear-gradient(135deg,#2563EB,#06B6D4)" },
-  { id: 2, name: "佐藤 健太",   email: "sato@engine-base.com",  initials: "SK", role: "contributor", scope: "エンジニア / 実装担当",                lastSeen: "2 時間前",   online: false, bg: "var(--bf-leader-eng)" },
-  { id: 3, name: "山田 太郎",   email: "yamada@example.co.jp",  initials: "山", role: "client",      scope: "●●株式会社 / 発注元担当",              lastSeen: "30 分前",    online: false, bg: undefined },
-];
+// TODO(auth): セッション統合後に動的取得
+const ACTOR_USER_ID = "masato";
 
-const AI_MEMBERS = [
-  { leaderId: "secretary" as const, label: "秘書 AI",       sub: "PM 全体ハブ ・ 振り分け担当",       skills: "secretary",                                                                       knowledge: "共通 / 全社",   working: false },
-  { leaderId: "pm"        as const, label: "PM AI",         sub: "ヒアリング → 要件 → 提案",          skills: "hearing, requirements-definition, proposal, estimate, acceptance-criteria",       knowledge: "PM領域",        working: true  },
-  { leaderId: "arch"      as const, label: "設計 AI",       sub: "アーキ / API / 機能・タスク分解",   skills: "architecture-design, tech-stack, api-design, feature-decomposition, task-decomposition", knowledge: "設計領域",  working: true  },
-  { leaderId: "design"    as const, label: "デザイナー AI", sub: "DESIGN.md + Penpot モック",         skills: "design-md, ui-mockup",                                                            knowledge: "デザイン領域",  working: true  },
-  { leaderId: "eng"       as const, label: "エンジニア AI", sub: "実装引き継ぎ / 統合",                skills: "distributed-dev, integration",                                                    knowledge: "実装領域",      working: false },
-  { leaderId: "qa"        as const, label: "品質 AI",       sub: "テスト戦略 + コードレビュー",        skills: "test-verification, code-review, e2e-testing",                                     knowledge: "品質領域",      working: false },
-  { leaderId: "ops"       as const, label: "DevOps AI",     sub: "リリース / 運用 / ドキュメント",     skills: "release-planning, delivery, operations, support-response, documentation",         knowledge: "運用領域",      working: false },
-];
+const ROLE_KEYS: RoleKey[] = ["owner", "ws_admin", "contributor", "viewer", "client", "monitor"];
 
-const ACCESS_MATRIX: { feature: string; admin: string; contributor: string; viewer: string; client: string }[] = [
-  { feature: "ホーム",                  admin: "edit",      contributor: "edit",      viewer: "read", client: "read" },
-  { feature: "進捗管理 (DAG / ガント)", admin: "edit",      contributor: "edit",      viewer: "read", client: "read" },
-  { feature: "タスク管理 (Kanban)",     admin: "edit",      contributor: "edit",      viewer: "read", client: "deny" },
-  { feature: "AI 大分類チャット",       admin: "edit-all",  contributor: "edit-all",  viewer: "deny", client: "edit-secretary" },
-  { feature: "各フェーズ作業 (実行)",   admin: "edit",      contributor: "edit",      viewer: "deny", client: "deny" },
-  { feature: "デザインモック (Penpot)", admin: "edit",      contributor: "edit",      viewer: "read", client: "comment" },
-  { feature: "議事録",                  admin: "edit",      contributor: "edit",      viewer: "read", client: "read" },
-  { feature: "アラート / 質問",         admin: "edit",      contributor: "edit",      viewer: "deny", client: "self-only" },
-  { feature: "メンバー管理",            admin: "invite",    contributor: "read",      viewer: "read", client: "self-only" },
-  { feature: "共有設定",                admin: "edit",      contributor: "deny",      viewer: "deny", client: "deny" },
-  { feature: "プロジェクト設定",        admin: "edit",      contributor: "deny",      viewer: "deny", client: "deny" },
+const ROLE_META: Record<RoleKey, { label: string; icon: typeof ShieldCheck; tone: string; initial: string }> = {
+  owner:       { label: "Owner",       icon: ShieldCheck, tone: "bg-eb-500 text-white",   initial: "M" },
+  ws_admin:    { label: "Admin",       icon: UserCog,     tone: "bg-blue-500 text-white", initial: "A" },
+  contributor: { label: "Contributor", icon: Hammer,      tone: "bg-amber-500 text-white",initial: "C" },
+  viewer:      { label: "Viewer",      icon: Eye,         tone: "bg-slate-500 text-white",initial: "V" },
+  client:      { label: "Client",      icon: Briefcase,   tone: "bg-purple-500 text-white",initial: "K" },
+  monitor:     { label: "Monitor",     icon: Activity,    tone: "bg-slate-400 text-white",initial: "O" },
+};
+
+// S-014 mock の代表 7 列。本実装は backend matrix を joining。
+const SUMMARY_COLUMNS = [
+  { key: "view_phase_X",              label: "ヒアリング" },
+  { key: "edit_spec",                 label: "仕様書" },
+  { key: "create_tasks",              label: "タスク作成" },
+  { key: "run_session",               label: "実行" },
+  { key: "approve_red_line",          label: "承認" },
+  { key: "manage_workspace_settings", label: "設定" },
+  { key: "delete_artifacts",          label: "削除" },
 ];
 
 export default function MembersPage() {
   const params = useParams();
   const id = Number(params?.id);
+  const qc = useQueryClient();
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [showAdd, setShowAdd] = useState(false);
+  const [newUserId, setNewUserId] = useState("");
+  const [newRole, setNewRole] = useState<RoleKey>("contributor");
 
   useEffect(() => {
     if (!id) return;
     fetchWorkspace(id).then(setWorkspace).catch(() => setWorkspace(null));
   }, [id]);
 
-  if (!workspace) return <div className="p-6" style={{ color: "var(--bf-text-3)" }}>読み込み中…</div>;
+  const membersQ = useQuery<WorkspaceMember[]>({
+    queryKey: ["ws-members", id],
+    queryFn: () => fetchWorkspaceMembers(id),
+    enabled: id > 0,
+  });
+
+  const matrixQ = useQuery({
+    queryKey: ["permission-matrix"],
+    queryFn: fetchPermissionMatrix,
+  });
+
+  const roleMut = useMutation({
+    mutationFn: async (vars: { userId: string; newRole: RoleKey }) => {
+      const res = await updateMemberRole({
+        workspaceId: id, userId: vars.userId,
+        actorUserId: ACTOR_USER_ID, newRole: vars.newRole,
+      });
+      if (!res.ok) throw new Error(res.error || "role update failed");
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["ws-members", id] }),
+    onError: (e: Error) => setErrorMsg(formatBackendError(e.message)),
+  });
+
+  const removeMut = useMutation({
+    mutationFn: async (userId: string) => {
+      const res = await removeMember({ workspaceId: id, userId, actorUserId: ACTOR_USER_ID });
+      if (!res.ok) throw new Error(res.error || "remove failed");
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["ws-members", id] }),
+    onError: (e: Error) => setErrorMsg(formatBackendError(e.message)),
+  });
+
+  const addMut = useMutation({
+    mutationFn: async () => {
+      const res = await addMember({
+        workspaceId: id, userId: newUserId, role: newRole, invitedBy: ACTOR_USER_ID,
+      });
+      if (!res.ok) throw new Error(res.error || "add failed");
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["ws-members", id] });
+      setNewUserId(""); setShowAdd(false);
+    },
+    onError: (e: Error) => setErrorMsg(formatBackendError(e.message)),
+  });
+
+  const matrix = matrixQ.data?.matrix ?? {};
+  const permCount = matrixQ.data?.permission_keys.length ?? 30;
+
+  if (!workspace) {
+    return (
+      <div className="p-6 flex items-center gap-2 text-slate-400">
+        <Loader2 className="w-4 h-4 animate-spin" /> ワークスペースを読み込み中…
+      </div>
+    );
+  }
 
   return (
     <WorkspaceShell
       workspaceId={id}
       workspaceName={workspace.name}
-      progressPercent={45}
-      daysLeft={23}
       active="members"
       breadcrumbs={[
         { label: "Workspaces", href: "/workspaces" },
@@ -65,263 +142,209 @@ export default function MembersPage() {
         { label: "メンバー / 権限" },
       ]}
     >
-      <div style={{ marginBottom: "var(--bf-space-6)" }}>
-        <div className="flex items-start gap-6 flex-wrap">
-          <div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.01em", color: "var(--bf-text-1)", marginBottom: 4 }}>
-              メンバー / 権限
-            </h1>
-            <div style={{ color: "var(--bf-text-3)", fontSize: 13 }}>
-              プロジェクト参加者・AI 社員・ロール別アクセス権限
+      <div className="space-y-4 max-w-[1200px]">
+        <div className="flex items-start gap-3">
+          <div className="flex-1">
+            <h1 className="text-xl font-bold text-slate-900">案件メンバー / 権限マトリクス</h1>
+            <div className="text-xs text-slate-500 mt-1">
+              backend `services/roles.py` の 6 ロール × {permCount} permission を正本としています (T-021-01)。
             </div>
           </div>
-          <div className="flex-1" />
-          <div className="flex items-center gap-2">
-            <button className="inline-flex items-center gap-1.5" style={btnSecondary}>
-              <LinkIcon className="w-3.5 h-3.5" />
-              招待リンクを発行
-            </button>
-            <button className="inline-flex items-center gap-1.5" style={btnPrimary}>
-              <UserPlus className="w-3.5 h-3.5" />
-              メンバー招待
+          <button
+            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs bg-eb-500 hover:bg-eb-600 text-white rounded font-bold"
+            onClick={() => setShowAdd((s) => !s)}
+          >
+            <UserPlus className="w-3.5 h-3.5" /> メンバー追加
+          </button>
+        </div>
+
+        {errorMsg && (
+          <div className="flex items-start gap-2 px-4 py-3 bg-rose-50 border border-rose-200 text-rose-700 rounded">
+            <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+            <div className="text-sm flex-1">{errorMsg}</div>
+            <button className="text-rose-500 hover:text-rose-700" onClick={() => setErrorMsg(null)}>
+              <X className="w-4 h-4" />
             </button>
           </div>
+        )}
+
+        {showAdd && (
+          <div className="px-4 py-3 bg-eb-50 border border-eb-100 rounded flex items-center gap-2 flex-wrap">
+            <input
+              className="px-3 py-1.5 text-sm border border-slate-300 rounded min-w-[180px]"
+              placeholder="user_id (例: hanako)"
+              value={newUserId}
+              onChange={(e) => setNewUserId(e.target.value)}
+            />
+            <select
+              className="px-3 py-1.5 text-sm border border-slate-300 rounded bg-white"
+              value={newRole}
+              onChange={(e) => setNewRole(e.target.value as RoleKey)}
+            >
+              {ROLE_KEYS.map((r) => (
+                <option key={r} value={r}>{ROLE_META[r].label}</option>
+              ))}
+            </select>
+            <button
+              className="px-3 py-1.5 text-xs bg-eb-500 hover:bg-eb-600 text-white rounded font-bold disabled:opacity-50"
+              disabled={!newUserId || addMut.isPending}
+              onClick={() => addMut.mutate()}
+            >
+              {addMut.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "追加"}
+            </button>
+            <button
+              className="px-3 py-1.5 text-xs text-slate-500 hover:text-slate-700"
+              onClick={() => setShowAdd(false)}
+            >
+              キャンセル
+            </button>
+          </div>
+        )}
+
+        <section className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 text-[10px] tracking-wider text-slate-500 font-bold">
+                <tr>
+                  <th className="text-left px-5 py-2 sticky left-0 bg-slate-50 z-10">メンバー</th>
+                  <th className="text-left px-2 py-2">ロール</th>
+                  {SUMMARY_COLUMNS.map((c) => (
+                    <th key={c.key} className="px-2 py-2 text-center whitespace-nowrap">{c.label}</th>
+                  ))}
+                  <th className="px-2 py-2"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {membersQ.isLoading && (
+                  <tr>
+                    <td colSpan={SUMMARY_COLUMNS.length + 3} className="px-5 py-6 text-center text-slate-400">
+                      <Loader2 className="w-4 h-4 inline-block animate-spin mr-2" /> 読み込み中…
+                    </td>
+                  </tr>
+                )}
+                {!membersQ.isLoading && (!membersQ.data || membersQ.data.length === 0) && (
+                  <tr>
+                    <td colSpan={SUMMARY_COLUMNS.length + 3} className="px-5 py-6 text-center text-slate-400">
+                      メンバーがいません。「メンバー追加」から追加できます。
+                    </td>
+                  </tr>
+                )}
+                {membersQ.data?.map((m) => (
+                  <MemberRow
+                    key={m.user_id}
+                    member={m}
+                    matrix={matrix}
+                    onRoleChange={(role) => roleMut.mutate({ userId: m.user_id, newRole: role })}
+                    onRemove={() => {
+                      if (confirm(`${m.user_id} を削除しますか?`)) removeMut.mutate(m.user_id);
+                    }}
+                    saving={roleMut.isPending && roleMut.variables?.userId === m.user_id}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="bg-white border border-slate-200 rounded-lg p-5">
+          <h2 className="text-sm font-bold mb-2">ロール定義</h2>
+          <p className="text-xs text-slate-500 mb-3">
+            上の表は代表 7 列のサマリ。完全 30 permission は `services/roles.py PERMISSION_MATRIX` が正本。
+            「configurable」「limited_*」は backend で role 単位で False (safe-by-default)。
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {ROLE_KEYS.map((r) => {
+              const M = ROLE_META[r];
+              const Icon = M.icon;
+              return (
+                <span
+                  key={r}
+                  className={`inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-bold ${M.tone}`}
+                >
+                  <Icon className="w-3 h-3" /> {M.label}
+                </span>
+              );
+            })}
+          </div>
+        </section>
+
+        <div className="text-[11px] text-slate-400 font-mono text-right">
+          S-014 workspace_members · F-021 · T-021-04 · actor={ACTOR_USER_ID}
         </div>
       </div>
-
-      <Card className="mb-5">
-        <CardHeader title="人間メンバー" icon={<Users className="w-3.5 h-3.5" />} meta={`${HUMAN_MEMBERS.length} 名`} />
-        <table style={tableStyle}>
-          <thead>
-            <tr>
-              <Th width={280}>メンバー</Th>
-              <Th width={120}>ロール</Th>
-              <Th>担当範囲</Th>
-              <Th width={130}>最終アクセス</Th>
-              <Th width={60}></Th>
-            </tr>
-          </thead>
-          <tbody>
-            {HUMAN_MEMBERS.map((m) => (
-              <tr key={m.id}>
-                <td style={tdBase}>
-                  <div className="flex items-center gap-2.5">
-                    <Avatar text={m.initials} bg={m.bg ?? "var(--bf-bg-soft)"} online={m.online} clientStyle={!m.bg} />
-                    <div>
-                      <div style={{ fontWeight: 600 }}>{m.name}</div>
-                      <div style={{ fontSize: 11.5, color: "var(--bf-text-3)" }}>{m.email}</div>
-                    </div>
-                  </div>
-                </td>
-                <td style={tdBase}><RoleBadge role={m.role} /></td>
-                <td style={{ ...tdBase, fontSize: 12.5, color: "var(--bf-text-3)" }}>{m.scope}</td>
-                <td style={{ ...tdBase, fontSize: 12, color: "var(--bf-text-3)" }}>{m.lastSeen}</td>
-                <td style={tdBase}>
-                  <button style={iconBtnStyle}><MoreHorizontal className="w-3.5 h-3.5" /></button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Card>
-
-      <Card className="mb-5">
-        <CardHeader title="AI 社員 (大分類リーダー)" icon={<Bot className="w-3.5 h-3.5" />} meta={`${AI_MEMBERS.length} 体`} />
-        <table style={tableStyle}>
-          <thead>
-            <tr>
-              <Th width={280}>AI 社員</Th>
-              <Th width={120}>ロール</Th>
-              <Th>担当スキル</Th>
-              <Th width={140}>ナレッジ</Th>
-              <Th width={80}>状態</Th>
-              <Th width={60}></Th>
-            </tr>
-          </thead>
-          <tbody>
-            {AI_MEMBERS.map((m) => (
-              <tr key={m.leaderId}>
-                <td style={tdBase}>
-                  <div className="flex items-center gap-2.5">
-                    <LeaderAvatar id={m.leaderId} size={32} />
-                    <div>
-                      <div style={{ fontWeight: 600 }}>{m.label}</div>
-                      <div style={{ fontSize: 11.5, color: "var(--bf-text-3)" }}>{m.sub}</div>
-                    </div>
-                  </div>
-                </td>
-                <td style={tdBase}><span style={{ ...rolePill, background: "var(--bf-success-bg)", color: "var(--bf-success)" }}>{m.leaderId === "secretary" ? "秘書" : "リーダー"}</span></td>
-                <td style={{ ...tdBase, fontSize: 12 }}>
-                  <code style={{ fontSize: 11, fontFamily: "Inter, monospace" }}>{m.skills}</code>
-                </td>
-                <td style={{ ...tdBase, fontSize: 11.5, color: "var(--bf-text-3)" }}>{m.knowledge}</td>
-                <td style={tdBase}>
-                  <span style={{ fontSize: 12, color: m.working ? "var(--bf-success)" : "var(--bf-text-4)" }}>
-                    {m.working ? "稼働中" : "待機"}
-                  </span>
-                </td>
-                <td style={tdBase}>
-                  <button style={iconBtnStyle}><MoreHorizontal className="w-3.5 h-3.5" /></button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Card>
-
-      <Card>
-        <CardHeader
-          title="ロール別アクセス権限"
-          icon={<ShieldCheck className="w-3.5 h-3.5" />}
-          meta={
-            <button className="inline-flex items-center gap-1" style={{ ...btnSecondary, height: 28, fontSize: 12 }}>
-              <PenLine className="w-3.5 h-3.5" />
-              編集
-            </button>
-          }
-        />
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                {["機能 / 画面", "admin", "contributor", "viewer", "client"].map((h, i) => (
-                  <th key={h} style={{
-                    padding: "10px 12px",
-                    background: "var(--bf-bg-soft)",
-                    fontWeight: 600,
-                    fontSize: 11,
-                    color: "var(--bf-text-3)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.04em",
-                    textAlign: i === 0 ? "left" : "center",
-                    borderBottom: "1px solid var(--bf-divider)",
-                  }}>
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {ACCESS_MATRIX.map((row, i) => (
-                <tr key={i}>
-                  <td style={{ padding: "10px 12px", borderBottom: "1px solid var(--bf-divider)", fontSize: 12.5, color: "var(--bf-text-1)" }}>{row.feature}</td>
-                  <td style={accessCell}><AccessIcon kind={row.admin} /></td>
-                  <td style={accessCell}><AccessIcon kind={row.contributor} /></td>
-                  <td style={accessCell}><AccessIcon kind={row.viewer} /></td>
-                  <td style={accessCell}><AccessIcon kind={row.client} /></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="flex items-center gap-4" style={{ padding: "var(--bf-space-3) var(--bf-space-5)", fontSize: 11.5, color: "var(--bf-text-3)", borderTop: "1px solid var(--bf-divider)" }}>
-          <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" style={{ color: "var(--bf-success)" }} /> 編集可能</span>
-          <span className="inline-flex items-center gap-1"><Eye className="w-3.5 h-3.5" style={{ color: "var(--bf-info)" }} /> 閲覧のみ</span>
-          <span className="inline-flex items-center gap-1"><XCircle className="w-3.5 h-3.5" style={{ color: "var(--bf-text-4)" }} /> アクセス不可</span>
-        </div>
-      </Card>
     </WorkspaceShell>
   );
 }
 
-const btnSecondary: React.CSSProperties = { height: 34, padding: "0 14px", background: "var(--bf-bg-elev)", color: "var(--bf-text-1)", border: "1px solid var(--bf-border)", borderRadius: "var(--bf-radius-md)", fontSize: 13, fontWeight: 600 };
-const btnPrimary:   React.CSSProperties = { height: 34, padding: "0 14px", background: "var(--bf-primary)", color: "#fff", borderRadius: "var(--bf-radius-md)", fontSize: 13, fontWeight: 600 };
-const tableStyle:   React.CSSProperties = { width: "100%", borderCollapse: "collapse" };
-const tdBase:       React.CSSProperties = { padding: "12px var(--bf-space-5)", borderBottom: "1px solid var(--bf-divider)", fontSize: 13, color: "var(--bf-text-1)" };
-const iconBtnStyle: React.CSSProperties = { width: 32, height: 32, display: "inline-flex", alignItems: "center", justifyContent: "center", color: "var(--bf-text-3)", borderRadius: "var(--bf-radius-md)" };
-const rolePill:     React.CSSProperties = { display: "inline-flex", alignItems: "center", padding: "2px 8px", borderRadius: 999, fontSize: 11, fontWeight: 600 };
-const accessCell:   React.CSSProperties = { padding: "10px 12px", borderBottom: "1px solid var(--bf-divider)", textAlign: "center" };
+function MemberRow({
+  member, matrix, onRoleChange, onRemove, saving,
+}: {
+  member: WorkspaceMember;
+  matrix: Record<string, Record<string, boolean | string>>;
+  onRoleChange: (r: RoleKey) => void;
+  onRemove: () => void;
+  saving: boolean;
+}) {
+  const raw = member.role || "viewer";
+  const role: RoleKey = (raw === "admin" ? "ws_admin" : raw) as RoleKey;
+  const meta = ROLE_META[role] ?? ROLE_META.viewer;
+  const initial = (member.user_id?.[0] ?? "?").toUpperCase();
 
-function Th({ children, width }: { children?: React.ReactNode; width?: number }) {
   return (
-    <th style={{
-      width,
-      textAlign: "left",
-      fontSize: 11.5, fontWeight: 600,
-      color: "var(--bf-text-3)",
-      textTransform: "uppercase",
-      letterSpacing: "0.04em",
-      padding: "10px var(--bf-space-5)",
-      borderBottom: "1px solid var(--bf-border)",
-      background: "var(--bf-bg-soft)",
-    }}>
-      {children}
-    </th>
+    <tr className="hover:bg-slate-50">
+      <td className="px-5 py-3 sticky left-0 bg-white z-10">
+        <div className="flex items-center gap-2">
+          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${meta.tone}`}>
+            {initial}
+          </div>
+          <span className="font-medium">{member.user_id}</span>
+          {role === "owner" && (
+            <span className="text-[9px] uppercase tracking-wider text-eb-700 bg-eb-50 px-1 py-0.5 rounded">owner</span>
+          )}
+        </div>
+      </td>
+      <td className="px-2 py-2">
+        <select
+          className="w-32 h-8 text-xs px-2 border border-slate-300 rounded bg-white disabled:opacity-50"
+          value={role}
+          onChange={(e) => onRoleChange(e.target.value as RoleKey)}
+          disabled={saving}
+        >
+          {ROLE_KEYS.map((r) => (
+            <option key={r} value={r}>{ROLE_META[r].label}</option>
+          ))}
+        </select>
+      </td>
+      {SUMMARY_COLUMNS.map((col) => {
+        const v = matrix[col.key]?.[role];
+        return <td key={col.key} className="px-2 py-2 text-center">{renderCell(v)}</td>;
+      })}
+      <td className="px-2 py-2 text-right">
+        <button
+          className="text-slate-400 hover:text-rose-600 disabled:opacity-30"
+          onClick={onRemove}
+          title="削除"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </td>
+    </tr>
   );
 }
 
-function Avatar({ text, bg, online, clientStyle }: { text: string; bg: string; online?: boolean; clientStyle?: boolean }) {
+function renderCell(v: boolean | string | undefined) {
+  if (v === true)  return <Check className="w-4 h-4 text-emerald-600 mx-auto" />;
+  if (v === false || v === undefined) return <span className="text-slate-300">×</span>;
   return (
-    <div style={{
-      position: "relative",
-      width: 28, height: 28, borderRadius: "50%",
-      border: "2px solid #fff",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: 10, fontWeight: 700,
-      color: clientStyle ? "var(--bf-text-2)" : "#fff",
-      background: bg,
-      ...(clientStyle ? { borderColor: "var(--bf-border)" } : {}),
-    }}>
-      {text}
-      {online && (
-        <span style={{ position: "absolute", bottom: -1, right: -1, width: 7, height: 7, background: "var(--bf-success)", border: "1.5px solid #fff", borderRadius: "50%" }} />
-      )}
-    </div>
+    <span className="text-[10px] text-amber-600 font-bold uppercase">
+      {String(v).replace(/_/g, " ")}
+    </span>
   );
 }
 
-function RoleBadge({ role }: { role: string }) {
-  const map: Record<string, { bg: string; color: string; label: string }> = {
-    admin:       { bg: "var(--bf-danger-bg)",  color: "var(--bf-danger)",  label: "admin" },
-    contributor: { bg: "var(--bf-primary-bg)", color: "var(--bf-primary)", label: "contributor" },
-    viewer:      { bg: "var(--bf-neutral-bg)", color: "var(--bf-neutral)", label: "viewer" },
-    client:      { bg: "var(--bf-info-bg)",    color: "var(--bf-info)",    label: "client" },
-  };
-  const c = map[role] ?? map.viewer;
-  return (
-    <span style={{ ...rolePill, background: c.bg, color: c.color }}>{c.label}</span>
-  );
-}
-
-function AccessIcon({ kind }: { kind: string }) {
-  if (kind === "deny") {
-    return <XCircle className="w-3.5 h-3.5 inline" style={{ color: "var(--bf-text-4)" }} />;
-  }
-  if (kind === "read") {
-    return <Eye className="w-3.5 h-3.5 inline" style={{ color: "var(--bf-info)" }} />;
-  }
-  if (kind === "edit" || kind === "edit-all" || kind === "invite") {
-    return (
-      <span className="inline-flex items-center gap-1">
-        <CheckCircle2 className="w-3.5 h-3.5" style={{ color: "var(--bf-success)" }} />
-        {kind === "edit-all" && <span style={{ fontSize: 11, color: "var(--bf-text-3)" }}>全 AI</span>}
-        {kind === "invite"   && <span style={{ fontSize: 11, color: "var(--bf-text-3)" }}>招待</span>}
-      </span>
-    );
-  }
-  if (kind === "edit-secretary") {
-    return (
-      <span className="inline-flex items-center gap-1">
-        <CheckCircle2 className="w-3.5 h-3.5" style={{ color: "var(--bf-success)" }} />
-        <span style={{ fontSize: 11, color: "var(--bf-text-3)" }}>秘書のみ</span>
-      </span>
-    );
-  }
-  if (kind === "comment") {
-    return (
-      <span className="inline-flex items-center gap-1">
-        <MessageSquare className="w-3.5 h-3.5" style={{ color: "var(--bf-info)" }} />
-        <span style={{ fontSize: 11, color: "var(--bf-text-3)" }}>コメント可</span>
-      </span>
-    );
-  }
-  if (kind === "self-only") {
-    return (
-      <span className="inline-flex items-center gap-1">
-        <CheckCircle2 className="w-3.5 h-3.5" style={{ color: "var(--bf-success)" }} />
-        <span style={{ fontSize: 11, color: "var(--bf-text-3)" }}>自分宛のみ</span>
-      </span>
-    );
-  }
-  return null;
+function formatBackendError(raw: string): string {
+  if (raw.includes("self_strip_blocked")) return "自分自身のロール変更・削除はブロックされました (T-021-05)。";
+  if (raw.includes("owner_protected"))    return "最後の owner は降格・削除できません (T-021-05)。";
+  if (raw.includes("unknown permission")) return "不明な permission key が含まれています (T-021-02)。";
+  return raw;
 }
