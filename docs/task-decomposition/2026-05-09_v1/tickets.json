@@ -59,7 +59,7 @@
       "deps": [],
       "blocks": "all",
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-19",
-      "mock_link": null,
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "existing_files": [
         "onlook/",
         "penpot/",
@@ -97,7 +97,26 @@
       "deps": [
         "T-019-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-19"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-19",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-019-02 (modify 対象 GitHub Issue 化) as specified by feature F-019."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-019-02 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-019-02 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-019-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-019-03",
@@ -111,7 +130,29 @@
       "deps": [
         "T-019-02"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-19"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-19",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-019-03 (bootstrap 動作確認) as specified by feature F-019."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-019-03 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the existing implementation is in use, the system shall not regress: existing tests and integrations for T-019-03 shall continue to pass."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-019-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-S0-13",
@@ -128,7 +169,7 @@
       "critical": true,
       "output_file": "docs/audit/2026-05-10_v1/existing-inventory.json",
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
-      "mock_link": null,
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "existing_files": [
         "backend/main.py",
         "backend/routers/",
@@ -174,7 +215,7 @@
       "claude_code_hours": 3,
       "human_days": 0.5,
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
-      "mock_link": null,
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "entities": [],
       "existing_files": [
         "docs/task-decomposition/2026-05-09_v1/tickets.json",
@@ -219,7 +260,7 @@
       "claude_code_hours": 2,
       "human_days": 0.3,
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
-      "mock_link": null,
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "entities": [],
       "existing_files": [
         "docs/task-decomposition/2026-05-09_v1/tickets.json"
@@ -258,7 +299,26 @@
       "human_days": 0.5,
       "claude_code_hours": 2,
       "deps": [],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-S0-01 (docker-compose.yml 全サービス) as specified by feature META."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-S0-01 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-S0-01 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-S0-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-S0-02",
@@ -270,7 +330,26 @@
       "human_days": 0.5,
       "claude_code_hours": 2,
       "deps": [],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-S0-02 (GitHub Actions ci.yml) as specified by feature META."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-S0-02 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-S0-02 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-S0-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-S0-03",
@@ -282,7 +361,26 @@
       "human_days": 0.3,
       "claude_code_hours": 1,
       "deps": [],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-S0-03 (license-check.yml (AGPL 防御)) as specified by feature META."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-S0-03 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-S0-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-S0-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-S0-04",
@@ -296,7 +394,26 @@
       "deps": [
         "T-S0-02"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-S0-04 (deploy-staging.yml) as specified by feature META."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-S0-04 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-S0-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-S0-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-S0-05",
@@ -308,7 +425,29 @@
       "human_days": 0.3,
       "claude_code_hours": 1,
       "deps": [],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-S0-05 (shadcn/ui setup + Tailwind config) as specified by feature META."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-S0-05, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the existing implementation is in use, the system shall not regress: existing tests and integrations for T-S0-05 shall continue to pass."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-S0-05, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/account/S-006-account-dashboard.html"
     },
     {
       "id": "T-S0-06",
@@ -322,7 +461,29 @@
       "deps": [
         "T-S0-05"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-S0-06 (共通 UI components (Button/Input/Modal/Toast/Badge)) as specified by feature META."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-S0-06, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the existing implementation is in use, the system shall not regress: existing tests and integrations for T-S0-06 shall continue to pass."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-S0-06, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/account/S-006-account-dashboard.html"
     },
     {
       "id": "T-S0-07",
@@ -334,7 +495,29 @@
       "human_days": 0.3,
       "claude_code_hours": 1,
       "deps": [],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-S0-07 (Supabase FE wrapper) as specified by feature META."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-S0-07, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-S0-07 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-S0-07, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/account/S-006-account-dashboard.html"
     },
     {
       "id": "T-S0-08",
@@ -403,7 +586,7 @@
       "critical": true,
       "existing_files": [],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30",
-      "mock_link": null,
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "entities": [
         "sessions"
       ],
@@ -447,7 +630,7 @@
       "claude_code_hours": 2,
       "human_days": 0.3,
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-21",
-      "mock_link": null,
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "entities": [
         "users",
         "sessions"
@@ -489,7 +672,26 @@
       "human_days": 0.3,
       "claude_code_hours": 1,
       "deps": [],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-S0-10 (Sentry 設定 (FE+BE)) as specified by feature META."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-S0-10 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-S0-10 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-S0-10, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-S0-11",
@@ -501,7 +703,26 @@
       "human_days": 0.3,
       "claude_code_hours": 1,
       "deps": [],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-S0-11 (structlog + pino) as specified by feature META."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-S0-11 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-S0-11 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-S0-11, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-S0-12",
@@ -513,7 +734,26 @@
       "human_days": 0.2,
       "claude_code_hours": 1,
       "deps": [],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-S0-12 (Better Stack uptime monitor) as specified by feature META."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-S0-12 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-S0-12 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-S0-12, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-001-01",
@@ -534,7 +774,7 @@
         ".env.example"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
-      "mock_link": null,
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "entities": [],
       "acceptance_criteria": [
         {
@@ -573,7 +813,7 @@
       "claude_code_hours": 8,
       "human_days": 2,
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
-      "mock_link": null,
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "entities": [],
       "existing_files": [
         "backend/main.py",
@@ -667,7 +907,29 @@
       "deps": [
         "T-001-02"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-001-03 (AI 5 テーブル DDL (hierarchy + clone)) as specified by feature F-001."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-001-03, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-001-03 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-001-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-001-04",
@@ -683,7 +945,7 @@
       ],
       "critical": true,
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4",
-      "mock_link": null,
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "existing_files": [
         "supabase/migrations/20260501220000_initial_schema.sql",
         "supabase/migrations/20260510000000_auth_tables.sql"
@@ -737,7 +999,26 @@
       "deps": [
         "T-001-02"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-001-05 (実装・連携・運用 20 テーブル DDL + ChatThread/ChatMessage/Template) as specified by feature F-001."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-001-05, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-001-05 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-001-05, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-001-06",
@@ -806,7 +1087,26 @@
       "existing_files": [
         "supabase/migrations/20260501220100_pgvector.sql"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-001-07 (拡張機能 (pgvector/pg_trgm/pgsodium/pg_cron) + 100+ index) as specified by feature F-001."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-001-07, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the existing implementation is in use, the system shall not regress: existing tests and integrations for T-001-07 shall continue to pass."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-001-07, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-001-08",
@@ -820,7 +1120,26 @@
       "deps": [
         "T-001-03"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-001-08 (クローン opt-in trigger (user_clone_opt_in)) as specified by feature F-001."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-001-08, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-001-08 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-001-08, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-001-09",
@@ -834,7 +1153,26 @@
       "deps": [
         "T-001-04"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-001-09 (循環依存防止 trigger (recursive CTE)) as specified by feature F-001."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-001-09, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-001-09 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-001-09, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-001-10",
@@ -848,7 +1186,26 @@
       "deps": [
         "T-001-06"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-001-10 (seed.sql + BF_ENV ガード) as specified by feature F-001."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-001-10, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-001-10 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-001-10, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-001-11",
@@ -864,7 +1221,26 @@
         "T-001-09",
         "T-001-10"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-001-11 (DB 統合テスト (RLS/権限/soft delete/拡張)) as specified by feature F-001."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-001-11 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-001-11 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-001-11, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/auth/S-001-login.html"
     },
     {
       "id": "T-002-01",
@@ -883,7 +1259,26 @@
         "frontend/src/app/skills/",
         "backend/routers/skill_creator.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-2"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-2",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-002-01 (スキル管理 UI (existing skills.py 拡張)) as specified by feature F-002."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-002-01, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-002-01 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-002-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/ai/S-038-skill-manager.html"
     },
     {
       "id": "T-002-02",
@@ -900,7 +1295,26 @@
       "existing_files": [
         "backend/services/skill_manager.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-2"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-2",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-002-02 (archive スクリプト (existing skill_manager.py 拡張)) as specified by feature F-002."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-002-02, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-002-02 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-002-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-004-01",
@@ -919,7 +1333,26 @@
         "backend/services/account_service.py",
         "backend/services/account_settings_service.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-004-01 (account 作成 API+UI (existing accounts.py 拡張)) as specified by feature F-004."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-004-01, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-004-01 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-004-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/auth/S-001-login.html"
     },
     {
       "id": "T-004-02",
@@ -933,7 +1366,29 @@
       "deps": [
         "T-004-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-004-02 (workspace 作成 API+UI (existing workspaces.py 拡張)) as specified by feature F-004."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-004-02, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-004-02 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-004-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/auth/S-001-login.html"
     },
     {
       "id": "T-004-03",
@@ -947,7 +1402,26 @@
       "deps": [
         "T-004-02"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-004-03 (workspace_invitations 発行 API) as specified by feature F-004."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-004-03, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-004-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-004-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-004-04",
@@ -961,7 +1435,26 @@
       "deps": [
         "T-004-03"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-004-04 (招待受入 API + signup) as specified by feature F-004."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-004-04, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-004-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-004-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/auth/S-001-login.html"
     },
     {
       "id": "T-004-05",
@@ -1017,7 +1510,26 @@
       "deps": [
         "T-004-04"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-004-06 (テナント階層統合テスト) as specified by feature F-004."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-004-06 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-004-06 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-004-06, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/auth/S-001-login.html"
     },
     {
       "id": "T-IT-S0",
@@ -1031,7 +1543,26 @@
       "deps": [
         "all_sprint_0"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-IT-S0 (Sprint 0 統合テスト) as specified by feature META."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-IT-S0 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-IT-S0 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-IT-S0, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/account/S-006-account-dashboard.html"
     },
     {
       "id": "T-021-01",
@@ -1361,7 +1892,8 @@
       ],
       "entities": [
         "encrypted_credentials"
-      ]
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-023-04",
@@ -1456,7 +1988,26 @@
       "deps": [
         "T-S0-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-20"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-20",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-020-01 (LiteLLM docker-compose 追加) as specified by feature F-020."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-020-01 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-020-01 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-020-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-020-02",
@@ -1475,7 +2026,7 @@
         "backend/services/memory_service.py"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28",
-      "mock_link": null,
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "entities": [
         "chat_threads",
         "chat_messages",
@@ -1522,7 +2073,29 @@
       "deps": [
         "T-020-02"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-20"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-20",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-020-03 (provider adapter 3 個 (Anthropic/OpenAI/Gemini)) as specified by feature F-020."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-020-03, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-020-03 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-020-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-020-04",
@@ -1536,7 +2109,29 @@
       "deps": [
         "T-023-03"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-20"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-20",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-020-04 (BYOK + Anthropic prompt cache (cache_control: ephemeral)) as specified by feature F-020."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-020-04, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-020-04 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-020-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-022-01",
@@ -1550,7 +2145,29 @@
       "deps": [
         "T-001-03"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-22"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-22",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-022-01 (ai_employees DDL 拡張確認) as specified by feature F-022."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-022-01, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the existing implementation is in use, the system shall not regress: existing tests and integrations for T-022-01 shall continue to pass."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-022-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-022-02",
@@ -1564,7 +2181,26 @@
       "deps": [
         "T-022-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-22"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-22",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-022-02 (階層循環参照 trigger) as specified by feature F-022."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-022-02, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-022-02 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-022-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-022-03",
@@ -1584,7 +2220,26 @@
         "backend/routers/ai_system.py",
         "backend/routers/staff.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-22"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-22",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-022-03 (AI 社員 CRUD API (existing employees.py/staff_service.py 拡張)) as specified by feature F-022."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-022-03, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-022-03 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-022-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-022-04",
@@ -1598,7 +2253,26 @@
       "deps": [
         "T-S0-05"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-22"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-22",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-022-04 (組織図 UI (React Flow tree)) as specified by feature F-022."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-022-04, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-022-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-022-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/ai/S-036-ai-employees-org-chart.html"
     },
     {
       "id": "T-003-01",
@@ -1612,7 +2286,29 @@
       "deps": [
         "T-022-03"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-3"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-3",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-003-01 (BMAD 12 ペルソナ → 10 メンバー persona prompt 整理) as specified by feature F-003."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-003-01, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-003-01 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-003-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-003-02",
@@ -1679,7 +2375,26 @@
       "deps": [
         "T-003-02"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-3"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-3",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-003-03 (parent guideline 継承) as specified by feature F-003."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-003-03, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-003-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-003-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-003-04",
@@ -1693,7 +2408,26 @@
       "deps": [
         "T-003-02"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-3"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-3",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-003-04 (スキル context 注入 (CLAUDE.md ルール準拠)) as specified by feature F-003."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-003-04, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-003-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-003-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-003-05",
@@ -1711,7 +2445,26 @@
         "backend/services/artifact_service.py",
         "backend/routers/artifacts.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-3"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-3",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-003-05 (artifact 保存 + AC 検証連携 (existing artifact_service 活用)) as specified by feature F-003."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-003-05, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-003-05 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-003-05, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-M27-01",
@@ -1725,7 +2478,26 @@
       "deps": [
         "T-S0-08"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-27"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-27",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-M27-01 (LangGraph base setup + entry node) as specified by feature M-27."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-M27-01 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-M27-01 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-M27-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-M27-02",
@@ -1745,7 +2517,26 @@
         "backend/services/skill_detector.py"
       ],
       "reference_oss": "openai/codex",
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-27"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-27",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-M27-02 (Intent 分類 (existing intent_preprocessor/mode_detector 統合)) as specified by feature M-27."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-M27-02 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-M27-02 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-M27-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-M27-03",
@@ -1760,7 +2551,26 @@
         "T-M27-02",
         "T-003-02"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-27"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-27",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-M27-03 (Agent / Role Selector + handoff) as specified by feature M-27."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-M27-03 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-M27-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-M27-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-M28-01",
@@ -1778,7 +2588,7 @@
       "existing_files": [],
       "reference_oss": "openai/codex + Claude API compaction",
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28",
-      "mock_link": null,
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "entities": [
         "mem0_collections",
         "obsidian_notes",
@@ -1815,7 +2625,26 @@
       "deps": [
         "T-M28-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-M28-02 (Tier 1 tool result trimming) as specified by feature M-28."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-M28-02 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-M28-02 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-M28-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-M28-03",
@@ -1829,7 +2658,26 @@
       "deps": [
         "T-020-04"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-M28-03 (Tier 2 prompt cache friendly (cache_control: ephemeral 5min)) as specified by feature M-28."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-M28-03 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-M28-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-M28-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-M28-04",
@@ -1843,7 +2691,26 @@
       "deps": [
         "T-M28-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-M28-04 (Tier 3 9-section structured summary (background task)) as specified by feature M-28."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-M28-04 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-M28-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-M28-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-M28-05",
@@ -1863,7 +2730,26 @@
         "backend/services/knowledge_transfer.py",
         "backend/services/rag_context.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-M28-05 (semantic retrieval (existing embedding_service 活用)) as specified by feature M-28."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-M28-05 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-M28-05 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-M28-05, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-M30-01",
@@ -1881,7 +2767,26 @@
         "backend/routers/threads.py",
         "backend/routers/chat.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-M30-01 (ChatThread/ChatMessage CRUD (existing threads.py 拡張)) as specified by feature M-30."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-M30-01, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-M30-01 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-M30-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-M30-02",
@@ -1895,7 +2800,29 @@
       "deps": [
         "T-M30-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-M30-02 (短期 layer (FIFO 直近 N=20)) as specified by feature M-30."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-M30-02, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the existing implementation is in use, the system shall not regress: existing tests and integrations for T-M30-02 shall continue to pass."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-M30-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-M30-03",
@@ -1913,7 +2840,26 @@
         "backend/services/conversation_summarizer.py",
         "backend/services/conversation_memory.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-M30-03 (中期 layer (existing conversation_summarizer 活用)) as specified by feature M-30."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-M30-03, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-M30-03 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-M30-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-M30-04",
@@ -1932,7 +2878,26 @@
         "backend/services/obsidian_sync.py",
         "backend/services/obsidian_vault_sync.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-M30-04 (長期 layer (existing long_term_memory + obsidian_sync 統合)) as specified by feature M-30."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-M30-04, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-M30-04 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-M30-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-M30-05",
@@ -1946,7 +2911,26 @@
       "deps": [
         "T-M30-04"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-M30-05 (Memory 統合テスト (3 層 → context 組立)) as specified by feature M-30."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-M30-05 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-M30-05 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-M30-05, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-IT-S2",
@@ -1960,7 +2944,26 @@
       "deps": [
         "all_sprint_2"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-IT-S2 (Sprint 2 統合テスト) as specified by feature META."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-IT-S2 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-IT-S2 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-IT-S2, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/account/S-006-account-dashboard.html"
     },
     {
       "id": "T-025-01",
@@ -1974,7 +2977,26 @@
       "deps": [
         "T-001-04"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-25"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-25",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-025-01 (EARS 5 形式テンプレ + JSON Schema バリデータ) as specified by feature F-025."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-025-01, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-025-01 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-025-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-025-02",
@@ -1988,7 +3010,26 @@
       "deps": [
         "T-003-02"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-25"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-25",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-025-02 (EARS 形式分類 AI prompt + 書き直し suggest UI) as specified by feature F-025."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-025-02, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-025-02 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-025-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/spec/S-021-requirements-editor.html"
     },
     {
       "id": "T-015-01",
@@ -2008,7 +3049,26 @@
         "backend/services/template_builder_service.py",
         "backend/services/template_render_service.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-15"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-15",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-015-01 (共通テンプレ (existing artifact_export 拡張)) as specified by feature F-015."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-015-01, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-015-01 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-015-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/spec/S-022-spec-viewer.html"
     },
     {
       "id": "T-015-02",
@@ -2025,7 +3085,26 @@
       "existing_files": [
         "backend/services/output_processor.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-15"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-15",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-015-02 (SVG 図解自動生成 (existing output_processor 拡張)) as specified by feature F-015."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-015-02, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-015-02 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-015-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-015-03",
@@ -2039,7 +3118,29 @@
       "deps": [
         "T-S0-08"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-15"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-15",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-015-03 (Storage upload + 共有リンク + Markdown 併記) as specified by feature F-015."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-015-03, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-015-03 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-015-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-005-01",
@@ -2064,7 +3165,26 @@
         "backend/services/pricing_design_service.py",
         "backend/services/proposal_service.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-005-01 (hearing AI (Mary) 4STEP (existing hearing.py/hearing_service 拡張)) as specified by feature F-005."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-005-01, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-005-01 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-005-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/spec/S-020-hearing-session.html"
     },
     {
       "id": "T-005-02",
@@ -2083,7 +3203,26 @@
         "backend/services/slot_extractor.py",
         "backend/routers/slot_admin.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-005-02 (対話 UI + slot 永続化 (existing slot_state/slot_extractor 活用)) as specified by feature F-005."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-005-02, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-005-02 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-005-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/spec/S-020-hearing-session.html"
     },
     {
       "id": "T-005-03",
@@ -2101,7 +3240,26 @@
         "backend/routers/requirements.py",
         "backend/services/requirements_service.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-005-03 (requirements AI (Preston) 6STEP (existing requirements.py 拡張)) as specified by feature F-005."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-005-03, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-005-03 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-005-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/spec/S-020-hearing-session.html"
     },
     {
       "id": "T-005-04",
@@ -2115,7 +3273,29 @@
       "deps": [
         "T-015-03"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-005-04 (仕様書 HTML 生成) as specified by feature F-005."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-005-04, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-005-04 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-005-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/spec/S-020-hearing-session.html"
     },
     {
       "id": "T-005b-01",
@@ -2136,7 +3316,26 @@
         "supabase/migrations/20260501230100_design_mockup_content.sql",
         "supabase/migrations/20260502000000_design_mocks.sql"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-005b-01 (screens/components CRUD (existing design_frames/design_mocks 活用)) as specified by feature F-005b."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-005b-01, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-005b-01 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-005b-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-005b-02",
@@ -2155,7 +3354,26 @@
         "backend/routers/design_pipeline.py",
         "backend/services/design_pipeline.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-005b-02 (ui-mockup スキル統合 (existing designer_ai 拡張)) as specified by feature F-005b."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-005b-02, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-005b-02 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-005b-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-005b-03",
@@ -2169,7 +3387,26 @@
       "deps": [
         "T-015-02"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-005b-03 (コンポーネントカタログ + 画面遷移マップ) as specified by feature F-005b."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-005b-03, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-005b-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-005b-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-005b-04",
@@ -2183,7 +3420,26 @@
       "deps": [
         "T-005-04"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-5",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-005b-04 (仕様 ↔ モック双方向リンク) as specified by feature F-005b."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-005b-04, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-005b-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-005b-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/spec/S-023-screen-mock-viewer.html"
     },
     {
       "id": "T-006-01",
@@ -2197,7 +3453,26 @@
       "deps": [
         "T-003-02"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-6"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-6",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-006-01 (feature-decomposition AI (Devon)) as specified by feature F-006."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-006-01, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-006-01 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-006-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/task/S-030-task-detail.html"
     },
     {
       "id": "T-006-02",
@@ -2215,7 +3490,26 @@
       "existing_files": [
         "backend/routers/tasks.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-6"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-6",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-006-02 (task-decomposition AI + EARS AC (existing tasks.py 拡張)) as specified by feature F-006."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-006-02, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-006-02 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-006-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/task/S-030-task-detail.html"
     },
     {
       "id": "T-006-03",
@@ -2229,7 +3523,26 @@
       "deps": [
         "T-009-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-6"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-6",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-006-03 (impact-analysis) as specified by feature F-006."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-006-03, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-006-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-006-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/task/S-030-task-detail.html"
     },
     {
       "id": "T-006-04",
@@ -2243,7 +3556,26 @@
       "deps": [
         "T-006-02"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-6"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-6",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-006-04 (タスク分解 UI) as specified by feature F-006."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-006-04, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-006-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-006-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/task/S-030-task-detail.html"
     },
     {
       "id": "T-IT-S3",
@@ -2257,7 +3589,26 @@
       "deps": [
         "all_sprint_3"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-IT-S3 (Sprint 3 統合テスト) as specified by feature META."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-IT-S3 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-IT-S3 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-IT-S3, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/account/S-006-account-dashboard.html"
     },
     {
       "id": "T-008-01",
@@ -2276,7 +3627,26 @@
         "backend/services/catchup_service.py",
         "backend/services/sales_service.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-8"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-8",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-008-01 (phases CRUD (existing dashboard.py 一部活用)) as specified by feature F-008."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-008-01, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-008-01 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-008-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/workspace/S-012-workspace-dashboard.html"
     },
     {
       "id": "T-008-02",
@@ -2290,7 +3660,26 @@
       "deps": [
         "T-008-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-8"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-8",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-008-02 (phase_management UI (フェーズ + ガント + ゲート編集)) as specified by feature F-008."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-008-02, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-008-02 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-008-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/workspace/S-012-workspace-dashboard.html"
     },
     {
       "id": "T-008-03",
@@ -2304,7 +3693,26 @@
       "deps": [
         "T-008-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-8"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-8",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-008-03 (ゲート達成判定 + auto unlock) as specified by feature F-008."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-008-03, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-008-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-008-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/workspace/S-012-workspace-dashboard.html"
     },
     {
       "id": "T-008-04",
@@ -2318,7 +3726,26 @@
       "deps": [
         "T-008-02"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-8"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-8",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-008-04 (フェーズ削除タスク移動 UI) as specified by feature F-008."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-008-04, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-008-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-008-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/workspace/S-012-workspace-dashboard.html"
     },
     {
       "id": "T-009-01",
@@ -2332,7 +3759,29 @@
       "deps": [
         "T-001-09"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-9"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-9",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-009-01 (task_dependencies CRUD) as specified by feature F-009."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-009-01, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the existing implementation is in use, the system shall not regress: existing tests and integrations for T-009-01 shall continue to pass."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-009-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-009-02",
@@ -2346,7 +3795,26 @@
       "deps": [
         "T-S0-05"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-9"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-9",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-009-02 (DAG 可視化 UI (React Flow)) as specified by feature F-009."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-009-02, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-009-02 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-009-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/moat/S-017-dependency-graph.html"
     },
     {
       "id": "T-009-03",
@@ -2360,7 +3828,26 @@
       "deps": [
         "T-006-03"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-9"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-9",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-009-03 (影響範囲 AI ハイライト) as specified by feature F-009."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-009-03, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-009-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-009-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/moat/S-017-dependency-graph.html"
     },
     {
       "id": "T-009-04",
@@ -2374,7 +3861,26 @@
       "deps": [
         "T-009-02"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-9"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-9",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-009-04 (DAG 仮想化 + 階層折りたたみ) as specified by feature F-009."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-009-04, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-009-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-009-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/moat/S-017-dependency-graph.html"
     },
     {
       "id": "T-009-05",
@@ -2388,7 +3894,26 @@
       "deps": [
         "T-009-02"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-9"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-9",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-009-05 (依存追加/削除 drag&drop) as specified by feature F-009."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-009-05, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-009-05 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-009-05, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/moat/S-017-dependency-graph.html"
     },
     {
       "id": "T-007-01",
@@ -2405,7 +3930,26 @@
       "existing_files": [
         "frontend/src/components/tasks/TaskKanban.tsx"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-7"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-7",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-007-01 (task_kanban (existing TaskKanban.tsx 拡張・6 列)) as specified by feature F-007."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-007-01, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-007-01 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-007-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/workspace/S-012-workspace-dashboard.html"
     },
     {
       "id": "T-007-02",
@@ -2419,7 +3963,26 @@
       "deps": [
         "T-S0-06"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-7"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-7",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-007-02 (task_list view (table + sort + 一括操作)) as specified by feature F-007."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-007-02, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-007-02 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-007-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/workspace/S-012-workspace-dashboard.html"
     },
     {
       "id": "T-007-03",
@@ -2433,7 +3996,29 @@
       "deps": [
         "T-009-02"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-7"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-7",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-007-03 (task_dag_view (React Flow)) as specified by feature F-007."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-007-03, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the existing implementation is in use, the system shall not regress: existing tests and integrations for T-007-03 shall continue to pass."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-007-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/workspace/S-012-workspace-dashboard.html"
     },
     {
       "id": "T-007-04",
@@ -2447,7 +4032,26 @@
       "deps": [
         "T-007-02"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-7"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-7",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-007-04 (仮想スクロール (react-window)) as specified by feature F-007."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-007-04, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-007-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-007-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/workspace/S-012-workspace-dashboard.html"
     },
     {
       "id": "T-024-01",
@@ -2461,7 +4065,26 @@
       "deps": [
         "T-S0-06"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-24"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-24",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-024-01 (Cmd+K UI modal) as specified by feature F-024."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-024-01, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-024-01 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-024-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/account/S-006-account-dashboard.html"
     },
     {
       "id": "T-024-02",
@@ -2483,7 +4106,26 @@
         "backend/services/scoped_knowledge.py",
         "supabase/migrations/20260501220200_knowledge_scope.sql"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-24"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-24",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-024-02 (search API (existing knowledge_search/embedding_service 拡張)) as specified by feature F-024."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-024-02, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-024-02 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-024-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/account/S-006-account-dashboard.html"
     },
     {
       "id": "T-024-03",
@@ -2497,7 +4139,29 @@
       "deps": [
         "T-S0-09"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-24"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-24",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-024-03 (RLS 連動) as specified by feature F-024."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-024-03, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the existing implementation is in use, the system shall not regress: existing tests and integrations for T-024-03 shall continue to pass."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-024-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/account/S-006-account-dashboard.html"
     },
     {
       "id": "T-IT-S4",
@@ -2511,7 +4175,26 @@
       "deps": [
         "all_sprint_4"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-IT-S4 (Sprint 4 統合テスト) as specified by feature META."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-IT-S4 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-IT-S4 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-IT-S4, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/account/S-006-account-dashboard.html"
     },
     {
       "id": "T-026-01",
@@ -2525,7 +4208,29 @@
       "deps": [
         "T-001-04"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-26"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-26",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-026-01 (constitutions DDL 確認) as specified by feature F-026."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-026-01, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the existing implementation is in use, the system shall not regress: existing tests and integrations for T-026-01 shall continue to pass."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-026-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-026-02",
@@ -2539,7 +4244,26 @@
       "deps": [
         "T-S0-06"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-26"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-26",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-026-02 (Constitution editor UI (content_md + version diff)) as specified by feature F-026."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-026-02, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-026-02 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-026-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/moat/S-018-constitution-editor.html"
     },
     {
       "id": "T-026-03",
@@ -2553,7 +4277,29 @@
       "deps": [
         "T-M28-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-26"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-26",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-026-03 (Constitution context 注入 (M-28 連携)) as specified by feature F-026."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-026-03, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-026-03 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-026-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-012-01",
@@ -2567,7 +4313,26 @@
       "deps": [
         "T-026-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-12"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-12",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-012-01 (red_lines DDL + 5 主要 category seed) as specified by feature F-012."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-012-01, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-012-01 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-012-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/moat/S-019-red-line-settings.html"
     },
     {
       "id": "T-012-02",
@@ -2585,7 +4350,26 @@
         "backend/routers/approval.py",
         "backend/workers/approval_worker.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-12"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-12",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-012-02 (pattern 検出 middleware (existing approval.py 拡張)) as specified by feature F-012."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-012-02, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-012-02 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-012-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/moat/S-019-red-line-settings.html"
     },
     {
       "id": "T-012-03",
@@ -2598,7 +4382,26 @@
       "claude_code_hours": 2,
       "deps": [],
       "reference_oss": "openai/codex",
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-12"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-12",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-012-03 (OS-level sandbox (Codex CLI 参考・Linux Landlock + seccomp)) as specified by feature F-012."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-012-03, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-012-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-012-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/moat/S-019-red-line-settings.html"
     },
     {
       "id": "T-012-04",
@@ -2615,7 +4418,26 @@
       "existing_files": [
         "frontend/src/app/approval/"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-12"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-12",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-012-04 (red_line_approval キュー UI (existing approval ページ拡張)) as specified by feature F-012."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-012-04, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-012-04 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-012-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/moat/S-019-red-line-settings.html"
     },
     {
       "id": "T-010a-01",
@@ -2633,7 +4455,26 @@
         "backend/routers/mcp_server.py",
         "mcp_stdio_server.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-010a-01 (MCP server (existing mcp_server.py + mcp_stdio_server.py 拡張)) as specified by feature F-010a."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-010a-01, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-010a-01 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-010a-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-010a-02",
@@ -2647,7 +4488,29 @@
       "deps": [
         "T-010a-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-010a-02 (bf_get_spec / bf_post_progress / bf_attach_artifact 実装) as specified by feature F-010a."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-010a-02, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-010a-02 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-010a-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-010a-03",
@@ -2661,7 +4524,26 @@
       "deps": [
         "T-010a-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-010a-03 (bf_request_review / bf_get_review_feedback 実装) as specified by feature F-010a."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-010a-03, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-010a-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-010a-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-010a-04",
@@ -2675,7 +4557,26 @@
       "deps": [
         "T-021-03"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-010a-04 (MCP token scope (workspace 単位)) as specified by feature F-010a."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-010a-04, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-010a-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-010a-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-010b-01",
@@ -2694,7 +4595,26 @@
         "backend/integrations/skill_runner.py",
         "backend/services/orchestrator_graph.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-010b-01 (claude-agent-sdk 統合 (existing task_executor + skill_runner 拡張)) as specified by feature F-010b."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-010b-01, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-010b-01 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-010b-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-010b-02",
@@ -2708,7 +4628,26 @@
       "deps": [
         "T-023-04"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-010b-02 (OAuth フロー (Claude Pro/Max トークン)) as specified by feature F-010b."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-010b-02, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-010b-02 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-010b-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/task/S-030-task-detail.html"
     },
     {
       "id": "T-010b-03",
@@ -2723,7 +4662,29 @@
         "T-M28-01",
         "T-026-03"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-010b-03 (初期プロンプト構築 (M-28 経由)) as specified by feature F-010b."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-010b-03, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-010b-03 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-010b-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-010b-04",
@@ -2737,7 +4698,29 @@
       "deps": [
         "T-010b-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-010b-04 (▶︎ ボタン UI + session 起動 API) as specified by feature F-010b."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-010b-04, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-010b-04 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-010b-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/task/S-030-task-detail.html"
     },
     {
       "id": "T-010b-05",
@@ -2751,7 +4734,26 @@
       "deps": [
         "T-001-05"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-010b-05 (sessions table 状態遷移管理) as specified by feature F-010b."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-010b-05, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-010b-05 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-010b-05, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-011-01",
@@ -2769,7 +4771,26 @@
         "backend/routers/reviewer.py",
         "backend/services/reviewer_loop.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-11"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-11",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-011-01 (Reviewer AI persona + Plan/Gen/Eval (existing reviewer.py + reviewer_loop 拡張)) as specified by feature F-011."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-011-01, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-011-01 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-011-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/review/S-035-delivery-approval.html"
     },
     {
       "id": "T-011-02",
@@ -2783,7 +4804,26 @@
       "deps": [
         "T-011-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-11"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-11",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-011-02 (3 ターンカウンター + state 管理) as specified by feature F-011."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-011-02, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-011-02 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-011-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/review/S-035-delivery-approval.html"
     },
     {
       "id": "T-011-03",
@@ -2797,7 +4837,29 @@
       "deps": [
         "T-014-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-11"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-11",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-011-03 (エスカレ通知 (Slack DM + UI バッジ)) as specified by feature F-011."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-011-03, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-011-03 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-011-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/review/S-035-delivery-approval.html"
     },
     {
       "id": "T-011-04",
@@ -2811,7 +4873,26 @@
       "deps": [
         "T-011-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-11"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-11",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-011-04 (統合テスト指揮 AI) as specified by feature F-011."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-011-04, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-011-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-011-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/review/S-035-delivery-approval.html"
     },
     {
       "id": "T-IT-S5",
@@ -2825,7 +4906,26 @@
       "deps": [
         "all_sprint_5"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-IT-S5 (Sprint 5 統合テスト) as specified by feature META."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-IT-S5 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-IT-S5 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-IT-S5, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/account/S-006-account-dashboard.html"
     },
     {
       "id": "T-M29-01",
@@ -2838,7 +4938,26 @@
       "claude_code_hours": 2,
       "deps": [],
       "reference_oss": "openai/codex",
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-29"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-29",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-M29-01 (git worktree manager (作成/cleanup)) as specified by feature M-29."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-M29-01 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-M29-01 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-M29-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-M29-02",
@@ -2852,7 +4971,26 @@
       "deps": [
         "T-M29-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-29"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-29",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-M29-02 (worktree path → session マッピング) as specified by feature M-29."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-M29-02 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-M29-02 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-M29-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-M29-03",
@@ -2866,7 +5004,26 @@
       "deps": [
         "T-M29-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-29"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-29",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-M29-03 (merge conflict 検出 + sequential merge ヘルパー) as specified by feature M-29."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-M29-03, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-M29-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-M29-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-010c-01",
@@ -2885,7 +5042,26 @@
         "backend/routers/workflows.py",
         "backend/services/workflow_service.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-010c-01 (asyncio.Semaphore + Queue (existing task_executor 拡張)) as specified by feature F-010c."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-010c-01 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-010c-01 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-010c-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-010c-02",
@@ -2899,7 +5075,26 @@
       "deps": [
         "T-009-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-010c-02 (親子昇格 (依存グラフ尊重)) as specified by feature F-010c."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-010c-02 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-010c-02 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-010c-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-010c-03",
@@ -2913,7 +5108,26 @@
       "deps": [
         "T-010c-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-010c-03 (完了次第キュー補充 (FIFO + priority)) as specified by feature F-010c."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-010c-03 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-010c-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-010c-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-010c-04",
@@ -2927,7 +5141,26 @@
       "deps": [
         "T-010c-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-010c-04 (circuit breaker (連続失敗 N で auto-block)) as specified by feature F-010c."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-010c-04 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-010c-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-010c-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-010c-05",
@@ -2941,7 +5174,26 @@
       "deps": [
         "T-010b-05"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-010c-05 (crash detection (30 分応答なし/メモリ閾値超/予期せぬ exit)) as specified by feature F-010c."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-010c-05 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-010c-05 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-010c-05, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-010c-06",
@@ -2955,7 +5207,26 @@
       "deps": [
         "T-010c-05"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-010c-06 (resume 機能 (4 択: from_checkpoint/再実行/cancel/手動修正)) as specified by feature F-010c."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-010c-06, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-010c-06 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-010c-06, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/task/S-031-swarm-grid.html"
     },
     {
       "id": "T-010d-01",
@@ -2969,7 +5240,26 @@
       "deps": [
         "T-S0-08"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-010d-01 (FastAPI WebSocket endpoint (session subscribe)) as specified by feature F-010d."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-010d-01, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-010d-01 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-010d-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-010d-02",
@@ -2983,7 +5273,26 @@
       "deps": [
         "T-S0-06"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-010d-02 (swarm_grid UI (4×4 default + 4/9/16/64 + 仮想化)) as specified by feature F-010d."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-010d-02, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-010d-02 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-010d-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/task/S-031-swarm-grid.html"
     },
     {
       "id": "T-010d-03",
@@ -2997,7 +5306,26 @@
       "deps": [
         "T-010d-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-010d-03 (swarm_session_detail UI (個別全画面 + ライブログ)) as specified by feature F-010d."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-010d-03, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-010d-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-010d-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/task/S-031-swarm-grid.html"
     },
     {
       "id": "T-010d-04",
@@ -3011,7 +5339,26 @@
       "deps": [
         "T-010d-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-010d-04 (自動 reconnect + 履歴 fetch) as specified by feature F-010d."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-010d-04, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-010d-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-010d-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/task/S-031-swarm-grid.html"
     },
     {
       "id": "T-IT-S6",
@@ -3025,7 +5372,26 @@
       "deps": [
         "all_sprint_6"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-IT-S6 (Sprint 6 統合テスト (5 並列タスク完走)) as specified by feature META."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-IT-S6 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-IT-S6 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-IT-S6, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/account/S-006-account-dashboard.html"
     },
     {
       "id": "T-013-01",
@@ -3039,7 +5405,26 @@
       "deps": [
         "T-023-04"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-13"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-13",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-013-01 (GitHub OAuth + repo 紐付け UI) as specified by feature F-013."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-013-01, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-013-01 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-013-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/review/S-033-pr-review.html"
     },
     {
       "id": "T-013-02",
@@ -3053,7 +5438,26 @@
       "deps": [
         "T-M29-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-13"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-13",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-013-02 (Claude Code commit + push wrap (worktree 経由)) as specified by feature F-013."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-013-02 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-013-02 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-013-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/review/S-033-pr-review.html"
     },
     {
       "id": "T-013-03",
@@ -3067,7 +5471,26 @@
       "deps": [
         "T-015-03"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-13"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-13",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-013-03 (PR 自動作成 + HTML diff 注釈レビュー資料添付) as specified by feature F-013."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-013-03, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-013-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-013-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/review/S-033-pr-review.html"
     },
     {
       "id": "T-013-04",
@@ -3081,7 +5504,26 @@
       "deps": [
         "T-M29-03"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-13"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-13",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-013-04 (merge conflict 自動解決試行) as specified by feature F-013."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-013-04, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-013-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-013-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/review/S-033-pr-review.html"
     },
     {
       "id": "T-014-01",
@@ -3102,7 +5544,26 @@
         "backend/services/inbox_service.py",
         "backend/services/slack_history.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-14"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-14",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-014-01 (Slack Bolt 統合 (existing slack_client + slack_block_kit 活用)) as specified by feature F-014."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-014-01, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the existing implementation is in use, the system shall not regress: existing tests and integrations for T-014-01 shall continue to pass."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-014-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-014-02",
@@ -3116,7 +5577,29 @@
       "deps": [
         "T-014-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-14"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-14",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-014-02 (カテゴリ別 push (red_line/pr/progress/invite/system) + ダイジェスト) as specified by feature F-014."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-014-02, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-014-02 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-014-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-016-01",
@@ -3139,7 +5622,26 @@
         "backend/services/document_service.py",
         "backend/services/upload_service.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-16"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-16",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-016-01 (obsidian_vaults 設定 UI (existing obsidian_sync 活用)) as specified by feature F-016."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-016-01, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-016-01 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-016-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/ops/S-039-knowledge-base.html"
     },
     {
       "id": "T-016-02",
@@ -3153,7 +5655,29 @@
       "deps": [
         "T-015-03"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-16"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-16",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-016-02 (artifact MD 化 (existing obsidian_sync 拡張)) as specified by feature F-016."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-016-02, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-016-02 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-016-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "existing_files": [
+        "TBD: specify in BA review"
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-016-03",
@@ -3167,7 +5691,26 @@
       "deps": [
         "T-016-02"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-16"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-16",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-016-03 (export trigger (manual/realtime/hourly/on_completion)) as specified by feature F-016."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-016-03, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-016-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-016-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-017-01",
@@ -3181,7 +5724,26 @@
       "deps": [
         "T-S0-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-17"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-17",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-017-01 (Langfuse self-host docker-compose) as specified by feature F-017."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-017-01 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-017-01 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-017-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-017-02",
@@ -3198,7 +5760,26 @@
       "existing_files": [
         "backend/services/observability.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-17"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-17",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-017-02 (Langfuse SDK 統合 (existing observability 拡張)) as specified by feature F-017."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-017-02, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While refactoring for T-017-02 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-017-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-017-03",
@@ -3212,7 +5793,26 @@
       "deps": [
         "T-S0-05"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-17"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-17",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-017-03 (cost dashboard (8 タブ・Recharts)) as specified by feature F-017."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-017-03, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-017-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-017-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/ops/S-040-cost-dashboard.html"
     },
     {
       "id": "T-018-01",
@@ -3226,7 +5826,26 @@
       "deps": [
         "T-001-05"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-18"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-18",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-018-01 (audit_logs trigger (主要テーブルに変更検出)) as specified by feature F-018."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the relevant API endpoint or service function is invoked for T-018-01, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-018-01 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-018-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-018-02",
@@ -3240,7 +5859,26 @@
       "deps": [
         "T-S0-06"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-18"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-18",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-018-02 (audit_log_viewer UI (検索 + before/after diff + CSV/JSON export)) as specified by feature F-018."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user interacts with the UI for T-018-02, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-018-02 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-018-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/account/S-006-account-dashboard.html"
     },
     {
       "id": "T-018-03",
@@ -3254,7 +5892,26 @@
       "deps": [
         "T-S0-04"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-18"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-18",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-018-03 (nightly-backup workflow (DB + Storage + 検証)) as specified by feature F-018."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-018-03 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-018-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-018-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-IT-S7",
@@ -3269,7 +5926,26 @@
         "all_sprint_7"
       ],
       "phase_1_completion_marker": true,
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement T-IT-S7 (最終統合テスト (自社 1 案件 End-to-End 完走)) as specified by feature META."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the implementation step for T-IT-S7 is triggered, the system shall record an audit entry capturing the action and timestamp."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the new feature for T-IT-S7 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid input or unauthorized actor is detected during T-IT-S7, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/account/S-006-account-dashboard.html"
     },
     {
       "id": "T-BTSTRAP-01",
@@ -3285,7 +5961,7 @@
         "T-BTSTRAP-02"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-31",
-      "mock_link": null,
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "existing_files": [
         "templates/project-bootstrap/",
         "templates/project-bootstrap/CLAUDE.md.j2",
@@ -3384,7 +6060,7 @@
         "T-BTSTRAP-02"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-31",
-      "mock_link": null,
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "existing_files": [],
       "entities": [],
       "acceptance_criteria": [
@@ -3426,7 +6102,7 @@
         "T-BTSTRAP-05"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-31",
-      "mock_link": null,
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "existing_files": [
         "backend/cli/project_commands.py"
       ],
@@ -3518,7 +6194,7 @@
       ],
       "blocks": [],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-31",
-      "mock_link": null,
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "existing_files": [
         "tests/e2e/test_workspace_bootstrap.py"
       ],
@@ -3556,7 +6232,7 @@
       "feature": "F-M12",
       "layer": "L2",
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-32",
-      "mock_link": null,
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "existing_files": [],
       "entities": [
         "cost_logs"
@@ -3601,7 +6277,7 @@
         "T-020-02"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-32",
-      "mock_link": null,
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "existing_files": [],
       "entities": [
         "memory_facts",
@@ -3651,7 +6327,7 @@
         "T-020-02"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-32",
-      "mock_link": null,
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "existing_files": [],
       "entities": [
         "memory_facts",
@@ -3834,7 +6510,7 @@
         "T-AI-08"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-32",
-      "mock_link": null,
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "existing_files": [],
       "entities": [
         "sessions",
@@ -3919,7 +6595,7 @@
       ],
       "blocks": [],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-32",
-      "mock_link": null,
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "existing_files": [],
       "entities": [
         "sessions",
