@@ -80,6 +80,7 @@ from routers.circuit_breaker import router as circuit_breaker_router
 from routers.crash_detector import router as crash_detector_router
 from routers.escalation import router as escalation_router
 from routers.category_push import router as category_push_router
+from routers.git_wrap import router as git_wrap_router
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 
@@ -210,6 +211,7 @@ app.include_router(circuit_breaker_router)
 app.include_router(crash_detector_router)
 app.include_router(escalation_router)
 app.include_router(category_push_router)
+app.include_router(git_wrap_router)
 
 
 @app.get("/health")
