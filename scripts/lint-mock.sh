@@ -265,6 +265,16 @@ check_tickets() {
 # ----------------------------------------------------------------
 # Dispatch
 # ----------------------------------------------------------------
+check_domain_boundaries() {
+  echo "[8/8] backend bounded-context domain barrel + 循環依存検出..."
+  if python3 scripts/check-domain-boundaries.py > /tmp/lint_domains.log 2>&1; then
+    echo -e "${GREEN}OK: backend/domains/ 13 barrel 健全 (no bypass / no cycle)${NC}"
+  else
+    cat /tmp/lint_domains.log
+    EXIT_CODE=1
+  fi
+}
+
 case "$MODE" in
   --emoji)        check_emoji ;;
   --agpl)         check_agpl ;;
@@ -273,6 +283,7 @@ case "$MODE" in
   --secrets)      check_secrets ;;
   --no-langgraph) check_no_langgraph ;;
   --no-litellm-in-runner) check_no_litellm_in_runner ;;
+  --domains)      check_domain_boundaries ;;
   all|"")
     check_emoji
     check_agpl
@@ -281,9 +292,10 @@ case "$MODE" in
     check_secrets
     check_no_langgraph
     check_no_litellm_in_runner
+    check_domain_boundaries
     ;;
   *)
-    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|all]"
+    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|all]"
     exit 2
     ;;
 esac
