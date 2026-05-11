@@ -93,10 +93,14 @@ async def events(
         args.append(session_id)
     sql += " ORDER BY created_at DESC LIMIT ?"
     args.append(min(max(limit, 1), 500))
-    async with _db().connect(_db_path()) as db:
-        db.row_factory = _db().Row
-        cur = await db.execute(sql, tuple(args))
-        rows = await cur.fetchall()
+    try:
+        async with _db().connect(_db_path()) as db:
+            db.row_factory = _db().Row
+            cur = await db.execute(sql, tuple(args))
+            rows = await cur.fetchall()
+    except Exception:
+        # migration 未適用時は空 list (graceful degradation)
+        return []
     out = []
     for r in rows:
         d = dict(r)

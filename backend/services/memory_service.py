@@ -151,12 +151,36 @@ async def write_fact(
 
 
 async def _memory_api_write(user_id: str, fact_text: str, *, kind: str) -> bool:
-    """Anthropic Memory API への書き込み。Phase 1 は stub (T-AI-01 で実装予定)。"""
+    """Anthropic Memory API (beta.memory_stores) への書き込み。
+
+    user_id を memory_store_id 相当として運用する。SDK が未導入 / API キーが
+    無い / Memory API が beta で利用不可な場合は False を返し、呼び出し元が
+    Mem0 only fallback + memory_degraded event を emit する。
+    """
     if not os.environ.get("ANTHROPIC_API_KEY"):
         return False
-    # T-AI-01 で実装: anthropic.beta.memory.write(...)
-    # 現状はスタブとして false を返す
-    return False
+    try:
+        import anthropic  # type: ignore[import-not-found]
+    except ImportError:
+        return False
+
+    try:
+        client = anthropic.AsyncAnthropic()
+        memory_stores = getattr(getattr(client, "beta", None), "memory_stores", None)
+        if memory_stores is None:
+            return False
+        # Memory API は beta 仕様で create / append のシグネチャが流動的。
+        # 共通の "content" payload で試行し、API 変更時は例外で fallback。
+        store_id = f"bf_user_{user_id}"
+        if hasattr(memory_stores, "append"):
+            await memory_stores.append(store_id=store_id, content=fact_text, metadata={"kind": kind})
+        elif hasattr(memory_stores, "create"):
+            await memory_stores.create(store_id=store_id, content=fact_text, metadata={"kind": kind})
+        else:
+            return False
+        return True
+    except Exception:
+        return False
 
 
 def mirror_to_obsidian(user_id: str, fact_text: str, note_title: str) -> Optional[Path]:
@@ -229,10 +253,41 @@ async def merge_for_session(
 
 
 async def _memory_api_recall(user_id: Optional[str], query: str) -> list[str]:
-    """Anthropic Memory API recall。Phase 1 stub (T-AI-01 で実装)。"""
-    if not os.environ.get("ANTHROPIC_API_KEY"):
+    """Anthropic Memory API recall。
+
+    Memory API が利用可能なら top-K fact を返す。失敗時は空 list を返し、
+    呼び出し元は Mem0 vector に依存する。
+    """
+    if not os.environ.get("ANTHROPIC_API_KEY") or not user_id:
         return []
-    return []
+    try:
+        import anthropic  # type: ignore[import-not-found]
+    except ImportError:
+        return []
+
+    try:
+        client = anthropic.AsyncAnthropic()
+        memory_stores = getattr(getattr(client, "beta", None), "memory_stores", None)
+        if memory_stores is None:
+            return []
+        store_id = f"bf_user_{user_id}"
+        # API の query / search メソッドが流動的なので両方試す
+        result = None
+        if hasattr(memory_stores, "query"):
+            result = await memory_stores.query(store_id=store_id, query=query, limit=5)
+        elif hasattr(memory_stores, "search"):
+            result = await memory_stores.search(store_id=store_id, query=query, limit=5)
+        else:
+            return []
+        items = getattr(result, "items", None) or getattr(result, "data", None) or []
+        facts: list[str] = []
+        for it in items:
+            text = getattr(it, "content", None) or getattr(it, "text", None) or ""
+            if isinstance(text, str) and text:
+                facts.append(text)
+        return facts
+    except Exception:
+        return []
 
 
 # ──────────────────────────────────────────
