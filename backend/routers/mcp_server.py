@@ -79,6 +79,52 @@ MCP_TOOLS = [
             "properties": {"folder": {"type": "string", "description": "Subfolder name (optional)"}},
         },
     },
+    # T-010a-02: Build-Factory 専用 MCP tools (runner 連携)
+    {
+        "name": "bf_get_spec",
+        "description": (
+            "Get the specification (description + acceptance_criteria + linked artifacts) "
+            "for a Build-Factory task. Runner uses this to read context before implementation."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "task_id": {"type": "integer", "description": "Build-Factory task id"},
+            },
+            "required": ["task_id"],
+        },
+    },
+    {
+        "name": "bf_post_progress",
+        "description": (
+            "Report progress on a Build-Factory task (percent_done + note). "
+            "Updates audit_logs but does not change task status."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "task_id": {"type": "integer"},
+                "percent_done": {"type": "number", "description": "0.0..1.0"},
+                "note": {"type": "string"},
+            },
+            "required": ["task_id", "percent_done"],
+        },
+    },
+    {
+        "name": "bf_attach_artifact",
+        "description": (
+            "Link an artifact (already created via /api/artifacts) to a Build-Factory task. "
+            "Both ids must exist."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "task_id": {"type": "integer"},
+                "artifact_id": {"type": "string"},
+            },
+            "required": ["task_id", "artifact_id"],
+        },
+    },
 ]
 
 # 既存 tool name set (validation で参照)
@@ -117,6 +163,27 @@ def _validate_call_input(name: str, args: Any) -> dict:
                 f"only read-only queries allowed (got {head!r})",
                 status_code=403,
             )
+    # T-010a-02: BF tools の入力検査
+    if name in ("bf_get_spec", "bf_post_progress", "bf_attach_artifact"):
+        task_id = args.get("task_id")
+        if not isinstance(task_id, int) or task_id <= 0:
+            raise _error("mcp.invalid_task_id", "task_id must be a positive int")
+    if name == "bf_post_progress":
+        p = args.get("percent_done")
+        if not isinstance(p, (int, float)) or not (0.0 <= float(p) <= 1.0):
+            raise _error("mcp.invalid_percent_done",
+                         "percent_done must be 0.0..1.0")
+        note = args.get("note")
+        if note is not None and (not isinstance(note, str) or len(note) > 2000):
+            raise _error("mcp.invalid_note", "note must be str (<= 2000 chars)")
+    if name == "bf_attach_artifact":
+        aid = args.get("artifact_id")
+        if not isinstance(aid, str) or not aid.strip():
+            raise _error("mcp.invalid_artifact_id",
+                         "artifact_id must be a non-empty string")
+        if len(aid) > 200:
+            raise _error("mcp.invalid_artifact_id",
+                         "artifact_id must be <= 200 chars")
     return args
 
 
@@ -131,8 +198,143 @@ async def handle_tool_call(name: str, args: dict) -> str:
     if name == "list_records":
         records = list_records(args.get("folder"))
         return json.dumps(records, ensure_ascii=False)
+    # T-010a-02: Build-Factory tools
+    if name == "bf_get_spec":
+        result = await _bf_get_spec(args["task_id"])
+        return json.dumps(result, ensure_ascii=False, default=str)
+    if name == "bf_post_progress":
+        result = await _bf_post_progress(
+            args["task_id"],
+            float(args["percent_done"]),
+            args.get("note"),
+        )
+        return json.dumps(result, ensure_ascii=False, default=str)
+    if name == "bf_attach_artifact":
+        result = await _bf_attach_artifact(args["task_id"], args["artifact_id"])
+        return json.dumps(result, ensure_ascii=False, default=str)
     # validator が先に reject するので到達しないが、念のため structured raise
     raise _error("mcp.unknown_tool", f"unknown tool {name!r}", status_code=404)
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# T-010a-02: Build-Factory tools 実装 (loader 注入式)
+# ──────────────────────────────────────────────────────────────────────────
+
+
+async def _bf_get_spec(task_id: int) -> dict:
+    """task の spec を返す.
+
+    AC-3 backwards compat: 既存 tasks 表から description + acceptance_criteria を抽出.
+    """
+    try:
+        from db import async_db as aiosqlite
+        from pathlib import Path
+        DB = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
+        async with aiosqlite.connect(DB) as db:
+            db.row_factory = aiosqlite.Row
+            rows = await db.execute_fetchall(
+                "SELECT id, title, description, status, acceptance_criteria, "
+                "project_id, assigned_to FROM tasks WHERE id=?",
+                (task_id,),
+            )
+            if not rows:
+                raise _error("mcp.task_not_found",
+                             f"task not found: {task_id}", status_code=404)
+            task = dict(rows[0])
+        # 紐づく artifacts も付ける (best-effort)
+        artifacts: list[dict] = []
+        try:
+            async with aiosqlite.connect(DB) as db:
+                db.row_factory = aiosqlite.Row
+                arows = await db.execute_fetchall(
+                    "SELECT id, type, title FROM artifacts "
+                    "WHERE task_id=? AND is_archived=0 ORDER BY updated_at DESC LIMIT 20",
+                    (task_id,),
+                )
+                artifacts = [dict(a) for a in arows]
+        except Exception:
+            pass
+        return {
+            "task_id": task_id,
+            "title": task.get("title"),
+            "description": task.get("description") or "",
+            "status": task.get("status"),
+            "acceptance_criteria": task.get("acceptance_criteria"),
+            "project_id": task.get("project_id"),
+            "assigned_to": task.get("assigned_to"),
+            "artifacts": artifacts,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise _error("mcp.bf_get_spec_failed",
+                     f"bf_get_spec failed: {e}", status_code=500)
+
+
+async def _bf_post_progress(task_id: int, percent_done: float, note: Optional[str]) -> dict:
+    """task に progress event を audit_logs に emit.
+
+    task status は変更しない (AC-3: backwards compat).
+    """
+    try:
+        from services.memory_service import emit_event
+        await emit_event(
+            "mcp.task.progress",
+            session_id=None,
+            user_id=None,
+            detail={
+                "task_id": task_id,
+                "percent_done": round(percent_done, 4),
+                "note": note,
+            },
+        )
+        return {
+            "task_id": task_id,
+            "percent_done": round(percent_done, 4),
+            "note": note,
+            "recorded": True,
+        }
+    except Exception as e:
+        raise _error("mcp.bf_post_progress_failed",
+                     f"bf_post_progress failed: {e}", status_code=500)
+
+
+async def _bf_attach_artifact(task_id: int, artifact_id: str) -> dict:
+    """artifact を task に紐付ける (artifacts.task_id を update)."""
+    try:
+        from services.artifact_service import get_artifact
+        artifact = await get_artifact(artifact_id)
+        if artifact is None:
+            raise _error("mcp.artifact_not_found",
+                         f"artifact not found: {artifact_id}", status_code=404)
+        from db import async_db as aiosqlite
+        from pathlib import Path
+        DB = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
+        async with aiosqlite.connect(DB) as db:
+            db.row_factory = aiosqlite.Row
+            trows = await db.execute_fetchall(
+                "SELECT id FROM tasks WHERE id=?",
+                (task_id,),
+            )
+            if not trows:
+                raise _error("mcp.task_not_found",
+                             f"task not found: {task_id}", status_code=404)
+            await db.execute(
+                "UPDATE artifacts SET task_id=?, updated_at=datetime('now','localtime') "
+                "WHERE id=?",
+                (task_id, artifact_id),
+            )
+            await db.commit()
+        return {
+            "task_id": task_id,
+            "artifact_id": artifact_id,
+            "linked": True,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise _error("mcp.bf_attach_artifact_failed",
+                     f"bf_attach_artifact failed: {e}", status_code=500)
 
 
 # ──────────────────────────────────────────────────────────────────────────
