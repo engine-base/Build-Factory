@@ -460,15 +460,16 @@ async def test_accept_invitation_member_added(mock_db) -> None:
 
 
 @pytest.mark.asyncio
-async def test_accept_invitation_unknown_token_returns_none(mock_db) -> None:
+async def test_accept_invitation_unknown_token_raises(mock_db) -> None:
+    """T-004-04: unknown token → InvitationNotFoundError (旧 None 返却から変更)."""
     mock_db({"select * from workspace_invitations": []})
-    out = await ws.accept_invitation(token="bad", user_id="u")
-    assert out is None
+    with pytest.raises(ws.InvitationNotFoundError):
+        await ws.accept_invitation(token="bad", user_id="u")
 
 
 @pytest.mark.asyncio
-async def test_accept_invitation_expired_returns_none(mock_db) -> None:
-    """期限切れ token → status='expired' 更新 + None 返却."""
+async def test_accept_invitation_expired_raises(mock_db) -> None:
+    """T-004-04: 期限切れ token → InvitationExpiredError (旧 None 返却から変更)."""
     from datetime import datetime, timedelta
     past = (datetime.now() - timedelta(days=1)).isoformat(timespec="seconds")
     mock_db({"select * from workspace_invitations": [{
@@ -476,8 +477,8 @@ async def test_accept_invitation_expired_returns_none(mock_db) -> None:
         "role": "contributor", "status": "pending",
         "expires_at": past, "invited_by": "alice",
     }]})
-    out = await ws.accept_invitation(token="exp", user_id="u")
-    assert out is None
+    with pytest.raises(ws.InvitationExpiredError):
+        await ws.accept_invitation(token="exp", user_id="u")
 
 
 @pytest.mark.asyncio

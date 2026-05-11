@@ -613,13 +613,156 @@ async def workspace_summary(
     }
 
 
-# 招待受諾は accounts router 兄弟として配置（router 切り出し）
+# ──────────────────────────────────────────────────────────────────────────
+# T-004-04: 招待受入 + lookup + signup (NEW)
+# ──────────────────────────────────────────────────────────────────────────
+
 invitations_router = APIRouter(prefix="/api/invitations", tags=["invitations"])
+
+
+@invitations_router.get("/lookup/{token}")
+async def lookup_invitation_route(token: str):
+    """T-004-04 AC-1: signup 前にトークンの有効性をプレビュー (mutate しない)."""
+    if not token or not token.strip() or len(token) < 8:
+        raise _error("invitations.invalid_token", "token must be at least 8 chars")
+    if len(token) > 200:
+        raise _error("invitations.token_too_long", "token too long")
+    inv = await ws.lookup_invitation(token)
+    if not inv:
+        raise _error("invitations.not_found",
+                     "invitation not found", status_code=404)
+    if inv.get("is_expired"):
+        return {
+            **{k: v for k, v in inv.items() if k != "id"},
+            "valid": False,
+            "reason": "expired",
+        }
+    if inv.get("status") != "pending":
+        return {
+            **{k: v for k, v in inv.items() if k != "id"},
+            "valid": False,
+            "reason": inv.get("status"),
+        }
+    return {
+        **{k: v for k, v in inv.items() if k != "id"},
+        "valid": True,
+    }
 
 
 @invitations_router.post("/accept")
 async def accept_invitation(body: InvitationAccept):
-    result = await ws.accept_invitation(body.token, body.user_id)
-    if not result:
-        raise HTTPException(400, "invalid or expired invitation")
+    """T-004-04 AC-2: accept (structured error 形式)."""
+    token = (body.token or "").strip()
+    user_id = (body.user_id or "").strip()
+    if not token or len(token) < 8:
+        raise _error("invitations.invalid_token", "token must be at least 8 chars")
+    if not user_id:
+        raise _error("invitations.unauthorized",
+                     "user_id must not be empty", status_code=401)
+    if len(user_id) > 128:
+        raise _error("invitations.user_id_too_long", "user_id too long")
+
+    try:
+        result = await ws.accept_invitation(token, user_id)
+    except ws.InvitationNotFoundError as e:
+        raise _error("invitations.not_found", str(e), status_code=404)
+    except ws.InvitationExpiredError as e:
+        raise _error("invitations.expired", str(e), status_code=410)
+    except ws.InvitationAlreadyUsedError as e:
+        raise _error("invitations.already_used", str(e), status_code=409)
+
+    await _audit_ws(
+        "workspaces.invitation.accepted",
+        user_id=user_id,
+        detail={
+            "workspace_id": result["workspace_id"],
+            "role": result["role"],
+        },
+    )
     return result
+
+
+class SignupRequest(BaseModel):
+    email: str
+    display_name: str
+    token: str  # 招待トークン必須 (Phase 1 では invitation 経由のみ)
+    locale: Optional[str] = "ja"
+    timezone: Optional[str] = "Asia/Tokyo"
+
+
+@invitations_router.post("/signup")
+async def signup_with_invitation(body: SignupRequest):
+    """T-004-04 AC-1: 招待付き signup. lookup → user 作成 → accept をまとめて実行."""
+    email = (body.email or "").strip().lower()
+    display_name = (body.display_name or "").strip()
+    token = (body.token or "").strip()
+
+    if not email:
+        raise _error("invitations.invalid_email", "email must not be empty")
+    if len(email) > 254:
+        raise _error("invitations.email_too_long", "email must be <= 254 chars")
+    if not _EMAIL_RE.match(email):
+        raise _error("invitations.invalid_email",
+                     f"email format invalid: {body.email!r}")
+    if not display_name:
+        raise _error("invitations.invalid_display_name",
+                     "display_name must not be empty")
+    if len(display_name) > 100:
+        raise _error("invitations.display_name_too_long",
+                     "display_name must be <= 100 chars")
+    if not token or len(token) < 8:
+        raise _error("invitations.invalid_token", "token must be at least 8 chars")
+
+    # AC-4: invitation 検証 (lookup を mutate-free に使う)
+    inv = await ws.lookup_invitation(token)
+    if not inv:
+        raise _error("invitations.not_found",
+                     "invitation not found", status_code=404)
+    if inv.get("is_expired"):
+        raise _error("invitations.expired", "invitation expired", status_code=410)
+    if inv.get("status") != "pending":
+        raise _error(
+            "invitations.already_used",
+            f"invitation already {inv.get('status')}",
+            status_code=409,
+        )
+    # 招待 email と signup email が一致するか確認 (誤受諾防止)
+    inv_email = (inv.get("email") or "").strip().lower()
+    if inv_email and inv_email != email:
+        raise _error(
+            "invitations.email_mismatch",
+            "signup email does not match invitation email",
+            status_code=403,
+        )
+
+    # user_id は email から派生 (signup 時の暫定 ID; 本番は Supabase Auth UUID)
+    user_id = email
+
+    # accept_invitation を実行
+    try:
+        result = await ws.accept_invitation(token, user_id)
+    except ws.InvitationNotFoundError as e:
+        raise _error("invitations.not_found", str(e), status_code=404)
+    except ws.InvitationExpiredError as e:
+        raise _error("invitations.expired", str(e), status_code=410)
+    except ws.InvitationAlreadyUsedError as e:
+        raise _error("invitations.already_used", str(e), status_code=409)
+
+    await _audit_ws(
+        "workspaces.signup.completed",
+        user_id=user_id,
+        detail={
+            "workspace_id": result["workspace_id"],
+            "role": result["role"],
+            "email_hash": str(hash(email)),  # PII 平文を残さない
+        },
+    )
+    return {
+        "user_id": user_id,
+        "email": email,
+        "display_name": display_name,
+        "locale": body.locale,
+        "timezone": body.timezone,
+        "workspace_id": result["workspace_id"],
+        "role": result["role"],
+    }
