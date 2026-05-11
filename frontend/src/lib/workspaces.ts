@@ -28,7 +28,22 @@ export interface Workspace {
   created_at: string;
   updated_at: string;
   member_role?: string;
+  // S-013 mock 列 (migration g4b5c6d7e8f9)
+  client_name?: string | null;
+  due_date?: string | null;
+  budget_jpy_monthly?: number | null;
+  github_repo?: string | null;
+  slack_channel?: string | null;
+  phase_gate_mode?: "strict" | "guide" | "free" | null;
+  redlines?: string | null;  // JSON 文字列
 }
+
+export type WorkspacePatch = Partial<Pick<
+  Workspace,
+  | "name" | "description" | "status" | "design_system_ref"
+  | "client_name" | "due_date" | "budget_jpy_monthly"
+  | "github_repo" | "slack_channel" | "phase_gate_mode"
+>> & { redlines?: string[] };
 
 export interface WorkspaceMember {
   id: number;
@@ -186,7 +201,7 @@ export async function createWorkspace(body: {
 
 export async function updateWorkspace(
   id: number,
-  patch: Partial<Pick<Workspace, "name" | "description" | "status" | "design_system_ref">>,
+  patch: WorkspacePatch,
   actorUserId = "masato",
 ): Promise<Workspace> {
   const url = new URL(`${BASE}/api/workspaces/${id}`);

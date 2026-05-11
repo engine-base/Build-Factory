@@ -1,5 +1,23 @@
 "use client";
 
+/**
+ * S-013 案件設定 ページ — mock 完全準拠
+ *
+ * mock: docs/mocks/2026-05-09_v1/workspace/S-013-workspace-settings.html
+ * tickets: T-004-05 (Owner 移譲) ほか F-004 系
+ *
+ * Tab 構成 (mock 準拠):
+ *   1. 一般           : 案件名 / クライアント / 納期 / 予算上限 / GitHub リポジトリ
+ *   2. フェーズゲート  : strict / guide / free (DAG 順序の厳密さ)
+ *   3. レッドライン    : 禁止コマンド / 禁止ファイル パターン (JSON 配列)
+ *   4. 統合            : GitHub repo / Slack channel
+ *   5. 予算 / コスト   : monthly budget (Claude API) + 当月 spent (Phase 1.5)
+ *   6. アーカイブ      : workspace 削除 (status=archived)
+ *
+ * 追加 (mock 範囲外、 T-004-05 要件):
+ *   7. メンバーシップ : Owner 移譲
+ */
+
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -7,37 +25,40 @@ import {
   fetchMembers, transferOwnership, type WorkspaceMember,
 } from "@/lib/workspaces";
 import { WorkspaceShell } from "@/components/workspace-shell";
+import { Button } from "@/components/ui/button";
 import {
-  Info, GitBranch, Palette, Cpu, Bell, KeyRound, Archive,
-  AlertTriangle, Lock, Navigation, Zap, CheckCircle2,
-  Users, Crown,
+  Info, GitBranch, ShieldAlert, Plug, Wallet, Archive,
+  Users, Crown, CheckCircle2, Loader2,
+  Lock, Navigation, Zap, MessageSquare, FolderGit2,
 } from "lucide-react";
 
-const NAV_ITEMS = [
-  { id: "info",        label: "基本情報",   icon: Info },
-  { id: "membership",  label: "メンバーシップ", icon: Users },
-  { id: "phase",       label: "フェーズ制御", icon: GitBranch },
-  { id: "penpot",      label: "Penpot 連携",  icon: Palette },
-  { id: "ai",          label: "AI モデル",    icon: Cpu },
-  { id: "notify",      label: "通知",         icon: Bell },
-  { id: "tokens",      label: "API トークン", icon: KeyRound },
-  { id: "archive",     label: "アーカイブ",   icon: Archive },
-  { id: "danger",      label: "危険ゾーン",   icon: AlertTriangle, danger: true },
-];
+const CURRENT_USER_ID = "masato";  // TODO: auth integration
 
-const CURRENT_USER_ID = "masato";  // TODO: auth から取得
+type SectionId =
+  | "general"
+  | "phase_gate"
+  | "redlines"
+  | "integrations"
+  | "budget"
+  | "archive"
+  | "membership";
+
+const NAV_ITEMS: { id: SectionId; label: string; icon: typeof Info; danger?: boolean }[] = [
+  { id: "general",      label: "一般",             icon: Info },
+  { id: "phase_gate",   label: "フェーズゲート",     icon: GitBranch },
+  { id: "redlines",     label: "レッドライン",       icon: ShieldAlert },
+  { id: "integrations", label: "統合 (GitHub/Slack)", icon: Plug },
+  { id: "budget",       label: "予算 / コスト",      icon: Wallet },
+  { id: "membership",   label: "メンバーシップ",     icon: Users },
+  { id: "archive",      label: "アーカイブ",         icon: Archive, danger: true },
+];
 
 export default function SettingsPage() {
   const params = useParams();
   const router = useRouter();
   const id = Number(params?.id);
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
-  const [section, setSection] = useState("info");
-  const [phaseMode, setPhaseMode] = useState<"strict" | "guide" | "free">("guide");
-  const [parallelOn, setParallelOn] = useState(true);
-  const [pmApprovalOn, setPmApprovalOn] = useState(true);
-  const [reasonRequiredOn, setReasonRequiredOn] = useState(true);
-  const [clientCanEdit, setClientCanEdit] = useState(false);
+  const [section, setSection] = useState<SectionId>("general");
   const [toast, setToast] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
 
   useEffect(() => {
@@ -53,7 +74,7 @@ export default function SettingsPage() {
 
   const handleArchive = async () => {
     if (!workspace) return;
-    if (!confirm(`プロジェクト「${workspace.name}」をアーカイブします。一覧から非表示になります（後から復元可能）。よろしいですか？`)) return;
+    if (!confirm(`「${workspace.name}」をアーカイブします。一覧から非表示になります (後から status=active で復元可能)。よろしいですか？`)) return;
     try {
       await archiveWorkspace(workspace.id);
       router.push("/workspaces");
@@ -62,269 +83,198 @@ export default function SettingsPage() {
     }
   };
 
-  if (!workspace) return <div className="p-6" style={{ color: "var(--bf-text-3)" }}>読み込み中…</div>;
+  if (!workspace) {
+    return (
+      <div className="p-6 flex items-center gap-2 text-slate-400 text-sm">
+        <Loader2 className="w-4 h-4 animate-spin" /> ワークスペースを読み込み中…
+      </div>
+    );
+  }
 
   return (
     <WorkspaceShell
       workspaceId={id}
       workspaceName={workspace.name}
-      progressPercent={45}
-      daysLeft={23}
       active="settings"
       breadcrumbs={[
         { label: "Workspaces", href: "/workspaces" },
         { label: workspace.name, href: `/workspaces/${id}` },
-        { label: "プロジェクト設定" },
+        { label: "案件設定" },
       ]}
     >
-      <div style={{ marginBottom: "var(--bf-space-6)" }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.01em", color: "var(--bf-text-1)", marginBottom: 4 }}>
-          プロジェクト設定
-        </h1>
-        <div style={{ color: "var(--bf-text-3)", fontSize: 13 }}>
-          基本情報 / フェーズ制御 / Penpot 連携 / 通知 / アーカイブ
-        </div>
+      <div className="mb-6">
+        <h1 className="text-xl font-bold text-slate-900">案件設定 — {workspace.name}</h1>
+        <p className="text-xs text-slate-500 mt-1">
+          mock: S-013 / feature: F-004
+        </p>
       </div>
 
       {toast && (
         <div
           role="status"
-          style={{
-            position: "fixed", top: 24, right: 24, zIndex: 60,
-            background: toast.kind === "ok" ? "var(--bf-primary)" : "var(--bf-danger)",
-            color: "#fff",
-            padding: "10px 16px",
-            borderRadius: "var(--bf-radius-md)",
-            fontSize: 13,
-            fontWeight: 600,
-            boxShadow: "0 6px 24px rgba(0,0,0,.18)",
-            display: "flex", alignItems: "center", gap: 8,
-          }}
+          className={`fixed top-6 right-6 z-50 px-4 py-2.5 rounded-md text-white text-sm font-bold shadow-lg flex items-center gap-2 ${
+            toast.kind === "ok" ? "bg-eb-500" : "bg-rose-600"
+          }`}
         >
           <CheckCircle2 className="w-4 h-4" />
           {toast.msg}
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "240px 1fr", gap: "var(--bf-space-6)" }}>
-        {/* Nav */}
-        <nav style={{
-          background: "var(--bf-bg-elev)",
-          border: "1px solid var(--bf-border)",
-          borderRadius: "var(--bf-radius-lg)",
-          padding: "var(--bf-space-3)",
-          height: "fit-content",
-          position: "sticky", top: 0,
-        }}>
-          {NAV_ITEMS.map((it) => (
-            <button
-              key={it.id}
-              onClick={() => setSection(it.id)}
-              className="w-full flex items-center gap-2.5 transition-colors"
-              style={{
-                padding: "8px 12px",
-                margin: "1px 0",
-                borderRadius: "var(--bf-radius-md)",
-                fontSize: 13,
-                fontWeight: section === it.id ? 600 : 400,
-                background: section === it.id ? "var(--bf-primary-bg)" : "transparent",
-                color: section === it.id ? "var(--bf-primary)" : it.danger ? "var(--bf-danger)" : "var(--bf-text-2)",
-              }}
-            >
-              <it.icon className="w-3.5 h-3.5" />
-              {it.label}
-            </button>
-          ))}
+      <div className="grid grid-cols-[200px_1fr] gap-6">
+        <nav className="text-sm space-y-1 sticky top-0 h-fit">
+          {NAV_ITEMS.map((it) => {
+            const Icon = it.icon;
+            const active = section === it.id;
+            return (
+              <button
+                key={it.id}
+                onClick={() => setSection(it.id)}
+                className={`w-full text-left px-3 py-2 rounded inline-flex items-center gap-2 transition-colors ${
+                  active
+                    ? "bg-eb-50 text-eb-700 font-bold"
+                    : it.danger
+                    ? "text-rose-600 hover:bg-rose-50"
+                    : "text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                {it.label}
+              </button>
+            );
+          })}
         </nav>
 
-        {/* Content */}
-        <div>
-          {section === "info" && (
-            <BasicSection
+        <section className="space-y-6">
+          {section === "general" && (
+            <GeneralSection
               workspace={workspace}
-              onSaved={(w) => { setWorkspace(w); setToast({ kind: "ok", msg: "基本情報を保存しました" }); }}
+              onSaved={(w) => { setWorkspace(w); setToast({ kind: "ok", msg: "一般設定を保存しました" }); }}
               onError={(m) => setToast({ kind: "err", msg: m })}
             />
           )}
-          {section === "phase" && (
-            <PhaseControlSection
-              mode={phaseMode} setMode={setPhaseMode}
-              parallel={parallelOn} setParallel={setParallelOn}
-              pmApproval={pmApprovalOn} setPmApproval={setPmApprovalOn}
-              reasonRequired={reasonRequiredOn} setReasonRequired={setReasonRequiredOn}
+          {section === "phase_gate" && (
+            <PhaseGateSection
+              workspace={workspace}
+              onSaved={(w) => { setWorkspace(w); setToast({ kind: "ok", msg: "フェーズゲート設定を保存しました" }); }}
+              onError={(m) => setToast({ kind: "err", msg: m })}
             />
           )}
-          {section === "penpot" && <PenpotSection clientEdit={clientCanEdit} setClientEdit={setClientCanEdit} />}
-          {section === "ai" && <AiModelSection />}
+          {section === "redlines" && (
+            <RedlinesSection
+              workspace={workspace}
+              onSaved={(w) => { setWorkspace(w); setToast({ kind: "ok", msg: "レッドラインを保存しました" }); }}
+              onError={(m) => setToast({ kind: "err", msg: m })}
+            />
+          )}
+          {section === "integrations" && (
+            <IntegrationsSection
+              workspace={workspace}
+              onSaved={(w) => { setWorkspace(w); setToast({ kind: "ok", msg: "統合設定を保存しました" }); }}
+              onError={(m) => setToast({ kind: "err", msg: m })}
+            />
+          )}
+          {section === "budget" && (
+            <BudgetSection
+              workspace={workspace}
+              onSaved={(w) => { setWorkspace(w); setToast({ kind: "ok", msg: "予算を保存しました" }); }}
+              onError={(m) => setToast({ kind: "err", msg: m })}
+            />
+          )}
           {section === "membership" && (
-            <MembershipSection
-              workspaceId={id}
-              onToast={setToast}
-            />
+            <MembershipSection workspaceId={id} onToast={setToast} />
           )}
-          {section === "danger" && <DangerSection onArchive={handleArchive} />}
-          {!["info", "membership", "phase", "penpot", "ai", "danger"].includes(section) && (
-            <SettingsCard title={NAV_ITEMS.find((n) => n.id === section)?.label ?? ""} icon={NAV_ITEMS.find((n) => n.id === section)?.icon ?? Info}>
-              <div style={{ padding: "var(--bf-space-12) var(--bf-space-6)", textAlign: "center", color: "var(--bf-text-3)", fontSize: 13 }}>
-                この設定セクションは実装中です。
-              </div>
-            </SettingsCard>
+          {section === "archive" && (
+            <ArchiveSection onArchive={handleArchive} />
           )}
-        </div>
+        </section>
       </div>
     </WorkspaceShell>
   );
 }
 
-function SettingsCard({ title, desc, icon: Icon, children, danger }: {
-  title: string; desc?: string; icon: any; children: React.ReactNode; danger?: boolean;
+
+// ═══════════════════════════════════════════════════════════
+// 共通コンポーネント
+// ═══════════════════════════════════════════════════════════
+function Card({ title, desc, danger, children }: {
+  title: string; desc?: string; danger?: boolean; children: React.ReactNode;
 }) {
   return (
-    <div style={{
-      background: danger ? "#FEF2F2" : "var(--bf-bg-elev)",
-      border: `1px solid ${danger ? "var(--bf-danger-bg)" : "var(--bf-border)"}`,
-      borderRadius: "var(--bf-radius-lg)",
-      marginBottom: "var(--bf-space-5)",
-      overflow: "hidden",
-    }}>
-      <div style={{ padding: "14px var(--bf-space-5)", borderBottom: `1px solid ${danger ? "var(--bf-danger-bg)" : "var(--bf-divider)"}` }}>
-        <div className="flex items-center gap-2" style={{ fontSize: 15, fontWeight: 700, color: danger ? "var(--bf-danger)" : "var(--bf-text-1)", marginBottom: 4 }}>
-          <Icon className="w-4 h-4" />
-          {title}
-        </div>
-        {desc && <div style={{ fontSize: 12.5, color: "var(--bf-text-3)" }}>{desc}</div>}
+    <div className={`bg-white border rounded-lg overflow-hidden ${
+      danger ? "border-rose-200" : "border-slate-200"
+    }`}>
+      <div className="px-5 py-3 border-b border-slate-100">
+        <h2 className={`text-sm font-bold ${danger ? "text-rose-700" : "text-slate-900"}`}>{title}</h2>
+        {desc && <p className="text-xs text-slate-500 mt-1">{desc}</p>}
       </div>
-      <div style={{ padding: "var(--bf-space-5)" }}>
-        {children}
-      </div>
+      <div className="p-5">{children}</div>
     </div>
   );
 }
 
-function FormGroup({ label, children, help }: { label: string; children: React.ReactNode; help?: string }) {
+function Field({ label, help, children }: {
+  label: string; help?: string; children: React.ReactNode;
+}) {
   return (
-    <div style={{ marginBottom: "var(--bf-space-4)" }}>
-      <label style={{ display: "block", fontSize: 12.5, fontWeight: 600, color: "var(--bf-text-2)", marginBottom: 6 }}>
-        {label}
-      </label>
+    <div className="space-y-1.5">
+      <label className="text-xs font-bold text-slate-700 block">{label}</label>
       {children}
-      {help && <div style={{ fontSize: 11.5, color: "var(--bf-text-3)", marginTop: 4 }}>{help}</div>}
+      {help && <p className="text-[11px] text-slate-500">{help}</p>}
     </div>
   );
 }
 
-function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
+function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      style={{
-        width: "100%", height: 40, padding: "0 12px",
-        background: "var(--bf-bg-input)",
-        border: "1px solid var(--bf-border)",
-        borderRadius: "var(--bf-radius-md)",
-        color: "var(--bf-text-1)",
-        fontSize: 13, outline: "none",
-        ...(props.style ?? {}),
-      }}
+      className={`w-full max-w-md px-3 py-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-eb-500/30 focus:border-eb-500 ${props.className ?? ""}`}
     />
   );
 }
 
-function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+function NumberInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <textarea
+    <input
+      type="number"
       {...props}
-      style={{
-        width: "100%", padding: "10px 12px",
-        background: "var(--bf-bg-input)",
-        border: "1px solid var(--bf-border)",
-        borderRadius: "var(--bf-radius-md)",
-        color: "var(--bf-text-1)",
-        fontSize: 13, outline: "none",
-        lineHeight: 1.5, resize: "vertical",
-        ...(props.style ?? {}),
-      }}
+      className={`w-32 px-3 py-2 text-sm border border-slate-300 rounded mono focus:outline-none focus:ring-2 focus:ring-eb-500/30 focus:border-eb-500 ${props.className ?? ""}`}
     />
   );
 }
 
-function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
-  return (
-    <select
-      {...props}
-      style={{
-        width: "100%", height: 40, padding: "0 12px",
-        background: "var(--bf-bg-input)",
-        border: "1px solid var(--bf-border)",
-        borderRadius: "var(--bf-radius-md)",
-        color: "var(--bf-text-1)",
-        fontSize: 13, outline: "none",
-        ...(props.style ?? {}),
-      }}
-    >
-      {props.children}
-    </select>
-  );
-}
 
-function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      aria-pressed={on}
-      style={{
-        width: 40, height: 22, position: "relative",
-        background: on ? "var(--bf-primary)" : "var(--bf-text-4)",
-        borderRadius: 999,
-        transition: "background 200ms",
-        flexShrink: 0,
-      }}
-    >
-      <span style={{
-        position: "absolute", top: 2, left: 2,
-        width: 18, height: 18, background: "#fff",
-        borderRadius: "50%",
-        transform: on ? "translateX(18px)" : "translateX(0)",
-        transition: "transform 200ms",
-      }} />
-    </button>
-  );
-}
-
-function SettingRow({ title, desc, control }: { title: string; desc?: string; control: React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-4" style={{ padding: "var(--bf-space-3) 0", borderBottom: "1px dashed var(--bf-divider)" }}>
-      <div className="flex-1">
-        <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--bf-text-1)", marginBottom: 2 }}>{title}</div>
-        {desc && <div style={{ fontSize: 12, color: "var(--bf-text-3)", lineHeight: 1.5 }}>{desc}</div>}
-      </div>
-      {control}
-    </div>
-  );
-}
-
-function BasicSection({
-  workspace,
-  onSaved,
-  onError,
+// ═══════════════════════════════════════════════════════════
+// 1. 一般 (S-013 mock 一般タブ準拠)
+// ═══════════════════════════════════════════════════════════
+function GeneralSection({
+  workspace, onSaved, onError,
 }: {
   workspace: Workspace;
   onSaved: (w: Workspace) => void;
-  onError: (msg: string) => void;
+  onError: (m: string) => void;
 }) {
   const [name, setName] = useState(workspace.name);
+  const [clientName, setClientName] = useState(workspace.client_name ?? "");
+  const [dueDate, setDueDate] = useState(workspace.due_date ?? "");
   const [description, setDescription] = useState(workspace.description ?? "");
   const [status, setStatus] = useState<Workspace["status"]>(workspace.status);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setName(workspace.name);
+    setClientName(workspace.client_name ?? "");
+    setDueDate(workspace.due_date ?? "");
     setDescription(workspace.description ?? "");
     setStatus(workspace.status);
-  }, [workspace.id, workspace.name, workspace.description, workspace.status]);
+  }, [workspace.id, workspace.name, workspace.client_name, workspace.due_date,
+      workspace.description, workspace.status]);
 
   const dirty =
     name !== workspace.name ||
+    clientName !== (workspace.client_name ?? "") ||
+    dueDate !== (workspace.due_date ?? "") ||
     description !== (workspace.description ?? "") ||
     status !== workspace.status;
 
@@ -334,9 +284,11 @@ function BasicSection({
     try {
       const updated = await updateWorkspace(workspace.id, {
         name: name.trim(),
+        client_name: clientName.trim() || null,
+        due_date: dueDate || null,
         description: description.trim() || null,
         status,
-      } as any);
+      });
       onSaved(updated);
     } catch {
       onError("保存に失敗しました");
@@ -347,183 +299,383 @@ function BasicSection({
 
   const handleReset = () => {
     setName(workspace.name);
+    setClientName(workspace.client_name ?? "");
+    setDueDate(workspace.due_date ?? "");
     setDescription(workspace.description ?? "");
     setStatus(workspace.status);
   };
 
   return (
-    <SettingsCard title="基本情報" desc="プロジェクトの名前・概要・ステータス" icon={Info}>
-      <FormGroup label="プロジェクト名">
-        <Input value={name} onChange={(e) => setName(e.target.value)} />
-      </FormGroup>
-      <FormGroup label="概要">
-        <Textarea
-          rows={3}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="このワークスペースの目的・コンテキストを記入"
-        />
-      </FormGroup>
-      <FormGroup label="ステータス">
-        <Select value={status} onChange={(e) => setStatus(e.target.value as Workspace["status"])}>
-          <option value="active">進行中 (active)</option>
-          <option value="paused">一時停止 (paused)</option>
-          <option value="archived">アーカイブ (archived)</option>
-        </Select>
-      </FormGroup>
-      <div className="flex gap-2" style={{ marginTop: "var(--bf-space-4)" }}>
-        <button
-          onClick={handleSave}
-          disabled={!dirty || saving}
-          className="inline-flex items-center"
-          style={{
-            height: 34, padding: "0 14px",
-            background: dirty && !saving ? "var(--bf-primary)" : "var(--bf-text-4)",
-            color: "#fff", borderRadius: "var(--bf-radius-md)", fontSize: 13, fontWeight: 600,
-            cursor: dirty && !saving ? "pointer" : "not-allowed",
-          }}
-        >
-          {saving ? "保存中…" : "保存"}
-        </button>
-        <button
-          onClick={handleReset}
-          disabled={!dirty || saving}
-          className="inline-flex items-center"
-          style={{
-            height: 34, padding: "0 14px", background: "transparent",
-            color: dirty ? "var(--bf-text-2)" : "var(--bf-text-4)",
-            borderRadius: "var(--bf-radius-md)", fontSize: 13, fontWeight: 600,
-            cursor: dirty ? "pointer" : "not-allowed",
-          }}
-        >
-          変更を破棄
-        </button>
+    <Card title="案件設定" desc="プロジェクトの基本情報">
+      <div className="space-y-4">
+        <Field label="案件名">
+          <TextInput value={name} onChange={(e) => setName(e.target.value)} />
+        </Field>
+        <Field label="クライアント">
+          <TextInput
+            placeholder="例: 株式会社XX"
+            value={clientName}
+            onChange={(e) => setClientName(e.target.value)}
+          />
+        </Field>
+        <Field label="納期">
+          <TextInput type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+        </Field>
+        <Field label="概要">
+          <textarea
+            className="w-full max-w-xl h-24 px-3 py-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-eb-500/30 focus:border-eb-500"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </Field>
+        <Field label="ステータス">
+          <select
+            className="w-full max-w-md px-3 py-2 text-sm border border-slate-300 rounded bg-white focus:outline-none focus:ring-2 focus:ring-eb-500/30 focus:border-eb-500"
+            value={status}
+            onChange={(e) => setStatus(e.target.value as Workspace["status"])}
+          >
+            <option value="active">進行中 (active)</option>
+            <option value="paused">一時停止 (paused)</option>
+            <option value="archived">アーカイブ (archived)</option>
+          </select>
+        </Field>
+        <div className="flex justify-end gap-2 pt-2">
+          <Button variant="outline" onClick={handleReset} disabled={!dirty || saving}>
+            キャンセル
+          </Button>
+          <Button
+            className="bg-eb-500 hover:bg-eb-600 text-white font-bold"
+            onClick={handleSave}
+            disabled={!dirty || saving}
+          >
+            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+            保存
+          </Button>
+        </div>
       </div>
-    </SettingsCard>
+    </Card>
   );
 }
 
-function PhaseControlSection({
-  mode, setMode, parallel, setParallel, pmApproval, setPmApproval, reasonRequired, setReasonRequired,
+
+// ═══════════════════════════════════════════════════════════
+// 2. フェーズゲート (DAG 順序の厳密さ)
+// ═══════════════════════════════════════════════════════════
+function PhaseGateSection({
+  workspace, onSaved, onError,
 }: {
-  mode: "strict" | "guide" | "free"; setMode: (m: any) => void;
-  parallel: boolean; setParallel: (b: boolean) => void;
-  pmApproval: boolean; setPmApproval: (b: boolean) => void;
-  reasonRequired: boolean; setReasonRequired: (b: boolean) => void;
+  workspace: Workspace;
+  onSaved: (w: Workspace) => void;
+  onError: (m: string) => void;
 }) {
+  const [mode, setMode] = useState<"strict" | "guide" | "free">(
+    (workspace.phase_gate_mode ?? "guide") as any,
+  );
+  const [saving, setSaving] = useState(false);
+  const initial = (workspace.phase_gate_mode ?? "guide") as "strict" | "guide" | "free";
+
+  const dirty = mode !== initial;
+
   const cards = [
-    { id: "strict", icon: Lock,      title: "厳格",        desc: "前提フェーズが完了しないと次に進めません。新人 PM や教育用に。" },
-    { id: "guide",  icon: Navigation,title: "ガイド (推奨)", desc: "前提未完了は警告モーダル。理由入力で強制突破可能。通常はこれ。" },
-    { id: "free",   icon: Zap,       title: "自由",        desc: "制限なし。表示のみ。経験者・小規模案件向け。" },
+    { id: "strict", icon: Lock,       title: "厳格",         desc: "前提フェーズ完了まで次に進めない。新人 PM や教育用。" },
+    { id: "guide",  icon: Navigation, title: "ガイド (推奨)", desc: "前提未完了は警告モーダル。理由入力で強制突破可能。" },
+    { id: "free",   icon: Zap,        title: "自由",         desc: "制限なし。表示のみ。経験者向け。" },
   ];
+
+  const handleSave = async () => {
+    if (!dirty || saving) return;
+    setSaving(true);
+    try {
+      const updated = await updateWorkspace(workspace.id, { phase_gate_mode: mode });
+      onSaved(updated);
+    } catch {
+      onError("保存に失敗しました");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <SettingsCard title="フェーズ制御モード" desc="DAG 順序を厳密に守るか、自由に飛ばせるかを設定" icon={GitBranch}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "var(--bf-space-3)", marginBottom: "var(--bf-space-5)" }}>
+    <Card title="フェーズゲート モード" desc="DAG 順序を厳密に守るか、自由に飛ばせるかを設定">
+      <div className="grid grid-cols-3 gap-3 mb-5">
         {cards.map((c) => {
           const selected = mode === c.id;
+          const Icon = c.icon;
           return (
             <button
               key={c.id}
+              type="button"
               onClick={() => setMode(c.id as any)}
-              className="text-left"
-              style={{
-                background: selected ? "var(--bf-primary-soft)" : "var(--bf-bg-soft)",
-                border: `1.5px solid ${selected ? "var(--bf-primary)" : "var(--bf-border)"}`,
-                borderRadius: "var(--bf-radius-md)",
-                padding: "var(--bf-space-4)",
-              }}
+              className={`text-left p-4 rounded border-2 transition-colors ${
+                selected
+                  ? "border-eb-500 bg-eb-50"
+                  : "border-slate-200 hover:border-slate-300"
+              }`}
             >
-              <div className="flex items-center gap-1.5" style={{ fontSize: 13, fontWeight: 700, color: "var(--bf-text-1)", marginBottom: 4 }}>
-                <c.icon className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900 mb-1">
+                <Icon className="w-3.5 h-3.5" />
                 {c.title}
               </div>
-              <div style={{ fontSize: 11.5, color: "var(--bf-text-3)", lineHeight: 1.5 }}>
-                {c.desc}
-              </div>
+              <p className="text-[11px] text-slate-600 leading-relaxed">{c.desc}</p>
             </button>
           );
         })}
       </div>
-      <SettingRow
-        title="並行進行を許可"
-        desc="並行可能なフェーズ (アーキ + デザイン + API 等) を同時に進められる"
-        control={<Toggle on={parallel} onClick={() => setParallel(!parallel)} />}
-      />
-      <SettingRow
-        title="フェーズ完了に PM 承認を必須にする"
-        desc="AI が STEP を全完了してもプロジェクトオーナーの承認なしでは次へ進めない"
-        control={<Toggle on={pmApproval} onClick={() => setPmApproval(!pmApproval)} />}
-      />
-      <SettingRow
-        title="強行突破時に理由入力を必須にする"
-        desc="スキップしたフェーズの記録を残す"
-        control={<Toggle on={reasonRequired} onClick={() => setReasonRequired(!reasonRequired)} />}
-      />
-    </SettingsCard>
-  );
-}
-
-function PenpotSection({ clientEdit, setClientEdit }: { clientEdit: boolean; setClientEdit: (b: boolean) => void }) {
-  return (
-    <SettingsCard title="Penpot 連携" desc="デザイナー AI のモック作成キャンバス連携設定" icon={Palette}>
-      <FormGroup label="Penpot Workspace" help="Penpot 側のワークスペース名と紐付け">
-        <Input defaultValue="Build-Factory Designs" />
-      </FormGroup>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--bf-space-4)" }}>
-        <FormGroup label="Project ID"><Input defaultValue="prj_a1b2c3d4..." /></FormGroup>
-        <FormGroup label="File ID"><Input defaultValue="fil_x9y8z7..." /></FormGroup>
+      <div className="flex justify-end">
+        <Button
+          className="bg-eb-500 hover:bg-eb-600 text-white font-bold"
+          onClick={handleSave}
+          disabled={!dirty || saving}
+        >
+          {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+          保存
+        </Button>
       </div>
-      <SettingRow
-        title="クライアントにモック編集権限を付与"
-        desc="通常はコメント権限のみ。チェックすると client ロールでも編集可能になる"
-        control={<Toggle on={clientEdit} onClick={() => setClientEdit(!clientEdit)} />}
-      />
-    </SettingsCard>
+    </Card>
   );
 }
 
-function AiModelSection() {
+
+// ═══════════════════════════════════════════════════════════
+// 3. レッドライン (禁止コマンド・ファイル パターン)
+// ═══════════════════════════════════════════════════════════
+function RedlinesSection({
+  workspace, onSaved, onError,
+}: {
+  workspace: Workspace;
+  onSaved: (w: Workspace) => void;
+  onError: (m: string) => void;
+}) {
+  const initialRedlines: string[] = (() => {
+    try {
+      return JSON.parse(workspace.redlines ?? "[]");
+    } catch {
+      return [];
+    }
+  })();
+  const [items, setItems] = useState<string[]>(initialRedlines);
+  const [draft, setDraft] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const dirty = JSON.stringify(items) !== JSON.stringify(initialRedlines);
+
+  const handleAdd = () => {
+    const v = draft.trim();
+    if (!v) return;
+    if (items.includes(v)) return;
+    setItems([...items, v]);
+    setDraft("");
+  };
+
+  const handleRemove = (s: string) => setItems(items.filter((x) => x !== s));
+
+  const handleSave = async () => {
+    if (!dirty || saving) return;
+    setSaving(true);
+    try {
+      const updated = await updateWorkspace(workspace.id, { redlines: items });
+      onSaved(updated);
+    } catch {
+      onError("保存に失敗しました");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <SettingsCard title="AI モデル設定" desc="各 AI 社員が使う LLM プロバイダ・モデルを指定" icon={Cpu}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--bf-space-4)" }}>
-        <FormGroup label="秘書 AI">
-          <Select defaultValue="opus-4-7">
-            <option value="opus-4-7">Claude Opus 4.7 (1M)</option>
-            <option value="sonnet-4-6">Claude Sonnet 4.6</option>
-            <option value="haiku-4-5">Claude Haiku 4.5</option>
-            <option value="gpt-4o">GPT-4o</option>
-          </Select>
-        </FormGroup>
-        <FormGroup label="PM AI">
-          <Select defaultValue="sonnet-4-6">
-            <option value="sonnet-4-6">Claude Sonnet 4.6</option>
-            <option value="opus-4-7">Claude Opus 4.7</option>
-          </Select>
-        </FormGroup>
-        <FormGroup label="設計 AI">
-          <Select defaultValue="opus-4-7">
-            <option value="opus-4-7">Claude Opus 4.7 (1M)</option>
-          </Select>
-        </FormGroup>
-        <FormGroup label="エンジニア AI (Claude Code 連携)">
-          <Select defaultValue="claude-code">
-            <option value="claude-code">Claude Code (MCP 経由)</option>
-          </Select>
-        </FormGroup>
+    <Card title="レッドライン" desc="AI が触れない/実行できないコマンドやファイル パターンを定義">
+      <div className="space-y-3">
+        <div className="flex gap-2">
+          <TextInput
+            placeholder="例: rm -rf / または .env"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAdd(); } }}
+          />
+          <Button variant="outline" onClick={handleAdd} disabled={!draft.trim()}>
+            追加
+          </Button>
+        </div>
+
+        {items.length === 0 ? (
+          <p className="text-xs text-slate-500">レッドラインは未設定です。CLAUDE.md §5.4 のデフォルトのみ適用されます。</p>
+        ) : (
+          <ul className="space-y-1.5">
+            {items.map((it) => (
+              <li key={it} className="flex items-center justify-between px-3 py-2 bg-rose-50 border border-rose-200 rounded text-xs mono text-rose-800">
+                <span>{it}</span>
+                <button
+                  className="text-rose-600 hover:text-rose-800 text-[11px]"
+                  onClick={() => handleRemove(it)}
+                >
+                  削除
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <div className="flex justify-end pt-2">
+          <Button
+            className="bg-eb-500 hover:bg-eb-600 text-white font-bold"
+            onClick={handleSave}
+            disabled={!dirty || saving}
+          >
+            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+            保存
+          </Button>
+        </div>
       </div>
-    </SettingsCard>
+    </Card>
   );
 }
 
-/**
- * T-004-05: Owner 移譲 セクション
- *
- * AC:
- *   - UBIQUITOUS: 既存メンバーへの owner 移譲 UI を提供する
- *   - EVENT: 移譲 submit で current_owner → new_owner を atomic 切替
- *   - STATE: current user が owner でなければ移譲 UI を hide / disable
- *   - UNWANTED: target がメンバーでなければ backend 400 (target_not_member)
- */
+
+// ═══════════════════════════════════════════════════════════
+// 4. 統合 (GitHub / Slack)
+// ═══════════════════════════════════════════════════════════
+function IntegrationsSection({
+  workspace, onSaved, onError,
+}: {
+  workspace: Workspace;
+  onSaved: (w: Workspace) => void;
+  onError: (m: string) => void;
+}) {
+  const [github, setGithub] = useState(workspace.github_repo ?? "");
+  const [slack, setSlack] = useState(workspace.slack_channel ?? "");
+  const [saving, setSaving] = useState(false);
+
+  const dirty =
+    github !== (workspace.github_repo ?? "") ||
+    slack !== (workspace.slack_channel ?? "");
+
+  const handleSave = async () => {
+    if (!dirty || saving) return;
+    setSaving(true);
+    try {
+      const updated = await updateWorkspace(workspace.id, {
+        github_repo: github.trim() || null,
+        slack_channel: slack.trim() || null,
+      });
+      onSaved(updated);
+    } catch {
+      onError("保存に失敗しました");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Card title="統合" desc="GitHub / Slack 連携">
+      <div className="space-y-4">
+        <Field label="GitHub リポジトリ" help="形式: owner/repo (例: engine-base/proj-ec-4)">
+          <div className="flex items-center gap-2">
+            <FolderGit2 className="w-4 h-4 text-slate-600" />
+            <TextInput
+              placeholder="engine-base/proj-ec-4"
+              value={github}
+              onChange={(e) => setGithub(e.target.value)}
+            />
+          </div>
+        </Field>
+        <Field label="Slack チャネル" help="形式: #channel_name">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-slate-600" />
+            <TextInput
+              placeholder="#proj-ec-4"
+              value={slack}
+              onChange={(e) => setSlack(e.target.value)}
+            />
+          </div>
+        </Field>
+        <div className="flex justify-end pt-2">
+          <Button
+            className="bg-eb-500 hover:bg-eb-600 text-white font-bold"
+            onClick={handleSave}
+            disabled={!dirty || saving}
+          >
+            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+            保存
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+
+// ═══════════════════════════════════════════════════════════
+// 5. 予算 / コスト
+// ═══════════════════════════════════════════════════════════
+function BudgetSection({
+  workspace, onSaved, onError,
+}: {
+  workspace: Workspace;
+  onSaved: (w: Workspace) => void;
+  onError: (m: string) => void;
+}) {
+  const [budget, setBudget] = useState<string>(
+    workspace.budget_jpy_monthly != null ? String(workspace.budget_jpy_monthly) : "",
+  );
+  const [saving, setSaving] = useState(false);
+
+  const dirty = budget !== (workspace.budget_jpy_monthly != null ? String(workspace.budget_jpy_monthly) : "");
+
+  const handleSave = async () => {
+    if (!dirty || saving) return;
+    const n = budget ? Number(budget) : null;
+    if (budget && (Number.isNaN(n) || (n as number) < 0)) {
+      onError("予算は 0 以上の数値で指定してください");
+      return;
+    }
+    setSaving(true);
+    try {
+      const updated = await updateWorkspace(workspace.id, { budget_jpy_monthly: n as any });
+      onSaved(updated);
+    } catch {
+      onError("保存に失敗しました");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Card title="予算 / コスト" desc="Claude API の月次予算上限 (超過時はキュー停止)">
+      <div className="space-y-4">
+        <Field label="予算上限 (JPY / 月)" help="未設定 = 制限なし。 例: 40000">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-slate-500">¥</span>
+            <NumberInput
+              placeholder="40000"
+              value={budget}
+              onChange={(e) => setBudget(e.target.value)}
+              min={0}
+            />
+            <span className="text-xs text-slate-500">/ 月</span>
+          </div>
+        </Field>
+        <div className="px-3 py-2 bg-slate-50 rounded text-xs text-slate-500">
+          当月実績の集計表示は Phase 1.5 で実装予定 (cost_logs 連携)
+        </div>
+        <div className="flex justify-end pt-2">
+          <Button
+            className="bg-eb-500 hover:bg-eb-600 text-white font-bold"
+            onClick={handleSave}
+            disabled={!dirty || saving}
+          >
+            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+            保存
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+
+// ═══════════════════════════════════════════════════════════
+// 6. メンバーシップ (T-004-05 Owner 移譲)
+// ═══════════════════════════════════════════════════════════
 function MembershipSection({
   workspaceId,
   onToast,
@@ -544,9 +696,7 @@ function MembershipSection({
 
   const currentOwner = members.find((m) => m.role === "owner");
   const isOwner = currentOwner?.user_id === CURRENT_USER_ID;
-  const eligibleTargets = members.filter(
-    (m) => m.user_id !== CURRENT_USER_ID && m.role !== "owner",
-  );
+  const eligibleTargets = members.filter((m) => m.user_id !== CURRENT_USER_ID && m.role !== "owner");
 
   const handleTransfer = async () => {
     if (!isOwner) return;
@@ -555,9 +705,7 @@ function MembershipSection({
       return;
     }
     const target = members.find((m) => m.user_id === targetUserId);
-    if (!confirm(`Owner 権限を ${target?.user_id} に移譲します。あなたの権限は ws_admin に変更されます。よろしいですか?`)) {
-      return;
-    }
+    if (!confirm(`Owner 権限を ${target?.user_id} に移譲します。あなたは ws_admin に降格します。よろしいですか？`)) return;
     setTransferring(true);
     try {
       const result = await transferOwnership(workspaceId, CURRENT_USER_ID, targetUserId);
@@ -579,98 +727,78 @@ function MembershipSection({
   };
 
   return (
-    <SettingsCard title="メンバーシップ" desc="ワークスペースのオーナーシップ管理" icon={Users}>
-      <div style={{ marginBottom: "var(--bf-space-5)" }}>
-        <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--bf-text-2)", marginBottom: 8 }}>
-          現在の Owner
-        </div>
-        <div className="flex items-center gap-2" style={{
-          padding: "10px 14px",
-          background: "var(--bf-primary-soft)",
-          border: "1px solid var(--bf-primary-bg)",
-          borderRadius: "var(--bf-radius-md)",
-          fontSize: 13,
-        }}>
-          <Crown className="w-4 h-4" style={{ color: "var(--bf-primary)" }} />
-          <span style={{ fontWeight: 600, color: "var(--bf-text-1)" }}>
-            {loading ? "読み込み中…" : currentOwner?.user_id ?? "未割当"}
-          </span>
-          {isOwner && (
-            <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--bf-primary)" }}>
-              (あなた)
+    <Card title="メンバーシップ" desc="ワークスペースのオーナーシップ管理">
+      <div className="space-y-5">
+        <div>
+          <div className="text-xs font-bold text-slate-700 mb-2">現在の Owner</div>
+          <div className="flex items-center gap-2 px-3 py-2.5 bg-eb-50 border border-eb-100 rounded text-sm">
+            <Crown className="w-4 h-4 text-eb-500" />
+            <span className="font-bold text-slate-900">
+              {loading ? "読み込み中…" : currentOwner?.user_id ?? "未割当"}
             </span>
+            {isOwner && <span className="ml-auto text-[11px] text-eb-500">(あなた)</span>}
+          </div>
+        </div>
+
+        <div className="border-t border-slate-100 pt-4">
+          <div className="text-sm font-bold text-slate-900 mb-1">Owner を移譲する</div>
+          <p className="text-xs text-slate-500 mb-3">
+            {isOwner
+              ? "別のメンバーを Owner にします。あなたは ws_admin に降格します。"
+              : "Owner のみがこの操作を実行できます。"}
+          </p>
+
+          {isOwner && (
+            <div className="flex items-center gap-2">
+              <select
+                className="flex-1 max-w-md px-3 py-2 text-sm border border-slate-300 rounded bg-white focus:outline-none focus:ring-2 focus:ring-eb-500/30 focus:border-eb-500"
+                value={targetUserId}
+                onChange={(e) => setTargetUserId(e.target.value)}
+              >
+                <option value="">移譲先メンバーを選択…</option>
+                {eligibleTargets.map((m) => (
+                  <option key={m.user_id} value={m.user_id}>
+                    {m.user_id} ({m.role})
+                  </option>
+                ))}
+              </select>
+              <Button
+                className="bg-eb-500 hover:bg-eb-600 text-white font-bold"
+                onClick={handleTransfer}
+                disabled={!targetUserId || transferring}
+              >
+                {transferring ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Crown className="w-3.5 h-3.5" />}
+                移譲する
+              </Button>
+            </div>
           )}
         </div>
       </div>
-
-      <div style={{ borderTop: "1px dashed var(--bf-divider)", paddingTop: "var(--bf-space-4)" }}>
-        <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--bf-text-1)", marginBottom: 4 }}>
-          Owner を移譲する
-        </div>
-        <div style={{ fontSize: 12, color: "var(--bf-text-3)", marginBottom: 12, lineHeight: 1.5 }}>
-          {isOwner
-            ? "別のメンバーを新しい Owner にします。あなたは自動的に ws_admin に降格します。"
-            : "Owner のみがこの操作を実行できます。"}
-        </div>
-
-        {isOwner && (
-          <div className="flex items-center gap-2">
-            <Select
-              value={targetUserId}
-              onChange={(e) => setTargetUserId(e.target.value)}
-              style={{ flex: 1 }}
-            >
-              <option value="">移譲先メンバーを選択…</option>
-              {eligibleTargets.map((m) => (
-                <option key={m.user_id} value={m.user_id}>
-                  {m.user_id} ({m.role})
-                </option>
-              ))}
-            </Select>
-            <button
-              onClick={handleTransfer}
-              disabled={!targetUserId || transferring}
-              className="inline-flex items-center gap-1.5"
-              style={{
-                height: 40, padding: "0 16px",
-                background: targetUserId && !transferring ? "var(--bf-primary)" : "var(--bf-text-4)",
-                color: "#fff", borderRadius: "var(--bf-radius-md)",
-                fontSize: 13, fontWeight: 600, flexShrink: 0,
-                cursor: targetUserId && !transferring ? "pointer" : "not-allowed",
-              }}
-            >
-              <Crown className="w-3.5 h-3.5" />
-              {transferring ? "移譲中…" : "移譲する"}
-            </button>
-          </div>
-        )}
-      </div>
-    </SettingsCard>
+    </Card>
   );
 }
 
 
-function DangerSection({ onArchive }: { onArchive: () => void }) {
+// ═══════════════════════════════════════════════════════════
+// 7. アーカイブ
+// ═══════════════════════════════════════════════════════════
+function ArchiveSection({ onArchive }: { onArchive: () => void }) {
   return (
-    <SettingsCard title="危険ゾーン" desc="取り返しのつかない操作。実行前に十分にご確認ください。" icon={AlertTriangle} danger>
-      <SettingRow
-        title="プロジェクトをアーカイブ"
-        desc="読み取り専用にして一覧から非表示にします。後から status を active に戻せば復元可能。"
-        control={
-          <button
+    <Card title="アーカイブ" desc="ワークスペースを読み取り専用にして一覧から非表示にします" danger>
+      <div className="space-y-3">
+        <p className="text-sm text-slate-700">
+          アーカイブ済みワークスペースは <code className="mono text-xs bg-slate-100 px-1 rounded">status=archived</code> になり、 一覧から非表示になります。 後から status を active に戻すことで復元できます。
+        </p>
+        <div className="flex justify-end">
+          <Button
+            className="bg-rose-600 hover:bg-rose-700 text-white font-bold"
             onClick={onArchive}
-            className="inline-flex items-center"
-            style={{
-              height: 34, padding: "0 14px",
-              background: "var(--bf-danger)", color: "#fff",
-              borderRadius: "var(--bf-radius-md)", fontSize: 13, fontWeight: 600,
-              cursor: "pointer",
-            }}
           >
+            <Archive className="w-3.5 h-3.5" />
             アーカイブする
-          </button>
-        }
-      />
-    </SettingsCard>
+          </Button>
+        </div>
+      </div>
+    </Card>
   );
 }
