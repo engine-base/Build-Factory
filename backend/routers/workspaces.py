@@ -27,6 +27,42 @@ from services import workspace_service as ws
 router = APIRouter(prefix="/api/workspaces", tags=["workspaces"])
 
 
+# ──────────────────────────────────────────────────────────────────────────
+# T-004-02: error contract + audit emit helpers
+# ──────────────────────────────────────────────────────────────────────────
+
+
+def _error(code: str, message: str, *, status_code: int = 400) -> HTTPException:
+    return HTTPException(status_code=status_code, detail={"code": code, "message": message})
+
+
+async def _audit_ws(event_type: str, *, user_id: Optional[str], detail: dict) -> None:
+    try:
+        from services.memory_service import emit_event
+        await emit_event(event_type, user_id=user_id, detail=detail)
+    except Exception as e:  # pragma: no cover
+        import logging
+        logging.getLogger(__name__).warning("workspaces audit emit failed: %s -- %s",
+                                              event_type, e)
+
+
+def _validate_name(name: str) -> str:
+    """workspace name: 非空 + 100 chars 以内."""
+    if not name or not name.strip():
+        raise _error("workspaces.invalid_name", "name must not be empty")
+    n = name.strip()
+    if len(n) > 100:
+        raise _error("workspaces.name_too_long", "name must be <= 100 chars")
+    return n
+
+
+def _validate_actor(actor: Optional[str]) -> None:
+    if actor is not None and not actor.strip():
+        raise _error("workspaces.unauthorized",
+                     "creator_user_id / actor_user_id must not be empty",
+                     status_code=401)
+
+
 class WorkspaceCreate(BaseModel):
     account_id: int
     name: str
@@ -90,22 +126,43 @@ async def list_workspaces(
 
 @router.get("/{workspace_id}")
 async def get_workspace(workspace_id: int):
+    if workspace_id <= 0:
+        raise _error("workspaces.invalid_id", "workspace_id must be > 0")
     w = await ws.get_workspace(workspace_id)
     if not w:
-        raise HTTPException(404, f"workspace not found: {workspace_id}")
+        raise _error("workspaces.not_found",
+                     f"workspace not found: {workspace_id}",
+                     status_code=404)
     return w
 
 
 @router.post("")
 async def create_workspace(body: WorkspaceCreate):
+    # AC-4: input validation (state mutate 前に reject)
+    if body.account_id is None or body.account_id <= 0:
+        raise _error("workspaces.invalid_account_id", "account_id must be > 0")
+    name = _validate_name(body.name)
+    _validate_actor(body.creator_user_id)
+    if body.description is not None and len(body.description) > 2000:
+        raise _error("workspaces.description_too_long", "description must be <= 2000 chars")
     try:
-        return await ws.create_workspace(
-            account_id=body.account_id, name=body.name,
+        result = await ws.create_workspace(
+            account_id=body.account_id, name=name,
             description=body.description, project_meta=body.project_meta,
             creator_user_id=body.creator_user_id,
         )
     except ValueError as e:
-        raise HTTPException(400, str(e))
+        raise _error("workspaces.create_failed", str(e))
+    await _audit_ws(
+        "workspaces.created",
+        user_id=body.creator_user_id,
+        detail={
+            "workspace_id": result.get("id") if isinstance(result, dict) else None,
+            "account_id": body.account_id,
+            "name": name,
+        },
+    )
+    return result
 
 
 @router.patch("/{workspace_id}")
