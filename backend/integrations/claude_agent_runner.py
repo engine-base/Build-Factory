@@ -107,10 +107,12 @@ class ClaudeAgentRunner:
         skill_name: Optional[str] = None,
         model: str = "claude-sonnet-4-6",
         agents: Optional[dict[str, Any]] = None,
+        cwd: Optional[str] = None,
     ) -> SessionRecord:
         """1 タスクを実行。SDK が subprocess を起動し、history は SDK 内部で復元される。
 
         sdk_session_id を渡すと resume、None なら新規セッション。
+        cwd を指定すると subprocess を指定ディレクトリで起動する (swarm の worktree 用)。
         crash 時は SessionRecord.status = 'crashed' + crash_reason に詳細。
         4-choice resume は handle_resume() で別途実行する。
         """
@@ -135,11 +137,14 @@ class ClaudeAgentRunner:
         )
         record = await self.store.create_session(record)
 
-        options = ClaudeAgentOptions(
-            resume=sdk_session_id,                  # AC-2: SDK auto-resume
-            model=model,
-            agents=agents or {},
-        )
+        options_kwargs: dict[str, Any] = {
+            "resume": sdk_session_id,               # AC-2: SDK auto-resume
+            "model": model,
+            "agents": agents or {},
+        }
+        if cwd is not None:
+            options_kwargs["cwd"] = cwd
+        options = ClaudeAgentOptions(**options_kwargs)
 
         try:
             async with ClaudeSDKClient(options=options) as client:

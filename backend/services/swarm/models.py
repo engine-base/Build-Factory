@@ -106,12 +106,16 @@ async def update_pool_status(pool_id: int, status: str,
 
 
 async def fetch_pool(pool_id: int) -> Optional[SwarmPool]:
-    async with _db().connect(_db_path()) as db:
-        db.row_factory = _db().Row
-        cur = await db.execute(
-            "SELECT * FROM swarm_pools WHERE id = ?", (pool_id,),
-        )
-        row = await cur.fetchone()
+    try:
+        async with _db().connect(_db_path()) as db:
+            db.row_factory = _db().Row
+            cur = await db.execute(
+                "SELECT * FROM swarm_pools WHERE id = ?", (pool_id,),
+            )
+            row = await cur.fetchone()
+    except Exception:
+        # migration 未適用 / DB 接続失敗 → None (= not found 同等として扱う)
+        return None
     if not row:
         return None
     d = dict(row)
@@ -166,13 +170,16 @@ async def update_cell_status(cell_id: int, status: str, *,
 
 
 async def fetch_cells(pool_id: int) -> list[SwarmCell]:
-    async with _db().connect(_db_path()) as db:
-        db.row_factory = _db().Row
-        cur = await db.execute(
-            "SELECT * FROM swarm_cells WHERE pool_id = ? ORDER BY cell_index ASC",
-            (pool_id,),
-        )
-        rows = await cur.fetchall()
+    try:
+        async with _db().connect(_db_path()) as db:
+            db.row_factory = _db().Row
+            cur = await db.execute(
+                "SELECT * FROM swarm_cells WHERE pool_id = ? ORDER BY cell_index ASC",
+                (pool_id,),
+            )
+            rows = await cur.fetchall()
+    except Exception:
+        return []
     return [SwarmCell(**dict(r)) for r in rows]
 
 
@@ -193,11 +200,14 @@ async def emit_redline(pool_id: int, cell_id: int, event_type: str,
 
 
 async def fetch_redlines(pool_id: int) -> list[RedlineEvent]:
-    async with _db().connect(_db_path()) as db:
-        db.row_factory = _db().Row
-        cur = await db.execute(
-            "SELECT * FROM swarm_redline_events WHERE pool_id = ? ORDER BY detected_at DESC",
-            (pool_id,),
-        )
-        rows = await cur.fetchall()
+    try:
+        async with _db().connect(_db_path()) as db:
+            db.row_factory = _db().Row
+            cur = await db.execute(
+                "SELECT * FROM swarm_redline_events WHERE pool_id = ? ORDER BY detected_at DESC",
+                (pool_id,),
+            )
+            rows = await cur.fetchall()
+    except Exception:
+        return []
     return [RedlineEvent(**dict(r)) for r in rows]

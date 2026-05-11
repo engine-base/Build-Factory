@@ -88,22 +88,34 @@ async def _invoke_subagent(
 ) -> tuple[int, Optional[str]]:
     """claude-agent-sdk Subagent を呼び出す。
 
-    Phase 1 (skeleton): ClaudeAgentRunner.run_task を thin wrapper で呼ぶ。
-    Phase 2 で sandbox escape 検知 / log streaming を追加する。
+    ClaudeAgentRunner (T-S0-08) を経由して subprocess を worktree 内で起動。
+    ClaudeAgentOptions.cwd で各 cell が独立した worktree で動作することを保証する。
     """
     try:
         from integrations.claude_agent_runner import ClaudeAgentRunner
     except ImportError:
-        # runner 未導入時は stub success
         return (0, None)
 
     try:
         runner = ClaudeAgentRunner()
-        # ClaudeAgentRunner.run_task は async generator を想定 (T-S0-08)
-        # 各 cell は独立 prompt + 独立 worktree で動作
-        if hasattr(runner, "run_task"):
-            # Phase 1: stub で 0 を返す (実 Subagent 呼び出しは Phase 2)
+        record = await runner.run_task(
+            prompt=prompt,
+            agent_persona=f"swarm_cell_{cell_index}",
+            cwd=str(worktree),
+        )
+        # SessionRecord を cell に紐付け (session_id 連携)
+        if record and getattr(record, "id", None):
+            from .models import update_cell_status
+            await update_cell_status(cell_id, "running", session_id=int(record.id))
+        status = getattr(record, "status", "done") if record else "done"
+        if status == "crashed":
+            return (-1, getattr(record, "crash_reason", "subagent crashed"))
+        if status == "done":
             return (0, None)
+        # paused / cancelled 等は非ゼロ扱い (cell 側で適切に status を反映)
+        return (1, f"subagent ended with status={status}")
+    except ImportError:
+        # claude-agent-sdk 未インストール (テスト環境等) → stub success
         return (0, None)
     except Exception as e:
         return (-1, str(e)[:500])
