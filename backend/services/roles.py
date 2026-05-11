@@ -136,3 +136,109 @@ def validate_custom_permissions(custom_permissions: Optional[dict]) -> list[str]
         return []
     unknown = [k for k in custom_permissions.keys() if k not in PERMISSIONS]
     return unknown
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# T-021-01 AC-3: permission metadata + role-oriented matrix
+# ──────────────────────────────────────────────────────────────────────────
+
+# permission key → (label, category) のメタ情報.
+# key prefix から category を推定し、 label は v2.1 mock S-014 と整合する日本語訳.
+_PERMISSION_LABELS: dict[str, str] = {
+    # view 系
+    "view_phase_X": "フェーズ閲覧",
+    "view_tab_Y": "タブ閲覧",
+    "view_other_workspaces": "他 workspace 閲覧",
+    "view_costs": "コスト閲覧",
+    "view_audit_log": "監査ログ閲覧",
+    # edit 系
+    "edit_spec": "仕様編集",
+    "edit_task": "タスク編集",
+    "edit_dependency": "依存関係編集",
+    "edit_phase": "フェーズ編集",
+    "edit_design_html": "デザイン HTML 編集",
+    "edit_redlines": "レッドライン編集",
+    "edit_constitution": "Constitution 編集",
+    "edit_budget": "予算編集",
+    "edit_integrations": "統合設定編集",
+    # AI / Swarm
+    "summon_ai_employee": "AI 社員召喚",
+    "start_swarm": "Swarm 起動",
+    "cancel_swarm": "Swarm キャンセル",
+    "approve_phase_gate": "フェーズゲート承認",
+    "approve_design": "デザイン承認",
+    "approve_redline_override": "レッドライン例外承認",
+    # member / workspace 管理
+    "invite_member": "メンバー招待",
+    "remove_member": "メンバー削除",
+    "transfer_ownership": "オーナー譲渡",
+    "archive_workspace": "workspace アーカイブ",
+    "create_workspace": "workspace 新規作成",
+    # secrets / integration
+    "manage_secrets": "シークレット管理",
+    "manage_oauth": "OAuth 連携管理",
+    # data / export
+    "export_artifacts": "成果物エクスポート",
+    "delete_data": "データ削除",
+    "view_billing": "請求閲覧",
+}
+
+
+def _infer_category(key: str) -> str:
+    """permission key prefix から category を推定."""
+    if key.startswith("view_"):
+        if "cost" in key or "billing" in key:
+            return "finance"
+        if "audit" in key:
+            return "security"
+        return "view"
+    if key.startswith("edit_"):
+        if key in ("edit_budget", "edit_constitution", "edit_redlines"):
+            return "governance"
+        if key == "edit_integrations":
+            return "integration"
+        return "edit"
+    if key.startswith("approve_"):
+        return "approval"
+    if key in ("summon_ai_employee", "start_swarm", "cancel_swarm"):
+        return "ai"
+    if key in ("invite_member", "remove_member", "transfer_ownership"):
+        return "membership"
+    if key in ("archive_workspace", "create_workspace"):
+        return "workspace"
+    if "secret" in key or "oauth" in key:
+        return "security"
+    if key in ("export_artifacts", "delete_data"):
+        return "data"
+    return "other"
+
+
+def get_permissions_metadata() -> list[dict]:
+    """T-021-01 AC-3: permission の {key, label, category} list を返す.
+
+    PERMISSIONS の全 30 key に対して metadata を埋め、 mock S-014 表示用.
+    label が未登録の key は key 自体を label に使う (i18n 漏れ防止).
+    """
+    out: list[dict] = []
+    for key in PERMISSIONS:
+        out.append({
+            "key": key,
+            "label": _PERMISSION_LABELS.get(key, key),
+            "category": _infer_category(key),
+        })
+    return out
+
+
+def get_role_oriented_matrix() -> dict[str, dict[str, bool]]:
+    """T-021-01 AC-3: matrix を role → permission → bool 形式に変換.
+
+    PERMISSION_MATRIX は permission → role → (bool|str) だが、 UI grid は
+    role × permission の縦長表示なので role を外側 key に転置する.
+    "limited_*" / "configurable" は safe-by-default で False に正規化.
+    """
+    out: dict[str, dict[str, bool]] = {role: {} for role in ROLE_KEYS}
+    for perm_key, row in PERMISSION_MATRIX.items():
+        for role in ROLE_KEYS:
+            v = row.get(role, False)
+            out[role][perm_key] = (v is True)
+    return out

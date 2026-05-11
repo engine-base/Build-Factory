@@ -212,12 +212,29 @@ async def transfer_ownership_route(workspace_id: int, body: TransferOwnershipReq
 
 @router.get("/permissions/matrix")
 async def permission_matrix() -> dict:
-    """T-021-04: 6 ロール × 30 permission の matrix を返す (UI grid 用)。"""
-    from services.roles import PERMISSION_MATRIX, PERMISSIONS, ROLE_KEYS
+    """T-021-01 AC-3: 6 ロール × 30 permission の matrix を返す.
+
+    Response shape (AC-3 仕様):
+      {
+        roles: string[],                       # 6 roles
+        permissions: [{key, label, category}], # 30 permission metadata
+        matrix: {role: {permission: bool}},    # role-oriented
+        # legacy 互換 (旧 frontend 用):
+        permission_keys: string[],
+        legacy_matrix: {permission: {role: bool|str}},
+      }
+    """
+    from services.roles import (
+        PERMISSION_MATRIX, PERMISSIONS, ROLE_KEYS,
+        get_permissions_metadata, get_role_oriented_matrix,
+    )
     return {
         "roles": list(ROLE_KEYS),
+        "permissions": get_permissions_metadata(),
+        "matrix": get_role_oriented_matrix(),
+        # legacy 互換 (旧 endpoint shape を破壊しない)
         "permission_keys": list(PERMISSIONS),
-        "matrix": PERMISSION_MATRIX,
+        "legacy_matrix": PERMISSION_MATRIX,
     }
 
 

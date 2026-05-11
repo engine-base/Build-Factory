@@ -62,27 +62,41 @@ def test_profile_full_flow(client) -> None:
 # Scenario 2: Permission matrix flow (T-021)
 # ═════════════════════════════════════════════════════════
 def test_permission_matrix_flow(client) -> None:
-    """frontend が起動時に取得する matrix endpoint"""
+    """frontend が起動時に取得する matrix endpoint.
+
+    T-021-01 AC-3 で matrix の向きが {role: {permission: bool}} に変更.
+    旧 shape {permission: {role: bool|str}} は legacy_matrix で互換維持.
+    """
     r = client.get("/api/workspaces/permissions/matrix")
     assert r.status_code == 200
     body = r.json()
 
-    # frontend が期待する shape
+    # 新 shape (AC-3)
     assert "roles" in body
+    assert "permissions" in body  # 新: [{key, label, category}]
+    assert "matrix" in body       # 新: role → permission → bool
+    # legacy 互換
     assert "permission_keys" in body
-    assert "matrix" in body
+    assert "legacy_matrix" in body
 
-    # 6 ロール (legacy "admin" は除外して 6)
+    # 6 ロール
     assert set(body["roles"]) == {"owner", "ws_admin", "contributor", "viewer", "client", "monitor"}
 
     # 30 permission keys 以上
     assert len(body["permission_keys"]) >= 30
 
-    # matrix[perm_key][role_key] の型
+    # 新 matrix[role_key][permission_key] = bool
+    for r_key in body["roles"]:
+        assert r_key in body["matrix"]
+        for pk in body["permission_keys"][:3]:
+            assert pk in body["matrix"][r_key]
+            assert isinstance(body["matrix"][r_key][pk], bool)
+
+    # legacy_matrix[permission_key][role_key] = bool | str (limited_*)
     for pk in body["permission_keys"][:3]:
-        assert pk in body["matrix"]
+        assert pk in body["legacy_matrix"]
         for r_key in body["roles"]:
-            assert r_key in body["matrix"][pk]
+            assert r_key in body["legacy_matrix"][pk]
 
 
 # ═════════════════════════════════════════════════════════
