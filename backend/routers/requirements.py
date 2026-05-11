@@ -190,6 +190,66 @@ async def update_center(
     return {"artifact": updated, "center": center}
 
 
+class SpecGenerateRequest(BaseModel):
+    project_name: Optional[str] = None
+    version: Optional[str] = "draft"
+    actor_user_id: Optional[str] = None
+
+
+@router.post("/{workspace_id}/spec/generate-html")
+async def generate_spec_html(workspace_id: int, body: SpecGenerateRequest):
+    """T-005-04: 仕様書 HTML を 1 ファイルで生成する."""
+    _validate_workspace_id(workspace_id)
+    _validate_actor(body.actor_user_id)
+
+    project_name = (body.project_name or "").strip() or f"Workspace #{workspace_id}"
+    if len(project_name) > 200:
+        raise _error("requirements.project_name_too_long",
+                     "project_name must be <= 200 chars")
+    version = (body.version or "draft").strip()
+    if not version:
+        raise _error("requirements.invalid_version", "version must not be empty")
+    if len(version) > 50:
+        raise _error("requirements.version_too_long", "version must be <= 50 chars")
+
+    from services.spec_html_generator import (
+        SpecMeta, build_sections_from_view, render_spec_html, SpecHtmlError,
+    )
+    try:
+        view = await rs.get_aggregated_view(workspace_id)
+        sections = build_sections_from_view(view if isinstance(view, dict) else {})
+        meta = SpecMeta(
+            project_name=project_name,
+            workspace_id=workspace_id,
+            version=version,
+        )
+        rendered = render_spec_html(meta, sections)
+    except SpecHtmlError as e:
+        raise _error("requirements.spec_invalid", str(e))
+    except Exception as e:
+        raise _error("requirements.spec_generation_failed",
+                     f"spec generation failed: {e}", status_code=500)
+
+    await _audit(
+        "requirements.spec.generated",
+        user_id=body.actor_user_id,
+        detail={
+            "workspace_id": workspace_id,
+            "version": version,
+            "section_count": len(sections),
+            "html_size": len(rendered),
+        },
+    )
+    return Response(
+        content=rendered,
+        media_type="text/html; charset=utf-8",
+        headers={
+            "Content-Disposition":
+                f'attachment; filename="spec-{workspace_id}-{version}.html"',
+        },
+    )
+
+
 @router.get("/{workspace_id}/requirements/download/{tab}.{fmt}")
 async def download(workspace_id: int, tab: str, fmt: str):
     """タブ単位のダウンロード. tab='all' で全結合. fmt = html | md | json."""
