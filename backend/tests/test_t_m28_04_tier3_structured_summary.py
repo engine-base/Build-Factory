@@ -34,7 +34,9 @@ from services.tier3_structured_summary import (
     clear_audit_log,
     estimate_context_usage,
     generate_summary,
+    get_summary_backend,
     list_audit_log,
+    register_summary_backend,
     run_compaction,
     should_compact,
 )
@@ -51,9 +53,11 @@ def client():
 def _reset_state():
     cts.reset_store()
     clear_audit_log()
+    register_summary_backend(None)
     yield
     cts.reset_store()
     clear_audit_log()
+    register_summary_backend(None)
 
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -528,3 +532,243 @@ def test_clear_audit_log_returns_count():
     n = clear_audit_log()
     assert n >= 1
     assert list_audit_log() == []
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# 仕様徹底 (Phase 1 ↔ Phase 2 設計境界の closure)
+# ──────────────────────────────────────────────────────────────────────────
+
+
+# G1: BackgroundTasks pattern (compaction 完了後 legacy persist が非同期で走る)
+
+
+def test_endpoint_compact_schedules_legacy_persist_when_compacted(client):
+    """G1: compaction 成功時に BackgroundTasks に dual-write が積まれる."""
+    s = cts.get_store()
+    t = s.create_thread()
+    s.add_message(t.id, "user", "目標: ship")
+    r = client.post(
+        "/api/tier3/compact",
+        json={"thread_id": t.id, "force": True},
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["compacted"] is True
+    assert body["legacy_persist_scheduled"] is True
+
+
+def test_endpoint_compact_does_not_schedule_when_skipped(client):
+    """G1: 閾値未満で skip された場合は BackgroundTasks に積まない."""
+    s = cts.get_store()
+    t = s.create_thread()
+    s.add_message(t.id, "user", "short")
+    r = client.post(
+        "/api/tier3/compact",
+        json={"thread_id": t.id, "force": False},
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["compacted"] is False
+    assert body["legacy_persist_scheduled"] is False
+
+
+def test_endpoint_compact_persist_legacy_false_skips_dual_write(client):
+    """G4: persist_legacy=False で dual-write を opt-out できる."""
+    s = cts.get_store()
+    t = s.create_thread()
+    s.add_message(t.id, "user", "x")
+    r = client.post(
+        "/api/tier3/compact",
+        json={"thread_id": t.id, "force": True, "persist_legacy": False},
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["compacted"] is True
+    assert body["legacy_persist_scheduled"] is False
+
+
+def test_endpoint_compact_invalid_persist_legacy_type_4xx(client):
+    """G4: persist_legacy 型不正 → 4xx structured."""
+    s = cts.get_store()
+    t = s.create_thread()
+    r = client.post(
+        "/api/tier3/compact",
+        json={"thread_id": t.id, "force": True, "persist_legacy": "yes"},
+    )
+    assert r.status_code == 400
+    detail = r.json()["detail"]
+    assert detail["code"] == "tier3.invalid"
+
+
+# G2: SDK backend hook (register_summary_backend)
+
+
+def test_register_summary_backend_swaps_generator():
+    """G2: backend register で heuristic を完全に差替えられる."""
+
+    def fake_sdk_backend(messages):
+        return {
+            "context": ["sdk: ctx"],
+            "goals": ["sdk: goal"],
+            "decisions": [],
+            "open_questions": [],
+            "actions": [],
+            "blockers": [],
+            "facts": [],
+            "preferences": [],
+            "next_steps": [],
+        }
+
+    register_summary_backend(fake_sdk_backend)
+    assert get_summary_backend() is fake_sdk_backend
+    s = cts.get_store()
+    t = s.create_thread()
+    s.add_message(t.id, "user", "ignored by sdk backend")
+    out = generate_summary(s.list_messages(t.id))
+    assert out["context"] == ["sdk: ctx"]
+    assert out["goals"] == ["sdk: goal"]
+
+
+def test_backend_failure_falls_back_to_heuristic():
+    """G2: backend が例外 → silent fail せず heuristic にフォールバック."""
+
+    def broken_backend(messages):
+        raise RuntimeError("simulated SDK crash")
+
+    register_summary_backend(broken_backend)
+    s = cts.get_store()
+    t = s.create_thread()
+    s.add_message(t.id, "user", "目標: ship")
+    out = generate_summary(s.list_messages(t.id))
+    # heuristic が拾った goals が残る = fallback 成功
+    assert list(out.keys()) == list(SECTION_KEYS)
+    assert any("目標" in g for g in out["goals"])
+
+
+def test_backend_invalid_keys_falls_back():
+    """G2: backend が 9 sections 不変条件を満たさない → fallback."""
+
+    def bad_backend(messages):
+        return {"only_one_key": ["x"]}  # not 9 sections
+
+    register_summary_backend(bad_backend)
+    s = cts.get_store()
+    t = s.create_thread()
+    s.add_message(t.id, "user", "目標: ship")
+    out = generate_summary(s.list_messages(t.id))
+    # fallback 後でも 9 sections 不変条件は保たれる
+    assert set(out.keys()) == set(SECTION_KEYS)
+
+
+def test_backend_non_list_value_falls_back():
+    """G2: backend が list 以外を返す → fallback."""
+
+    def bad_backend(messages):
+        return {k: ("not", "a", "list") for k in SECTION_KEYS}
+
+    register_summary_backend(bad_backend)
+    s = cts.get_store()
+    t = s.create_thread()
+    s.add_message(t.id, "user", "目標: ship")
+    out = generate_summary(s.list_messages(t.id))
+    assert isinstance(out["goals"], list)
+
+
+def test_register_summary_backend_validates_callable():
+    """G2: callable 以外を register しようとしたら 4xx 相当の例外."""
+    with pytest.raises(Tier3SummaryError):
+        register_summary_backend("not callable")  # type: ignore[arg-type]
+
+
+def test_register_summary_backend_none_clears():
+    """G2: None で backend を解除できる."""
+
+    def fake(messages):
+        return {k: [] for k in SECTION_KEYS}
+
+    register_summary_backend(fake)
+    assert get_summary_backend() is fake
+    register_summary_backend(None)
+    assert get_summary_backend() is None
+
+
+# G4 + G6: chat_search (sqlite chat_messages) との互換性 ―
+# legacy persist が memory_service.persist_compaction を呼ぶことを検証
+
+
+def test_legacy_persist_helper_uses_memory_service(monkeypatch):
+    """G4: BackgroundTasks 内で実行される helper が memory_service を呼ぶ."""
+    import asyncio
+    import importlib
+
+    from routers import tier3_compaction as router_mod
+    from services import memory_service
+
+    called: list[tuple] = []
+
+    async def fake_persist(session_id, summary):
+        called.append((session_id, list(summary.keys())))
+        return 9999
+
+    monkeypatch.setattr(memory_service, "persist_compaction", fake_persist)
+    importlib.reload(router_mod) if False else None  # 念のため
+    # router module は from-import を使うので, top-level の persist_compaction を
+    # 直接置換するのではなく memory_service 経由で patch する必要がある.
+    # _legacy_persist_best_effort は import を関数内で行うため runtime resolve.
+    asyncio.run(
+        router_mod._legacy_persist_best_effort(
+            123, {k: [] for k in SECTION_KEYS},
+        )
+    )
+    assert called == [(123, list(SECTION_KEYS))]
+
+
+def test_legacy_persist_helper_swallows_exceptions():
+    """G4: memory_service が例外を投げても primary path に影響しない."""
+    import asyncio
+    from routers import tier3_compaction as router_mod
+
+    # memory_service import 自体が成功するが persist が落ちるケースを想定.
+    # _legacy_persist_best_effort は try/except でラップされているので例外無し.
+    # 副作用: warning ログのみ. テストは「raise しない」を assert.
+    # sqlite が test 環境で初期化されていれば成功するかも知れないので
+    # 引数として明らかに invalid な thread_id を渡しても try/except で吸収.
+    asyncio.run(
+        router_mod._legacy_persist_best_effort(
+            -1, {k: [] for k in SECTION_KEYS},
+        )
+    )  # no exception = pass
+
+
+def test_endpoint_compact_legacy_scheduled_flag_in_response(client):
+    """G4/G6: response に legacy_persist_scheduled flag が出る."""
+    s = cts.get_store()
+    t = s.create_thread()
+    s.add_message(t.id, "user", "目標")
+    r = client.post(
+        "/api/tier3/compact",
+        json={"thread_id": t.id, "force": True},
+    )
+    body = r.json()
+    assert "legacy_persist_scheduled" in body
+
+
+# G3: in-memory store / RLS 境界の明示 (Phase 1 限定であることを doc レベルで保証)
+
+
+def test_module_doc_marks_phase1_boundaries():
+    """G3/G5: module docstring に Phase 1 境界 (G2/G3/G5) が明記されている."""
+    import services.tier3_structured_summary as mod
+    doc = mod.__doc__ or ""
+    assert "G2" in doc
+    assert "G3" in doc
+    assert "G5" in doc
+
+
+def test_chat_thread_store_remains_in_memory():
+    """G3: chat_thread_store が in-memory dict 構造であることを確認.
+    (Phase 2 で Postgres 移行する際の boundary check.)"""
+    store = cts.get_store()
+    # in-memory 実装の指標: _threads dict が存在
+    assert hasattr(store, "_threads")
+    assert isinstance(store._threads, dict)

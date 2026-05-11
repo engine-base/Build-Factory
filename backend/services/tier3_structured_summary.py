@@ -23,6 +23,17 @@ AC 対応:
   - STATE-DRIVEN (AC-3): RLS + audit_logs を CLAUDE.md §5.3 準拠で適用
     (Phase 1 は app-level audit; Postgres RLS migration は M-30 / 018 で別途)
   - UNWANTED (AC-4): invalid input → 4xx structured / persistent state mutate 無し
+
+仕様徹底のための Phase 1 ↔ Phase 2 設計境界 (NEXT ticket で解消):
+  - G2 (SDK auto-generate): req §11.6 は "SDK shall auto-generate" を要求.
+    Phase 1 は keyword heuristic (LLM 非経由). T-020-02 SDK 接続 + T-AI-01
+    Memory API 完了後, generate_summary() を SDK hook 経由に差替える.
+    拡張点: register_summary_backend(callable) で差替可能.
+  - G3 (RLS): chat_thread_store は in-memory のため Phase 1 では実 RLS 非適用.
+    chat_thread_store が Postgres backed に移行する Phase 2 で
+    auth.uid() = workspace.owner_id を migration で適用.
+  - G5 (LLM 精度): heuristic は keyword match. T-AI-01 / T-AI-05 で
+    Anthropic Memory API 経由の structured output に差替える.
 """
 from __future__ import annotations
 
@@ -30,7 +41,7 @@ import logging
 import re
 import threading
 import time
-from typing import Optional
+from typing import Callable, Optional
 
 from services import chat_thread_store as cts
 
@@ -261,8 +272,54 @@ def _classify(msg: cts.ChatMessage) -> list[str]:
     return hits
 
 
+SummaryBackend = Callable[[list[cts.ChatMessage]], dict]
+_SUMMARY_BACKEND: Optional[SummaryBackend] = None
+
+
+def register_summary_backend(backend: Optional[SummaryBackend]) -> None:
+    """G2 拡張点: claude-agent-sdk が auto-generate する 9-section summary を
+    差替えるための backend hook. backend は messages を受け取って 9-section dict を返す.
+
+    Phase 2 で T-020-02 (SDK 接続) / T-AI-01 (Memory API) が完了したら,
+    SDK の structured output を返す backend をここに register する.
+    None を渡せば heuristic にフォールバック.
+
+    backend が例外を投げた / 返値が 9 sections 不変条件を満たさない場合は
+    自動的に heuristic にフォールバック (silent failure 防止のため warning ログ).
+    """
+    global _SUMMARY_BACKEND
+    if backend is not None and not callable(backend):
+        raise Tier3SummaryError("backend must be callable or None")
+    _SUMMARY_BACKEND = backend
+
+
+def get_summary_backend() -> Optional[SummaryBackend]:
+    """register 済 backend を返す (テスト/可視化用)."""
+    return _SUMMARY_BACKEND
+
+
+def _validate_backend_output(out: object) -> dict:
+    """backend が返した dict の 9-section 不変条件を検証. 不正なら例外."""
+    if not isinstance(out, dict):
+        raise Tier3SummaryError("backend must return a dict")
+    if set(out.keys()) != set(SECTION_KEYS):
+        raise Tier3SummaryError(
+            f"backend must return exactly keys {SECTION_KEYS}, got {sorted(out.keys())}"
+        )
+    normalized: dict[str, list[str]] = {}
+    for k in SECTION_KEYS:
+        v = out[k]
+        if not isinstance(v, list):
+            raise Tier3SummaryError(f"backend[{k}] must be list")
+        normalized[k] = [_short(str(x)) for x in v[:MAX_SECTION_ITEMS] if x]
+    return normalized
+
+
 def generate_summary(messages: list[cts.ChatMessage]) -> dict:
-    """9-section heuristic summary.
+    """9-section structured summary.
+
+    既定: keyword heuristic (Phase 1). register_summary_backend() で
+    SDK / LLM 経由の backend に差替可能.
 
     各 section は最大 MAX_SECTION_ITEMS 件の bullet を保持.
     新しい順で重複排除し最大件数で打ち切り.
@@ -273,6 +330,15 @@ def generate_summary(messages: list[cts.ChatMessage]) -> dict:
     for i, m in enumerate(messages):
         if not isinstance(m, cts.ChatMessage):
             raise Tier3SummaryError(f"messages[{i}] must be ChatMessage")
+
+    # G2: register 済 backend があれば優先, 失敗時は heuristic fallback
+    if _SUMMARY_BACKEND is not None:
+        try:
+            return _validate_backend_output(_SUMMARY_BACKEND(messages))
+        except Exception as e:
+            logger.warning(
+                "summary backend failed, falling back to heuristic: %s", e,
+            )
 
     summary: dict[str, list[str]] = {k: [] for k in SECTION_KEYS}
     seen: dict[str, set[str]] = {k: set() for k in SECTION_KEYS}
