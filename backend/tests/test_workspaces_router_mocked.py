@@ -302,6 +302,215 @@ def test_workspace_summary_endpoint_smoke(client, monkeypatch) -> None:
     assert r.status_code in (200, 404, 500)
 
 
+# ─────────────────────────────────────────────────────────────────────────
+# T-003-02 S-012 Workspace Dashboard 5 KPI: AC 全網羅
+#   AC-1 UBIQUITOUS: 5 KPI cards (progress / completed / running / cost / approvals)
+#   AC-2 EVENT:      asyncio.gather 並列実行 (gather 呼び出しが起きる)
+#   AC-3 STATE:      pulse-dot animation = frontend 側 (本 router test 範囲外)
+#   AC-4 OPTIONAL:   workspace 切替 = frontend 側 (router test 範囲外)
+#   AC-5 UNWANTED:   user_id 非メンバー → 403 で render しない
+# ─────────────────────────────────────────────────────────────────────────
+
+
+class _KpiFakeConn:
+    """SQL 文字列内のキーワードを見て返却 rows を差し替える dispatch mock."""
+
+    def __init__(self, members=None, ws=None, proj=None, task_stat=None,
+                 active=None, art=None, sessions=None, cost=None, approvals=None):
+        self._members = members or []
+        self._ws = ws or []
+        self._proj = proj or []
+        self._task_stat = task_stat or []
+        self._active = active or []
+        self._art = art or []
+        self._sessions = sessions or [{"n": 0}]
+        self._cost = cost or [{"total": 0.0}]
+        self._approvals = approvals or [{"n": 0}]
+        self.row_factory = None
+
+    async def execute_fetchall(self, sql, *args):
+        s = sql.lower()
+        if "workspace_members" in s:        return self._members
+        if "from workspaces" in s:          return self._ws
+        if "from projects" in s:            return self._proj
+        if "from tasks" in s and "group by status" in s: return self._task_stat
+        if "from tasks t" in s:             return self._active
+        if "from artifacts" in s:           return self._art
+        if "from sessions" in s:            return self._sessions
+        if "from cost_logs" in s:           return self._cost
+        if "from approval_queue" in s:      return self._approvals
+        return []
+
+    async def __aenter__(self): return self
+    async def __aexit__(self, *a): pass
+
+
+def _patch_summary_db(monkeypatch, **kwargs):
+    import db.async_db as adb
+    conn = _KpiFakeConn(**kwargs)
+    monkeypatch.setattr(adb, "connect", lambda _p: conn)
+    monkeypatch.setattr(adb, "Row", dict)
+    return conn
+
+
+def test_summary_returns_5_kpi_cards(client, monkeypatch) -> None:
+    """AC-1 UBIQUITOUS: 5 KPI が response.kpis に揃う."""
+    _patch_summary_db(
+        monkeypatch,
+        ws=[{"id": 1, "name": "ws", "description": None, "status": "active"}],
+        proj=[{"id": 10, "title": "p", "status": "active"}],
+        task_stat=[
+            {"status": "completed", "n": 7},
+            {"status": "in_progress", "n": 3},
+            {"status": "pending", "n": 5},
+            {"status": "blocked_question", "n": 1},
+        ],
+        sessions=[{"n": 2}],
+        cost=[{"total": 12.345}],
+        approvals=[{"n": 4}],
+    )
+    r = client.get("/api/workspaces/1/summary")
+    assert r.status_code == 200
+    data = r.json()
+    assert "kpis" in data
+    kpis = data["kpis"]
+    for key in ("progress", "completed_tasks", "running_sessions",
+                "monthly_cost_usd", "pending_approvals"):
+        assert key in kpis
+    # 値検証
+    assert kpis["completed_tasks"] == 7
+    assert kpis["running_sessions"] == 2
+    assert kpis["pending_approvals"] == 4
+    assert kpis["monthly_cost_usd"] == 12.345
+    # progress = completed / total = 7 / 16
+    assert kpis["progress"] == round(7 / 16, 3)
+
+
+def test_summary_running_sessions_falls_back_to_zero_when_table_missing(
+    client, monkeypatch,
+) -> None:
+    """sessions テーブル未適用環境では Exception → running_sessions=0 (fallback)."""
+
+    class _ErrConn(_KpiFakeConn):
+        async def execute_fetchall(self, sql, *args):
+            if "from sessions" in sql.lower():
+                raise RuntimeError("no such table: sessions")
+            return await super().execute_fetchall(sql, *args)
+
+    import db.async_db as adb
+    conn = _ErrConn(
+        ws=[{"id": 1, "name": "x", "description": None, "status": "active"}],
+        proj=[],
+    )
+    monkeypatch.setattr(adb, "connect", lambda _p: conn)
+    monkeypatch.setattr(adb, "Row", dict)
+    r = client.get("/api/workspaces/1/summary")
+    assert r.status_code == 200
+    assert r.json()["kpis"]["running_sessions"] == 0
+
+
+def test_summary_uses_asyncio_gather_for_parallel_queries(
+    client, monkeypatch,
+) -> None:
+    """AC-2 EVENT (800ms P95): asyncio.gather で並列クエリ実行されること."""
+    import asyncio
+    import routers.workspaces as r_mod
+
+    gather_calls = {"n": 0}
+    orig_gather = asyncio.gather
+
+    async def _wrapped_gather(*coros, **kw):
+        gather_calls["n"] += 1
+        return await orig_gather(*coros, **kw)
+
+    monkeypatch.setattr(r_mod.asyncio if hasattr(r_mod, "asyncio") else asyncio, "gather", _wrapped_gather, raising=False)
+    # 直接 patch (router 内 `import asyncio as _asyncio`)
+    monkeypatch.setattr(asyncio, "gather", _wrapped_gather)
+
+    _patch_summary_db(
+        monkeypatch,
+        ws=[{"id": 1, "name": "x", "description": None, "status": "active"}],
+        proj=[{"id": 10, "title": "p", "status": "active"}],
+        task_stat=[{"status": "completed", "n": 1}],
+    )
+    r = client.get("/api/workspaces/1/summary")
+    assert r.status_code == 200
+    # gather が少なくとも 1 回呼ばれた (5 KPI クエリ並列化)
+    assert gather_calls["n"] >= 1
+
+
+def test_summary_user_id_non_member_returns_403(client, monkeypatch) -> None:
+    """AC-5 UNWANTED: workspace member でない user_id → 403."""
+    _patch_summary_db(
+        monkeypatch,
+        members=[],  # メンバーシップ空 → 403
+        ws=[{"id": 1, "name": "ws", "description": None, "status": "active"}],
+    )
+    r = client.get("/api/workspaces/1/summary?user_id=stranger")
+    assert r.status_code == 403
+    detail = r.json()["detail"]
+    assert "member" in (detail if isinstance(detail, str) else str(detail)).lower()
+
+
+def test_summary_user_id_member_allowed(client, monkeypatch) -> None:
+    """AC-5 inverse: メンバーなら 200."""
+    _patch_summary_db(
+        monkeypatch,
+        members=[{"1": 1}],  # any 1 row → member
+        ws=[{"id": 1, "name": "ws", "description": None, "status": "active"}],
+        proj=[],
+        sessions=[{"n": 0}], cost=[{"total": 0.0}], approvals=[{"n": 0}],
+    )
+    r = client.get("/api/workspaces/1/summary?user_id=alice")
+    assert r.status_code == 200
+
+
+def test_summary_no_user_id_skips_permission_check(client, monkeypatch) -> None:
+    """user_id 未指定なら permission check は skip (legacy 互換)."""
+    _patch_summary_db(
+        monkeypatch,
+        members=[],  # でも user_id 渡さないので 403 にならない
+        ws=[{"id": 1, "name": "ws", "description": None, "status": "active"}],
+        proj=[],
+    )
+    r = client.get("/api/workspaces/1/summary")
+    assert r.status_code == 200
+
+
+def test_summary_workspace_not_found_returns_404(client, monkeypatch) -> None:
+    _patch_summary_db(monkeypatch, ws=[])
+    r = client.get("/api/workspaces/99999/summary")
+    assert r.status_code == 404
+
+
+def test_summary_completion_rate_zero_when_no_tasks(client, monkeypatch) -> None:
+    _patch_summary_db(
+        monkeypatch,
+        ws=[{"id": 1, "name": "ws", "description": None, "status": "active"}],
+        proj=[{"id": 10, "title": "p", "status": "active"}],
+        task_stat=[],
+    )
+    r = client.get("/api/workspaces/1/summary")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["completion_rate"] == 0.0
+    assert data["kpis"]["progress"] == 0.0
+
+
+def test_summary_keeps_legacy_keys_for_backward_compat(client, monkeypatch) -> None:
+    _patch_summary_db(
+        monkeypatch,
+        ws=[{"id": 1, "name": "ws", "description": None, "status": "active"}],
+        proj=[],
+    )
+    r = client.get("/api/workspaces/1/summary")
+    data = r.json()
+    # legacy keys が残っている
+    for key in ("workspace", "project", "task_stats", "completion_rate",
+                "active_phases", "recent_artifacts"):
+        assert key in data
+
+
 def test_transfer_ownership_same_user_400(client, monkeypatch) -> None:
     from services import workspace_service as ws
 

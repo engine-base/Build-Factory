@@ -303,17 +303,42 @@ async def list_workspace_tasks(workspace_id: int, status: Optional[str] = None):
 
 
 @router.get("/{workspace_id}/summary")
-async def workspace_summary(workspace_id: int):
+async def workspace_summary(
+    workspace_id: int,
+    user_id: Optional[str] = Query(None),
+):
     """
-    Workspace ダッシュボード向けサマリ。
-    タスク件数 / 完了率 / ブロッカー数 / 進行中フェーズ / 直近 artifact 等。
+    Workspace ダッシュボード向け 5 KPI サマリ (T-003-02 / S-012).
+
+    AC-1 UBIQUITOUS: 5 KPI cards
+        - progress (completion_rate)
+        - completed_tasks
+        - running_sessions
+        - monthly_cost_usd
+        - pending_approvals
+    AC-2 EVENT (800ms P95): asyncio.gather で全クエリを並列実行
+    AC-5 UNWANTED (403): user_id 指定時 workspace_member でなければ 403
+
+    legacy 互換: task_stats / completion_rate / active_phases / recent_artifacts
+                 も従来通り返す。
     """
+    import asyncio as _asyncio
     from db import async_db as adb
     from pathlib import Path as _P
     DB = _P(__file__).resolve().parents[2] / "data" / "db" / "build.db"
 
     async with adb.connect(DB) as db:
         db.row_factory = adb.Row
+
+        # AC-5: user_id 指定時は workspace_members 経由で権限検証
+        if user_id:
+            mem_rows = await db.execute_fetchall(
+                "SELECT 1 FROM workspace_members "
+                "WHERE workspace_id=? AND user_id=? LIMIT 1",
+                (workspace_id, user_id),
+            )
+            if not mem_rows:
+                raise HTTPException(403, "user is not a member of this workspace")
 
         # workspace 詳細
         ws_rows = await db.execute_fetchall(
@@ -330,53 +355,117 @@ async def workspace_summary(workspace_id: int):
             (workspace_id,),
         )
         project = dict(proj_rows[0]) if proj_rows else None
+        project_id = project["id"] if project else None
 
-        # タスク統計
-        task_stats = {"total": 0, "completed": 0, "in_progress": 0, "pending": 0, "blockers": 0}
-        active_phases: list = []
-        if project:
-            stat_rows = await db.execute_fetchall(
-                """SELECT status, COUNT(*) as n FROM tasks WHERE project_id=? GROUP BY status""",
-                (project["id"],),
+        # ── AC-2: 5 KPI クエリを asyncio.gather で並列実行 ──
+        async def _task_stats() -> dict:
+            stats = {"total": 0, "completed": 0, "in_progress": 0, "pending": 0, "blockers": 0}
+            if not project_id:
+                return stats
+            rows = await db.execute_fetchall(
+                "SELECT status, COUNT(*) as n FROM tasks WHERE project_id=? GROUP BY status",
+                (project_id,),
             )
-            for r in stat_rows:
-                task_stats["total"] += r["n"]
-                if r["status"] == "completed":         task_stats["completed"]   += r["n"]
-                elif r["status"] == "in_progress":     task_stats["in_progress"] += r["n"]
-                elif r["status"] == "pending":         task_stats["pending"]     += r["n"]
+            for r in rows:
+                stats["total"] += r["n"]
+                if r["status"] == "completed":     stats["completed"]   += r["n"]
+                elif r["status"] == "in_progress": stats["in_progress"] += r["n"]
+                elif r["status"] == "pending":     stats["pending"]     += r["n"]
                 elif r["status"] in ("blocked_question", "blocked_dependency"):
-                    task_stats["blockers"] += r["n"]
+                    stats["blockers"] += r["n"]
+            return stats
 
-            # 進行中フェーズ (level=0 + status=in_progress, または skill_name=feature)
-            active_rows = await db.execute_fetchall(
+        async def _active_phases() -> list:
+            if not project_id:
+                return []
+            rows = await db.execute_fetchall(
                 """SELECT id, title, skill_name, status,
                         (SELECT COUNT(*) FROM tasks c WHERE c.parent_task_id=t.id) AS child_total,
                         (SELECT COUNT(*) FROM tasks c WHERE c.parent_task_id=t.id AND c.status='completed') AS child_done
                    FROM tasks t
                    WHERE project_id=? AND status='in_progress'
                    ORDER BY t.level, t.order_index, t.id LIMIT 5""",
-                (project["id"],),
+                (project_id,),
             )
-            active_phases = [dict(r) for r in active_rows]
+            return [dict(r) for r in rows]
 
-        # workspace 関連の最新 artifact (上位 5)
-        art_rows = await db.execute_fetchall(
-            """SELECT id, type, title, category_tags, updated_at
-               FROM artifacts
-               WHERE workspace_id=? AND is_archived=0
-               ORDER BY updated_at DESC LIMIT 5""",
-            (workspace_id,),
+        async def _recent_artifacts() -> list:
+            rows = await db.execute_fetchall(
+                """SELECT id, type, title, category_tags, updated_at
+                     FROM artifacts
+                    WHERE workspace_id=? AND is_archived=0
+                    ORDER BY updated_at DESC LIMIT 5""",
+                (workspace_id,),
+            )
+            return [dict(r) for r in rows]
+
+        async def _running_sessions() -> int:
+            try:
+                rows = await db.execute_fetchall(
+                    "SELECT COUNT(*) AS n FROM sessions "
+                    "WHERE workspace_id=? AND status='running'",
+                    (workspace_id,),
+                )
+                return int(rows[0]["n"]) if rows else 0
+            except Exception:
+                return 0  # sessions テーブル未適用環境
+
+        async def _monthly_cost_usd() -> float:
+            try:
+                rows = await db.execute_fetchall(
+                    "SELECT COALESCE(SUM(cost_usd), 0) AS total FROM cost_logs "
+                    "WHERE workspace_id=? "
+                    "AND occurred_at >= date('now','start of month')",
+                    (workspace_id,),
+                )
+                return float(rows[0]["total"]) if rows else 0.0
+            except Exception:
+                return 0.0
+
+        async def _pending_approvals() -> int:
+            try:
+                rows = await db.execute_fetchall(
+                    "SELECT COUNT(*) AS n FROM approval_queue "
+                    "WHERE workspace_id=? AND status='pending'",
+                    (workspace_id,),
+                )
+                return int(rows[0]["n"]) if rows else 0
+            except Exception:
+                return 0
+
+        (
+            task_stats, active_phases, artifacts,
+            running_sessions, monthly_cost_usd, pending_approvals,
+        ) = await _asyncio.gather(
+            _task_stats(),
+            _active_phases(),
+            _recent_artifacts(),
+            _running_sessions(),
+            _monthly_cost_usd(),
+            _pending_approvals(),
         )
-        artifacts = [dict(r) for r in art_rows]
 
-    completion_rate = (task_stats["completed"] / task_stats["total"]) if task_stats["total"] > 0 else 0.0
+    completion_rate = (
+        task_stats["completed"] / task_stats["total"]
+        if task_stats["total"] > 0 else 0.0
+    )
+
     return {
         "workspace": workspace,
         "project": project,
+        # legacy 互換
         "task_stats": task_stats,
         "completion_rate": round(completion_rate, 3),
         "active_phases": active_phases,
         "recent_artifacts": artifacts,
+        # T-003-02 5 KPI cards
+        "kpis": {
+            "progress": round(completion_rate, 3),
+            "completed_tasks": task_stats["completed"],
+            "running_sessions": running_sessions,
+            "monthly_cost_usd": round(monthly_cost_usd, 4),
+            "pending_approvals": pending_approvals,
+        },
     }
 
 
