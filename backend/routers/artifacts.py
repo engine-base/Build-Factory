@@ -28,6 +28,31 @@ from services import artifact_service as art
 router = APIRouter(prefix="/api/artifacts", tags=["artifacts"])
 
 
+# ──────────────────────────────────────────────────────────────────────────
+# T-003-05: error contract + audit emit helpers
+# ──────────────────────────────────────────────────────────────────────────
+
+
+def _error(code: str, message: str, *, status_code: int = 400) -> HTTPException:
+    return HTTPException(status_code=status_code, detail={"code": code, "message": message})
+
+
+async def _audit(event_type: str, *, user_id: Optional[str], detail: dict) -> None:
+    try:
+        from services.memory_service import emit_event
+        await emit_event(event_type, user_id=user_id, detail=detail)
+    except Exception as e:  # pragma: no cover
+        import logging
+        logging.getLogger(__name__).warning("artifacts audit emit failed: %s -- %s", event_type, e)
+
+
+def _validate_actor(actor: Optional[str]) -> None:
+    if actor is not None and not actor.strip():
+        raise _error("artifacts.unauthorized",
+                     "actor_user_id must not be empty when provided",
+                     status_code=401)
+
+
 # ── 型定義 ──────────────────────────────────────
 
 class ArtifactCreate(BaseModel):
@@ -79,9 +104,12 @@ async def list_artifacts(
 
 @router.get("/{artifact_id}")
 async def get_artifact(artifact_id: str):
+    if not artifact_id or not artifact_id.strip():
+        raise _error("artifacts.invalid_id", "artifact_id must not be empty")
     a = await art.get_artifact(artifact_id)
     if not a:
-        raise HTTPException(404, f"artifact not found: {artifact_id}")
+        raise _error("artifacts.not_found", f"artifact not found: {artifact_id}",
+                     status_code=404)
     return a
 
 
@@ -224,6 +252,66 @@ async def get_export(artifact_id: str, filename: str):
         "application/vnd.openxmlformats-officedocument.presentationml.presentation"
     )
     return FileResponse(path, media_type=media, filename=filename)
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# T-003-05: artifact 保存 + AC 検証連携
+# ──────────────────────────────────────────────────────────────────────────
+
+
+class VerifyACRequest(BaseModel):
+    criteria: list[dict] = []
+    actor_user_id: Optional[str] = None
+    task_id: Optional[int] = None
+
+
+@router.post("/{artifact_id}/verify-ac")
+async def verify_ac(artifact_id: str, body: VerifyACRequest):
+    """T-003-05: artifact を AC list で検証して報告を返す.
+
+    criteria を body で受け取る (LLM 経由で task からも取れるが、
+    まずは静的検証の interface を確立する).
+    """
+    _validate_actor(body.actor_user_id)
+    if not artifact_id or not artifact_id.strip():
+        raise _error("artifacts.invalid_id", "artifact_id must not be empty")
+    if not isinstance(body.criteria, list):
+        raise _error("artifacts.invalid_criteria", "criteria must be a list")
+    if len(body.criteria) > 50:
+        raise _error("artifacts.criteria_too_many", "criteria must be <= 50 items")
+    for i, c in enumerate(body.criteria):
+        if not isinstance(c, dict):
+            raise _error("artifacts.invalid_criteria", f"criteria[{i}] must be a dict")
+        if "type" not in c or "text" not in c:
+            raise _error(
+                "artifacts.invalid_criteria",
+                f"criteria[{i}] must have 'type' and 'text' keys",
+            )
+
+    a = await art.get_artifact(artifact_id)
+    if not a:
+        raise _error("artifacts.not_found", f"artifact not found: {artifact_id}",
+                     status_code=404)
+
+    from services.ac_verification import verify_artifact, ACVerificationError
+    try:
+        report = verify_artifact(a, body.criteria)
+    except ACVerificationError as e:
+        raise _error("artifacts.verify_failed", str(e))
+
+    await _audit(
+        "artifacts.ac.verified",
+        user_id=body.actor_user_id,
+        detail={
+            "artifact_id": artifact_id,
+            "task_id": body.task_id,
+            "overall": report.overall,
+            "total": report.total,
+            "pass_count": report.pass_count,
+            "fail_count": report.fail_count,
+        },
+    )
+    return report.to_dict()
 
 
 # ── WebSocket（live push）──────────────────────
