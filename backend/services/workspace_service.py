@@ -103,6 +103,7 @@ async def create_workspace(
 async def update_workspace(workspace_id: int, **fields) -> dict:
     if not fields:
         return await get_workspace(workspace_id) or {}
+    actor_user_id = fields.pop("actor_user_id", None)
     cols, vals = [], []
     for k in ("name", "description", "status", "design_system_ref"):
         if k in fields:
@@ -117,11 +118,35 @@ async def update_workspace(workspace_id: int, **fields) -> dict:
             [*vals, workspace_id],
         )
         await db.commit()
+    await _emit_audit(
+        "workspace.updated",
+        user_id=actor_user_id,
+        detail={"workspace_id": workspace_id, "changed_fields": list(fields.keys())},
+    )
     return await get_workspace(workspace_id) or {}
 
 
-async def archive_workspace(workspace_id: int) -> dict:
-    return await update_workspace(workspace_id, status="archived")
+async def archive_workspace(workspace_id: int, *, actor_user_id: Optional[str] = None) -> dict:
+    result = await update_workspace(workspace_id, status="archived", actor_user_id=actor_user_id)
+    await _emit_audit(
+        "workspace.archived",
+        user_id=actor_user_id,
+        detail={"workspace_id": workspace_id},
+    )
+    return result
+
+
+# ──────────────────────────────────────────
+# audit_logs (T-021/T-023/T-004-05 共通)
+# ──────────────────────────────────────────
+async def _emit_audit(event_type: str, *, user_id: Optional[str] = None, detail: Optional[dict] = None) -> None:
+    """audit_logs に event を流す。失敗してもアプリは止めない。"""
+    try:
+        from services.memory_service import emit_event
+        await emit_event(event_type, user_id=user_id, detail=detail)
+    except Exception as e:
+        # logger ではなく print (この service が logging を未 import のため)
+        print(f"[workspace_service] audit emit failed: {event_type} -- {e}")
 
 
 # ──────────────────────────────────────────
@@ -177,6 +202,16 @@ async def add_member(
              invited_by),
         )
         await db.commit()
+    await _emit_audit(
+        "workspace.member.added",
+        user_id=invited_by,
+        detail={
+            "workspace_id": workspace_id,
+            "target_user_id": user_id,
+            "role": role,
+            "has_custom_permissions": bool(custom_permissions),
+        },
+    )
     return await get_member(workspace_id, user_id) or {}
 
 
@@ -234,6 +269,16 @@ async def update_member_role(
             [*vals, workspace_id, user_id],
         )
         await db.commit()
+    await _emit_audit(
+        "workspace.member.updated",
+        user_id=actor_user_id,
+        detail={
+            "workspace_id": workspace_id,
+            "target_user_id": user_id,
+            "new_role": role,
+            "custom_permissions_changed": custom_permissions is not None,
+        },
+    )
     return await get_member(workspace_id, user_id) or {}
 
 
@@ -252,7 +297,14 @@ async def remove_member(workspace_id: int, user_id: str, *, actor_user_id: Optio
             (workspace_id, user_id),
         )
         await db.commit()
-        return (cur.rowcount or 0) > 0
+        removed = (cur.rowcount or 0) > 0
+    if removed:
+        await _emit_audit(
+            "workspace.member.removed",
+            user_id=actor_user_id,
+            detail={"workspace_id": workspace_id, "target_user_id": user_id},
+        )
+    return removed
 
 
 async def get_member(workspace_id: int, user_id: str) -> Optional[dict]:

@@ -975,7 +975,35 @@
       "deps": [
         "T-004-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The /workspaces/{id}/settings page shall include a section enabling an owner to transfer ownership to another existing workspace member."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the current owner submits the owner-transfer form, the system shall demote the current owner to ws_admin and promote the selected member to owner atomically."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the current user is not the workspace owner, the system shall hide or disable the owner-transfer controls."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If the selected target member is not currently a member of the workspace, the system shall reject the transfer with HTTP 400 (target_not_member)."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/workspace/S-013-workspace-settings.html",
+      "existing_files": [
+        "frontend/src/app/workspaces/[id]/settings/page.tsx",
+        "backend/routers/workspaces.py",
+        "backend/services/workspace_service.py"
+      ],
+      "entities": [
+        "workspaces",
+        "workspace_members"
+      ]
     },
     {
       "id": "T-004-06",
@@ -1017,7 +1045,35 @@
       "deps": [
         "T-001-02"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-21"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-21",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall accept only the 6 roles {owner, ws_admin, contributor, viewer, client, monitor} as workspace_members.role values."
+        },
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall expose a permission matrix of 30 permission keys mapped across the 6 roles via GET /api/workspaces/permissions/matrix."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When GET /api/workspaces/permissions/matrix is called, the system shall return a JSON object with shape {roles: string[], permissions: {key, label, category}[], matrix: {role: {permission: bool}}}."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If a request supplies a role value outside the 6 allowed roles, the system shall reject the request with HTTP 422 and shall not persist the change."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/workspace/S-014-workspace-members.html",
+      "existing_files": [
+        "backend/routers/workspaces.py",
+        "backend/services/workspace_service.py",
+        "backend/services/roles.py"
+      ],
+      "entities": [
+        "workspaces",
+        "workspace_members"
+      ]
     },
     {
       "id": "T-021-02",
@@ -1031,7 +1087,32 @@
       "deps": [
         "T-021-01"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-21"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-21",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall validate that custom_permissions is a dict[str, bool] whose keys are a subset of the 30 known permission keys."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When a member is added or updated with custom_permissions, the system shall apply per-key overrides on top of the role-default permissions when has_permission() is evaluated."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While custom_permissions overrides exist for a member, the system shall use the override value (true/false) instead of the role-default for that key."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If custom_permissions contains an unknown key or a non-bool value or is not a dict, the system shall reject the request with HTTP 400 and shall not persist the change."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/workspace/S-014-workspace-members.html",
+      "existing_files": [
+        "backend/services/roles.py"
+      ],
+      "entities": [
+        "workspace_members"
+      ]
     },
     {
       "id": "T-021-03",
@@ -1088,7 +1169,37 @@
       "deps": [
         "T-S0-06"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-21"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-21",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The /workspaces/{id}/members page shall display all members with their role rendered as a 6-option <select> bound to the 6 canonical roles."
+        },
+        {
+          "type": "UBIQUITOUS",
+          "text": "The page shall display a representative permission grid (>= 7 columns) sourced from GET /api/workspaces/permissions/matrix, one row per role."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When a user changes a member's role via the select, the system shall send PATCH /api/workspaces/{id}/members/{user_id} with actor_user_id and re-fetch the member list on success."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When a user submits the add-member form, the system shall send POST /api/workspaces/{id}/members and append the new member to the list on success."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If backend returns HTTP 409 with code in {self_strip_blocked, owner_protected}, the system shall display a user-friendly Japanese message instead of the raw error body."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/workspace/S-014-workspace-members.html",
+      "existing_files": [
+        "frontend/src/app/workspaces/[id]/members/page.tsx"
+      ],
+      "entities": [
+        "workspaces",
+        "workspace_members"
+      ]
     },
     {
       "id": "T-021-05",
@@ -1102,7 +1213,33 @@
       "deps": [
         "T-021-03"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-21"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-21",
+      "acceptance_criteria": [
+        {
+          "type": "UNWANTED",
+          "text": "If actor_user_id attempts to demote their own role from ws_admin to a lower role, the system shall respond HTTP 409 with detail={code: 'self_strip_blocked'}."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If a delete or role-change request would remove the last remaining owner of a workspace, the system shall respond HTTP 409 with detail={code: 'owner_protected'}."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the actor changes another member's role (not their own), the system shall apply standard permission checks and shall not raise self_strip or owner_protected."
+        },
+        {
+          "type": "UBIQUITOUS",
+          "text": "All 409 responses for this guard shall serialize as {detail: {code, message}} for machine-readable handling on the frontend."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/workspace/S-014-workspace-members.html",
+      "existing_files": [
+        "backend/services/workspace_service.py",
+        "backend/routers/workspaces.py"
+      ],
+      "entities": [
+        "workspace_members"
+      ]
     },
     {
       "id": "T-023-01",
@@ -1118,9 +1255,33 @@
       ],
       "existing_files": [
         "backend/services/user_profile.py",
-        "backend/routers/account_settings.py"
+        "backend/routers/account_settings.py",
+        "backend/services/bf_profile.py",
+        "backend/routers/bf_profile.py"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-23"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-23",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The /settings/profile page shall allow editing of display_name, role_text, bio, theme, and avatar_url for the current user."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user clicks the save button, the system shall send PATCH /api/bf-profile with the dirty fields and display a success toast on 200."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the form is dirty (any field changed vs. the loaded value), the system shall enable the save button; otherwise it shall be disabled."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If the backend returns a 5xx, the system shall preserve the user's input and display an error toast indicating the save failed."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/account/S-009-profile-settings.html",
+      "entities": [
+        "user_profiles"
+      ]
     },
     {
       "id": "T-023-02",
@@ -1135,9 +1296,34 @@
         "T-001-05"
       ],
       "existing_files": [
-        "backend/services/credentials_store.py"
+        "backend/services/credentials_store.py",
+        "backend/routers/oauth.py",
+        "frontend/src/app/settings/profile/page.tsx"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-23"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-23",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The /settings/profile API-keys tab shall display the connection status of Slack, GitHub, and Anthropic OAuth providers."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user clicks the connect button for a provider, the system shall request GET /api/oauth/{provider}/authorize, store the returned state in sessionStorage, and navigate to authorize_url."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the user clicks the disconnect button, the system shall send DELETE /api/oauth/{provider} and update the displayed status to 'unconnected' on success."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If the OAuth callback state does not match the value in sessionStorage, the system shall clear sessionStorage and display a CSRF error toast."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/account/S-009-profile-settings.html",
+      "entities": [
+        "oauth_connections",
+        "encrypted_credentials"
+      ]
     },
     {
       "id": "T-023-03",
@@ -1151,7 +1337,31 @@
       "deps": [
         "T-001-07"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-23"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-23",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "Every value persisted to encrypted_credentials.ciphertext shall be encrypted with pgsodium (or fernet-compatible fallback) and shall never be stored as plain text."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When get_credential(user_id, provider) is called, the system shall decrypt the stored ciphertext with the active key and return the plain text to the caller."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While multiple key versions exist (after rotation), the system shall use key_version to select the correct key for decryption of each row."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If no decryption key is configured at runtime, the system shall raise RuntimeError on get_credential and shall not silently return None or the ciphertext."
+        }
+      ],
+      "existing_files": [
+        "backend/services/credentials_store.py"
+      ],
+      "entities": [
+        "encrypted_credentials"
+      ]
     },
     {
       "id": "T-023-04",
@@ -1165,7 +1375,34 @@
       "deps": [
         "T-S0-08"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-23"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-23",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall support OAuth integration for providers in {slack, github, anthropic} with authorize / callback / disconnect / status endpoints."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the OAuth provider redirects back with a valid code, the system shall exchange it for an access_token and persist it via the credentials_store (encrypted)."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the provider returns an error in the callback, the system shall not persist any credential and shall display a user-friendly error to the frontend."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If the state parameter on the callback does not match the value issued by /authorize, the system shall reject the callback with HTTP 400 (csrf_mismatch)."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/account/S-009-profile-settings.html",
+      "existing_files": [
+        "backend/routers/oauth.py",
+        "backend/services/credentials_store.py"
+      ],
+      "entities": [
+        "oauth_connections",
+        "encrypted_credentials"
+      ]
     },
     {
       "id": "T-023-05",
@@ -1179,7 +1416,33 @@
       "deps": [
         "T-001-08"
       ],
-      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-23"
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-23",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The user_lifecycle table shall persist clone_optin (bool) and deletion_requested_at (nullable timestamp) per user."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When a user submits a deletion request, the system shall set deletion_requested_at = now() and shall NOT hard-delete the user until 30 days later (grace period)."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When a user cancels a pending deletion within the grace window, the system shall set deletion_requested_at = NULL and restore the account to active state."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If a user attempts to submit a deletion request while one is already pending, the system shall respond HTTP 409 with detail={code: 'already_pending'}."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/account/S-009-profile-settings.html",
+      "existing_files": [
+        "backend/services/user_lifecycle.py",
+        "backend/routers/user_lifecycle.py"
+      ],
+      "entities": [
+        "user_lifecycle"
+      ]
     },
     {
       "id": "T-020-01",

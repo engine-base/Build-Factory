@@ -66,9 +66,21 @@ async def upsert_profile(
     theme: Optional[str] = None,
     avatar_url: Optional[str] = None,
 ) -> dict:
-    """UPSERT。指定された field のみ更新する。"""
+    """UPSERT。指定された field のみ更新する。
+
+    AC (T-023-01):
+      - UNWANTED: invalid theme は ValueError (router 層で 422 に変換)
+      - audit_logs に profile.updated event を emit (silent fail で本処理は止めない)
+    """
     if theme is not None and theme not in VALID_THEMES:
         raise ValueError(f"invalid theme: {theme}")
+
+    changed_fields = [
+        k for k, v in {
+            "display_name": display_name, "role_text": role_text,
+            "bio": bio, "theme": theme, "avatar_url": avatar_url,
+        }.items() if v is not None
+    ]
 
     try:
         async with _db().connect(_db_path()) as db:
@@ -95,4 +107,16 @@ async def upsert_profile(
             "theme": theme or "light",
             "avatar_url": avatar_url,
         }
+
+    # audit_logs に profile.updated event を emit (失敗してもアプリは止めない)
+    try:
+        from services.memory_service import emit_event
+        await emit_event(
+            "profile.updated",
+            user_id=user_id,
+            detail={"changed_fields": changed_fields},
+        )
+    except Exception as e:
+        logger.warning("bf_profile.audit emit failed: %s", e)
+
     return await get_profile(user_id)

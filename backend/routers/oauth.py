@@ -63,9 +63,10 @@ class CallbackRequest(BaseModel):
 
 @router.post("/{provider}/callback")
 async def callback(provider: str, body: CallbackRequest) -> dict:
-    # CSRF: state 検証 (caller 側で生成・保持した state と一致するか)
+    # T-023-04 AC-UNWANTED: CSRF state 検証 (caller 側で生成・保持した state と一致するか)
     if body.expected_state and body.received_state and body.expected_state != body.received_state:
-        raise HTTPException(status_code=400, detail="state mismatch (CSRF guard)")
+        await _audit("oauth.csrf_rejected", body.owner_id, {"provider": provider})
+        raise HTTPException(status_code=400, detail={"code": "csrf_mismatch"})
 
     try:
         token = await exchange_code(
@@ -76,9 +77,11 @@ async def callback(provider: str, body: CallbackRequest) -> dict:
     except OAuthConfigError as e:
         raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
+        await _audit("oauth.callback_failed", body.owner_id, {"provider": provider, "error": str(e)[:200]})
         raise HTTPException(status_code=502, detail=f"token exchange failed: {e}")
 
     save_token(provider, body.owner_id, token)
+    await _audit("oauth.connected", body.owner_id, {"provider": provider})
     return {"ok": True, "provider": provider, "scopes": token.get("scope")}
 
 
@@ -94,4 +97,19 @@ async def status(provider: str, owner_id: str) -> dict:
 async def disconnect(provider: str, owner_id: str) -> dict:
     if provider not in PROVIDERS:
         raise HTTPException(status_code=404, detail=f"unknown provider: {provider}")
-    return {"ok": delete_token(provider, owner_id)}
+    ok = delete_token(provider, owner_id)
+    if ok:
+        await _audit("oauth.disconnected", owner_id, {"provider": provider})
+    return {"ok": ok}
+
+
+# ──────────────────────────────────────────
+# audit_logs helper (T-023-04)
+# ──────────────────────────────────────────
+async def _audit(event_type: str, user_id: Optional[str], detail: dict) -> None:
+    """audit_logs に event を流す。失敗してもアプリは止めない。"""
+    try:
+        from services.memory_service import emit_event
+        await emit_event(event_type, user_id=user_id, detail=detail)
+    except Exception as e:
+        print(f"[oauth] audit emit failed: {event_type} -- {e}")

@@ -106,3 +106,36 @@ def test_router_status_not_connected(client) -> None:
     r = client.get("/api/oauth/slack/status", params={"owner_id": "no_such_user"})
     assert r.status_code == 200
     assert r.json()["connected"] is False
+
+
+# ──────────────────────────────────────────
+# T-023-04 AC: UNWANTED — CSRF state mismatch → 400 (code=csrf_mismatch)
+# ──────────────────────────────────────────
+def test_router_callback_csrf_mismatch_returns_400(client) -> None:
+    r = client.post(
+        "/api/oauth/slack/callback",
+        json={
+            "code": "x",
+            "redirect_uri": "https://app/cb",
+            "owner_id": "user_z",
+            "expected_state": "AAA",
+            "received_state": "BBB",
+        },
+    )
+    assert r.status_code == 400
+    detail = r.json().get("detail")
+    assert isinstance(detail, dict) and detail.get("code") == "csrf_mismatch"
+
+
+# ──────────────────────────────────────────
+# T-023-04 AC: EVENT — disconnect 後 status は connected=False
+# ──────────────────────────────────────────
+def test_router_disconnect_clears_token(client) -> None:
+    # 直接 save_token → DELETE → status confirm
+    save_token("anthropic", "user_dc", {"access_token": "k", "scope": "x"})
+    r = client.delete("/api/oauth/anthropic", params={"owner_id": "user_dc"})
+    assert r.status_code == 200
+    assert r.json()["ok"] is True
+
+    r2 = client.get("/api/oauth/anthropic/status", params={"owner_id": "user_dc"})
+    assert r2.json()["connected"] is False
