@@ -308,3 +308,159 @@ def test_infer_category_for_known_prefixes() -> None:
     assert _infer_category("manage_secrets") == "security"
     assert _infer_category("export_artifacts") == "data"
     assert _infer_category("unknown_xyz") == "other"
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# T-021-05 AC 全網羅: 409 detail = {code, message}
+# ──────────────────────────────────────────────────────────────────────────
+
+
+def test_t021_05_self_strip_returns_409_with_code(client, monkeypatch) -> None:
+    """AC-1 UNWANTED: actor が自分自身の role demote → 409 / code=self_strip_blocked."""
+    # workspace_service の update_member_role を直接 patch して
+    # SelfStripError を投げさせる (DB 不在環境でも reproducible)
+    from services import workspace_service as ws_svc
+
+    async def fake_update(*a, **kw):
+        raise ws_svc.SelfStripError("cannot change your own role")
+
+    monkeypatch.setattr(ws_svc, "update_member_role", fake_update)
+
+    r = client.patch(
+        "/api/workspaces/1/members/alice",
+        json={"role": "viewer", "actor_user_id": "alice"},
+    )
+    assert r.status_code == 409
+    body = r.json()
+    detail = body.get("detail")
+    assert isinstance(detail, dict), f"detail must be dict, got {type(detail).__name__}"
+    assert detail.get("code") == "self_strip_blocked"
+    assert "message" in detail and detail["message"]
+
+
+def test_t021_05_owner_protected_returns_409_with_code(client, monkeypatch) -> None:
+    """AC-2 UNWANTED: 最後の owner demote → 409 / code=owner_protected."""
+    from services import workspace_service as ws_svc
+
+    async def fake_update(*a, **kw):
+        raise ws_svc.OwnerProtectedError("cannot demote the last owner")
+
+    monkeypatch.setattr(ws_svc, "update_member_role", fake_update)
+
+    r = client.patch(
+        "/api/workspaces/1/members/owner_user",
+        json={"role": "viewer", "actor_user_id": "another_admin"},
+    )
+    assert r.status_code == 409
+    detail = r.json()["detail"]
+    assert detail["code"] == "owner_protected"
+    assert "message" in detail
+
+
+def test_t021_05_delete_self_returns_409_self_strip(client, monkeypatch) -> None:
+    """remove_member endpoint: 自分自身削除 → 409 / self_strip_blocked."""
+    from services import workspace_service as ws_svc
+
+    async def fake_remove(*a, **kw):
+        raise ws_svc.SelfStripError("cannot remove yourself from a workspace")
+
+    monkeypatch.setattr(ws_svc, "remove_member", fake_remove)
+
+    r = client.delete("/api/workspaces/1/members/alice?actor_user_id=alice")
+    assert r.status_code == 409
+    detail = r.json()["detail"]
+    assert detail["code"] == "self_strip_blocked"
+
+
+def test_t021_05_delete_last_owner_returns_409_owner_protected(client, monkeypatch) -> None:
+    """remove_member endpoint: 最後の owner 削除 → 409 / owner_protected."""
+    from services import workspace_service as ws_svc
+
+    async def fake_remove(*a, **kw):
+        raise ws_svc.OwnerProtectedError("cannot remove the last owner")
+
+    monkeypatch.setattr(ws_svc, "remove_member", fake_remove)
+
+    r = client.delete("/api/workspaces/1/members/owner_user?actor_user_id=admin")
+    assert r.status_code == 409
+    detail = r.json()["detail"]
+    assert detail["code"] == "owner_protected"
+
+
+def test_t021_05_other_user_role_change_does_not_trigger_guard(client, monkeypatch) -> None:
+    """AC-3 EVENT: actor != target なら guard を発火させずに通常処理.
+
+    workspace_service が SelfStripError / OwnerProtectedError を投げない場合は
+    router がそのまま結果を返す (= 409 にならない)."""
+    from services import workspace_service as ws_svc
+
+    async def fake_update(*a, **kw):
+        return {"workspace_id": 1, "user_id": "alice", "role": "viewer"}
+
+    monkeypatch.setattr(ws_svc, "update_member_role", fake_update)
+
+    r = client.patch(
+        "/api/workspaces/1/members/alice",
+        json={"role": "viewer", "actor_user_id": "boss"},  # actor != target
+    )
+    assert r.status_code == 200
+    assert r.json()["role"] == "viewer"
+
+
+def test_t021_05_409_payload_is_machine_readable(client, monkeypatch) -> None:
+    """AC-4 UBIQUITOUS: 409 response は {detail: {code, message}} 形式."""
+    from services import workspace_service as ws_svc
+
+    async def fake_update(*a, **kw):
+        raise ws_svc.SelfStripError("self-strip test")
+
+    monkeypatch.setattr(ws_svc, "update_member_role", fake_update)
+
+    r = client.patch(
+        "/api/workspaces/1/members/alice",
+        json={"role": "viewer", "actor_user_id": "alice"},
+    )
+    body = r.json()
+    # frontend での parsing 用 contract:
+    assert "detail" in body
+    detail = body["detail"]
+    assert isinstance(detail, dict)
+    assert set(detail.keys()) >= {"code", "message"}
+    # code は string enum
+    assert detail["code"] in {"self_strip_blocked", "owner_protected"}
+    # message は人間可読
+    assert isinstance(detail["message"], str)
+    assert len(detail["message"]) > 0
+
+
+def test_t021_05_value_error_returns_400_with_code(client, monkeypatch) -> None:
+    """非 SelfStrip/OwnerProtected の ValueError は 400 / code=invalid_request."""
+    from services import workspace_service as ws_svc
+
+    async def fake_update(*a, **kw):
+        raise ValueError("unknown role: X")
+
+    monkeypatch.setattr(ws_svc, "update_member_role", fake_update)
+
+    r = client.patch(
+        "/api/workspaces/1/members/alice",
+        json={"role": "X", "actor_user_id": "boss"},
+    )
+    assert r.status_code == 400
+    detail = r.json()["detail"]
+    assert detail["code"] == "invalid_request"
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# T-021-05: service 層の SelfStripError / OwnerProtectedError は ValueError 派生
+# ──────────────────────────────────────────────────────────────────────────
+
+
+def test_self_strip_error_inherits_value_error() -> None:
+    from services.workspace_service import SelfStripError
+    assert issubclass(SelfStripError, ValueError)
+
+
+def test_owner_protected_error_inherits_value_error() -> None:
+    from services.workspace_service import OwnerProtectedError
+    assert issubclass(OwnerProtectedError, ValueError)
