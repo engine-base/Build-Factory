@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, JetBrains_Mono, Noto_Sans_JP, Inter } from "next/fon
 import "./globals.css";
 import { Providers } from "./providers";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { Toaster } from "@/components/ui/sonner";
 
 // T-S0-05 / CLAUDE.md §5.2:
 //   sans = Noto Sans JP (日本語 UI 全般)
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Sidebar />
             <main className="flex-1 overflow-auto">{children}</main>
           </div>
+          <Toaster />
         </Providers>
       </body>
     </html>
