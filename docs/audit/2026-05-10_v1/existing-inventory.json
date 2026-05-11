@@ -1,1303 +1,2838 @@
 {
   "summary": {
-    "audit_id": "T-S0-13",
-    "generated_at": "2026-05-10",
+    "audit_id": "T-S0-13b",
+    "regenerated_at": "2026-05-11",
+    "supersedes": "T-S0-13 (2026-05-10)",
     "scope": {
-      "routers_scanned": 39,
-      "services_scanned": 54,
-      "migrations_scanned": 7,
-      "total_files_on_disk": 100,
-      "specific_refs_in_tickets": 116,
-      "dir_refs_in_tickets": 14
+      "routers_scanned": 51,
+      "services_scanned": 75,
+      "integrations_scanned": 9,
+      "sandbox_scanned": 3,
+      "migrations_scanned": 13,
+      "total_files_on_disk": 281,
+      "tickets_specific_refs": 130,
+      "tickets_dir_refs": 11
     },
     "counts_by_classification": {
-      "REFACTOR": 91,
-      "UNDETERMINED": 5,
-      "REUSE": 4
+      "REFACTOR": 181,
+      "NEW": 84,
+      "REUSE": 16
     },
-    "orphan_tickets_count": 4,
-    "phase_annotations_applied": 5
+    "orphan_tickets_count": 16,
+    "triage_needed_count": 1,
+    "phase_annotations_applied": 15,
+    "undetermined_remaining": 0
   },
   "inventory": [
     {
-      "path": "backend/routers/account_settings.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-023-01 (F-023) で参照",
-      "tickets": [
-        {
-          "ticket": "T-023-01",
-          "label": "REFACTOR",
-          "feature": "F-023"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/accounts.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-004-01 (F-004) で参照",
-      "tickets": [
-        {
-          "ticket": "T-004-01",
-          "label": "REFACTOR",
-          "feature": "F-004"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/ai_system.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-022-03 (F-022) で参照",
-      "tickets": [
-        {
-          "ticket": "T-022-03",
-          "label": "REFACTOR",
-          "feature": "F-022"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/approval.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-012-02 (F-012) で参照",
-      "tickets": [
-        {
-          "ticket": "T-012-02",
-          "label": "REFACTOR",
-          "feature": "F-012"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/artifacts.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-003-05 (F-003) で参照",
-      "tickets": [
-        {
-          "ticket": "T-003-05",
-          "label": "REFACTOR",
-          "feature": "F-003"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/browser_use.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": [],
-      "phase_boundary": "Phase 2",
-      "phase_action": "browser-use の Phase 1 必要性を再評価 (現状 UNDETERMINED)"
-    },
-    {
-      "path": "backend/routers/chat.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-M30-01 (M-30) で参照",
-      "tickets": [
-        {
-          "ticket": "T-M30-01",
-          "label": "REFACTOR",
-          "feature": "M-30"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/chatwork.py",
-      "classification": "REUSE",
-      "rationale": "REUSE ラベルのチケット T-014-01 (F-014) で参照",
-      "tickets": [
-        {
-          "ticket": "T-014-01",
-          "label": "REUSE",
-          "feature": "F-014"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/dashboard.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-008-01 (F-008) で参照",
-      "tickets": [
-        {
-          "ticket": "T-008-01",
-          "label": "REFACTOR",
-          "feature": "F-008"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/design_frames.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-005b-01 (F-005b) で参照",
-      "tickets": [
-        {
-          "ticket": "T-005b-01",
-          "label": "REFACTOR",
-          "feature": "F-005b"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/design_mocks.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-005b-01 (F-005b) で参照",
-      "tickets": [
-        {
-          "ticket": "T-005b-01",
-          "label": "REFACTOR",
-          "feature": "F-005b"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/design_pipeline.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-005b-02 (F-005b) で参照",
-      "tickets": [
-        {
-          "ticket": "T-005b-02",
-          "label": "REFACTOR",
-          "feature": "F-005b"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/documents.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-016-01 (F-016) で参照",
-      "tickets": [
-        {
-          "ticket": "T-016-01",
-          "label": "REFACTOR",
-          "feature": "F-016"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/employees.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-022-03 (F-022) で参照",
-      "tickets": [
-        {
-          "ticket": "T-022-03",
-          "label": "REFACTOR",
-          "feature": "F-022"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/estimate.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-005-01 (F-005) で参照",
-      "tickets": [
-        {
-          "ticket": "T-005-01",
-          "label": "REFACTOR",
-          "feature": "F-005"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/hearing.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-005-01 (F-005) で参照",
-      "tickets": [
-        {
-          "ticket": "T-005-01",
-          "label": "REFACTOR",
-          "feature": "F-005"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/knowledge_actions.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-024-02 (F-024) で参照",
-      "tickets": [
-        {
-          "ticket": "T-024-02",
-          "label": "REFACTOR",
-          "feature": "F-024"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/knowledge_search.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-024-02 (F-024) で参照",
-      "tickets": [
-        {
-          "ticket": "T-024-02",
-          "label": "REFACTOR",
-          "feature": "F-024"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/llm.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-020-02 (F-020) で参照",
-      "tickets": [
-        {
-          "ticket": "T-020-02",
-          "label": "REFACTOR",
-          "feature": "F-020"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/llm_providers.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-020-02 (F-020) で参照",
-      "tickets": [
-        {
-          "ticket": "T-020-02",
-          "label": "REFACTOR",
-          "feature": "F-020"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/mcp_server.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-010a-01 (F-010a) で参照",
-      "tickets": [
-        {
-          "ticket": "T-010a-01",
-          "label": "REFACTOR",
-          "feature": "F-010a"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/pricing_design.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-005-01 (F-005) で参照",
-      "tickets": [
-        {
-          "ticket": "T-005-01",
-          "label": "REFACTOR",
-          "feature": "F-005"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/proposal.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-005-01 (F-005) で参照",
-      "tickets": [
-        {
-          "ticket": "T-005-01",
-          "label": "REFACTOR",
-          "feature": "F-005"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/records.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-016-01 (F-016) で参照",
-      "tickets": [
-        {
-          "ticket": "T-016-01",
-          "label": "REFACTOR",
-          "feature": "F-016"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/references.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-024-02 (F-024) で参照",
-      "tickets": [
-        {
-          "ticket": "T-024-02",
-          "label": "REFACTOR",
-          "feature": "F-024"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/requirements.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-005-03 (F-005) で参照",
-      "tickets": [
-        {
-          "ticket": "T-005-03",
-          "label": "REFACTOR",
-          "feature": "F-005"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/reviewer.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-011-01 (F-011) で参照",
-      "tickets": [
-        {
-          "ticket": "T-011-01",
-          "label": "REFACTOR",
-          "feature": "F-011"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/secretary.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-003-02 (F-003) で参照",
-      "tickets": [
-        {
-          "ticket": "T-003-02",
-          "label": "REFACTOR",
-          "feature": "F-003"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/secretary_stream.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-003-02 (F-003) で参照",
-      "tickets": [
-        {
-          "ticket": "T-003-02",
-          "label": "REFACTOR",
-          "feature": "F-003"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/skill_creator.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-002-01 (F-002) で参照",
-      "tickets": [
-        {
-          "ticket": "T-002-01",
-          "label": "REFACTOR",
-          "feature": "F-002"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/skills.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-002-01 (F-002) で参照",
-      "tickets": [
-        {
-          "ticket": "T-002-01",
-          "label": "REFACTOR",
-          "feature": "F-002"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/slot_admin.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-005-02 (F-005) で参照",
-      "tickets": [
-        {
-          "ticket": "T-005-02",
-          "label": "REFACTOR",
-          "feature": "F-005"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/staff.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-022-03 (F-022) で参照",
-      "tickets": [
-        {
-          "ticket": "T-022-03",
-          "label": "REFACTOR",
-          "feature": "F-022"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/tasks.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-006-02 (F-006) で参照",
-      "tickets": [
-        {
-          "ticket": "T-006-02",
-          "label": "REFACTOR",
-          "feature": "F-006"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/template_builder.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-015-01 (F-015) で参照",
-      "tickets": [
-        {
-          "ticket": "T-015-01",
-          "label": "REFACTOR",
-          "feature": "F-015"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/threads.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-M30-01 (M-30) で参照",
-      "tickets": [
-        {
-          "ticket": "T-M30-01",
-          "label": "REFACTOR",
-          "feature": "M-30"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/uploads.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-016-01 (F-016) で参照",
-      "tickets": [
-        {
-          "ticket": "T-016-01",
-          "label": "REFACTOR",
-          "feature": "F-016"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/workflows.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-010c-01 (F-010c) で参照",
-      "tickets": [
-        {
-          "ticket": "T-010c-01",
-          "label": "REFACTOR",
-          "feature": "F-010c"
-        }
-      ]
-    },
-    {
-      "path": "backend/routers/workspaces.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-003-02 (F-003) で参照",
-      "tickets": [
-        {
-          "ticket": "T-003-02",
-          "label": "REFACTOR",
-          "feature": "F-003"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/account_service.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-004-01 (F-004) で参照",
-      "tickets": [
-        {
-          "ticket": "T-004-01",
-          "label": "REFACTOR",
-          "feature": "F-004"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/account_settings_service.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-004-01 (F-004) で参照",
-      "tickets": [
-        {
-          "ticket": "T-004-01",
-          "label": "REFACTOR",
-          "feature": "F-004"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/artifact_export.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-015-01 (F-015) で参照",
-      "tickets": [
-        {
-          "ticket": "T-015-01",
-          "label": "REFACTOR",
-          "feature": "F-015"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/artifact_service.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-003-05 (F-003) で参照",
-      "tickets": [
-        {
-          "ticket": "T-003-05",
-          "label": "REFACTOR",
-          "feature": "F-003"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/auth_middleware.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-S0-09 (META) で参照",
-      "tickets": [
-        {
-          "ticket": "T-S0-09",
-          "label": "REFACTOR",
-          "feature": "META"
-        },
-        {
-          "ticket": "T-021-03",
-          "label": "REFACTOR",
-          "feature": "F-021"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/briefing_service.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-005-01 (F-005) で参照",
-      "tickets": [
-        {
-          "ticket": "T-005-01",
-          "label": "REFACTOR",
-          "feature": "F-005"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/browser_queue.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": [],
-      "phase_boundary": "Phase 2",
-      "phase_action": "browser-use キューイング、Phase 1 では不使用"
-    },
-    {
-      "path": "backend/services/browser_use_service.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": [],
-      "phase_boundary": "Phase 2",
-      "phase_action": "browser-use の Phase 1 必要性を再評価 (現状 UNDETERMINED)"
-    },
-    {
-      "path": "backend/services/catchup_service.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-008-01 (F-008) で参照",
-      "tickets": [
-        {
-          "ticket": "T-008-01",
-          "label": "REFACTOR",
-          "feature": "F-008"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/conversation_memory.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-020-02 (F-020) で参照",
-      "tickets": [
-        {
-          "ticket": "T-020-02",
-          "label": "REFACTOR",
-          "feature": "F-020"
-        },
-        {
-          "ticket": "T-M30-03",
-          "label": "REFACTOR",
-          "feature": "M-30"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/conversation_summarizer.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-M30-03 (M-30) で参照",
-      "tickets": [
-        {
-          "ticket": "T-M30-03",
-          "label": "REFACTOR",
-          "feature": "M-30"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/credentials_store.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-023-02 (F-023) で参照",
-      "tickets": [
-        {
-          "ticket": "T-023-02",
-          "label": "REFACTOR",
-          "feature": "F-023"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/delegation_service.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-003-02 (F-003) で参照",
-      "tickets": [
-        {
-          "ticket": "T-003-02",
-          "label": "REFACTOR",
-          "feature": "F-003"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/design_pipeline.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-005b-02 (F-005b) で参照",
-      "tickets": [
-        {
-          "ticket": "T-005b-02",
-          "label": "REFACTOR",
-          "feature": "F-005b"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/designer_ai.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-005b-02 (F-005b) で参照",
-      "tickets": [
-        {
-          "ticket": "T-005b-02",
-          "label": "REFACTOR",
-          "feature": "F-005b"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/document_ingest_service.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-016-01 (F-016) で参照",
-      "tickets": [
-        {
-          "ticket": "T-016-01",
-          "label": "REFACTOR",
-          "feature": "F-016"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/document_service.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-016-01 (F-016) で参照",
-      "tickets": [
-        {
-          "ticket": "T-016-01",
-          "label": "REFACTOR",
-          "feature": "F-016"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/embedding_service.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-M28-05 (M-28) で参照",
-      "tickets": [
-        {
-          "ticket": "T-M28-05",
-          "label": "REFACTOR",
-          "feature": "M-28"
-        },
-        {
-          "ticket": "T-024-02",
-          "label": "REFACTOR",
-          "feature": "F-024"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/estimate_service.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-005-01 (F-005) で参照",
-      "tickets": [
-        {
-          "ticket": "T-005-01",
-          "label": "REFACTOR",
-          "feature": "F-005"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/hearing_service.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-005-01 (F-005) で参照",
-      "tickets": [
-        {
-          "ticket": "T-005-01",
-          "label": "REFACTOR",
-          "feature": "F-005"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/inbox_service.py",
-      "classification": "REUSE",
-      "rationale": "REUSE ラベルのチケット T-014-01 (F-014) で参照",
-      "tickets": [
-        {
-          "ticket": "T-014-01",
-          "label": "REUSE",
-          "feature": "F-014"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/intent_preprocessor.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-M27-02 (M-27) で参照",
-      "tickets": [
-        {
-          "ticket": "T-M27-02",
-          "label": "REFACTOR",
-          "feature": "M-27"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/knowledge_curator.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-M28-05 (M-28) で参照",
-      "tickets": [
-        {
-          "ticket": "T-M28-05",
-          "label": "REFACTOR",
-          "feature": "M-28"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/knowledge_transfer.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-M28-05 (M-28) で参照",
-      "tickets": [
-        {
-          "ticket": "T-M28-05",
-          "label": "REFACTOR",
-          "feature": "M-28"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/long_term_memory.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-M30-04 (M-30) で参照",
-      "tickets": [
-        {
-          "ticket": "T-M30-04",
-          "label": "REFACTOR",
-          "feature": "M-30"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/mode_detector.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-M27-02 (M-27) で参照",
-      "tickets": [
-        {
-          "ticket": "T-M27-02",
-          "label": "REFACTOR",
-          "feature": "M-27"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/observability.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-017-02 (F-017) で参照",
-      "tickets": [
-        {
-          "ticket": "T-017-02",
-          "label": "REFACTOR",
-          "feature": "F-017"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/obsidian_sync.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-M30-04 (M-30) で参照",
-      "tickets": [
-        {
-          "ticket": "T-M30-04",
-          "label": "REFACTOR",
-          "feature": "M-30"
-        },
-        {
-          "ticket": "T-016-01",
-          "label": "REFACTOR",
-          "feature": "F-016"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/obsidian_vault_sync.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-M30-04 (M-30) で参照",
-      "tickets": [
-        {
-          "ticket": "T-M30-04",
-          "label": "REFACTOR",
-          "feature": "M-30"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/orchestrator_graph.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-010b-01 (F-010b) で参照",
-      "tickets": [
-        {
-          "ticket": "T-010b-01",
-          "label": "REFACTOR",
-          "feature": "F-010b"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/output_processor.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-015-02 (F-015) で参照",
-      "tickets": [
-        {
-          "ticket": "T-015-02",
-          "label": "REFACTOR",
-          "feature": "F-015"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/penpot_client.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": [],
-      "phase_boundary": "Phase 1.5",
-      "phase_action": "S-3 GrapesJS 統合に伴い REFACTOR (Penpot 依存除去)"
-    },
-    {
-      "path": "backend/services/pricing_design_service.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-005-01 (F-005) で参照",
-      "tickets": [
-        {
-          "ticket": "T-005-01",
-          "label": "REFACTOR",
-          "feature": "F-005"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/proposal_service.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-005-01 (F-005) で参照",
-      "tickets": [
-        {
-          "ticket": "T-005-01",
-          "label": "REFACTOR",
-          "feature": "F-005"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/rag_context.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-M28-05 (M-28) で参照",
-      "tickets": [
-        {
-          "ticket": "T-M28-05",
-          "label": "REFACTOR",
-          "feature": "M-28"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/requirements_service.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-005-03 (F-005) で参照",
-      "tickets": [
-        {
-          "ticket": "T-005-03",
-          "label": "REFACTOR",
-          "feature": "F-005"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/reviewer_loop.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-011-01 (F-011) で参照",
-      "tickets": [
-        {
-          "ticket": "T-011-01",
-          "label": "REFACTOR",
-          "feature": "F-011"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/sales_service.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-008-01 (F-008) で参照",
-      "tickets": [
-        {
-          "ticket": "T-008-01",
-          "label": "REFACTOR",
-          "feature": "F-008"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/scoped_knowledge.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-024-02 (F-024) で参照",
-      "tickets": [
-        {
-          "ticket": "T-024-02",
-          "label": "REFACTOR",
-          "feature": "F-024"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/secretary_chat.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-003-02 (F-003) で参照",
-      "tickets": [
-        {
-          "ticket": "T-003-02",
-          "label": "REFACTOR",
-          "feature": "F-003"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/skill_detector.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-M27-02 (M-27) で参照",
-      "tickets": [
-        {
-          "ticket": "T-M27-02",
-          "label": "REFACTOR",
-          "feature": "M-27"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/skill_manager.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-002-02 (F-002) で参照",
-      "tickets": [
-        {
-          "ticket": "T-002-02",
-          "label": "REFACTOR",
-          "feature": "F-002"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/slack_history.py",
-      "classification": "REUSE",
-      "rationale": "REUSE ラベルのチケット T-014-01 (F-014) で参照",
-      "tickets": [
-        {
-          "ticket": "T-014-01",
-          "label": "REUSE",
-          "feature": "F-014"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/slot_extractor.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-005-02 (F-005) で参照",
-      "tickets": [
-        {
-          "ticket": "T-005-02",
-          "label": "REFACTOR",
-          "feature": "F-005"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/slot_state.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-005-02 (F-005) で参照",
-      "tickets": [
-        {
-          "ticket": "T-005-02",
-          "label": "REFACTOR",
-          "feature": "F-005"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/staff_service.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-022-03 (F-022) で参照",
-      "tickets": [
-        {
-          "ticket": "T-022-03",
-          "label": "REFACTOR",
-          "feature": "F-022"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/supabase_client.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-S0-08 (META) で参照",
-      "tickets": [
-        {
-          "ticket": "T-S0-08",
-          "label": "REFACTOR",
-          "feature": "META"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/template_builder_service.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-015-01 (F-015) で参照",
-      "tickets": [
-        {
-          "ticket": "T-015-01",
-          "label": "REFACTOR",
-          "feature": "F-015"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/template_render_service.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-015-01 (F-015) で参照",
-      "tickets": [
-        {
-          "ticket": "T-015-01",
-          "label": "REFACTOR",
-          "feature": "F-015"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/tool_ui_postprocess.py",
-      "classification": "UNDETERMINED",
-      "rationale": "個別チケット参照なし (dir-level 参照のみ) — 実装着手前にチケット化が必要",
-      "tickets": [],
-      "phase_boundary": "Phase 1.5",
-      "phase_action": "tool UI / postprocess は Phase 1.5 でレビュー後にチケット化"
-    },
-    {
-      "path": "backend/services/upload_service.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-016-01 (F-016) で参照",
-      "tickets": [
-        {
-          "ticket": "T-016-01",
-          "label": "REFACTOR",
-          "feature": "F-016"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/user_profile.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-023-01 (F-023) で参照",
-      "tickets": [
-        {
-          "ticket": "T-023-01",
-          "label": "REFACTOR",
-          "feature": "F-023"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/workflow_service.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-010c-01 (F-010c) で参照",
-      "tickets": [
-        {
-          "ticket": "T-010c-01",
-          "label": "REFACTOR",
-          "feature": "F-010c"
-        }
-      ]
-    },
-    {
-      "path": "backend/services/workspace_service.py",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-BTSTRAP-02 (F-003) で参照",
-      "tickets": [
-        {
-          "ticket": "T-BTSTRAP-02",
-          "label": "REFACTOR",
-          "feature": "F-003"
-        }
-      ]
-    },
-    {
-      "path": "supabase/migrations/20260501220000_initial_schema.sql",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-001-02 (F-001) で参照",
-      "tickets": [
-        {
-          "ticket": "T-001-02",
-          "label": "REFACTOR",
-          "feature": "F-001"
-        }
-      ]
-    },
-    {
-      "path": "supabase/migrations/20260501220100_pgvector.sql",
-      "classification": "REUSE",
-      "rationale": "REUSE ラベルのチケット T-001-07 (F-001) で参照",
-      "tickets": [
-        {
-          "ticket": "T-001-07",
-          "label": "REUSE",
-          "feature": "F-001"
-        }
-      ]
-    },
-    {
-      "path": "supabase/migrations/20260501220200_knowledge_scope.sql",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-024-02 (F-024) で参照",
-      "tickets": [
-        {
-          "ticket": "T-024-02",
-          "label": "REFACTOR",
-          "feature": "F-024"
-        }
-      ]
-    },
-    {
-      "path": "supabase/migrations/20260501220300_rls_skeleton.sql",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-001-02 (F-001) で参照",
-      "tickets": [
-        {
-          "ticket": "T-001-02",
-          "label": "REFACTOR",
-          "feature": "F-001"
-        }
-      ]
-    },
-    {
-      "path": "supabase/migrations/20260501230000_design_frames.sql",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-005b-01 (F-005b) で参照",
-      "tickets": [
-        {
-          "ticket": "T-005b-01",
-          "label": "REFACTOR",
-          "feature": "F-005b"
-        }
-      ]
-    },
-    {
-      "path": "supabase/migrations/20260501230100_design_mockup_content.sql",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-005b-01 (F-005b) で参照",
-      "tickets": [
-        {
-          "ticket": "T-005b-01",
-          "label": "REFACTOR",
-          "feature": "F-005b"
-        }
-      ]
-    },
-    {
-      "path": "supabase/migrations/20260502000000_design_mocks.sql",
-      "classification": "REFACTOR",
-      "rationale": "REFACTOR ラベルのチケット T-005b-01 (F-005b) で参照",
-      "tickets": [
-        {
-          "ticket": "T-005b-01",
-          "label": "REFACTOR",
-          "feature": "F-005b"
-        }
-      ]
+      "file_path": ".env.example",
+      "ticket_ids": [
+        "T-001-01"
+      ],
+      "primary_ticket": "T-001-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/ai_agents/__init__.py",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "backend/ai_agents/secretary_agent.py",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "backend/ai_agents/tools.py",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "backend/company_agent/__init__.py",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "backend/company_agent/company_agent.py",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "backend/config.py",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "backend/db/__init__.py",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "backend/db/async_db.py",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "backend/db/queries.py",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "backend/db/setup_wal.py",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "backend/integrations/__init__.py",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "backend/integrations/chatwork_client.py",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "backend/integrations/claude_agent_runner.py",
+      "ticket_ids": [
+        "T-S0-08"
+      ],
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "reason": "matched by file naming convention (本セッション追加)"
+    },
+    {
+      "file_path": "backend/integrations/gmail_client.py",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "backend/integrations/skill_runner.py",
+      "ticket_ids": [
+        "T-S0-08",
+        "T-010b-01"
+      ],
+      "primary_ticket": "T-S0-08",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/integrations/slack_block_kit.py",
+      "ticket_ids": [
+        "T-014-01"
+      ],
+      "primary_ticket": "T-014-01",
+      "label": "REUSE",
+      "mapping_status": "REUSE",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/integrations/slack_client.py",
+      "ticket_ids": [
+        "T-014-01"
+      ],
+      "primary_ticket": "T-014-01",
+      "label": "REUSE",
+      "mapping_status": "REUSE",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/integrations/slack_llm_session.py",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "backend/integrations/web_tools.py",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "backend/jobs/briefing_job.py",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "backend/llm/__init__.py",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "backend/llm/config.py",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "backend/main.py",
+      "ticket_ids": [
+        "T-001-01",
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/mcp_stdio_server.py",
+      "ticket_ids": [
+        "T-010a-01"
+      ],
+      "primary_ticket": "T-010a-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "basename"
+    },
+    {
+      "file_path": "backend/routers/__init__.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/routers/"
+    },
+    {
+      "file_path": "backend/routers/account_settings.py",
+      "ticket_ids": [
+        "T-023-01"
+      ],
+      "primary_ticket": "T-023-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/accounts.py",
+      "ticket_ids": [
+        "T-004-01"
+      ],
+      "primary_ticket": "T-004-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/admin_fallback.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/routers/"
+    },
+    {
+      "file_path": "backend/routers/ai_system.py",
+      "ticket_ids": [
+        "T-022-03"
+      ],
+      "primary_ticket": "T-022-03",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/approval.py",
+      "ticket_ids": [
+        "T-012-02"
+      ],
+      "primary_ticket": "T-012-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/artifacts.py",
+      "ticket_ids": [
+        "T-003-05"
+      ],
+      "primary_ticket": "T-003-05",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/bf_profile.py",
+      "ticket_ids": [
+        "T-023-01"
+      ],
+      "primary_ticket": "T-023-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/browser_use.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/routers/"
+    },
+    {
+      "file_path": "backend/routers/chat.py",
+      "ticket_ids": [
+        "T-M30-01"
+      ],
+      "primary_ticket": "T-M30-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/chat_search.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/routers/"
+    },
+    {
+      "file_path": "backend/routers/chatwork.py",
+      "ticket_ids": [
+        "T-014-01"
+      ],
+      "primary_ticket": "T-014-01",
+      "label": "REUSE",
+      "mapping_status": "REUSE",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/context.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/routers/"
+    },
+    {
+      "file_path": "backend/routers/dashboard.py",
+      "ticket_ids": [
+        "T-008-01"
+      ],
+      "primary_ticket": "T-008-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/design_frames.py",
+      "ticket_ids": [
+        "T-005b-01"
+      ],
+      "primary_ticket": "T-005b-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/design_mocks.py",
+      "ticket_ids": [
+        "T-005b-01"
+      ],
+      "primary_ticket": "T-005b-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/design_pipeline.py",
+      "ticket_ids": [
+        "T-005b-02"
+      ],
+      "primary_ticket": "T-005b-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/documents.py",
+      "ticket_ids": [
+        "T-016-01"
+      ],
+      "primary_ticket": "T-016-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/employees.py",
+      "ticket_ids": [
+        "T-022-03"
+      ],
+      "primary_ticket": "T-022-03",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/estimate.py",
+      "ticket_ids": [
+        "T-005-01"
+      ],
+      "primary_ticket": "T-005-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/hearing.py",
+      "ticket_ids": [
+        "T-005-01"
+      ],
+      "primary_ticket": "T-005-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/knowledge_actions.py",
+      "ticket_ids": [
+        "T-024-02"
+      ],
+      "primary_ticket": "T-024-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/knowledge_search.py",
+      "ticket_ids": [
+        "T-024-02"
+      ],
+      "primary_ticket": "T-024-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/llm.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/routers/"
+    },
+    {
+      "file_path": "backend/routers/llm_providers.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/routers/"
+    },
+    {
+      "file_path": "backend/routers/mcp_server.py",
+      "ticket_ids": [
+        "T-010a-01"
+      ],
+      "primary_ticket": "T-010a-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/mem0_bridge.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/routers/"
+    },
+    {
+      "file_path": "backend/routers/memory.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/routers/"
+    },
+    {
+      "file_path": "backend/routers/memory_facts.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/routers/"
+    },
+    {
+      "file_path": "backend/routers/oauth.py",
+      "ticket_ids": [
+        "T-023-02",
+        "T-023-04"
+      ],
+      "primary_ticket": "T-023-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/pricing_design.py",
+      "ticket_ids": [
+        "T-005-01"
+      ],
+      "primary_ticket": "T-005-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/proposal.py",
+      "ticket_ids": [
+        "T-005-01"
+      ],
+      "primary_ticket": "T-005-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/records.py",
+      "ticket_ids": [
+        "T-016-01"
+      ],
+      "primary_ticket": "T-016-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/references.py",
+      "ticket_ids": [
+        "T-024-02"
+      ],
+      "primary_ticket": "T-024-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/requirements.py",
+      "ticket_ids": [
+        "T-005-03"
+      ],
+      "primary_ticket": "T-005-03",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/reviewer.py",
+      "ticket_ids": [
+        "T-011-01"
+      ],
+      "primary_ticket": "T-011-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/secretary.py",
+      "ticket_ids": [
+        "T-003-02"
+      ],
+      "primary_ticket": "T-003-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/secretary_stream.py",
+      "ticket_ids": [
+        "T-003-02"
+      ],
+      "primary_ticket": "T-003-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/skill_creator.py",
+      "ticket_ids": [
+        "T-002-01"
+      ],
+      "primary_ticket": "T-002-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/skills.py",
+      "ticket_ids": [
+        "T-002-01"
+      ],
+      "primary_ticket": "T-002-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/slot_admin.py",
+      "ticket_ids": [
+        "T-005-02"
+      ],
+      "primary_ticket": "T-005-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/staff.py",
+      "ticket_ids": [
+        "T-022-03"
+      ],
+      "primary_ticket": "T-022-03",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/swarm.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/routers/"
+    },
+    {
+      "file_path": "backend/routers/tasks.py",
+      "ticket_ids": [
+        "T-006-02"
+      ],
+      "primary_ticket": "T-006-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/template_builder.py",
+      "ticket_ids": [
+        "T-015-01"
+      ],
+      "primary_ticket": "T-015-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/threads.py",
+      "ticket_ids": [
+        "T-M30-01"
+      ],
+      "primary_ticket": "T-M30-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/uploads.py",
+      "ticket_ids": [
+        "T-016-01"
+      ],
+      "primary_ticket": "T-016-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/user_lifecycle.py",
+      "ticket_ids": [
+        "T-023-05"
+      ],
+      "primary_ticket": "T-023-05",
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/workflows.py",
+      "ticket_ids": [
+        "T-010c-01"
+      ],
+      "primary_ticket": "T-010c-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/workspaces.py",
+      "ticket_ids": [
+        "T-021-01",
+        "T-003-02",
+        "T-004-05",
+        "T-021-05"
+      ],
+      "primary_ticket": "T-021-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/routers/ws.py",
+      "ticket_ids": [
+        "T-AI-07"
+      ],
+      "primary_ticket": "T-AI-07",
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/sandbox/__init__.py",
+      "ticket_ids": [
+        "T-S0-09"
+      ],
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "reason": "matched by file naming convention (本セッション追加)"
+    },
+    {
+      "file_path": "backend/sandbox/config.py",
+      "ticket_ids": [
+        "T-S0-09"
+      ],
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "reason": "matched by file naming convention (本セッション追加)"
+    },
+    {
+      "file_path": "backend/sandbox/exec.py",
+      "ticket_ids": [
+        "T-S0-09"
+      ],
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "reason": "matched by file naming convention (本セッション追加)"
+    },
+    {
+      "file_path": "backend/scheduler/__init__.py",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "backend/scheduler/scheduler.py",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "backend/services/account_service.py",
+      "ticket_ids": [
+        "T-004-01"
+      ],
+      "primary_ticket": "T-004-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/account_settings_service.py",
+      "ticket_ids": [
+        "T-004-01"
+      ],
+      "primary_ticket": "T-004-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/anthropic_retry.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/services/"
+    },
+    {
+      "file_path": "backend/services/artifact_export.py",
+      "ticket_ids": [
+        "T-015-01"
+      ],
+      "primary_ticket": "T-015-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/artifact_service.py",
+      "ticket_ids": [
+        "T-003-05"
+      ],
+      "primary_ticket": "T-003-05",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/auth_middleware.py",
+      "ticket_ids": [
+        "T-S0-09b"
+      ],
+      "primary_ticket": "T-S0-09b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/bf_profile.py",
+      "ticket_ids": [
+        "T-023-01"
+      ],
+      "primary_ticket": "T-023-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/briefing_service.py",
+      "ticket_ids": [
+        "T-005-01"
+      ],
+      "primary_ticket": "T-005-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/browser_queue.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/services/"
+    },
+    {
+      "file_path": "backend/services/browser_use_service.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/services/"
+    },
+    {
+      "file_path": "backend/services/catchup_service.py",
+      "ticket_ids": [
+        "T-008-01"
+      ],
+      "primary_ticket": "T-008-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/chat_search.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/services/"
+    },
+    {
+      "file_path": "backend/services/constitution_engine.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/services/"
+    },
+    {
+      "file_path": "backend/services/context_builder.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/services/"
+    },
+    {
+      "file_path": "backend/services/conversation_memory.py",
+      "ticket_ids": [
+        "T-M30-03"
+      ],
+      "primary_ticket": "T-M30-03",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/conversation_summarizer.py",
+      "ticket_ids": [
+        "T-M30-03"
+      ],
+      "primary_ticket": "T-M30-03",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/cost_service.py",
+      "ticket_ids": [
+        "T-AI-05"
+      ],
+      "primary_ticket": "T-AI-05",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/credentials_store.py",
+      "ticket_ids": [
+        "T-023-02",
+        "T-023-03",
+        "T-023-04"
+      ],
+      "primary_ticket": "T-023-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/delegation_service.py",
+      "ticket_ids": [
+        "T-003-02"
+      ],
+      "primary_ticket": "T-003-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/design_pipeline.py",
+      "ticket_ids": [
+        "T-005b-02"
+      ],
+      "primary_ticket": "T-005b-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/designer_ai.py",
+      "ticket_ids": [
+        "T-005b-02"
+      ],
+      "primary_ticket": "T-005b-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/document_ingest_service.py",
+      "ticket_ids": [
+        "T-016-01"
+      ],
+      "primary_ticket": "T-016-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/document_service.py",
+      "ticket_ids": [
+        "T-016-01"
+      ],
+      "primary_ticket": "T-016-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/embedding_service.py",
+      "ticket_ids": [
+        "T-M28-05",
+        "T-024-02"
+      ],
+      "primary_ticket": "T-M28-05",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/encrypted_store.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/services/"
+    },
+    {
+      "file_path": "backend/services/estimate_service.py",
+      "ticket_ids": [
+        "T-005-01"
+      ],
+      "primary_ticket": "T-005-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/fallback_router.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/services/"
+    },
+    {
+      "file_path": "backend/services/hearing_service.py",
+      "ticket_ids": [
+        "T-005-01"
+      ],
+      "primary_ticket": "T-005-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/inbox_service.py",
+      "ticket_ids": [
+        "T-014-01"
+      ],
+      "primary_ticket": "T-014-01",
+      "label": "REUSE",
+      "mapping_status": "REUSE",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/intent_preprocessor.py",
+      "ticket_ids": [
+        "T-M27-02"
+      ],
+      "primary_ticket": "T-M27-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/knowledge_curator.py",
+      "ticket_ids": [
+        "T-M28-05"
+      ],
+      "primary_ticket": "T-M28-05",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/knowledge_transfer.py",
+      "ticket_ids": [
+        "T-M28-05"
+      ],
+      "primary_ticket": "T-M28-05",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/long_term_memory.py",
+      "ticket_ids": [
+        "T-M30-04"
+      ],
+      "primary_ticket": "T-M30-04",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/mem0_bridge.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/services/"
+    },
+    {
+      "file_path": "backend/services/memory_facts.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/services/"
+    },
+    {
+      "file_path": "backend/services/memory_service.py",
+      "ticket_ids": [
+        "T-020-02"
+      ],
+      "primary_ticket": "T-020-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/mode_detector.py",
+      "ticket_ids": [
+        "T-M27-02"
+      ],
+      "primary_ticket": "T-M27-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/oauth_providers.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/services/"
+    },
+    {
+      "file_path": "backend/services/observability.py",
+      "ticket_ids": [
+        "T-017-02"
+      ],
+      "primary_ticket": "T-017-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/obsidian_sync.py",
+      "ticket_ids": [
+        "T-M30-04",
+        "T-016-01"
+      ],
+      "primary_ticket": "T-M30-04",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/obsidian_vault_sync.py",
+      "ticket_ids": [
+        "T-M30-04"
+      ],
+      "primary_ticket": "T-M30-04",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/orchestrator_graph.py",
+      "ticket_ids": [
+        "T-010b-01"
+      ],
+      "primary_ticket": "T-010b-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/output_processor.py",
+      "ticket_ids": [
+        "T-015-02"
+      ],
+      "primary_ticket": "T-015-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/penpot_client.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/services/"
+    },
+    {
+      "file_path": "backend/services/pricing_design_service.py",
+      "ticket_ids": [
+        "T-005-01"
+      ],
+      "primary_ticket": "T-005-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/proposal_service.py",
+      "ticket_ids": [
+        "T-005-01"
+      ],
+      "primary_ticket": "T-005-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/rag_context.py",
+      "ticket_ids": [
+        "T-M28-05"
+      ],
+      "primary_ticket": "T-M28-05",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/requirements_service.py",
+      "ticket_ids": [
+        "T-005-03"
+      ],
+      "primary_ticket": "T-005-03",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/reviewer_loop.py",
+      "ticket_ids": [
+        "T-011-01"
+      ],
+      "primary_ticket": "T-011-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/roles.py",
+      "ticket_ids": [
+        "T-021-01",
+        "T-021-02"
+      ],
+      "primary_ticket": "T-021-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/sales_service.py",
+      "ticket_ids": [
+        "T-008-01"
+      ],
+      "primary_ticket": "T-008-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/scoped_knowledge.py",
+      "ticket_ids": [
+        "T-024-02"
+      ],
+      "primary_ticket": "T-024-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/secretary_chat.py",
+      "ticket_ids": [
+        "T-003-02"
+      ],
+      "primary_ticket": "T-003-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/skill_detector.py",
+      "ticket_ids": [
+        "T-M27-02"
+      ],
+      "primary_ticket": "T-M27-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/skill_manager.py",
+      "ticket_ids": [
+        "T-002-02"
+      ],
+      "primary_ticket": "T-002-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/slack_history.py",
+      "ticket_ids": [
+        "T-014-01"
+      ],
+      "primary_ticket": "T-014-01",
+      "label": "REUSE",
+      "mapping_status": "REUSE",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/slot_extractor.py",
+      "ticket_ids": [
+        "T-005-02"
+      ],
+      "primary_ticket": "T-005-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/slot_state.py",
+      "ticket_ids": [
+        "T-005-02"
+      ],
+      "primary_ticket": "T-005-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/staff_service.py",
+      "ticket_ids": [
+        "T-022-03"
+      ],
+      "primary_ticket": "T-022-03",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/staff_summon.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/services/"
+    },
+    {
+      "file_path": "backend/services/stream_bridge.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/services/"
+    },
+    {
+      "file_path": "backend/services/supabase_client.py",
+      "ticket_ids": [
+        "T-001-01"
+      ],
+      "primary_ticket": "T-001-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/swarm/__init__.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/services/"
+    },
+    {
+      "file_path": "backend/services/swarm/file_lock.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/services/"
+    },
+    {
+      "file_path": "backend/services/swarm/models.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/services/"
+    },
+    {
+      "file_path": "backend/services/swarm/orchestrator.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/services/"
+    },
+    {
+      "file_path": "backend/services/swarm/worktree.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/services/"
+    },
+    {
+      "file_path": "backend/services/template_builder_service.py",
+      "ticket_ids": [
+        "T-015-01"
+      ],
+      "primary_ticket": "T-015-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/template_render_service.py",
+      "ticket_ids": [
+        "T-015-01"
+      ],
+      "primary_ticket": "T-015-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/tool_ui_postprocess.py",
+      "ticket_ids": [
+        "T-001-01b",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-001-01b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "backend/services/"
+    },
+    {
+      "file_path": "backend/services/upload_service.py",
+      "ticket_ids": [
+        "T-016-01"
+      ],
+      "primary_ticket": "T-016-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/user_lifecycle.py",
+      "ticket_ids": [
+        "T-023-05"
+      ],
+      "primary_ticket": "T-023-05",
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/user_profile.py",
+      "ticket_ids": [
+        "T-023-01"
+      ],
+      "primary_ticket": "T-023-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/workflow_service.py",
+      "ticket_ids": [
+        "T-010c-01"
+      ],
+      "primary_ticket": "T-010c-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/services/workspace_service.py",
+      "ticket_ids": [
+        "T-021-01",
+        "T-BTSTRAP-02",
+        "T-004-05",
+        "T-021-05"
+      ],
+      "primary_ticket": "T-021-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/workers/__init__.py",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "backend/workers/approval_worker.py",
+      "ticket_ids": [
+        "T-012-02"
+      ],
+      "primary_ticket": "T-012-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "backend/workers/task_executor.py",
+      "ticket_ids": [
+        "T-010b-01",
+        "T-010c-01"
+      ],
+      "primary_ticket": "T-010b-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "docs/audit/2026-05-10_v1/existing-inventory.json",
+      "ticket_ids": [
+        "T-S0-13b"
+      ],
+      "primary_ticket": "T-S0-13b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "docs/task-decomposition/2026-05-09_v1/tickets.json",
+      "ticket_ids": [
+        "T-S0-13b",
+        "T-S0-13c",
+        "T-S0-13"
+      ],
+      "primary_ticket": "T-S0-13b",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "frontend/src/app/ai-employees/page.tsx",
+      "ticket_ids": [
+        "T-023-02",
+        "T-004-05",
+        "T-021-04"
+      ],
+      "primary_ticket": "T-023-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "basename"
+    },
+    {
+      "file_path": "frontend/src/app/approval/page.tsx",
+      "ticket_ids": [
+        "T-012-04"
+      ],
+      "primary_ticket": "T-012-04",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "frontend/src/app/approval/"
+    },
+    {
+      "file_path": "frontend/src/app/artifacts/page.tsx",
+      "ticket_ids": [
+        "T-023-02",
+        "T-004-05",
+        "T-021-04"
+      ],
+      "primary_ticket": "T-023-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "basename"
+    },
+    {
+      "file_path": "frontend/src/app/briefing/page.tsx",
+      "ticket_ids": [
+        "T-023-02",
+        "T-004-05",
+        "T-021-04"
+      ],
+      "primary_ticket": "T-023-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "basename"
+    },
+    {
+      "file_path": "frontend/src/app/channels/page.tsx",
+      "ticket_ids": [
+        "T-023-02",
+        "T-004-05",
+        "T-021-04"
+      ],
+      "primary_ticket": "T-023-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "basename"
+    },
+    {
+      "file_path": "frontend/src/app/chat/page.tsx",
+      "ticket_ids": [
+        "T-023-02",
+        "T-004-05",
+        "T-021-04"
+      ],
+      "primary_ticket": "T-023-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "basename"
+    },
+    {
+      "file_path": "frontend/src/app/contacts/page.tsx",
+      "ticket_ids": [
+        "T-023-02",
+        "T-004-05",
+        "T-021-04"
+      ],
+      "primary_ticket": "T-023-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "basename"
+    },
+    {
+      "file_path": "frontend/src/app/documents/page.tsx",
+      "ticket_ids": [
+        "T-023-02",
+        "T-004-05",
+        "T-021-04"
+      ],
+      "primary_ticket": "T-023-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "basename"
+    },
+    {
+      "file_path": "frontend/src/app/knowledge/page.tsx",
+      "ticket_ids": [
+        "T-023-02",
+        "T-004-05",
+        "T-021-04"
+      ],
+      "primary_ticket": "T-023-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "basename"
+    },
+    {
+      "file_path": "frontend/src/app/layout.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/app/logs/page.tsx",
+      "ticket_ids": [
+        "T-023-02",
+        "T-004-05",
+        "T-021-04"
+      ],
+      "primary_ticket": "T-023-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "basename"
+    },
+    {
+      "file_path": "frontend/src/app/page.tsx",
+      "ticket_ids": [
+        "T-023-02",
+        "T-004-05",
+        "T-021-04"
+      ],
+      "primary_ticket": "T-023-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "basename"
+    },
+    {
+      "file_path": "frontend/src/app/pipeline/page.tsx",
+      "ticket_ids": [
+        "T-023-02",
+        "T-004-05",
+        "T-021-04"
+      ],
+      "primary_ticket": "T-023-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "basename"
+    },
+    {
+      "file_path": "frontend/src/app/providers.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/app/records/page.tsx",
+      "ticket_ids": [
+        "T-023-02",
+        "T-004-05",
+        "T-021-04"
+      ],
+      "primary_ticket": "T-023-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "basename"
+    },
+    {
+      "file_path": "frontend/src/app/schedule/page.tsx",
+      "ticket_ids": [
+        "T-023-02",
+        "T-004-05",
+        "T-021-04"
+      ],
+      "primary_ticket": "T-023-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "basename"
+    },
+    {
+      "file_path": "frontend/src/app/secretary/page.tsx",
+      "ticket_ids": [
+        "T-023-02",
+        "T-004-05",
+        "T-021-04"
+      ],
+      "primary_ticket": "T-023-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "basename"
+    },
+    {
+      "file_path": "frontend/src/app/settings/account/page.tsx",
+      "ticket_ids": [
+        "T-023-02",
+        "T-004-05",
+        "T-021-04"
+      ],
+      "primary_ticket": "T-023-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "basename"
+    },
+    {
+      "file_path": "frontend/src/app/settings/profile/page.tsx",
+      "ticket_ids": [
+        "T-023-02"
+      ],
+      "primary_ticket": "T-023-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "frontend/src/app/settings/references/page.tsx",
+      "ticket_ids": [
+        "T-023-02",
+        "T-004-05",
+        "T-021-04"
+      ],
+      "primary_ticket": "T-023-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "basename"
+    },
+    {
+      "file_path": "frontend/src/app/settings/template-builder/page.tsx",
+      "ticket_ids": [
+        "T-023-02",
+        "T-004-05",
+        "T-021-04"
+      ],
+      "primary_ticket": "T-023-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "basename"
+    },
+    {
+      "file_path": "frontend/src/app/skills/page.tsx",
+      "ticket_ids": [
+        "T-002-01"
+      ],
+      "primary_ticket": "T-002-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "frontend/src/app/skills/"
+    },
+    {
+      "file_path": "frontend/src/app/tasks/page.tsx",
+      "ticket_ids": [
+        "T-023-02",
+        "T-004-05",
+        "T-021-04"
+      ],
+      "primary_ticket": "T-023-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "basename"
+    },
+    {
+      "file_path": "frontend/src/app/workflows/page.tsx",
+      "ticket_ids": [
+        "T-023-02",
+        "T-004-05",
+        "T-021-04"
+      ],
+      "primary_ticket": "T-023-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "basename"
+    },
+    {
+      "file_path": "frontend/src/app/workspaces/[id]/_StubPage.tsx",
+      "ticket_ids": [
+        "T-003-02"
+      ],
+      "primary_ticket": "T-003-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "frontend/src/app/workspaces/"
+    },
+    {
+      "file_path": "frontend/src/app/workspaces/[id]/alerts/page.tsx",
+      "ticket_ids": [
+        "T-003-02"
+      ],
+      "primary_ticket": "T-003-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "frontend/src/app/workspaces/"
+    },
+    {
+      "file_path": "frontend/src/app/workspaces/[id]/designs/[designId]/editor/page.tsx",
+      "ticket_ids": [
+        "T-003-02"
+      ],
+      "primary_ticket": "T-003-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "frontend/src/app/workspaces/"
+    },
+    {
+      "file_path": "frontend/src/app/workspaces/[id]/designs/page.tsx",
+      "ticket_ids": [
+        "T-003-02"
+      ],
+      "primary_ticket": "T-003-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "frontend/src/app/workspaces/"
+    },
+    {
+      "file_path": "frontend/src/app/workspaces/[id]/leader/[leaderId]/[phaseId]/page.tsx",
+      "ticket_ids": [
+        "T-003-02"
+      ],
+      "primary_ticket": "T-003-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "frontend/src/app/workspaces/"
+    },
+    {
+      "file_path": "frontend/src/app/workspaces/[id]/leader/[leaderId]/page.tsx",
+      "ticket_ids": [
+        "T-003-02"
+      ],
+      "primary_ticket": "T-003-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "frontend/src/app/workspaces/"
+    },
+    {
+      "file_path": "frontend/src/app/workspaces/[id]/members/page.tsx",
+      "ticket_ids": [
+        "T-021-04"
+      ],
+      "primary_ticket": "T-021-04",
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "frontend/src/app/workspaces/[id]/minutes/page.tsx",
+      "ticket_ids": [
+        "T-003-02"
+      ],
+      "primary_ticket": "T-003-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "frontend/src/app/workspaces/"
+    },
+    {
+      "file_path": "frontend/src/app/workspaces/[id]/page.tsx",
+      "ticket_ids": [
+        "T-003-02"
+      ],
+      "primary_ticket": "T-003-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "frontend/src/app/workspaces/"
+    },
+    {
+      "file_path": "frontend/src/app/workspaces/[id]/progress/page.tsx",
+      "ticket_ids": [
+        "T-003-02"
+      ],
+      "primary_ticket": "T-003-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "frontend/src/app/workspaces/"
+    },
+    {
+      "file_path": "frontend/src/app/workspaces/[id]/schedule/page.tsx",
+      "ticket_ids": [
+        "T-003-02"
+      ],
+      "primary_ticket": "T-003-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "frontend/src/app/workspaces/"
+    },
+    {
+      "file_path": "frontend/src/app/workspaces/[id]/settings/page.tsx",
+      "ticket_ids": [
+        "T-004-05"
+      ],
+      "primary_ticket": "T-004-05",
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "frontend/src/app/workspaces/[id]/share/page.tsx",
+      "ticket_ids": [
+        "T-003-02"
+      ],
+      "primary_ticket": "T-003-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "frontend/src/app/workspaces/"
+    },
+    {
+      "file_path": "frontend/src/app/workspaces/[id]/tasks/page.tsx",
+      "ticket_ids": [
+        "T-003-02"
+      ],
+      "primary_ticket": "T-003-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "frontend/src/app/workspaces/"
+    },
+    {
+      "file_path": "frontend/src/app/workspaces/page.tsx",
+      "ticket_ids": [
+        "T-003-02"
+      ],
+      "primary_ticket": "T-003-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "frontend/src/app/workspaces/"
+    },
+    {
+      "file_path": "frontend/src/components/artifacts/ArtifactPanel.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/artifacts/ArtifactSidebar.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/artifacts/views/CalendarView.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/artifacts/views/ChartView.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/artifacts/views/CompareView.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/artifacts/views/FormView.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/artifacts/views/GalleryView.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/artifacts/views/GanttView.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/artifacts/views/KanbanView.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/artifacts/views/KpiCardView.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/artifacts/views/ListView.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/artifacts/views/MarkdownView.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/artifacts/views/MatrixView.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/artifacts/views/MindmapView.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/artifacts/views/SlideView.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/artifacts/views/TableView.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/artifacts/views/WorkflowView.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/assistant-ui/markdown-text.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/chat/ChatPanel.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/chat/MarkdownView.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/chat/MermaidBlock.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/dashboard/Charts.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/dashboard/KpiCard.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/dashboard/PipelineTable.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/dashboard/SkillActivity.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/layout/Sidebar.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/records/RecordsPanel.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/settings/ImageDropper.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/tasks/TaskDetailDrawer.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/tasks/TaskKanban.tsx",
+      "ticket_ids": [
+        "T-007-01"
+      ],
+      "primary_ticket": "T-007-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "frontend/src/components/tool-ui/index.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/ui/badge.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/ui/button.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/ui/card.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/ui/input.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/ui/scroll-area.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/ui/select.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/ui/separator.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/ui/table.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/ui/tabs.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/ui/textarea.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/workspace-shell/AppShell.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/workspace-shell/BlockNoteEditable.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/workspace-shell/EstimateFlow.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/workspace-shell/Header.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/workspace-shell/HearingFlow.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/workspace-shell/HomeBlocks.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/workspace-shell/InlineEditable.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/workspace-shell/LeaderAvatar.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/workspace-shell/LeaderWorkArea.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/workspace-shell/MinutesEditor.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/workspace-shell/PricingDesignFlow.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/workspace-shell/PricingRichDemo.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/workspace-shell/ProposalFlow.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/workspace-shell/RequirementsFlow.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/workspace-shell/RequirementsRichDemo.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "frontend/src/components/workspace-shell/Sidebar.tsx",
+      "ticket_ids": [],
+      "label": "NEW",
+      "mapping_status": "NEW",
+      "reason": "no ticket reference; treat as plain implementation file"
+    },
+    {
+      "file_path": "mcp_stdio_server.py",
+      "ticket_ids": [
+        "T-010a-01"
+      ],
+      "primary_ticket": "T-010a-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "supabase/migrations/20260501220000_initial_schema.sql",
+      "ticket_ids": [
+        "T-001-02",
+        "T-001-04"
+      ],
+      "primary_ticket": "T-001-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "supabase/migrations/20260501220100_pgvector.sql",
+      "ticket_ids": [
+        "T-001-07"
+      ],
+      "primary_ticket": "T-001-07",
+      "label": "REUSE",
+      "mapping_status": "REUSE",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "supabase/migrations/20260501220200_knowledge_scope.sql",
+      "ticket_ids": [
+        "T-024-02"
+      ],
+      "primary_ticket": "T-024-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "supabase/migrations/20260501220300_rls_skeleton.sql",
+      "ticket_ids": [
+        "T-001-02",
+        "T-001-06"
+      ],
+      "primary_ticket": "T-001-02",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "supabase/migrations/20260501230000_design_frames.sql",
+      "ticket_ids": [
+        "T-005b-01"
+      ],
+      "primary_ticket": "T-005b-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "supabase/migrations/20260501230100_design_mockup_content.sql",
+      "ticket_ids": [
+        "T-005b-01"
+      ],
+      "primary_ticket": "T-005b-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "supabase/migrations/20260502000000_design_mocks.sql",
+      "ticket_ids": [
+        "T-005b-01"
+      ],
+      "primary_ticket": "T-005b-01",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "supabase/migrations/20260510000000_auth_tables.sql",
+      "ticket_ids": [
+        "T-001-06",
+        "T-001-04"
+      ],
+      "primary_ticket": "T-001-06",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "supabase/migrations/20260510000001_bf_project_tables.sql",
+      "ticket_ids": [
+        "T-001-06"
+      ],
+      "primary_ticket": "T-001-06",
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "supabase/migrations/20260510000002_rls_full_enforcement.sql",
+      "ticket_ids": [
+        "T-001-06"
+      ],
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "reason": "matched by file naming convention (本セッション追加)"
+    },
+    {
+      "file_path": "supabase/migrations/20260510000003_runner_session_tables.sql",
+      "ticket_ids": [
+        "T-S0-08"
+      ],
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "reason": "matched by file naming convention (本セッション追加)"
+    },
+    {
+      "file_path": "supabase/migrations/20260511000000_bf_user_profile_lifecycle_rls.sql",
+      "ticket_ids": [
+        "T-023-05"
+      ],
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "reason": "matched by file naming convention (本セッション追加)"
+    },
+    {
+      "file_path": "supabase/migrations/20260511000001_encrypted_secrets.sql",
+      "ticket_ids": [
+        "T-023-03"
+      ],
+      "label": "REFACTOR",
+      "mapping_status": "REFACTOR",
+      "reason": "matched by file naming convention (本セッション追加)"
+    },
+    {
+      "file_path": "templates/CHANGELOG.md",
+      "ticket_ids": [
+        "T-BTSTRAP-01"
+      ],
+      "primary_ticket": "T-BTSTRAP-01",
+      "label": "REUSE",
+      "mapping_status": "REUSE",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "templates/project-bootstrap/.claude/settings.json",
+      "ticket_ids": [
+        "T-BTSTRAP-01"
+      ],
+      "primary_ticket": "T-BTSTRAP-01",
+      "label": "REUSE",
+      "mapping_status": "REUSE",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "templates/project-bootstrap/CLAUDE.md.j2",
+      "ticket_ids": [
+        "T-BTSTRAP-01"
+      ],
+      "primary_ticket": "T-BTSTRAP-01",
+      "label": "REUSE",
+      "mapping_status": "REUSE",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "templates/project-bootstrap/README.md",
+      "ticket_ids": [
+        "T-BTSTRAP-01"
+      ],
+      "primary_ticket": "T-BTSTRAP-01",
+      "label": "REUSE",
+      "mapping_status": "REUSE",
+      "match_method": "templates/project-bootstrap/"
+    },
+    {
+      "file_path": "templates/project-bootstrap/docs/HANDOVER.md.j2",
+      "ticket_ids": [
+        "T-BTSTRAP-01"
+      ],
+      "primary_ticket": "T-BTSTRAP-01",
+      "label": "REUSE",
+      "mapping_status": "REUSE",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "templates/project-bootstrap/docs/decisions/README.md",
+      "ticket_ids": [
+        "T-BTSTRAP-01"
+      ],
+      "primary_ticket": "T-BTSTRAP-01",
+      "label": "REUSE",
+      "mapping_status": "REUSE",
+      "match_method": "templates/project-bootstrap/"
+    },
+    {
+      "file_path": "templates/project-bootstrap/docs/task-decomposition/IMPLEMENTATION_PROTOCOL.md",
+      "ticket_ids": [
+        "T-BTSTRAP-01"
+      ],
+      "primary_ticket": "T-BTSTRAP-01",
+      "label": "REUSE",
+      "mapping_status": "REUSE",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "templates/project-bootstrap/scripts/lint-mock.sh",
+      "ticket_ids": [
+        "T-BTSTRAP-01"
+      ],
+      "primary_ticket": "T-BTSTRAP-01",
+      "label": "REUSE",
+      "mapping_status": "REUSE",
+      "match_method": "exact"
+    },
+    {
+      "file_path": "templates/project-bootstrap/scripts/pre-commit-check.sh",
+      "ticket_ids": [
+        "T-BTSTRAP-01"
+      ],
+      "primary_ticket": "T-BTSTRAP-01",
+      "label": "REUSE",
+      "mapping_status": "REUSE",
+      "match_method": "templates/project-bootstrap/"
+    },
+    {
+      "file_path": "templates/project-bootstrap/scripts/validate-tickets.py",
+      "ticket_ids": [
+        "T-BTSTRAP-01"
+      ],
+      "primary_ticket": "T-BTSTRAP-01",
+      "label": "REUSE",
+      "mapping_status": "REUSE",
+      "match_method": "exact"
     }
   ],
   "orphan_tickets": [
     {
-      "ticket": "T-BTSTRAP-02",
-      "label": "REFACTOR",
-      "missing_file": "backend/integrations/github_client.py"
+      "file": "onlook/",
+      "ticket_ids": [
+        "T-019-01"
+      ],
+      "phase_boundary": "ARCHIVED (T-019-01)",
+      "reason": "removed per T-019-01 ARCHIVE; intentional"
     },
     {
-      "ticket": "T-BTSTRAP-04",
-      "label": "NEW",
-      "missing_file": "backend/cli/project_commands.py"
+      "file": "penpot/",
+      "ticket_ids": [
+        "T-019-01"
+      ],
+      "phase_boundary": "ARCHIVED (T-019-01)",
+      "reason": "removed per T-019-01 ARCHIVE; intentional"
     },
     {
-      "ticket": "T-BTSTRAP-05",
-      "label": "NEW",
-      "missing_file": ".github/workflows/template-propagation.yml"
+      "file": "frontend/src/components/onlook/",
+      "ticket_ids": [
+        "T-019-01"
+      ],
+      "phase_boundary": "ARCHIVED (T-019-01)",
+      "reason": "removed per T-019-01 ARCHIVE; intentional"
     },
     {
-      "ticket": "T-BTSTRAP-06",
-      "label": "NEW",
-      "missing_file": "tests/e2e/test_workspace_bootstrap.py"
-    }
-  ],
-  "dir_level_refs": [
-    {
-      "ticket": "T-019-01",
-      "dir": "onlook/"
+      "file": "TBD: specify in BA review",
+      "ticket_ids": [
+        "T-019-03",
+        "T-S0-05",
+        "T-S0-06",
+        "T-S0-07",
+        "T-001-03",
+        "T-004-02",
+        "T-020-03",
+        "T-020-04",
+        "T-022-01",
+        "T-003-01",
+        "T-M30-02",
+        "T-015-03",
+        "T-005-04",
+        "T-009-01",
+        "T-007-03",
+        "T-024-03",
+        "T-026-01",
+        "T-026-03",
+        "T-010a-02",
+        "T-010b-03",
+        "T-010b-04",
+        "T-011-03",
+        "T-014-02",
+        "T-016-02"
+      ],
+      "mapping_status": "triage_needed",
+      "reason": "placeholder reference; BA review pending"
     },
     {
-      "ticket": "T-019-01",
-      "dir": "penpot/"
+      "file": "backend/routers/",
+      "ticket_ids": [
+        "T-S0-13",
+        "T-001-01b"
+      ],
+      "phase_boundary": "directory_reference",
+      "reason": "directory-level reference (not a single file)"
     },
     {
-      "ticket": "T-019-01",
-      "dir": "frontend/src/components/onlook/"
+      "file": "backend/services/",
+      "ticket_ids": [
+        "T-S0-13",
+        "T-001-01b"
+      ],
+      "phase_boundary": "directory_reference",
+      "reason": "directory-level reference (not a single file)"
     },
     {
-      "ticket": "T-S0-13",
-      "dir": "backend/routers/"
+      "file": "data/",
+      "ticket_ids": [
+        "T-S0-13"
+      ],
+      "phase_boundary": "directory_reference",
+      "reason": "directory-level reference (not a single file)"
     },
     {
-      "ticket": "T-S0-13",
-      "dir": "backend/services/"
+      "file": "frontend/src/app/skills/",
+      "ticket_ids": [
+        "T-002-01"
+      ],
+      "phase_boundary": "directory_reference",
+      "reason": "directory-level reference (not a single file)"
     },
     {
-      "ticket": "T-S0-13",
-      "dir": "data/"
+      "file": "frontend/src/app/workspaces/",
+      "ticket_ids": [
+        "T-003-02"
+      ],
+      "phase_boundary": "directory_reference",
+      "reason": "directory-level reference (not a single file)"
     },
     {
-      "ticket": "T-001-01",
-      "dir": "backend/domains/"
+      "file": "frontend/src/app/approval/",
+      "ticket_ids": [
+        "T-012-04"
+      ],
+      "phase_boundary": "directory_reference",
+      "reason": "directory-level reference (not a single file)"
     },
     {
-      "ticket": "T-001-02",
-      "dir": "backend/integrations/auth/"
+      "file": "templates/project-bootstrap/",
+      "ticket_ids": [
+        "T-BTSTRAP-01"
+      ],
+      "phase_boundary": "directory_reference",
+      "reason": "directory-level reference (not a single file)"
     },
     {
-      "ticket": "T-001-04",
-      "dir": "backend/middleware/"
+      "file": "backend/integrations/github_client.py",
+      "ticket_ids": [
+        "T-BTSTRAP-02"
+      ],
+      "phase_boundary": "Phase 1.5",
+      "reason": "deferred to Phase 1.5 (T-BTSTRAP-*)"
     },
     {
-      "ticket": "T-001-06",
-      "dir": "data/migrations/"
+      "file": "backend/cli/project_commands.py",
+      "ticket_ids": [
+        "T-BTSTRAP-04"
+      ],
+      "phase_boundary": "Phase 1.5",
+      "reason": "deferred to Phase 1.5 (T-BTSTRAP-*)"
     },
     {
-      "ticket": "T-002-01",
-      "dir": "frontend/src/app/skills/"
+      "file": ".github/workflows/template-propagation.yml",
+      "ticket_ids": [
+        "T-BTSTRAP-05"
+      ],
+      "phase_boundary": "Phase 1.5",
+      "reason": "deferred to Phase 1.5 (T-BTSTRAP-*)"
     },
     {
-      "ticket": "T-003-02",
-      "dir": "frontend/src/app/workspaces/"
+      "file": "tests/e2e/test_workspace_bootstrap.py",
+      "ticket_ids": [
+        "T-BTSTRAP-06"
+      ],
+      "phase_boundary": "Phase 1.5",
+      "reason": "deferred to Phase 1.5 (T-BTSTRAP-*)"
     },
     {
-      "ticket": "T-012-04",
-      "dir": "frontend/src/app/approval/"
-    },
-    {
-      "ticket": "T-BTSTRAP-01",
-      "dir": "templates/project-bootstrap/"
+      "file": "data/migrations/",
+      "ticket_ids": [
+        "T-AI-03"
+      ],
+      "phase_boundary": "Phase 2 / consolidated",
+      "reason": "consolidated into supabase/migrations/"
     }
   ]
 }
