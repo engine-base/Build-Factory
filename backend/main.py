@@ -61,6 +61,7 @@ from routers.chat_search import router as chat_search_router
 from routers.bf_profile import router as bf_profile_router
 from routers.ws import router as ws_router
 from routers.admin_fallback import router as admin_fallback_router
+from routers.phases import router as phases_router
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 
@@ -172,6 +173,7 @@ app.include_router(chat_search_router)
 app.include_router(bf_profile_router)
 app.include_router(ws_router)
 app.include_router(admin_fallback_router)
+app.include_router(phases_router)
 
 
 @app.get("/health")
