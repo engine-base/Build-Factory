@@ -45,27 +45,83 @@ async def list_my_accounts(user_id: str = Query("masato")):
 async def get_account(account_id: int):
     a = await acc.get_account(account_id)
     if not a:
-        raise HTTPException(404, f"account not found: {account_id}")
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "account_not_found", "message": f"account not found: {account_id}"},
+        )
     return a
 
 
 @router.post("")
 async def create_account(body: AccountCreate):
+    """T-004-01: account 新規作成 (creator = owner として member 登録).
+
+    Error contract (AC-4): {detail: {code, message}}
+      400 invalid_account_type / invalid_plan / invalid_name / invalid_request
+    """
+    # AC-4 UNWANTED: 名前空 reject (Pydantic より明確なメッセージで)
+    name = (body.name or "").strip()
+    if not name:
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "invalid_name", "message": "account name must not be empty"},
+        )
+    if body.type not in ("individual", "company"):
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "invalid_account_type",
+                "message": f"type must be 'individual' or 'company', got {body.type!r}",
+            },
+        )
+    if body.plan not in ("free", "pro", "enterprise"):
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "invalid_plan",
+                "message": f"plan must be 'free' / 'pro' / 'enterprise', got {body.plan!r}",
+            },
+        )
     try:
         return await acc.create_account(
-            name=body.name, type=body.type, plan=body.plan,
+            name=name, type=body.type, plan=body.plan,
             owner_user_id=body.owner_user_id,
             billing_email=body.billing_email,
             metadata=body.metadata,
         )
     except ValueError as e:
-        raise HTTPException(400, str(e))
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "invalid_request", "message": str(e)},
+        )
 
 
 @router.patch("/{account_id}")
 async def update_account(account_id: int, body: AccountUpdate):
     fields = body.model_dump(exclude_unset=True)
-    return await acc.update_account(account_id, **fields)
+    if "type" in fields and fields["type"] not in ("individual", "company"):
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "invalid_account_type",
+                "message": f"type must be 'individual' or 'company', got {fields['type']!r}",
+            },
+        )
+    if "plan" in fields and fields["plan"] not in ("free", "pro", "enterprise"):
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "invalid_plan",
+                "message": f"plan must be 'free' / 'pro' / 'enterprise', got {fields['plan']!r}",
+            },
+        )
+    try:
+        return await acc.update_account(account_id, **fields)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "invalid_request", "message": str(e)},
+        )
 
 
 @router.delete("/{account_id}")
