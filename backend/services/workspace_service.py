@@ -239,6 +239,19 @@ class NotOwnerError(ValueError):
     """T-004-05 AC-STATE: owner ではないユーザーが移譲しようとした。"""
 
 
+# T-004-04: invitation accept 用例外
+class InvitationNotFoundError(ValueError):
+    """invitation token が見つからない."""
+
+
+class InvitationExpiredError(ValueError):
+    """invitation が期限切れ."""
+
+
+class InvitationAlreadyUsedError(ValueError):
+    """invitation が既に accepted (再利用)."""
+
+
 # ──────────────────────────────────────────
 # T-004-05: owner 移譲 (atomic)
 # ──────────────────────────────────────────
@@ -435,13 +448,22 @@ async def accept_invitation(token: str, user_id: str) -> Optional[dict]:
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         cur = await db.execute(
-            "SELECT * FROM workspace_invitations WHERE token = ? AND status = 'pending'",
+            "SELECT * FROM workspace_invitations WHERE token = ?",
             (token,),
         )
         inv = await cur.fetchone()
         if not inv:
-            return None
+            raise InvitationNotFoundError(f"invitation not found: token=...")
         d = dict(inv)
+        status = d.get("status") or "pending"
+        if status == "accepted":
+            raise InvitationAlreadyUsedError(
+                f"invitation already accepted (workspace_id={d['workspace_id']})"
+            )
+        if status == "expired":
+            raise InvitationExpiredError("invitation already expired")
+        if status != "pending":
+            raise InvitationNotFoundError(f"invitation in invalid state: {status}")
         # 期限チェック
         if d.get("expires_at"):
             try:
@@ -450,7 +472,9 @@ async def accept_invitation(token: str, user_id: str) -> Optional[dict]:
                         "UPDATE workspace_invitations SET status='expired' WHERE id=?", (d["id"],)
                     )
                     await db.commit()
-                    return None
+                    raise InvitationExpiredError("invitation expired")
+            except (InvitationExpiredError, InvitationAlreadyUsedError):
+                raise
             except Exception:
                 pass
         # member 追加
@@ -465,3 +489,33 @@ async def accept_invitation(token: str, user_id: str) -> Optional[dict]:
         )
         await db.commit()
     return {"workspace_id": d["workspace_id"], "user_id": user_id, "role": d["role"]}
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# T-004-04: lookup_invitation (signup 前のプレビュー)
+# ──────────────────────────────────────────────────────────────────────────
+
+
+async def lookup_invitation(token: str) -> Optional[dict]:
+    """token から invitation メタを返す (signup 前のプレビュー). mutate しない."""
+    if not token or not token.strip():
+        return None
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        rows = await db.execute_fetchall(
+            "SELECT id, workspace_id, email, role, status, expires_at, invited_by "
+            "FROM workspace_invitations WHERE token = ?",
+            (token,),
+        )
+        if not rows:
+            return None
+        d = dict(rows[0])
+    # 期限切れチェック (read-only なので state mutate しない)
+    if d.get("expires_at"):
+        try:
+            d["is_expired"] = datetime.fromisoformat(d["expires_at"]) < datetime.now()
+        except Exception:
+            d["is_expired"] = False
+    else:
+        d["is_expired"] = False
+    return d
