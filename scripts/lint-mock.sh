@@ -151,8 +151,12 @@ check_archive() {
   done
 
   # ソースコード内の onlook 参照は禁止 (T-019-01 AC-3/4)
+  # T-019-01 検証用 test ファイル (test_supabase_migrations.py) は ARCHIVE 検証のため
+  # "onlook" 文字列を含むので除外。
   local refs
-  refs=$(grep -rn --include="*.ts" --include="*.tsx" --include="*.py" --include="*.js" "onlook" frontend/src backend 2>/dev/null || true)
+  refs=$(grep -rn --include="*.ts" --include="*.tsx" --include="*.py" --include="*.js" \
+    --exclude="test_supabase_migrations.py" \
+    "onlook" frontend/src backend 2>/dev/null || true)
   if [ -n "$refs" ]; then
     echo -e "${YELLOW}WARN: 'onlook' の参照が残っている:${NC}"
     echo "$refs" | head -5
