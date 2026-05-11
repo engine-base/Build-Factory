@@ -316,3 +316,177 @@ class SummaryHook:
 class NoopSummaryHook(SummaryHook):
     async def persist(self, thread_id: int, summary: dict[str, Any]) -> None:
         return None
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DB-backed implementations (psycopg via db.async_db)
+# 生 SQL ベース。本番 DB では DbSessionStore / DbCostHook / DbSummaryHook を
+# 注入し、テスト時は InMemorySessionStore / NoopCostHook / NoopSummaryHook を使う。
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class DbSessionStore(SessionStore):
+    """sessions / session_logs を psycopg 経由で永続化 (T-S0-08 AC-3)."""
+
+    def __init__(self) -> None:
+        # connect() は呼び出し時に解決 (env 未設定環境で import が壊れないよう遅延)
+        from db.async_db import connect  # noqa: F401
+
+    async def create_session(self, rec: SessionRecord) -> SessionRecord:
+        from db.async_db import connect
+
+        async with connect() as db:
+            cur = await db.execute(
+                """
+                INSERT INTO sessions
+                  (sdk_session_id, workspace_id, project_id, bf_task_id,
+                   agent_persona, skill_name, prompt, status, started_at, metadata)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?::jsonb)
+                RETURNING id
+                """,
+                (
+                    rec.sdk_session_id or f"pending_{int(time.time() * 1000)}",
+                    rec.workspace_id,
+                    rec.project_id,
+                    rec.bf_task_id,
+                    rec.agent_persona,
+                    rec.skill_name,
+                    rec.prompt,
+                    rec.status,
+                    _json_dumps(rec.metadata),
+                ),
+            )
+            row = await cur.fetchone()
+            await db.commit()
+            rec.id = int(row["id"])
+        return rec
+
+    async def update_sdk_session_id(self, session_id: int, sdk_id: str) -> None:
+        from db.async_db import connect
+
+        async with connect() as db:
+            await db.execute(
+                "UPDATE sessions SET sdk_session_id = ? WHERE id = ?",
+                (sdk_id, session_id),
+            )
+            await db.commit()
+
+    async def append_log(self, session_id: int, content: str) -> None:
+        from db.async_db import connect
+
+        async with connect() as db:
+            cur = await db.execute(
+                "SELECT COALESCE(MAX(line_no), 0) AS n FROM session_logs WHERE session_id = ?",
+                (session_id,),
+            )
+            row = await cur.fetchone()
+            next_line = int(row["n"]) + 1
+            stream = "stderr" if content.startswith("[stderr]") else "stdout"
+            await db.execute(
+                """
+                INSERT INTO session_logs (session_id, line_no, stream, content)
+                VALUES (?, ?, ?, ?)
+                """,
+                (session_id, next_line, stream, content),
+            )
+            await db.commit()
+
+    async def finalize_session(self, rec: SessionRecord) -> None:
+        from db.async_db import connect
+
+        async with connect() as db:
+            await db.execute(
+                """
+                UPDATE sessions
+                   SET status = ?,
+                       resume_choice = ?,
+                       crash_reason = ?,
+                       completed_at = NOW()
+                 WHERE id = ?
+                """,
+                (rec.status, rec.resume_choice, rec.crash_reason, rec.id),
+            )
+            await db.commit()
+
+    async def get_session(self, session_id: int) -> Optional[SessionRecord]:
+        from db.async_db import connect
+
+        async with connect() as db:
+            cur = await db.execute(
+                """
+                SELECT id, sdk_session_id, workspace_id, project_id, bf_task_id,
+                       agent_persona, skill_name, prompt, status, resume_choice,
+                       crash_reason
+                  FROM sessions WHERE id = ?
+                """,
+                (session_id,),
+            )
+            row = await cur.fetchone()
+        if row is None:
+            return None
+        return SessionRecord(
+            id=int(row["id"]),
+            sdk_session_id=row["sdk_session_id"] or "",
+            workspace_id=row["workspace_id"],
+            project_id=row["project_id"],
+            bf_task_id=row["bf_task_id"],
+            agent_persona=row["agent_persona"],
+            skill_name=row["skill_name"],
+            prompt=row["prompt"],
+            status=row["status"],
+            resume_choice=row["resume_choice"],
+            crash_reason=row["crash_reason"],
+        )
+
+
+class DbCostHook(CostHook):
+    """cost_logs に Anthropic Usage を psycopg 経由で記録 (T-S0-08 AC-4)."""
+
+    async def record(self, cost: CostRecord) -> None:
+        from db.async_db import connect
+
+        async with connect() as db:
+            await db.execute(
+                """
+                INSERT INTO cost_logs
+                  (session_id, workspace_id, provider, model,
+                   input_tokens, output_tokens,
+                   cache_read_tokens, cache_write_tokens, cost_usd)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    cost.session_id,
+                    cost.workspace_id,
+                    cost.provider,
+                    cost.model,
+                    cost.input_tokens,
+                    cost.output_tokens,
+                    cost.cache_read_tokens,
+                    cost.cache_write_tokens,
+                    cost.cost_usd,
+                ),
+            )
+            await db.commit()
+
+
+class DbSummaryHook(SummaryHook):
+    """chat_messages.compressed_summary に 9-section structured summary を記録 (T-S0-08 AC-5)."""
+
+    async def persist(self, thread_id: int, summary: dict[str, Any]) -> None:
+        from db.async_db import connect
+
+        async with connect() as db:
+            await db.execute(
+                """
+                INSERT INTO chat_messages (thread_id, role, content, compressed_summary)
+                VALUES (?, 'system', '[auto-compaction summary]', ?::jsonb)
+                """,
+                (thread_id, _json_dumps(summary)),
+            )
+            await db.commit()
+
+
+def _json_dumps(value: Any) -> str:
+    import json
+
+    return json.dumps(value or {}, ensure_ascii=False)
