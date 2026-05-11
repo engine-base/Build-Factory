@@ -365,6 +365,76 @@ async def run_skill(skill_name: str, body: dict):
 # ──────────────────────────────────────────────────────────────────────────
 
 
+class ContextRequest(BaseModel):
+    employee_id: Optional[int] = None
+    include_constitution: bool = True
+    include_claude_rules: bool = True
+    actor_user_id: Optional[str] = None
+
+
+@router.post("/{skill_name}/context")
+async def get_skill_context(skill_name: str, body: ContextRequest):
+    """T-003-04: スキル context 注入 (CLAUDE.md ルール + SKILL.md + persona chain + Constitution)."""
+    _validate_actor(body.actor_user_id)
+    name = _validate_skill_name(skill_name)
+    if body.employee_id is not None and body.employee_id <= 0:
+        raise _error("skills.invalid_employee_id", "employee_id must be > 0 when provided")
+
+    from services.skill_context_injector import (
+        inject_context, SkillMdNotFoundError, SkillContextError,
+    )
+
+    # T-003-03 / T-AI-04 連携
+    async def _resolve_guideline(employee_id: int) -> dict:
+        from services.guideline_inheritance import resolve_guideline
+        from routers.personas_guideline import (
+            _default_hierarchy_loader, _default_persona_loader,
+        )
+        return await resolve_guideline(
+            employee_id,
+            hierarchy_loader=_default_hierarchy_loader,
+            persona_loader=_default_persona_loader,
+        )
+
+    async def _load_constitution() -> str:
+        try:
+            from services.constitution_engine import _load_from_db, _load_from_env
+            c = await _load_from_db()
+            if c is None:
+                c = _load_from_env()
+            if c is None:
+                return ""
+            return c.full_text or ""
+        except Exception:
+            return ""
+
+    try:
+        result = await inject_context(
+            name,
+            employee_id=body.employee_id,
+            include_constitution=body.include_constitution,
+            include_claude_rules=body.include_claude_rules,
+            guideline_resolver=_resolve_guideline if body.employee_id else None,
+            constitution_loader=_load_constitution if body.include_constitution else None,
+        )
+    except SkillMdNotFoundError as e:
+        raise _error("skills.skill_md_not_found", str(e), status_code=404)
+    except SkillContextError as e:
+        raise _error("skills.context_invalid", str(e))
+
+    await _audit(
+        "skills.context.injected",
+        user_id=body.actor_user_id,
+        detail={
+            "skill_name": name,
+            "employee_id": body.employee_id,
+            "rendered_size": result["rendered_size"],
+            "section_count": len(result["sections"]),
+        },
+    )
+    return result
+
+
 class ArchiveRequest(BaseModel):
     actor_user_id: Optional[str] = None
     reason: Optional[str] = None
