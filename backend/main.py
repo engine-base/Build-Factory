@@ -89,6 +89,7 @@ from routers.export_trigger import router as export_trigger_router
 from routers.provider_adapter import router as provider_adapter_router
 from routers.byok import router as byok_router
 from routers.tier2_cache import router as tier2_cache_router
+from routers.semantic_retrieval import router as semantic_retrieval_router
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 
@@ -228,6 +229,7 @@ app.include_router(export_trigger_router)
 app.include_router(provider_adapter_router)
 app.include_router(byok_router)
 app.include_router(tier2_cache_router)
+app.include_router(semantic_retrieval_router)
 
 
 @app.get("/health")
