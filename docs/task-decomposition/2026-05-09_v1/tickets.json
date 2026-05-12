@@ -2319,7 +2319,7 @@
     },
     {
       "id": "T-003-01",
-      "title": "BMAD 12 ペルソナ → 10 メンバー persona prompt 整理",
+      "title": "BMAD 12 → 10 メンバー persona prompt 整理 (md source-of-truth + loader)",
       "sprint": 2,
       "feature": "F-003",
       "layer": "BE",
@@ -2329,27 +2329,31 @@
       "deps": [
         "T-022-03"
       ],
+      "existing_files": [
+        "supabase/migrations/20260512400000_bmad_personas_seed.sql",
+        "backend/services/ai_employee_store.py",
+        "backend/services/delegation_service.py",
+        "backend/services/secretary_chat.py"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-3",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-003-01 (BMAD 12 ペルソナ → 10 メンバー persona prompt 整理) as specified by feature F-003."
+          "text": "The system shall provide `data/personas/bmad/{persona_key}.md` for all 10 Build-Factory personas (mary/preston/winston/sally/devon/quinn/reviewer/brand/mockup/logan) following a 7-section format (Role/Personality/Tone Style/Catchphrase/Specialty/Constraints/Handoff). The 12→10 BMAD mapping shall be documented in `data/personas/bmad/README.md`. A loader `backend/services/bmad_persona_prompts.py` exposes `load_persona_prompt(persona_key)` and `list_personas()`. Existing `ai_employee_store` / `delegation_service` / `secretary_chat` SHALL NOT be modified (REUSE)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the relevant API endpoint or service function is invoked for T-003-01, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+          "text": "When `load_persona_prompt(persona_key)` is called, the system shall return the md file content within 100ms (1ms with cache hit) or None if file missing. `get_prompt_validation_status(persona_key)` shall return dict {persona_key, available, missing_sections, char_count} verifying 7 required sections are present."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While refactoring for T-003-01 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+          "text": "While the loader is in use, the DB seed (`ai_personas` table from supabase migration 20260512400000) remains the cache layer; the md files are the source of truth. The module SHALL NOT write to audit_logs DB (read-only loader). Path traversal SHALL be prevented (resolve().relative_to base dir check)."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-003-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If `persona_key` is not in VALID_PERSONA_KEYS (10 keys), empty, non-string, or contains characters outside `[a-zA-Z0-9_-]`, the system shall raise ValueError (caller bug). If a md file is missing or read fails, `load_persona_prompt` shall log a warning and return None (graceful, no raise). The module SHALL NOT contain hardcoded secrets and SHALL NOT make external HTTP calls."
         }
-      ],
-      "existing_files": [
-        "TBD: specify in BA review"
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
