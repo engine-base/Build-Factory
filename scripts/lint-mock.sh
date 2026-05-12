@@ -184,7 +184,8 @@ check_archive() {
 # ----------------------------------------------------------------
 check_no_langgraph() {
   echo "[6/6] backend メイン経路の LangGraph/LangChain 混入検出..."
-  local targets="backend/integrations/claude_agent_runner.py backend/services/orchestrator_graph.py backend/ai_agents/secretary_agent.py"
+  # T-M27-01b: Intent Router entry node も LangGraph/LangChain 不使用 (ADR-010)
+  local targets="backend/integrations/claude_agent_runner.py backend/services/orchestrator_graph.py backend/ai_agents/secretary_agent.py backend/services/intent_router_entry.py backend/routers/intent_router.py"
   local found=0
   for f in $targets; do
     if [ ! -f "$f" ]; then continue; fi
