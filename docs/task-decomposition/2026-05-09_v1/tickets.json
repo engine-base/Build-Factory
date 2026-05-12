@@ -4208,7 +4208,7 @@
     },
     {
       "id": "T-024-01",
-      "title": "Cmd+K UI modal",
+      "title": "Cmd+K UI modal (cmdk + shadcn/ui Dialog / global Cmd+K | Ctrl+K binding)",
       "sprint": 4,
       "feature": "F-024",
       "layer": "FE",
@@ -4218,23 +4218,28 @@
       "deps": [
         "T-S0-06"
       ],
+      "existing_files": [
+        "frontend/package.json",
+        "frontend/src/components/ui/dialog.tsx"
+      ],
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-24",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-024-01 (Cmd+K UI modal) as specified by feature F-024."
+          "text": "The system shall provide `frontend/src/components/ui/command.tsx` (shadcn/ui-style cmdk wrapper: Command/Input/List/Empty/Group/Item/Separator) and `frontend/src/components/global/CommandKModal.tsx` (CommandKItem interface + group/search/select). cmdk dep (^1.1.1, MIT) is already in package.json (REUSE). Existing dialog.tsx (shadcn/ui Dialog) is reused unmodified."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the user interacts with the UI for T-024-01, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+          "text": "When the user presses Cmd+K (macOS / metaKey) or Ctrl+K (other), the system shall open the modal and prevent default browser behavior. When the user selects an item, the system shall invoke `item.onSelect?.()` then `onSelect(item)` callback and close the modal. The `__testing__.isCommandKEvent` and `__testing__.groupItems` helpers are exported for unit testing."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-024-01 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the modal is open, focus shall be trapped (shadcn/ui Dialog default behavior). All colors shall use eb-* palette (border-eb-500/200, bg-eb-50, text-eb-500). All icons shall be Lucide (Search) — NO emojis. The global keyboard binding shall be detached on component unmount."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-024-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If `items` is null / undefined / non-array, the component shall render the empty state (CommandEmpty) without crashing. If `disableGlobalShortcut=true` is passed (test mode), the keydown listener shall not be attached. The component SHALL NOT contain hardcoded color literals outside the eb-* palette."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/account/S-006-account-dashboard.html"
