@@ -87,7 +87,7 @@
     },
     {
       "id": "T-019-02",
-      "title": "modify 対象 GitHub Issue 化",
+      "title": "modify 対象 GitHub Issue 化 (scanner script + 運用文書 / side-effect free)",
       "sprint": 0,
       "feature": "F-019",
       "layer": "OPS",
@@ -97,23 +97,30 @@
       "deps": [
         "T-019-01"
       ],
+      "existing_files": [
+        "scripts/lint-mock.sh",
+        "backend/main.py",
+        "backend/requirements.txt",
+        "frontend/package.json"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-19",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-019-02 (modify 対象 GitHub Issue 化) as specified by feature F-019."
+          "text": "The system shall provide `scripts/scan-modify-targets.py` which scans the codebase for 4 categories of modify candidates (deprecated_deps / stale_routers / stale_services / archived_keyword) and outputs structured JSON to stdout or --out file. The scanner is read-only and does NOT create GitHub Issues directly; conversion to Issues is documented in `docs/modify-targets/README.md` via `gh` CLI."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-019-02 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When the scanner runs, it shall return a dict with keys `total` (int count), `by_category` (count per category), and `targets` (list of {category, file, line, snippet, reason}). Exit code 0 on success, 2 on invalid arguments."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-019-02 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the scanner runs, the system shall NOT mutate repository state, shall NOT call any external API (no `gh` / `curl` / GitHub API), and shall NOT write to audit_logs DB. Output file is the only side effect (when --out is specified)."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-019-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If --category is not in VALID_CATEGORIES, the system shall raise ValueError and exit with code 2. If --out path is unwritable, the system shall print error to stderr and exit with code 2. The scanner SHALL NOT contain hardcoded GitHub tokens or repo URLs (auth handled by external `gh` CLI in docs)."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
