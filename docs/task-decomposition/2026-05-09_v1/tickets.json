@@ -7035,7 +7035,7 @@
     },
     {
       "id": "T-AI-06",
-      "title": "Rate limit 自動 retry (tenacity 指数バックオフ 2/4/8/16s)",
+      "title": "Rate limit 自動 retry (anthropic_retry.with_retry + retryable_anthropic_call decorator + tenacity AsyncRetrying + StopByExceptionType + RETRY_WAIT wait_exponential(2/4/8/16s) + RetryExhaustedError + audit_logs)",
       "sprint": "S2",
       "feature": "F-AI",
       "layer": "L2",
@@ -7049,28 +7049,35 @@
         "T-AI-08"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-32",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "mock_link": "../../mocks/2026-05-09_v1/index.html",
-      "existing_files": [],
+      "existing_files": [
+        "backend/services/anthropic_retry.py"
+      ],
       "entities": [
         "sessions",
         "audit_logs"
       ],
       "acceptance_criteria": [
         {
-          "type": "EVENT",
-          "text": "When Anthropic API returns 429 (rate limit) or 529 (overloaded), the system shall retry with exponential backoff: 2s, 4s, 8s, 16s, then fail."
+          "type": "UBIQUITOUS",
+          "text": "backend/services/anthropic_retry.py shall expose with_retry(coro_factory, *, idempotency_key=None, session_id=None, user_id=None, label='anthropic_call') and retryable_anthropic_call(*, label='anthropic_call') decorator + RetryExhaustedError(RuntimeError) + is_retryable(exc) helper; the retry engine shall use tenacity.AsyncRetrying with retry=retry_if_exception(is_retryable), reraise=True (ADR-010: anthropic SDK 0.52+ main path, no langgraph / langchain / litellm in this module)."
         },
         {
-          "type": "EVENT",
-          "text": "When a transient 5xx is returned, the system shall retry up to 3 times before failing."
+          "type": "EVENT-DRIVEN",
+          "text": "When the wrapped call raises an exception with status_code in {429, 529}, the system shall retry up to RATE_LIMIT_MAX_ATTEMPTS = 5 total attempts (4 retries: 2s, 4s, 8s, 16s) via wait_exponential(multiplier=2, min=2, max=16, exp_base=2); when status_code is in range(500, 600) (transient 5xx) or the exception is ConnectionError / TimeoutError / asyncio.TimeoutError, the system shall retry up to TRANSIENT_5XX_MAX_ATTEMPTS = 4 total attempts (3 retries); on exhaustion the system shall raise RetryExhaustedError(last_exc, attempts) chained via 'raise ... from e' and emit 'anthropic_retry_exhausted' audit event."
         },
         {
-          "type": "STATE",
-          "text": "While retrying, the system shall preserve the session_id and idempotency-key so the same logical request is not duplicated."
+          "type": "STATE-DRIVEN",
+          "text": "While retrying, the same idempotency_key + session_id + user_id are passed to every audit emit and preserved across attempts (callers route _session_id / _user_id / _idempotency_key kwargs into with_retry via the decorator); StopByExceptionType subclasses tenacity.stop.stop_base and selects RATE_LIMIT_MAX_ATTEMPTS vs TRANSIENT_5XX_MAX_ATTEMPTS based on _status_code_of(exc) so the policy is state-aware (not a single max-attempts constant)."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where the exception lacks a status_code attribute but has .response.status_code (httpx.HTTPStatusError shape), _status_code_of(exc) shall extract it via getattr(exc, 'response', None).status_code so the retry policy still applies; where audit emit fails (memory_service unavailable), the module shall log a warning and continue (audit failure must not break the retry path)."
         },
         {
           "type": "UNWANTED",
-          "text": "If a non-retryable error (4xx other than 429) is returned, the system shall NOT retry and shall surface the error immediately."
+          "text": "If a non-retryable 4xx (e.g. 400 / 401 / 403 / 404 / 422) is raised, is_retryable(exc) shall return False, the retry engine shall reraise immediately (no backoff), and the system shall emit an 'anthropic_non_retryable' audit event with the status_code + exception type; the module shall not import langgraph / langchain / litellm (ADR-010), shall not retry indefinitely (stop-after-attempt invariant), and shall not contain hardcoded Supabase / Anthropic credentials."
         }
       ]
     },
