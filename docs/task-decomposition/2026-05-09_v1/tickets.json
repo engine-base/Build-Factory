@@ -4069,7 +4069,7 @@
     },
     {
       "id": "T-007-01",
-      "title": "task_kanban (existing TaskKanban.tsx 拡張・6 列)",
+      "title": "task_kanban accordion (existing TaskKanban.tsx REFACTOR / CLAUDE.md §5.5 機能別 4 列)",
       "sprint": 4,
       "feature": "F-007",
       "layer": "FE",
@@ -4082,23 +4082,24 @@
       "existing_files": [
         "frontend/src/components/tasks/TaskKanban.tsx"
       ],
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-7",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-007-01 (task_kanban (existing TaskKanban.tsx 拡張・6 列)) as specified by feature F-007."
+          "text": "The system shall provide `frontend/src/components/tasks/TaskKanbanAccordion.tsx` implementing CLAUDE.md §5.5 (機能別アコーディオン構造 + 各機能内 4 列: Todo/In Progress/Review/Done). Existing `TaskKanban.tsx` (flat 6-column board with groupBy='status'/'feature') SHALL NOT be modified (REUSE). Both components coexist; the accordion is the recommended pattern per CLAUDE.md §5.5."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the user interacts with the UI for T-007-01, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+          "text": "When tasks props change, the component shall recompute the feature grouping via React.useMemo. When the user clicks a task button, the component shall invoke onTaskClick(task). The pure helpers `statusToColumnId / isFeatureInProgress / isFeatureCompleted` shall be exported as `__testing__` for unit testing."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While refactoring for T-007-01 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+          "text": "While the component renders, features with in_progress children shall be default-expanded (CLAUDE.md §5.5 '進行中の機能のみデフォルト展開'). Completed features (all children completed) shall be default-collapsed. All colors shall use eb-* palette (border-eb-500/400/200, bg-eb-50). All icons shall be Lucide (ChevronDown / Folder / Clock / AlertCircle / CheckCircle) — NO emojis."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-007-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If `tasks` is null / undefined / non-array, the component shall render the empty fallback (`data-testid=kanban-accordion-empty`) without crashing. If features array is empty, the component shall render the same fallback. Hardcoded color literals outside eb-* palette SHALL NOT appear in source."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/workspace/S-012-workspace-dashboard.html"
