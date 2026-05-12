@@ -273,12 +273,39 @@ check_tickets() {
 # Dispatch
 # ----------------------------------------------------------------
 check_domain_boundaries() {
-  echo "[8/8] backend bounded-context domain barrel + 循環依存検出..."
+  echo "[8/9] backend bounded-context domain barrel + 循環依存検出..."
   if python3 scripts/check-domain-boundaries.py > /tmp/lint_domains.log 2>&1; then
     echo -e "${GREEN}OK: backend/domains/ 13 barrel 健全 (no bypass / no cycle)${NC}"
   else
     cat /tmp/lint_domains.log
     EXIT_CODE=1
+  fi
+}
+
+# ----------------------------------------------------------------
+# 9. T-M27-03 AC-4 UNWANTED: handoff 自前実装の禁止語検知
+#    "application code re-implements handoff logic (manual message routing
+#    between personas, custom Subagent dispatcher)" を機械的に検知する.
+#    対象: backend/services/handoff_service.py のみ (router は wrapper).
+#    禁止語: manual_route_to_persona / custom_subagent_dispatch /
+#            self_handoff_dispatch / handoff_loop / role_router_loop
+#    G22 register_handoff_backend (SDK 差替点) は許可.
+# ----------------------------------------------------------------
+check_no_self_handoff() {
+  echo "[9/9] handoff 自前実装検知 (T-M27-03 AC-4)..."
+  local target="backend/services/handoff_service.py"
+  if [ ! -f "$target" ]; then
+    echo -e "${GREEN}OK: handoff_service.py が存在しない (skip)${NC}"
+    return 0
+  fi
+  local forbidden_re='(manual_route_to_persona|custom_subagent_dispatch|self_handoff_dispatch|handoff_loop|role_router_loop|impl_handoff_locally|run_subagent_internally)'
+  if grep -nE "$forbidden_re" "$target" > /dev/null 2>&1; then
+    echo -e "${RED}NG: $target に handoff 自前実装の禁止語 (T-M27-03 AC-4 / ADR-010)${NC}"
+    grep -nE "$forbidden_re" "$target"
+    echo "→ SDK Task tool 差替点は register_handoff_backend のみを使う"
+    EXIT_CODE=1
+  else
+    echo -e "${GREEN}OK: handoff 自前実装の禁止語なし${NC}"
   fi
 }
 
@@ -291,6 +318,7 @@ case "$MODE" in
   --no-langgraph) check_no_langgraph ;;
   --no-litellm-in-runner) check_no_litellm_in_runner ;;
   --domains)      check_domain_boundaries ;;
+  --no-self-handoff) check_no_self_handoff ;;
   all|"")
     check_emoji
     check_agpl
@@ -300,9 +328,10 @@ case "$MODE" in
     check_no_langgraph
     check_no_litellm_in_runner
     check_domain_boundaries
+    check_no_self_handoff
     ;;
   *)
-    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|all]"
+    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|--no-self-handoff|all]"
     exit 2
     ;;
 esac

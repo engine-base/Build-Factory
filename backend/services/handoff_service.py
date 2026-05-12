@@ -343,6 +343,17 @@ async def request_handoff(
 
     elapsed_ms = (time.time() - t0) * 1000.0
     dispatched_at = time.time()
+    # AC-3 STATE-DRIVEN: claude-agent-sdk session resume. backend_result が
+    # session_token を返した場合はそれを使い, 無ければ session_id を流用する.
+    # session_token は SDK の session resume token として subagent 起動時に
+    # 渡される (Phase 2 で claude-agent-sdk runner と接続).
+    session_token: Optional[str] = None
+    if isinstance(backend_result, dict):
+        tok = backend_result.get("session_token") or backend_result.get("session_id")
+        if isinstance(tok, str) and tok.strip():
+            session_token = tok.strip()
+    if session_token is None and sid is not None:
+        session_token = sid
 
     # G25: audit emit 必須
     audit_detail = {
@@ -352,6 +363,8 @@ async def request_handoff(
         "status": status,
         "backend_used": backend_used,
         "session_id": sid,
+        "session_token": session_token,  # AC-3 SDK session resume
+        "timestamp": dispatched_at,       # AC-2 EVENT-DRIVEN spec
         "had_context": bool(ctx),
         "message_chars": len(msg),
         "latency_ms": round(elapsed_ms, 2),
@@ -369,6 +382,7 @@ async def request_handoff(
         "target_persona": target,
         "target_persona_resolved": target_resolved,
         "session_id": sid,
+        "session_token": session_token,   # AC-3 SDK session resume (return)
         "message_preview": msg[:80],
         "config": {
             "backend_used": backend_used,
