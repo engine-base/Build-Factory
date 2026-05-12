@@ -1488,7 +1488,7 @@
     },
     {
       "id": "T-004-01",
-      "title": "account 作成 API+UI (existing accounts.py 拡張)",
+      "title": "account 作成 API + UI (POST /api/accounts / AccountCreate + 3 enum validation / individual|company + free|pro|enterprise / {detail:{code,message}} error contract / frontend settings/account page)",
       "sprint": 0,
       "feature": "F-004",
       "layer": "BE+FE",
@@ -1501,25 +1501,32 @@
       "existing_files": [
         "backend/routers/accounts.py",
         "backend/services/account_service.py",
-        "backend/services/account_settings_service.py"
+        "backend/services/account_settings_service.py",
+        "frontend/src/app/settings/account/page.tsx",
+        "frontend/src/lib/account-settings-api.ts"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-004-01 (account 作成 API+UI (existing accounts.py 拡張)) as specified by feature F-004."
+          "text": "backend/routers/accounts.py shall expose POST /api/accounts (create_account) consuming AccountCreate pydantic model with name (str, required), type (str, default='individual', enum {individual, company}), plan (str, default='free', enum {free, pro, enterprise}), owner_user_id (optional), billing_email (optional), metadata (optional dict); frontend/src/app/settings/account/page.tsx shall consume the endpoint via @tanstack/react-query useMutation; backend services account_service.py + account_settings_service.py shall be REUSED without modification (REFACTOR routes only)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the relevant API endpoint or service function is invoked for T-004-01, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+          "text": "When POST /api/accounts is invoked with valid payload, the endpoint shall return 200 with the newly created account record within 2 seconds; when invoked with invalid name / type / plan, it shall return 400 with {detail:{code, message}} where code is one of invalid_name / invalid_account_type / invalid_plan; service-level ValueError shall be mapped to 400 invalid_request."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While refactoring for T-004-01 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+          "text": "While the endpoint is operational, name shall be `.strip()`-ed before persistence so trailing whitespace does not create distinct accounts; type / plan enum validation shall happen at the FastAPI layer BEFORE service call (fail-fast); the endpoint shall NOT bypass RLS — RLS for accounts table is service_role only via Supabase; the routes shall NOT import langgraph / langchain / litellm (ADR-010)."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where metadata JSONB is provided, the endpoint shall pass it through to account_service.create_account verbatim (no rewriting / no schema enforcement at API layer); where owner_user_id is provided, the service shall register the creator as the first account_members row with role='owner' so the workspace_members chain is bootstrapped."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-004-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If body.name is None / empty / whitespace-only, the endpoint shall return 400 {code:'invalid_name'} WITHOUT calling the service; if type is not in {individual, company}, return 400 {code:'invalid_account_type'}; if plan is not in {free, pro, enterprise}, return 400 {code:'invalid_plan'}; the response payload shall NOT contain raw stack traces or internal error messages that leak schema details."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/auth/S-001-login.html"
