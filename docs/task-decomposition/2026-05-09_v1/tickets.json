@@ -1334,7 +1334,7 @@
     },
     {
       "id": "T-001-10",
-      "title": "seed.sql + BF_ENV ガード",
+      "title": "seed.sql + BF_ENV ガード (supabase/seed.sql idempotent / backend/services/bf_env_guard.py / BF_ENV={dev,test,local,staging,prod} / prod で destructive op reject)",
       "sprint": 0,
       "feature": "F-001",
       "layer": "DB",
@@ -1344,23 +1344,33 @@
       "deps": [
         "T-001-06"
       ],
+      "existing_files": [
+        "supabase/seed.sql",
+        "backend/services/bf_env_guard.py",
+        "supabase/migrations/20260512400000_bmad_personas_seed.sql"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-001-10 (seed.sql + BF_ENV ガード) as specified by feature F-001."
+          "text": "supabase/seed.sql shall be an idempotent INSERT script (wrapped in BEGIN; ... COMMIT;) seeding demo account / workspace / project for Phase 1 dogfood; backend/services/bf_env_guard.py shall expose VALID_ENVS = ('dev','test','local','staging','prod'), BFEnvGuardError (RuntimeError subclass), BFInvalidEnvError (ValueError subclass), and the helpers current_env / validate_env / is_destructive_allowed / is_prod / require_non_prod / seed_sql_path / read_seed_sql / get_status."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the relevant API endpoint or service function is invoked for T-001-10, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+          "text": "When BF_ENV='prod' and require_non_prod() is invoked, the guard shall raise BFEnvGuardError with the operation name in the message; is_destructive_allowed() shall return True for {dev, test, local} and False for {staging, prod}; validate_env(env) shall raise BFInvalidEnvError when env is not one of VALID_ENVS."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-001-10 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the service is operational, current_env() shall read os.environ['BF_ENV'] (defaulting to 'dev' if unset) and shall NOT cache the value across calls (always fresh / no module-global mutable state); the guard shall NOT import langgraph / langchain / litellm (ADR-010); seed.sql shall NOT contain any plaintext sb_(publishable|secret)_*key / sk-ant-* / JWT (eyJ...) literal."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where BF_ENV='staging' is set, is_destructive_allowed() shall return False (treat staging as read-only for seed / destructive operations / RLS テスト用); seed.sql shall reference the BMAD personas seeded by the companion migration 20260512400000_bmad_personas_seed.sql so the demo workspace is compatible with the 10 BMAD persona set."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-001-10, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If a destructive operation is invoked in prod (BF_ENV='prod'), require_non_prod() shall raise BFEnvGuardError BEFORE any DB mutation; if BF_ENV is set to an invalid value (not in VALID_ENVS), validate_env() shall raise BFInvalidEnvError; the seed.sql shall NOT include DROP TABLE / TRUNCATE / DELETE statements (idempotent INSERT のみ); the guard shall NOT have a backdoor that bypasses prod check (e.g. `if force=True` 引数禁止)."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
