@@ -1803,7 +1803,7 @@
     },
     {
       "id": "T-021-02",
-      "title": "custom_permissions JSONB バリデータ",
+      "title": "custom_permissions JSONB バリデータ (validate_custom_permissions / unknown key warn list / has_permission grant-only override / 30 permission key subset)",
       "sprint": 1,
       "feature": "F-021",
       "layer": "BE",
@@ -1814,22 +1814,27 @@
         "T-021-01"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-21",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall validate that custom_permissions is a dict[str, bool] whose keys are a subset of the 30 known permission keys."
+          "text": "backend/services/roles.py shall expose validate_custom_permissions(custom_permissions: Optional[dict]) -> list[str] returning the list of unknown keys (subset of T-021-01 PERMISSIONS = 30 keys); the has_permission() helper shall consume the validated dict and apply per-key grant-only override (v2.1 OR-evaluation, consistent with T-021-01 AC-4 spec)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When a member is added or updated with custom_permissions, the system shall apply per-key overrides on top of the role-default permissions when has_permission() is evaluated."
+          "text": "When a member is added or updated with custom_permissions JSONB, the layer above (workspace_members service / router) shall invoke validate_custom_permissions BEFORE persistence and shall reject the operation (HTTP 400) if the returned list is non-empty (unknown key detected); has_permission() called after the persistence step shall use the override value within 2 seconds."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While custom_permissions overrides exist for a member, the system shall use the override value (true/false) instead of the role-default for that key."
+          "text": "While custom_permissions JSONB has key K with value True for a member, has_permission(roles, K) shall return True regardless of the role-default value for K (grant-only override); validate_custom_permissions shall NOT raise on None / empty dict (returns []) so the helper is safe to call unconditionally; the function shall be pure (no I/O / no DB) so it can be invoked from synchronous validation pipelines."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where multiple roles are passed to has_permission (e.g. ['contributor', 'viewer'] for a user with composite role assignment), the OR-evaluation shall return True if ANY of the roles grants the permission OR if custom_permissions grants it; validate_custom_permissions warn list shall be deterministic (input-key-order preserved) so log output is stable across runs."
         },
         {
           "type": "UNWANTED",
-          "text": "If custom_permissions contains an unknown key or a non-bool value or is not a dict, the system shall reject the request with HTTP 400 and shall not persist the change."
+          "text": "If custom_permissions contains an unknown key (not in PERMISSIONS = 30 keys), validate_custom_permissions shall include that key in the return list; if custom_permissions is not a dict (e.g. list, string, int), the helper shall handle it gracefully (return [] for None, but the upstream layer should reject non-dict before calling this function); the helper shall NOT mutate the input dict (functional purity invariant) and the module shall NOT import langgraph / langchain / litellm (ADR-010)."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/workspace/S-014-workspace-members.html",
