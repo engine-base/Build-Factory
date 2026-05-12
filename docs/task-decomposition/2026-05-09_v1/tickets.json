@@ -2280,7 +2280,7 @@
     },
     {
       "id": "T-022-04",
-      "title": "組織図 UI (React Flow tree)",
+      "title": "組織図 UI (React Flow tree / AI 社員 hierarchy 可視化 / Lucide + eb-500)",
       "sprint": 2,
       "feature": "F-022",
       "layer": "FE",
@@ -2288,25 +2288,31 @@
       "human_days": 0.5,
       "claude_code_hours": 2,
       "deps": [
-        "T-S0-05"
+        "T-S0-05",
+        "T-022-03"
+      ],
+      "existing_files": [
+        "frontend/src/components/dag/DependencyGraph.tsx",
+        "frontend/package.json"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-22",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-022-04 (組織図 UI (React Flow tree)) as specified by feature F-022."
+          "text": "The frontend shall provide `frontend/src/components/org/OrganizationChart.tsx` exposing a `<OrganizationChart employees={...} edges={...} onNodeClick={...} />` component that renders AI employees as a React Flow tree, with role_level (secretary/leader/member) determining vertical row position. The component shall reuse existing `@xyflow/react` (already in package.json) and shall NOT modify `DependencyGraph.tsx` (REUSE)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the user interacts with the UI for T-022-04, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+          "text": "When the user clicks a node, the component shall invoke `onNodeClick(employee)` with the original EmployeeData object. Layout shall recompute via `useMemo` when `employees` or `edges` props change. The component shall be controlled (no internal employees state)."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-022-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the component renders, all colors shall use ENGINE BASE green palette (`border-eb-500` / `border-eb-400` / `border-eb-200` / `bg-eb-50`) per CLAUDE.md §5.2, and all icons shall be Lucide (Crown for secretary, Users for leader, User for member) — NO emojis (CLAUDE.md §5.1). The component shall NOT mutate input props or write to any backend store."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-022-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If `employees` is empty, null, or contains only inactive/invalid records, the component shall render a fallback message (`org-chart-empty` test-id) instead of crashing. If `role_level` is not in [secretary, leader, member], the node shall be excluded silently. The component SHALL NOT contain hardcoded color literals outside the eb-* palette."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/ai/S-036-ai-employees-org-chart.html"
