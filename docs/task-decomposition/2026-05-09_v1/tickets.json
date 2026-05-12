@@ -2167,7 +2167,7 @@
     },
     {
       "id": "T-023-05",
-      "title": "クローン opt-in toggle + GDPR 削除権 (30 日 grace)",
+      "title": "クローン opt-in toggle + GDPR 削除権 (30 日 grace) (backend/services/user_lifecycle.py set/get_clone_optin + request/cancel_deletion + GRACE_DAYS = 30 + AlreadyPendingError + backend/routers/user_lifecycle.py /api/user/* 6 endpoints + execute_due_deletions worker hook)",
       "sprint": 1,
       "feature": "F-023",
       "layer": "FE+BE",
@@ -2178,31 +2178,39 @@
         "T-001-08"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-23",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The user_lifecycle table shall persist clone_optin (bool) and deletion_requested_at (nullable timestamp) per user."
+          "text": "backend/services/user_lifecycle.py shall expose async set_clone_optin / get_clone_optin (user_clone_optin table, default OFF) and async request_deletion / cancel_deletion / list_pending_deletions / execute_due_deletions (user_deletion_requests table with status ∈ {pending, cancelled, executed}); backend/routers/user_lifecycle.py shall expose APIRouter(prefix='/api/user') with 6 endpoints: GET/POST /clone-optin, POST /deletion, DELETE /deletion/{request_id}, GET /deletion/pending, POST /deletion/execute-due."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When a user submits a deletion request, the system shall set deletion_requested_at = now() and shall NOT hard-delete the user until 30 days later (grace period)."
+          "text": "When POST /api/user/deletion is called with {user_id, reason?, grace_days?}, the service shall (a) SELECT id FROM user_deletion_requests WHERE user_id = ? AND status = 'pending' first, (b) raise AlreadyPendingError if a row exists, (c) INSERT a new row with status='pending' + execute_after = now + GRACE_DAYS (default 30 days), (d) emit 'user.deletion_requested' audit event with {request_id, execute_after, grace_days}; the response shall include request_id + execute_after + grace_days so the frontend can display the cancellation deadline."
         },
         {
-          "type": "EVENT-DRIVEN",
-          "text": "When a user cancels a pending deletion within the grace window, the system shall set deletion_requested_at = NULL and restore the account to active state."
+          "type": "STATE-DRIVEN",
+          "text": "While a deletion request is in status='pending', cancel_deletion(request_id) shall UPDATE the row to status='cancelled' + cancelled_at = now() and shall emit 'user.deletion_cancelled' audit (idempotent: 0 rows affected returns False); while execute_after has NOT been reached, execute_due_deletions() shall return {executed: 0} (no premature deletion); the actual data purge (Mem0 / Obsidian / chat_messages) is deferred to a separate worker pass."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where grace_days is supplied in the deletion request body, it shall override the GRACE_DAYS default but be clamped to ge=0 and le=365 by Pydantic; where execute_due_deletions is called with dry_run=True, it shall return {would_execute: N, ids: [...]} without mutating any row so operators can preview before confirming."
         },
         {
           "type": "UNWANTED",
-          "text": "If a user attempts to submit a deletion request while one is already pending, the system shall respond HTTP 409 with detail={code: 'already_pending'}."
+          "text": "If a user submits a second deletion request while a pending one exists, the router shall catch AlreadyPendingError and raise HTTPException(409, {'code': 'already_pending', 'message': str(e)}) without creating a duplicate row; the module shall not import langgraph / langchain / litellm (ADR-010), shall not log plain personal data, and shall not contain hardcoded Supabase / Anthropic credentials."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/account/S-009-profile-settings.html",
       "existing_files": [
         "backend/services/user_lifecycle.py",
-        "backend/routers/user_lifecycle.py"
+        "backend/routers/user_lifecycle.py",
+        "frontend/src/app/settings/profile/page.tsx",
+        "frontend/src/lib/workspace-api.ts"
       ],
       "entities": [
-        "user_lifecycle"
+        "user_clone_optin",
+        "user_deletion_requests"
       ]
     },
     {
