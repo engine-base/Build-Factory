@@ -676,3 +676,173 @@ def test_module_docstring_documents_reuse_constraint():
             or "self implement" in doc.lower()
             or "再実装" in doc
             or "自前" in doc), "docstring must state no self-implementation"
+
+
+# ══════════════════════════════════════════════════════════════════════
+# Spec gap closure G26-G28 (T-M27-03 AC との残 gap)
+# ══════════════════════════════════════════════════════════════════════
+
+
+# ── G26 AC-2 audit detail に timestamp ────────────────────────────────
+
+
+def test_g26_ac2_audit_detail_includes_timestamp(_capture_audit):
+    """AC-2 EVENT-DRIVEN: tickets.json は audit detail に timestamp を要求."""
+    t0 = time.time()
+    asyncio.run(hs.request_handoff(
+        source_persona="mary", target_persona="devon",
+        message="implement", session_id="s1", actor_user_id="alice",
+    ))
+    t1 = time.time()
+    events = [e for e in _capture_audit if e["event_type"] == "m27.handoff"]
+    assert len(events) == 1
+    detail = events[0]["detail"]
+    assert "timestamp" in detail, "AC-2: audit detail must include timestamp"
+    assert isinstance(detail["timestamp"], (int, float))
+    # handoff 実行時刻の範囲内
+    assert t0 <= detail["timestamp"] <= t1 + 0.5
+
+
+def test_g26_audit_detail_full_required_fields(_capture_audit):
+    """AC-2 で要求される source_persona / target_persona / session_id /
+    timestamp の 4 attrs が全部 audit detail に含まれる."""
+    asyncio.run(hs.request_handoff(
+        source_persona="mary", target_persona="devon",
+        message="implement", session_id="sess-X", actor_user_id="alice",
+    ))
+    events = [e for e in _capture_audit if e["event_type"] == "m27.handoff"]
+    d = events[0]["detail"]
+    for required in ("source_persona", "target_persona", "session_id", "timestamp"):
+        assert required in d, f"AC-2 detail missing {required!r}"
+    assert d["source_persona"] == "mary"
+    assert d["target_persona"] == "devon"
+    assert d["session_id"] == "sess-X"
+
+
+# ── G27 AC-3 SDK session resume (session_token) ───────────────────────
+
+
+def test_g27_ac3_session_token_returned(_capture_audit):
+    """AC-3 STATE-DRIVEN: SDK session resume token を request_handoff 戻り値
+    に含める. backend 未登録時は session_id を session_token として流用."""
+    result = asyncio.run(hs.request_handoff(
+        source_persona="mary", target_persona="devon",
+        message="impl", session_id="sdk-sess-1",
+    ))
+    assert "session_token" in result, "AC-3: return must include session_token"
+    assert result["session_token"] == "sdk-sess-1"
+
+
+def test_g27_ac3_session_token_in_audit_detail(_capture_audit):
+    """audit detail にも session_token を含めて SDK session resume が
+    観測可能であることを保証する."""
+    asyncio.run(hs.request_handoff(
+        source_persona="mary", target_persona="devon",
+        message="impl", session_id="sdk-sess-2",
+    ))
+    events = [e for e in _capture_audit if e["event_type"] == "m27.handoff"]
+    detail = events[0]["detail"]
+    assert detail.get("session_token") == "sdk-sess-2"
+
+
+def test_g27_ac3_no_session_id_yields_null_token(_capture_audit):
+    """session_id が無ければ session_token も None (RLS 境界の明示)."""
+    result = asyncio.run(hs.request_handoff(
+        source_persona="mary", target_persona="devon", message="impl",
+    ))
+    assert result["session_token"] is None
+
+
+def test_g27_ac3_backend_provided_token_takes_precedence(_capture_audit):
+    """backend が session_token を返した場合は backend の値を優先する
+    (SDK 側で session resume token が更新されるケース)."""
+    def backend(**kwargs):
+        return {
+            "status": "dispatched",
+            "session_token": "sdk-renewed-token-xyz",
+        }
+    hs.register_handoff_backend(backend)
+    try:
+        result = asyncio.run(hs.request_handoff(
+            source_persona="mary", target_persona="devon",
+            message="impl", session_id="old-sess",
+        ))
+        assert result["session_token"] == "sdk-renewed-token-xyz"
+        events = [e for e in _capture_audit
+                  if e["event_type"] == "m27.handoff"]
+        assert events[0]["detail"]["session_token"] == "sdk-renewed-token-xyz"
+    finally:
+        hs.register_handoff_backend(None)
+
+
+def test_g27_ac3_backend_token_blank_falls_back_to_session_id(_capture_audit):
+    """backend が session_token に空文字を返した場合は session_id に fallback."""
+    hs.register_handoff_backend(lambda **kw: {
+        "status": "dispatched", "session_token": "   ",
+    })
+    try:
+        result = asyncio.run(hs.request_handoff(
+            source_persona="mary", target_persona="devon",
+            message="impl", session_id="fallback-sess",
+        ))
+        assert result["session_token"] == "fallback-sess"
+    finally:
+        hs.register_handoff_backend(None)
+
+
+# ── G28 AC-4 lint script: handoff 自前実装の禁止語検知 ────────────────
+
+
+def _repo_root():
+    """test 実行時の cwd に関わらず repo root を解決する."""
+    from pathlib import Path
+    p = Path(__file__).resolve()
+    # backend/tests/test_*.py → backend/tests → backend → repo root
+    return p.parents[2]
+
+
+def test_g28_ac4_lint_script_has_no_self_handoff_check():
+    """scripts/lint-mock.sh に check_no_self_handoff が定義されている
+    (T-M27-03 AC-4 の機械検知)."""
+    text = (_repo_root() / "scripts" / "lint-mock.sh").read_text(encoding="utf-8")
+    assert "check_no_self_handoff()" in text, (
+        "lint-mock.sh must define check_no_self_handoff (T-M27-03 AC-4)"
+    )
+    assert "--no-self-handoff" in text, (
+        "lint-mock.sh must expose --no-self-handoff CLI mode"
+    )
+
+
+def test_g28_ac4_handoff_service_has_no_forbidden_tokens():
+    """handoff_service.py の source に自前実装の禁止語が含まれない."""
+    src_path = _repo_root() / "backend" / "services" / "handoff_service.py"
+    src = src_path.read_text(encoding="utf-8")
+    forbidden = [
+        "manual_route_to_persona", "custom_subagent_dispatch",
+        "self_handoff_dispatch", "handoff_loop", "role_router_loop",
+        "impl_handoff_locally", "run_subagent_internally",
+    ]
+    for token in forbidden:
+        for line in src.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("#"):
+                continue
+            assert token not in line, (
+                f"handoff_service must not define/use {token!r} "
+                "(T-M27-03 AC-4 / ADR-010)"
+            )
+
+
+def test_g28_ac4_lint_check_pass_when_handoff_service_clean():
+    """check_no_self_handoff を CLI 単独実行で起動し PASS することを確認."""
+    import subprocess
+    root = _repo_root()
+    r = subprocess.run(
+        ["bash", "scripts/lint-mock.sh", "--no-self-handoff"],
+        capture_output=True, text=True, timeout=30, cwd=str(root),
+    )
+    assert r.returncode == 0, (
+        f"lint --no-self-handoff failed: stdout={r.stdout[:500]} "
+        f"stderr={r.stderr[:500]}"
+    )
+    assert "OK" in r.stdout
