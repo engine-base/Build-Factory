@@ -353,7 +353,7 @@
     },
     {
       "id": "T-S0-03",
-      "title": "license-check.yml (AGPL 防御)",
+      "title": "license-check.yml (AGPL 防御 + ADR-010 機械的ガード CI 実効化)",
       "sprint": 0,
       "feature": "META",
       "layer": "OPS",
@@ -361,23 +361,29 @@
       "human_days": 0.3,
       "claude_code_hours": 1,
       "deps": [],
+      "existing_files": [
+        "scripts/lint-mock.sh",
+        "scripts/validate-tickets.py",
+        "scripts/pre-commit-check.sh"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-S0-03 (license-check.yml (AGPL 防御)) as specified by feature META."
+          "text": "The CI workflow `.github/workflows/license-check.yml` shall run on every pull_request to main and every push to main, and shall fail the build (exit_code != 0) if AGPL/LGPL licensed dependencies are detected or if ADR-010 §UNWANTED mechanical guards (LangGraph/LangChain in main runner path, emoji baseline drift, tickets baseline drift, ARCHIVE residual) are violated. The workflow re-uses existing scripts/lint-mock.sh and scripts/validate-tickets.py without re-implementing detection logic."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-S0-03 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When the workflow runs, it shall execute in sequence: scripts/lint-mock.sh --agpl, --no-langgraph, --emoji, --secrets, --archive (5 invocations) and python3 scripts/validate-tickets.py (1 invocation), and shall record the exit code of each step in the GitHub Actions log."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-S0-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While a pull_request is open, the workflow status shall be visible in the GitHub UI and shall preserve existing lint script baselines (emoji=0 / tickets=0 / no AGPL deps / no ARCHIVE residual / no LangGraph imports). The workflow shall NOT modify repository state."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-S0-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If an AGPL/LGPL dep is introduced into backend/requirements.txt or frontend/package.json, the workflow shall fail with exit_code != 0. If LangGraph or LangChain imports appear in the main runner code path, the workflow shall fail (ADR-010 §UNWANTED). If validate-tickets.py reports issues > 0, the workflow shall fail. The workflow shall NOT mutate persistent state (no writes to repo, no audit_logs DB rows)."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
