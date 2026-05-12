@@ -115,6 +115,29 @@ async def compressed(
         raise _map_service_error(e)
 
 
+# AC-1 命名 alias: /list は /compressed の等価エンドポイント
+# (tickets.json T-M30-03 UBIQUITOUS の "list_summaries" に対応する read view).
+@router.get("/list")
+async def list_(
+    thread_id: int = Query(..., gt=0),
+    limit: int = Query(
+        mtl.DEFAULT_HISTORY_LIMIT,
+        ge=mtl.MIN_HISTORY_LIMIT,
+        le=mtl.MAX_HISTORY_LIMIT,
+    ),
+    actor_user_id: Optional[str] = Query(None),
+) -> dict[str, Any]:
+    actor = _check_actor(actor_user_id)
+    try:
+        return mtl.list_summaries(
+            thread_id,
+            limit=limit,
+            actor_user_id=actor,
+        )
+    except mtl.MidTermLayerError as e:
+        raise _map_service_error(e)
+
+
 # ──────────────────────────────────────────────────────────────────────
 # GET /api/mid-term/stats
 # ──────────────────────────────────────────────────────────────────────

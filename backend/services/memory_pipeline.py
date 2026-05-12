@@ -216,11 +216,13 @@ def _default_assemble_text(
             lines.append(f"[{role}] {content}")
         parts.append("【短期記憶 (直近の対話)】\n" + "\n".join(lines))
     # Tier 2 (中期: 9-section summary)
+    # G10: SECTION_KEYS は mid_term_layer に集約 (9-section invariant).
+    # 再定義禁止 — scripts/check-section-keys-uniqueness.py で機械検知.
+    from services.mid_term_layer import SECTION_KEYS as _MID_SECTION_KEYS
     summary = (mid or {}).get("summary") or {}
     if (mid or {}).get("found"):
         section_lines: list[str] = []
-        for k in ("context", "goals", "decisions", "open_questions",
-                  "actions", "blockers", "facts", "preferences", "next_steps"):
+        for k in _MID_SECTION_KEYS:
             items = summary.get(k) or []
             if items:
                 joined = "; ".join(str(x) for x in items[:5])
