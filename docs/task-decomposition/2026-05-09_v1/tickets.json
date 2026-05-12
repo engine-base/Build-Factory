@@ -1051,7 +1051,7 @@
     },
     {
       "id": "T-001-04",
-      "title": "Build-Factory プロジェクト 11 テーブル DDL + RLS (Phase/Feature/Task/AC/Constitution)",
+      "title": "Build-Factory プロジェクト 11 テーブル DDL + RLS (supabase/migrations/20260510000001_bf_project_tables.sql / bf_projects + 10 child tables / workspace_id FK / EARS CHECK / self-loop CHECK)",
       "sprint": "S0",
       "feature": "F-001",
       "layer": "DB",
@@ -1063,9 +1063,11 @@
       ],
       "critical": true,
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "existing_files": [
-        "supabase/migrations/20260501220000_initial_schema.sql",
+        "supabase/migrations/20260510000001_bf_project_tables.sql",
+        "supabase/migrations/20260510000002_rls_full_enforcement.sql",
         "supabase/migrations/20260510000000_auth_tables.sql"
       ],
       "entities": [
@@ -1084,23 +1086,23 @@
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The migration shall create 11 Build-Factory project tables (bf_projects, bf_phases, bf_features, bf_tasks, bf_task_dependencies, bf_acceptance_criteria, bf_constitutions, bf_constitution_revisions, bf_mocks, bf_deliveries, audit_logs) with workspace_id FK to workspaces(id) and TIMESTAMPTZ DEFAULT NOW() audit columns."
+          "text": "supabase/migrations/20260510000001_bf_project_tables.sql shall declare exactly 11 Build-Factory project tables via CREATE TABLE IF NOT EXISTS (bf_projects / bf_phases / bf_features / bf_tasks / bf_task_dependencies / bf_acceptance_criteria / bf_constitutions / bf_constitution_revisions / bf_mocks / bf_deliveries / audit_logs) with workspace_id REFERENCES workspaces(id) FK on workspace-scoped tables and TIMESTAMPTZ DEFAULT NOW() created_at columns; the file shall be fully idempotent."
         },
         {
-          "type": "EVENT",
-          "text": "When the migration is applied a second time (CREATE TABLE IF NOT EXISTS), the system shall not error and shall be idempotent."
+          "type": "EVENT-DRIVEN",
+          "text": "When the migration is applied a second time, every CREATE TABLE shall use IF NOT EXISTS and every CREATE INDEX shall use IF NOT EXISTS (re-application produces no error); CREATE POLICY shall be preceded by DROP POLICY IF EXISTS so the RLS layer is also idempotent."
         },
         {
-          "type": "STATE",
-          "text": "While RLS is enabled, only workspace members (workspace_members.user_id = auth.uid()::text) and service_role shall read or write rows in workspace-scoped tables."
+          "type": "STATE-DRIVEN",
+          "text": "While RLS is enabled on workspace-scoped tables (bf_projects / bf_phases / bf_features / bf_tasks / bf_task_dependencies / bf_acceptance_criteria / bf_constitutions / bf_constitution_revisions / bf_mocks / bf_deliveries), policies shall use auth.uid() / workspace_members membership check (joined via workspace_id) and service_role grant; the migration shall NOT contain any blanket FOR ALL TO public statement (public access禁止 invariant)."
         },
         {
           "type": "OPTIONAL",
-          "text": "Where a bf_constitution row exists, the principles JSONB column shall not be empty (CHECK jsonb_typeof(principles) = 'object' AND principles <> '{}'::jsonb)."
+          "text": "Where a bf_constitutions row exists, the principles JSONB column shall not be NULL (NOT NULL constraint) and bf_constitution_revisions shall reference bf_constitutions(id) so revision history is preserved across edits; the EARS enum CHECK on bf_acceptance_criteria.ears_type shall include all 5 forms (UBIQUITOUS, EVENT-DRIVEN or EVENT, STATE-DRIVEN or STATE, OPTIONAL, UNWANTED) so legacy alias migrations remain valid."
         },
         {
           "type": "UNWANTED",
-          "text": "If bf_acceptance_criteria.ears_type is not one of (UBIQUITOUS, EVENT, STATE, OPTIONAL, UNWANTED), the CHECK constraint shall reject the row; if bf_task_dependencies inserts a self-loop (depends_on = task_id), the CHECK shall reject."
+          "text": "If bf_acceptance_criteria.ears_type is not one of (UBIQUITOUS / EVENT / STATE / OPTIONAL / UNWANTED), a CHECK constraint shall reject the row (current DDL uses 5-form enum with EVENT/STATE as canonical; the JSON-Schema validator in scripts/validate-ears-ac.py accepts both EVENT and EVENT-DRIVEN aliases at the application layer); if bf_task_dependencies inserts a self-loop (depends_on_task_id = task_id), the no_self_dep CHECK shall reject; the migration shall NOT contain any hardcoded sb_(publishable|secret)_*key / sk-ant-* / JWT (eyJ...) literal."
         }
       ],
       "output_file": "supabase/migrations/20260510000001_bf_project_tables.sql"
