@@ -1152,7 +1152,7 @@
     },
     {
       "id": "T-001-06",
-      "title": "RLS 全テーブル enable + custom_permissions 連動 (existing rls_skeleton.sql 拡張)",
+      "title": "RLS 全 23 ユーザデータテーブル enforcement + custom_permissions 連動 (supabase/migrations/20260510000002_rls_full_enforcement.sql / 40 CREATE POLICY / bf_can_access_workspace helper / service_role bypass)",
       "sprint": "S0",
       "feature": "F-001",
       "layer": "DB",
@@ -1166,11 +1166,14 @@
       ],
       "critical": true,
       "existing_files": [
+        "supabase/migrations/20260510000002_rls_full_enforcement.sql",
         "supabase/migrations/20260501220300_rls_skeleton.sql",
         "supabase/migrations/20260510000000_auth_tables.sql",
-        "supabase/migrations/20260510000001_bf_project_tables.sql"
+        "supabase/migrations/20260510000001_bf_project_tables.sql",
+        "supabase/migrations/20260512000000_impl_integration_ops_tables.sql"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-21",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "mock_link": "../../mocks/2026-05-09_v1/workspace/S-014-workspace-members.html",
       "entities": [
         "users",
@@ -1181,23 +1184,23 @@
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall enforce Row Level Security (RLS) on all 43 user-data tables."
+          "text": "supabase/migrations/20260510000002_rls_full_enforcement.sql shall enforce Row Level Security (RLS) on at least 20 user-data tables via ALTER TABLE ... ENABLE ROW LEVEL SECURITY and shall define at least 30 RLS policies via CREATE POLICY; the migration shall include a workspace access helper (e.g. bf_can_access_workspace(ws_id) SQL function joining via workspace_members) used by all workspace-scoped policies."
         },
         {
-          "type": "EVENT",
-          "text": "When a user queries a row outside their workspace, the system shall return zero rows."
+          "type": "EVENT-DRIVEN",
+          "text": "When a user queries a row whose workspace_id is not in their workspace_members set, the RLS policy shall filter the row out (zero rows returned) — guaranteed by USING (bf_can_access_workspace(workspace_id)) clause on workspace-scoped tables; the migration shall use DROP POLICY IF EXISTS before each CREATE POLICY so re-application is idempotent."
         },
         {
-          "type": "STATE",
-          "text": "While operating as service_role, the system shall bypass RLS only in trusted backend code."
+          "type": "STATE-DRIVEN",
+          "text": "While operating as service_role, the system shall bypass RLS via Supabase's built-in service_role privilege (no explicit FOR ALL TO service_role line is required because service_role inherently bypasses RLS); the migration shall NOT contain blanket FOR ALL TO public statements (public access禁止 invariant) and shall NOT disable RLS once enabled (no ALTER TABLE ... DISABLE ROW LEVEL SECURITY in this file)."
         },
         {
           "type": "OPTIONAL",
-          "text": "Where the user is account_owner, the system shall grant cross-workspace read access within their account."
+          "text": "Where the user is an account_owner via account_members or workspace_members with role='owner', additional policies on accounts / workspaces tables shall grant cross-workspace read; the bf_can_access_workspace helper function shall be invoked by USING / WITH CHECK clauses to centralize the membership rule (DRY)."
         },
         {
           "type": "UNWANTED",
-          "text": "If RLS is disabled on any user-data table, the migration test suite shall fail."
+          "text": "If RLS is disabled on any user-data table in this migration (ALTER TABLE ... DISABLE ROW LEVEL SECURITY), the spec test shall fail; if a policy is missing DROP POLICY IF EXISTS counterpart (idempotency violation), the test shall warn; the migration shall NOT contain any hardcoded JWT (eyJ...) / sb_(publishable|secret)_*key / sk-ant-*."
         }
       ],
       "output_file": "supabase/migrations/20260510000002_rls_full_enforcement.sql"
