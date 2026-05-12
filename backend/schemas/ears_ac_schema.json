@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://engine-base.com/build-factory/schemas/ears-ac.json",
+  "title": "EARS Acceptance Criteria Schema",
+  "description": "T-025-01: EARS 5 形式 (Easy Approach to Requirements Syntax) の AC を機械的に validate するための JSON Schema. CLAUDE.md §3 §EARS notation 準拠.",
+  "type": "object",
+  "required": ["type", "text"],
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "description": "EARS 5 形式の type (大文字)",
+      "type": "string",
+      "enum": [
+        "UBIQUITOUS",
+        "EVENT-DRIVEN",
+        "STATE-DRIVEN",
+        "OPTIONAL",
+        "UNWANTED",
+        "EVENT",
+        "STATE"
+      ]
+    },
+    "text": {
+      "description": "AC 本文. 'shall' を含む英語 or 'shall' 相当の日本語表現が原則",
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 2000
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "type": { "const": "UBIQUITOUS" } } },
+      "then": {
+        "properties": {
+          "text": {
+            "pattern": "shall|SHALL"
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "type": { "enum": ["EVENT-DRIVEN", "EVENT"] } } },
+      "then": {
+        "properties": {
+          "text": {
+            "pattern": "When|when "
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "type": { "enum": ["STATE-DRIVEN", "STATE"] } } },
+      "then": {
+        "properties": {
+          "text": {
+            "pattern": "While|while "
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "type": { "const": "OPTIONAL" } } },
+      "then": {
+        "properties": {
+          "text": {
+            "pattern": "Where|where "
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "type": { "const": "UNWANTED" } } },
+      "then": {
+        "properties": {
+          "text": {
+            "pattern": "If|if "
+          }
+        }
+      }
+    }
+  ]
+}
