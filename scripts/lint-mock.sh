@@ -273,12 +273,41 @@ check_tickets() {
 # Dispatch
 # ----------------------------------------------------------------
 check_domain_boundaries() {
-  echo "[8/8] backend bounded-context domain barrel + 循環依存検出..."
+  echo "[8/9] backend bounded-context domain barrel + 循環依存検出..."
   if python3 scripts/check-domain-boundaries.py > /tmp/lint_domains.log 2>&1; then
     echo -e "${GREEN}OK: backend/domains/ 13 barrel 健全 (no bypass / no cycle)${NC}"
   else
     cat /tmp/lint_domains.log
     EXIT_CODE=1
+  fi
+}
+
+# ----------------------------------------------------------------
+# 9. T-M28-02 AC-4 UNWANTED: tool result trimming 自前実装の禁止語検知
+#    ADR-010: trim 本体は claude-agent-sdk の内蔵機能.
+#    application code は size cap / age cap / dedup / truncate / window
+#    の自前実装を行わない. backend/services/tier1_tool_trim.py は
+#    audit wrapper のみ (本 lint の対象).
+#    backend/services/chat_thread_store.py 等 既存 storage layer の汎用
+#    truncate は対象外.
+# ----------------------------------------------------------------
+check_no_self_tool_trim() {
+  echo "[9/9] tool result trim 自前実装検知 (T-M28-02 AC-4)..."
+  local target="backend/services/tier1_tool_trim.py"
+  if [ ! -f "$target" ]; then
+    echo -e "${GREEN}OK: tier1_tool_trim.py が存在しない (skip)${NC}"
+    return 0
+  fi
+  # 禁止語: 自前の trim/cap/window/dedup 実装を示すシンボル.
+  # record_trim_event (audit wrapper) は許可語に含めない (=禁止語に含まない).
+  local forbidden_re='(trim_tool_result|_apply_size_cap|_apply_age_cap|_dedup_tool_results|truncate_tool_result|_compute_trimmed_payload|_run_trim_policy|_apply_window_eviction)'
+  if grep -nE "$forbidden_re" "$target" > /dev/null 2>&1; then
+    echo -e "${RED}NG: $target に tool trim 自前実装の禁止語 (T-M28-02 AC-4 / ADR-010)${NC}"
+    grep -nE "$forbidden_re" "$target"
+    echo "→ trim 本体は claude-agent-sdk 内蔵機能を使う. 本 module は audit wrapper のみ"
+    EXIT_CODE=1
+  else
+    echo -e "${GREEN}OK: tool trim 自前実装の禁止語なし${NC}"
   fi
 }
 
@@ -291,6 +320,7 @@ case "$MODE" in
   --no-langgraph) check_no_langgraph ;;
   --no-litellm-in-runner) check_no_litellm_in_runner ;;
   --domains)      check_domain_boundaries ;;
+  --no-self-tool-trim) check_no_self_tool_trim ;;
   all|"")
     check_emoji
     check_agpl
@@ -300,9 +330,10 @@ case "$MODE" in
     check_no_langgraph
     check_no_litellm_in_runner
     check_domain_boundaries
+    check_no_self_tool_trim
     ;;
   *)
-    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|all]"
+    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|--no-self-tool-trim|all]"
     exit 2
     ;;
 esac

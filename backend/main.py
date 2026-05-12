@@ -90,6 +90,7 @@ from routers.export_trigger import router as export_trigger_router
 from routers.provider_adapter import router as provider_adapter_router
 from routers.byok import router as byok_router
 from routers.tier2_cache import router as tier2_cache_router
+from routers.tier1_tool_trim import router as tier1_tool_trim_router
 from routers.semantic_retrieval import router as semantic_retrieval_router
 from routers.chat_threads import router as chat_threads_router
 from routers.ai_employees import employees_router as ai_employees_router, personas_router as ai_personas_router
@@ -249,6 +250,7 @@ app.include_router(export_trigger_router)
 app.include_router(provider_adapter_router)
 app.include_router(byok_router)
 app.include_router(tier2_cache_router)
+app.include_router(tier1_tool_trim_router)
 app.include_router(semantic_retrieval_router)
 app.include_router(chat_threads_router)
 app.include_router(ai_employees_router)
