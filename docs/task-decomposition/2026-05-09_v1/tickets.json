@@ -127,7 +127,7 @@
     },
     {
       "id": "T-019-03",
-      "title": "bootstrap 動作確認",
+      "title": "bootstrap 動作確認 (smoke test: main:app import / archive removal / required routes)",
       "sprint": 0,
       "feature": "F-019",
       "layer": "TST",
@@ -137,27 +137,32 @@
       "deps": [
         "T-019-02"
       ],
+      "existing_files": [
+        "backend/main.py",
+        "backend/requirements.txt",
+        "frontend/package.json",
+        "scripts/lint-mock.sh",
+        "scripts/pre-commit-check.sh"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-19",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-019-03 (bootstrap 動作確認) as specified by feature F-019."
+          "text": "The system shall provide a pytest module backend/tests/test_t_019_03_bootstrap_health.py that smoke-tests the bootstrapped repo (REUSE: no production code changes) by asserting main:app imports cleanly, exposes >= 300 mounted routes, contains every Sprint-0 core router prefix (/api/features, /api/mid-term, /api/short-term, /api/memory, /api/task-decomposition), and that backend/requirements.txt + frontend/package.json exist."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-019-03 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When the bootstrap health pytest module is invoked, the system shall complete all assertions in under 10 seconds, shall return non-zero status if any required ARCHIVE directory (onlook/, penpot/) reappears at the repo root, and shall report which expected router is missing in the assertion failure message (no silent skips)."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the existing implementation is in use, the system shall not regress: existing tests and integrations for T-019-03 shall continue to pass."
+          "text": "While the bootstrap repo is operational, the system shall keep onlook/ and penpot/ removed from repo root, shall keep backend/main.py + backend/requirements.txt + frontend/package.json present, and shall keep scripts/lint-mock.sh + scripts/pre-commit-check.sh executable; the smoke test shall not import optional sub-features or mutate persistent state."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-019-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If main:app fails to import, if any of {onlook/, penpot/, services/cookiecutter_legacy/} re-appear at repo root, if requirements.txt contains AGPL licensed packages, or if frontend/package.json is missing the next/react/lucide-react/shadcn dependency keys, the pytest module shall fail with a specific assertion message identifying the regression (no graceful skip), so CI shall fail mechanically."
         }
-      ],
-      "existing_files": [
-        "TBD: specify in BA review"
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
