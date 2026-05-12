@@ -630,7 +630,7 @@
     },
     {
       "id": "T-S0-09",
-      "title": "OS-level sandbox 基盤 (bwrap on Linux / sandbox-exec on macOS)",
+      "title": "OS-level sandbox 基盤 (bwrap on Linux + --unshare-net zero-trust / sandbox-exec on macOS / sandbox.violation audit-log + crash_reason='sandbox_violation' / T-S0-08 runner 統合)",
       "sprint": "S0",
       "feature": "META",
       "layer": "OPS",
@@ -641,8 +641,15 @@
         "T-S0-08"
       ],
       "critical": true,
-      "existing_files": [],
+      "existing_files": [
+        "backend/sandbox/__init__.py",
+        "backend/sandbox/config.py",
+        "backend/sandbox/exec.py",
+        "backend/integrations/claude_agent_runner.py",
+        "backend/tests/test_sandbox.py"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "entities": [
         "sessions"
@@ -650,23 +657,23 @@
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall execute all subprocess commands invoked by claude-agent-sdk runner inside an OS-level sandbox: bwrap (bubblewrap) on Linux and sandbox-exec on macOS, configured via SandboxConfig (allow_paths, allow_hosts, read_only_paths)."
+          "text": "backend/sandbox/ shall expose SandboxConfig (frozen dataclass with allow_paths / read_only_paths / allow_hosts / timeout_sec / cwd / extra_env), SandboxResult, SandboxError, SandboxUnavailable, SandboxViolation, run_sandboxed(cmd, cfg), plus internal _build_bwrap_argv and _build_sandbox_exec_argv. claude-agent-sdk runner (backend/integrations/claude_agent_runner.py) shall route all subprocess execution through run_sandboxed and shall NOT call subprocess.Popen / subprocess.run directly on user-supplied commands (sandbox bypass 禁止)."
         },
         {
-          "type": "EVENT",
-          "text": "When a sandboxed process attempts to write outside SandboxConfig.allow_paths, the OS layer shall block the syscall (bwrap --ro-bind for read-only roots, sandbox-exec deny for others)."
+          "type": "EVENT-DRIVEN",
+          "text": "When run_sandboxed is invoked on Linux, _build_bwrap_argv shall include `--ro-bind` for every entry in SandboxConfig.read_only_paths, `--bind` for every entry in allow_paths, and `--unshare-pid --unshare-ipc --unshare-uts` for namespace isolation; on macOS, _build_sandbox_exec_argv shall start with `(version 1) (deny default) (allow process-fork)` and emit `(allow file-write* (regex ...))` only for allow_paths."
         },
         {
-          "type": "STATE",
-          "text": "While running in sandbox, the system shall deny outbound network by default (bwrap --unshare-net) and only open access to SandboxConfig.allow_hosts via an explicit relay or empty by default."
+          "type": "STATE-DRIVEN",
+          "text": "While SandboxConfig.allow_hosts is empty, the system shall deny outbound network on Linux by appending `--unshare-net` to the bwrap argv and on macOS by appending `(deny network*)` to the sandbox-exec policy; SandboxConfig.network_enabled() shall return False iff allow_hosts is empty (zero-trust default)."
         },
         {
           "type": "OPTIONAL",
-          "text": "Where SandboxConfig.allow_hosts is empty, run_sandboxed shall NOT enable network at all (zero-trust default for runner subprocesses)."
+          "text": "Where SandboxConfig.allow_hosts is empty (default), run_sandboxed shall NOT enable network at all (zero-trust); only when the caller explicitly provides at least one host in allow_hosts shall the network namespace be preserved (subject to bwrap kernel support); test_sandbox.py shall include a regression test that asserts `--unshare-net` is in argv when allow_hosts is empty."
         },
         {
           "type": "UNWANTED",
-          "text": "If a sandboxed process exits with a sandbox-violation signal (SIGSYS / EPERM from seccomp / bwrap detected escape), the system shall mark the session.status='crashed' with crash_reason='sandbox_violation' and append a redline event to audit_logs (action='sandbox.violation')."
+          "text": "If a sandboxed subprocess exits with sandbox-violation signal (SIGSYS) / EPERM from seccomp / bwrap detected escape, _detect_violation(rc, stderr) shall return a violation reason string ('write_outside_allow_paths' / 'network_disabled' / 'seccomp_blocked' / etc.) and run_sandboxed shall raise SandboxViolation; the claude-agent-sdk runner shall catch it, set SessionRecord.status='crashed' with crash_reason='sandbox_violation', and emit an AuditEvent with action='sandbox.violation' to audit_logs (no silent drop)."
         }
       ],
       "output_file": "backend/sandbox/{__init__.py,config.py,exec.py}"
