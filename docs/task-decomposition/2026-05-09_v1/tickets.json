@@ -5280,7 +5280,7 @@
     },
     {
       "id": "T-M29-02",
-      "title": "worktree path → session マッピング",
+      "title": "worktree path → session マッピング (T-M29-01 REUSE / parse_worktree_path / is_worktree_path / find_session_for_path / WORKTREE_PATH_PATTERN regex)",
       "sprint": 6,
       "feature": "M-29",
       "layer": "WK",
@@ -5290,23 +5290,28 @@
       "deps": [
         "T-M29-01"
       ],
+      "existing_files": [
+        "backend/services/swarm/worktree.py",
+        "backend/services/swarm/__init__.py"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-29",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-M29-02 (worktree path → session マッピング) as specified by feature M-29."
+          "text": "backend/services/swarm/path_mapper.py shall expose public symbols WORKTREE_PATH_PATTERN (compiled regex matching .worktrees/swarm_{pool_id:int}/cell_{cell_index:int}), parse_worktree_path(path) -> Optional[dict{pool_id, cell_index, relative, worktree_root}], is_worktree_path(path) -> bool, find_session_for_path(path) -> Optional[dict], InvalidPathError; T-M29-01 backend/services/swarm/worktree.py shall be REUSED via worktree_path() / branch_name() helpers without modification (REUSE invariant) — path_mapper is a one-way dep on worktree.py constants."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-M29-02 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When parse_worktree_path is invoked with `<repo>/.worktrees/swarm_42/cell_7/subdir/file.py`, it shall return {pool_id: 42, cell_index: 7, relative: 'subdir/file.py', worktree_root: '<repo>/.worktrees/swarm_42/cell_7'}; when the path does NOT match WORKTREE_PATH_PATTERN, parse_worktree_path shall return None (no exception); when find_session_for_path is invoked and no session row references the worktree root, it shall return None gracefully (not 404 / not exception)."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-M29-02 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the module is operational, the parsing functions shall be pure (no I/O / no DB / deterministic for identical input), the path_mapper shall NOT import langgraph / langchain / litellm (ADR-010), and shall NOT redefine REPO_ROOT / WORKTREES_BASE (re-import from T-M29-01 worktree.py / G15 single-source invariant); find_session_for_path shall use a process-local LRU cache (functools.lru_cache size=256) so repeated lookups are O(1)."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-M29-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If path is empty/non-string/over 4096 chars, parse_worktree_path shall raise InvalidPathError instead of returning None (distinguishes 'no match' from 'invalid input'); if find_session_for_path receives a non-worktree path it shall return None (not raise); pool_id/cell_index parsed from the path shall be subject to T-M29-01 _validate (re-using InvalidWorktreeArgs semantics so pool_id <= 0 / cell_index < 0 are rejected by the underlying worktree module)."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
