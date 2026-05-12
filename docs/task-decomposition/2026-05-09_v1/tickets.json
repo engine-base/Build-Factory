@@ -440,7 +440,7 @@
     },
     {
       "id": "T-S0-05",
-      "title": "shadcn/ui setup + Tailwind config",
+      "title": "shadcn/ui setup + Tailwind config (verify existing setup / eb-500 + Lucide invariants)",
       "sprint": 0,
       "feature": "META",
       "layer": "FE",
@@ -448,27 +448,32 @@
       "human_days": 0.3,
       "claude_code_hours": 1,
       "deps": [],
+      "existing_files": [
+        "frontend/components.json",
+        "frontend/postcss.config.mjs",
+        "frontend/src/app/globals.css",
+        "frontend/src/lib/utils.ts",
+        "frontend/package.json"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-S0-05 (shadcn/ui setup + Tailwind config) as specified by feature META."
+          "text": "The system shall expose a pytest module backend/tests/test_t_s0_05_shadcn_tailwind.py that verifies the frontend shadcn/ui + Tailwind v4 setup: frontend/components.json shall declare iconLibrary='lucide' and tsx=true, frontend/postcss.config.mjs shall load @tailwindcss/postcss, frontend/src/app/globals.css shall import tailwindcss and define --color-eb-500: #1a6648, frontend/src/lib/utils.ts shall export cn(), and frontend/package.json shall list tailwindcss, @tailwindcss/postcss, class-variance-authority, clsx, tailwind-merge, lucide-react, shadcn."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the user interacts with the UI for T-S0-05, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+          "text": "When the verification pytest is invoked, the system shall complete all assertions in under 5 seconds and shall produce specific failure messages identifying which config file or token (eb-500 / Lucide / cn / required dep) is missing — no silent skips."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the existing implementation is in use, the system shall not regress: existing tests and integrations for T-S0-05 shall continue to pass."
+          "text": "While the shadcn/Tailwind setup is in use, the system shall preserve CLAUDE.md §5.2 invariants: ENGINE BASE green eb-500 = '#1a6648' shall be present in globals.css and shall NOT be overridden by another value; iconLibrary in components.json shall remain 'lucide' (no @heroicons/@fontawesome/etc); the verification module shall not mutate any frontend file."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-S0-05, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If components.json declares a non-Lucide iconLibrary, if globals.css drops the eb-500 #1a6648 token, if frontend/package.json adds a hard-disallowed icon library (@heroicons/react, @fortawesome/*, react-icons), or if shadcn/tailwind config files are deleted, the pytest module shall fail with an explicit assertion message (silent skip 禁止) so CI shall mechanically reject the regression."
         }
-      ],
-      "existing_files": [
-        "TBD: specify in BA review"
       ],
       "mock_link": "../../mocks/2026-05-09_v1/account/S-006-account-dashboard.html"
     },
