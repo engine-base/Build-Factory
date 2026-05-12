@@ -6893,7 +6893,7 @@
     },
     {
       "id": "T-AI-03",
-      "title": "chat_messages 全文検索 (pg_trgm + pgvector ハイブリッド)",
+      "title": "chat_messages 全文検索 (chat_search.hybrid_search + parse_query date:YYYY-MM + trgm_similarity char_bigrams Jaccard + _vector_score_for embedding_service + GET /api/search/chat REST + hybrid_search_postgres Phase 2 fork)",
       "sprint": "S2",
       "feature": "F-024",
       "layer": "L1",
@@ -6907,9 +6907,11 @@
         "T-024-01"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-24",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "mock_link": "../../mocks/2026-05-09_v1/account/S-011-global-search.html",
       "existing_files": [
-        "data/migrations/"
+        "backend/services/chat_search.py",
+        "backend/routers/chat_search.py"
       ],
       "entities": [
         "chat_messages",
@@ -6918,23 +6920,23 @@
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall expose a hybrid search API combining pg_trgm (lexical similarity) and pgvector (semantic similarity) over chat_messages.content."
+          "text": "backend/services/chat_search.py shall expose async hybrid_search(query, *, user_id=None, workspace_id=None, top_k=20, use_vector=True, weight_trgm=0.5, weight_vector=0.5) returning list[HybridHit] (message_id / thread_id / role / content / created_at / trgm_score / vector_score / final_score); backend/routers/chat_search.py shall expose GET /api/search/chat?q=...&top_k=20&user_id=...&workspace_id=...&use_vector=true with APIRouter(prefix='/api/search'); the hybrid score formula shall be final = weight_trgm * trgm + weight_vector * vector (default 0.5 / 0.5)."
         },
         {
-          "type": "EVENT",
-          "text": "When a user types a query in S-011 global search, the system shall return ranked results (hybrid score = 0.5*trgm + 0.5*vector) within 500ms (P95)."
+          "type": "EVENT-DRIVEN",
+          "text": "When hybrid_search is called, the system shall (a) parse_query(query) → (cleaned_query, date_prefix), (b) _candidate_rows() fetch up to candidate_limit=200 rows via LIKE filter on the first word + optional date LIKE filter, (c) for each candidate compute trgm = trgm_similarity(cleaned_query, content) via char_bigrams Jaccard, (d) optionally compute vector = _vector_score_for() via services.embedding_service.embed + cosine_similarity, (e) sort by final_score DESC and return hits[:top_k]; trgm_similarity shall use bigrams (2-gram) for short chat content with `  s.lower().strip()  ` padding."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While DATABASE_URL points to a Postgres backend, hybrid_search_postgres(query, *, user_id, workspace_id=None, top_k=20) shall raise NotImplementedError (Phase 2 hook) so callers know to migrate explicitly; while embedding_service is unavailable (ImportError or runtime failure), _vector_score_for shall catch the exception and return 0.0 so the lexical-only path still produces results (graceful degradation)."
         },
         {
           "type": "OPTIONAL",
-          "text": "Where the user adds 'date:2026-04', the system shall narrow results to that date range."
-        },
-        {
-          "type": "STATE",
-          "text": "While indexing, the system shall use pg_partman to partition chat_messages by month for fast archival."
+          "text": "Where the query contains 'date:YYYY-MM' (or 'date:YYYY-MM-DD'), the _DATE_FILTER_RE regex shall extract the YYYY-MM prefix and the candidate fetch shall add `AND created_at LIKE 'YYYY-MM%'` to the WHERE clause; the cleaned query shall have the date token stripped and whitespace collapsed (re.sub(r'\\s+', ' ', ...)) so trgm scoring is not polluted by the filter syntax."
         },
         {
           "type": "UNWANTED",
-          "text": "If a query attempts to search across workspaces the user has no access to, RLS shall block it and the result count shall be 0."
+          "text": "If the candidate DB fetch raises (sqlite locked / connection failed), _candidate_rows shall log a warning and return [] so hybrid_search returns an empty list rather than propagating the exception to the HTTP layer; if cleaned_query is empty after parse_query, hybrid_search shall short-circuit and return [] without touching the DB; the chat_search module shall not import langgraph / langchain / litellm (ADR-010) and shall not contain hardcoded Supabase / Anthropic credentials."
         }
       ]
     },
