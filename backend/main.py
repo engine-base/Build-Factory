@@ -98,6 +98,7 @@ from routers.mid_term_layer import router as mid_term_layer_router
 from routers.memory_pipeline import router as memory_pipeline_router
 from routers.handoff import router as handoff_router
 from routers.ears_classifier import router as ears_classifier_router
+from routers.screens_components import router as screens_components_router
 from routers.intent_classifier import router as intent_classifier_router
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
@@ -248,6 +249,7 @@ app.include_router(mid_term_layer_router)
 app.include_router(memory_pipeline_router)
 app.include_router(handoff_router)
 app.include_router(ears_classifier_router)
+app.include_router(screens_components_router)
 app.include_router(intent_classifier_router)
 
 
