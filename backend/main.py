@@ -69,6 +69,7 @@ from routers.admin_seed import router as admin_seed_router
 from routers.personas_guideline import router as personas_guideline_router
 from routers.spec_mock_links import router as spec_mock_links_router
 from routers.feature_decomposer import router as feature_decomposer_router
+from routers.task_decomposition import router as task_decomposition_router
 from routers.impact_analyzer import router as impact_analyzer_router
 from routers.task_list_view import router as task_list_view_router
 from routers.impact_highlight import router as impact_highlight_router
@@ -220,6 +221,7 @@ app.include_router(admin_seed_router)
 app.include_router(personas_guideline_router)
 app.include_router(spec_mock_links_router)
 app.include_router(feature_decomposer_router)
+app.include_router(task_decomposition_router)
 app.include_router(impact_analyzer_router)
 app.include_router(task_list_view_router)
 app.include_router(impact_highlight_router)
