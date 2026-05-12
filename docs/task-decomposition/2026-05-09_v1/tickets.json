@@ -1109,7 +1109,7 @@
     },
     {
       "id": "T-001-05",
-      "title": "実装・連携・運用 20 テーブル DDL + ChatThread/ChatMessage/Template",
+      "title": "実装・連携・運用 17 テーブル + Template DDL (chat_threads / chat_messages は T-S0-08 runner_session_tables.sql に同梱 / impl_integration_ops_tables.sql / red_lines + api_keys + slack_webhooks + github_repos + obsidian_vaults + templates 等)",
       "sprint": 0,
       "feature": "F-001",
       "layer": "DB",
@@ -1119,23 +1119,33 @@
       "deps": [
         "T-001-02"
       ],
+      "existing_files": [
+        "supabase/migrations/20260512000000_impl_integration_ops_tables.sql",
+        "supabase/migrations/20260510000003_runner_session_tables.sql",
+        "supabase/migrations/20260510000002_rls_full_enforcement.sql"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-001-05 (実装・連携・運用 20 テーブル DDL + ChatThread/ChatMessage/Template) as specified by feature F-001."
+          "text": "supabase/migrations/20260512000000_impl_integration_ops_tables.sql shall declare exactly 17 tables via CREATE TABLE IF NOT EXISTS (session_artifacts / prs / pr_reviews / red_lines / red_line_violations / llm_providers / api_keys / slack_webhooks / github_repos / obsidian_vaults / notifications / token_limits / backups / user_settings / workspace_settings / schema_versions / templates); the companion runner_session_tables migration shall additionally declare chat_threads + chat_messages tables (M-30 memory layer); all CREATE statements shall be idempotent."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the relevant API endpoint or service function is invoked for T-001-05, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+          "text": "When the migration is applied a second time, every CREATE TABLE shall use IF NOT EXISTS and every CREATE INDEX shall use IF NOT EXISTS so the migration is fully idempotent; the schema_versions table shall be populated by the migration with a row marking the schema version applied (audit trail for backward-compat)."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-001-05 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the integration tables are operational, api_keys shall reference encrypted_secrets via (secret_scope, secret_key) both NOT NULL (plaintext API key 禁止 / pgsodium 二重暗号化 invariant) and obsidian_vaults.vault_path shall be TEXT NOT NULL (per-user vault 必須); red_line_violations shall have red_line_id BIGINT NOT NULL REFERENCES red_lines(id) ON DELETE CASCADE so cascade delete is consistent; the migration shall NOT contain blanket FOR ALL TO public (public access禁止 invariant)."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where templates is populated, the templates.template_kind column shall have a CHECK constraint enumerating exactly 5 kinds (task / pr / mock / prompt / constitution) so application code can safely switch on the value; backups shall have a status CHECK constraint with 3 values (completed / failed / in_progress) and a backup_kind CHECK with 4 values (db / storage / obsidian / full)."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-001-05, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If an api_key is inserted without (secret_scope, secret_key) (= encrypted_secrets reference), the NOT NULL constraints shall reject (raw plaintext value column 禁止); if a red_line_violation is inserted without a valid red_line_id FK, the FK constraint shall reject; the migration shall NOT contain any hardcoded sb_(publishable|secret)_*key / sk-ant-* / JWT (eyJ...) literal."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
