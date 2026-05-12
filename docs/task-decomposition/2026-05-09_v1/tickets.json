@@ -708,7 +708,7 @@
     },
     {
       "id": "T-S0-09b",
-      "title": "RLS helper (auth_middleware から PostgreSQL session に auth.uid() を伝播)",
+      "title": "RLS context helper (auth_middleware → PostgreSQL session に SET LOCAL request.jwt.claim.sub 伝播 / async context manager / no production bypass)",
       "label": "REFACTOR",
       "feature": "F-001",
       "layer": "BE",
@@ -722,35 +722,37 @@
       "claude_code_hours": 2,
       "human_days": 0.3,
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-21",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "entities": [
         "users",
         "sessions"
       ],
       "existing_files": [
-        "backend/services/auth_middleware.py"
+        "backend/services/auth_middleware.py",
+        "backend/services/supabase_client.py"
       ],
-      "output_file": "backend/services/auth_middleware.py + backend/services/rls_context.py",
+      "output_file": "backend/services/rls_context.py",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The auth_middleware shall set Postgres SET LOCAL request.jwt.claims = '<jwt_claims>' and SET LOCAL request.jwt.claim.sub = '<user_id>' for every authenticated request before any query."
+          "text": "backend/services/rls_context.py shall expose public symbols set_request_user(conn, user_id, custom_permissions=None), reset_request_user(conn), with_request_user(conn, user_id, custom_permissions=None) (async context manager), DEV_BYPASS_USER_ID, MAX_USER_ID_LEN=200, RLSContextError; the helper shall use Postgres `SET LOCAL request.jwt.claim.sub = '<user_id>'` and `SET LOCAL request.jwt.claims = '<json>'` so RLS policies relying on auth.uid() / auth.jwt() can read the per-request user identity."
         },
         {
-          "type": "EVENT",
-          "text": "When the request completes (success or error), the system shall RESET the JWT claim variables so the connection can be safely returned to the pool."
+          "type": "EVENT-DRIVEN",
+          "text": "When with_request_user(conn, user_id) async context manager exits (either via success path or exception path), the helper shall invoke reset_request_user(conn) to clear the SET LOCAL variables so the connection can be safely returned to the pool; reset_request_user shall use `RESET request.jwt.claim.sub` and `RESET request.jwt.claims` (not SET to empty string)."
         },
         {
-          "type": "STATE",
-          "text": "While operating without an Authorization header (BUILD_FACTORY_DEV_BYPASS_AUTH=1), the system shall set a deterministic dev user_id for local development, and shall not bypass RLS in production."
+          "type": "STATE-DRIVEN",
+          "text": "While operating with BUILD_FACTORY_DEV_BYPASS_AUTH=1 (local dev), the helper shall use DEV_BYPASS_USER_ID = '00000000-0000-0000-0000-000000000001' (matching auth_middleware DEV_USER.sub) as deterministic fallback; the helper shall NOT bypass RLS when BF_ENV='prod' (the bypass env var is only respected in non-prod, enforced via bf_env_guard.is_destructive_allowed()) and shall NOT import langgraph / langchain / litellm (ADR-010)."
         },
         {
           "type": "OPTIONAL",
-          "text": "Where a request carries custom_permissions JSONB on users, the helper shall expose them to PG via SET LOCAL so RLS policies can read auth.jwt() -> 'custom_permissions'."
+          "text": "Where the user record carries custom_permissions JSONB, the helper shall serialize it into the SET LOCAL request.jwt.claims JSON payload so RLS policies can read `auth.jwt() -> 'custom_permissions'`; the JSON payload shall be safely escaped (no single-quote SQL injection) by using parameterized SET LOCAL via conn.execute('SET LOCAL request.jwt.claims = $1', json_str) where the driver supports it, or proper escape function."
         },
         {
           "type": "UNWANTED",
-          "text": "If RESET fails or the connection is reused without RESET, the next query shall NOT inherit prior JWT claims (test by issuing a query as anonymous after a logged-in request)."
+          "text": "If user_id is empty/non-string/over MAX_USER_ID_LEN=200 chars, or contains single-quote / null-byte (SQL injection vector), set_request_user shall raise RLSContextError BEFORE issuing the SET LOCAL statement; if RESET fails inside the context manager exit path, the helper shall re-raise so the connection is NOT returned to the pool with stale state; the helper shall NOT have a `force_bypass=True` argument (backdoor 禁止)."
         }
       ]
     },
