@@ -1976,7 +1976,7 @@
     },
     {
       "id": "T-023-01",
-      "title": "プロフィール編集 UI (existing user_profile 拡張)",
+      "title": "プロフィール編集 UI (frontend/src/app/settings/profile/page.tsx ProfileTab + AppearanceTab + Lucide User/Save/Loader2 + GET/PATCH /api/bf-profile + 5 TabKey navigation)",
       "sprint": 1,
       "feature": "F-023",
       "layer": "FE",
@@ -1990,25 +1990,32 @@
         "backend/services/user_profile.py",
         "backend/routers/account_settings.py",
         "backend/services/bf_profile.py",
-        "backend/routers/bf_profile.py"
+        "backend/routers/bf_profile.py",
+        "frontend/src/app/settings/profile/page.tsx",
+        "frontend/src/lib/workspace-api.ts"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-23",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The /settings/profile page shall allow editing of display_name, role_text, bio, theme, and avatar_url for the current user."
+          "text": "frontend/src/app/settings/profile/page.tsx shall expose 5 TabKey values ['profile', 'notifications', 'appearance', 'security', 'api_keys'] with lucide-react icons (User / Bell / Palette / ShieldCheck / KeyRound); the profile tab shall edit display_name, role_text, bio for the current user backed by workspace-api.fetchProfile / patchProfile (GET / PATCH /api/bf-profile?user_id=...); the appearance tab shall persist theme ∈ ['light', 'dark', 'system'] via the same patchProfile helper; ENGINE BASE green bg-eb-500 shall be used as the primary CTA color (no emoji per CLAUDE.md §5.1)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the user clicks the save button, the system shall send PATCH /api/bf-profile with the dirty fields and display a success toast on 200."
+          "text": "When the user clicks the Save button, saveMut.mutate() shall call patchProfile(USER_ID, {display_name, role_text, bio}) and on success shall (a) write the response back to the ['bf-profile', USER_ID] React Query cache via qc.setQueryData, (b) set savedAt = Date.now() and clear it after ~2.2 s with setTimeout so a transient '保存しました' Check badge is shown; theme changes shall call patchProfile({theme}) inside themeMut without leaving the tab."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the form is dirty (any field changed vs. the loaded value), the system shall enable the save button; otherwise it shall be disabled."
+          "text": "While profileQ.isLoading is true or draft is null, the page shall render a Loader2 spinner with '読み込み中…' instead of an empty form; while saveMut.isPending is true, the Save button shall be disabled and shall render a Loader2 spinner instead of the Save icon; the local draft state shall be detached from the React Query cache (separate useState) so that in-flight edits are not clobbered by background refetch."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where the loaded profile has draft.display_name set, the avatar circle shall display the uppercase first character of display_name as the initial; where the user clicks 'リセット', the draft shall be reset to profileQ.data (revert all in-flight edits) so the user can abandon the form without reloading the page."
         },
         {
           "type": "UNWANTED",
-          "text": "If the backend returns a 5xx, the system shall preserve the user's input and display an error toast indicating the save failed."
+          "text": "If patchProfile returns null (backend 4xx / 5xx), saveMut shall throw 'save failed' which leaves the local draft untouched (user input preserved); the module shall not import langgraph / langchain / litellm (ADR-010), shall not use dangerouslySetInnerHTML (XSS), and shall not contain hardcoded Supabase / Anthropic credentials."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/account/S-009-profile-settings.html",
