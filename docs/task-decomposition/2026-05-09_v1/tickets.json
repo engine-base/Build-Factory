@@ -2615,99 +2615,113 @@
     },
     {
       "id": "T-M28-02",
-      "title": "Tier 1 tool result trimming",
+      "title": "Tier 1 tool result trimming (SDK auto activation + audit wrapper)",
       "sprint": 2,
       "feature": "M-28",
       "layer": "RUN",
-      "label": "NEW",
-      "human_days": 0.5,
-      "claude_code_hours": 2,
+      "label": "REUSE",
+      "human_days": 0.2,
+      "claude_code_hours": 1,
       "deps": [
-        "T-M28-01"
+        "T-S0-08"
+      ],
+      "existing_files": [
+        "(claude-agent-sdk built-in)"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-M28-02 (Tier 1 tool result trimming) as specified by feature M-28."
+          "text": "The system shall enable claude-agent-sdk's built-in tool result trim feature using SDK defaults and shall NOT re-implement trimming logic in application code (ADR-010: SDK-native, no duplicate of auto features)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-M28-02 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When the SDK trims a tool result during a session, the system shall record an audit_logs entry with event_type='tier1.tool_result_trimmed', the session_id, original size, and trimmed size."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-M28-02 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the SDK trim feature is active, the system shall preserve the original tool result in chat_messages (no destructive mutation) and shall apply Row Level Security on audit_logs per CLAUDE.md §5.3."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-M28-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If application code re-implements tool result trimming logic (size cap / age cap / dedup), the lint script shall fail. If invalid input or unauthorized actor is detected, the system shall reject with 4xx {detail:{code,message}} and shall not mutate persistent state."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-M28-03",
-      "title": "Tier 2 prompt cache friendly (cache_control: ephemeral 5min)",
+      "title": "Tier 2 prompt cache friendly (cache_control: ephemeral 5min) — SDK + anthropic-python auto activation",
       "sprint": 2,
       "feature": "M-28",
       "layer": "RUN",
-      "label": "NEW",
-      "human_days": 0.3,
+      "label": "REUSE",
+      "human_days": 0.2,
       "claude_code_hours": 1,
       "deps": [
         "T-020-04"
       ],
+      "existing_files": [
+        "(claude-agent-sdk + anthropic-python built-in)"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-M28-03 (Tier 2 prompt cache friendly (cache_control: ephemeral 5min)) as specified by feature M-28."
+          "text": "The system shall enable cache_control={'type':'ephemeral'} on all anthropic-python and claude-agent-sdk calls (TTL 5min) and shall NOT re-implement prompt caching logic in application code (ADR-010 / requirements §11.6 STATE)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-M28-03 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When an anthropic-python response includes usage.cache_read_input_tokens or usage.cache_creation_input_tokens, the system shall record both values in cost_logs along with session_id and timestamp."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-M28-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While prompt cache is active, the system shall expose a daily cache_hit_rate metric (cache_read / (cache_read + cache_creation + input)) and shall apply Row Level Security on cost_logs per CLAUDE.md §5.3."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-M28-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If application code re-implements prompt caching or attempts to manage TTL manually, the lint script shall fail. If invalid input or unauthorized actor is detected, the system shall reject with 4xx {detail:{code,message}} and shall not mutate persistent state."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-M28-04",
-      "title": "Tier 3 9-section structured summary (background task)",
+      "title": "Tier 3 9-section structured summary persistence (SDK auto-generated, DB persist wrapper only)",
       "sprint": 2,
       "feature": "M-28",
       "layer": "RUN",
-      "label": "NEW",
-      "human_days": 0.7,
-      "claude_code_hours": 3,
+      "label": "REFACTOR",
+      "human_days": 0.3,
+      "claude_code_hours": 1.5,
       "deps": [
-        "T-M28-01"
+        "T-S0-08",
+        "T-M30-01"
+      ],
+      "existing_files": [
+        "backend/services/chat_thread_store.py",
+        "backend/services/memory_service.py"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-M28-04 (Tier 3 9-section structured summary (background task)) as specified by feature M-28."
+          "text": "The system shall persist the 9-section structured summary auto-generated by claude-agent-sdk at 95% context into chat_messages.compressed_summary, and shall NOT re-implement the summarization logic (no keyword heuristic, no LLM call from application code — ADR-010 / requirements §11.6 EVENT)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-M28-04 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When the SDK emits a memory_compacted event (95% threshold reached), the system shall persist the 9 sections to chat_messages.compressed_summary and emit audit_logs event_type='memory_compacted' with summary_message_id and section keys within 2 seconds."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-M28-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While persistence is in progress, the system shall preserve original messages in chat_messages (no destructive mutation) and shall apply Row Level Security + audit_logs per CLAUDE.md §5.3."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-M28-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If application code generates the 9-section summary itself (keyword heuristic, LLM call from application layer, or any rule-based extractor), the lint script shall fail. If the SDK output schema is invalid (missing any of 9 sections), the system shall reject persistence with a 4xx response and shall not mutate persistent state."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
