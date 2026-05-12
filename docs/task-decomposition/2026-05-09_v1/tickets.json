@@ -500,7 +500,7 @@
     },
     {
       "id": "T-S0-06",
-      "title": "共通 UI components (Button/Input/Modal/Toast/Badge)",
+      "title": "共通 UI components (Button/Input/Modal/Toast/Badge / shadcn + Radix UI + sonner / cva variant + ENGINE BASE green / Lucide-only)",
       "sprint": 0,
       "feature": "META",
       "layer": "FE",
@@ -511,26 +511,40 @@
         "T-S0-05"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-S0-06 (共通 UI components (Button/Input/Modal/Toast/Badge)) as specified by feature META."
+          "text": "frontend/src/components/ui/ shall expose the 5 canonical primitives required by CLAUDE.md §5.2: button.tsx (Button + buttonVariants cva), input.tsx (Input), dialog.tsx (Dialog + DialogTrigger + DialogContent + DialogHeader + DialogFooter + DialogTitle + DialogDescription + DialogClose + DialogPortal + DialogOverlay — 10 named exports; serves as the Modal primitive), sonner.tsx (Toaster + re-exported toast — serves as the Toast primitive), badge.tsx (Badge + badgeVariants cva). Each shall use class-variance-authority (cva) for variants when applicable and shall NOT redefine the design tokens (eb-500 / eb-700 are owned by tailwind.config + design-tokens.md)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the user interacts with the UI for T-S0-06, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+          "text": "When a consumer imports Button / Input / Badge / Dialog / Toaster / toast from @/components/ui/, the symbol shall resolve to the named export defined in the corresponding file; Dialog.tsx shall depend on @radix-ui/react-dialog for accessibility, button.tsx and badge.tsx shall depend on class-variance-authority for variant prop type-safety, and sonner.tsx shall re-export the toast function from 'sonner' so callers do not import 'sonner' directly."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the existing implementation is in use, the system shall not regress: existing tests and integrations for T-S0-06 shall continue to pass."
+          "text": "While the components are in the tree, the system shall ship them WITHOUT emoji characters (CLAUDE.md §5.1 Lucide Icons only), without dangerouslySetInnerHTML usage, without direct backend fetch / axios / useQuery / useSWR calls (these are presentation primitives), and without hard-coded color hex values outside the existing eb-500 / eb-700 Tailwind class system (no #1a6648 literal in component files)."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-S0-06, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If a consumer attempts to instantiate Button with an unknown variant string at the TypeScript level it shall fail type-checking because buttonVariants is typed via VariantProps; if the Dialog primitive is rendered without a DialogContent child the Radix UI runtime shall throw (a11y contract); the component files shall NOT import 'reactflow' (legacy package, ADR-010 / T-009-02 invariant) and shall NOT import langgraph / langchain / litellm anywhere."
         }
       ],
       "existing_files": [
-        "TBD: specify in BA review"
+        "frontend/src/components/ui/button.tsx",
+        "frontend/src/components/ui/input.tsx",
+        "frontend/src/components/ui/dialog.tsx",
+        "frontend/src/components/ui/sonner.tsx",
+        "frontend/src/components/ui/badge.tsx",
+        "frontend/src/components/ui/card.tsx",
+        "frontend/src/components/ui/select.tsx",
+        "frontend/src/components/ui/tabs.tsx",
+        "frontend/src/components/ui/table.tsx",
+        "frontend/src/components/ui/textarea.tsx",
+        "frontend/src/components/ui/scroll-area.tsx",
+        "frontend/src/components/ui/separator.tsx",
+        "frontend/src/components/ui/command.tsx",
+        "frontend/package.json"
       ],
       "mock_link": "../../mocks/2026-05-09_v1/account/S-006-account-dashboard.html"
     },
