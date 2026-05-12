@@ -2402,7 +2402,7 @@
     },
     {
       "id": "T-022-01",
-      "title": "ai_employees DDL 拡張確認",
+      "title": "ai_employees DDL 拡張確認 (5 table CREATE TABLE IF NOT EXISTS: ai_employees + ai_personas + ai_hierarchies + ai_clones + user_interaction_log + role_level CHECK + persona_id FK late-bind + uq_ai_employee_ws_key UNIQUE + RLS bf_can_access_workspace + BMAD 10 persona seed ON CONFLICT DO NOTHING)",
       "sprint": 2,
       "feature": "F-022",
       "layer": "DB",
@@ -2413,26 +2413,39 @@
         "T-001-03"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-22",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-022-01 (ai_employees DDL 拡張確認) as specified by feature F-022."
+          "text": "supabase/migrations/20260512200000_ai_hierarchy_clone_tables.sql shall declare 5 tables via CREATE TABLE IF NOT EXISTS: ai_employees (with employee_key + role_level CHECK IN ('secretary', 'leader', 'member') + uq_ai_employee_ws_key UNIQUE), ai_personas (persona_key UNIQUE), ai_hierarchies (relation_type CHECK + no_self_parent CHECK), ai_clones (is_opted_in default FALSE + opt_in_timestamp_consistent CHECK), user_interaction_log (interaction_type CHECK + embedding_status CHECK)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the relevant API endpoint or service function is invoked for T-022-01, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+          "text": "When supabase/migrations/20260512400000_bmad_personas_seed.sql is applied, it shall INSERT exactly 10 BMAD persona rows into ai_personas with persona_key values {mary, preston, winston, sally, devon, quinn, reviewer, brand, mockup, logan} and shall use ON CONFLICT DO NOTHING so re-running is idempotent; the seed shall also register itself in schema_versions to track migration history."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the existing implementation is in use, the system shall not regress: existing tests and integrations for T-022-01 shall continue to pass."
+          "text": "While the ai_employees table exists, the persona_id FK shall be late-bound (DO $$ BEGIN ... IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_ai_employees_persona') THEN ALTER TABLE ai_employees ADD CONSTRAINT fk_ai_employees_persona FOREIGN KEY (persona_id) REFERENCES ai_personas(id) ON DELETE SET NULL; END IF; END$$) so the two tables can be created in any order without ordering errors; while is_active=TRUE rows exist, the partial index ix_ai_employees_ws (WHERE is_active = TRUE) shall accelerate workspace-scoped queries."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where workspace_id IS NULL on an ai_employees row (template / global ペルソナ), the RLS policy ai_employees_member shall still grant access (USING (workspace_id IS NULL OR bf_can_access_workspace(workspace_id))); where opt_in is FALSE on ai_clones, the user_interaction_log trigger trg_enforce_clone_opt_in shall reject INSERTs so opt-out users do not leak training data."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-022-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If user_interaction_log INSERT is attempted for a user_id whose ai_clones.is_opted_in is FALSE or has no clone row, bf_enforce_clone_opt_in() PL/pgSQL trigger shall RAISE EXCEPTION 'clone_opt_in_required:' with ERRCODE='check_violation' so the failed write surfaces as a 4xx (not silently dropped); RLS shall be ENABLED on all 5 tables and shall reject queries where the auth.uid()::text does not match user_id (ai_clones / user_interaction_log) or where the workspace_id does not pass bf_can_access_workspace; the migration shall not contain hardcoded Supabase / Anthropic credentials."
         }
       ],
       "existing_files": [
-        "TBD: specify in BA review"
+        "supabase/migrations/20260512200000_ai_hierarchy_clone_tables.sql",
+        "supabase/migrations/20260512400000_bmad_personas_seed.sql"
+      ],
+      "entities": [
+        "ai_employees",
+        "ai_personas",
+        "ai_hierarchies",
+        "ai_clones",
+        "user_interaction_log"
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
