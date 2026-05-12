@@ -5640,7 +5640,7 @@
     },
     {
       "id": "T-010d-04",
-      "title": "自動 reconnect + 履歴 fetch",
+      "title": "自動 reconnect + 履歴 fetch (T-010d-01 WS subscribe REUSE / exponential backoff / since_seq=last+1 resume / REST replay 履歴復元 / useSwarmSessionStream hook)",
       "sprint": 6,
       "feature": "F-010d",
       "layer": "FE",
@@ -5650,23 +5650,30 @@
       "deps": [
         "T-010d-01"
       ],
+      "existing_files": [
+        "frontend/src/lib/api/sessions.ts",
+        "frontend/src/components/sessions/SwarmSessionDetail.tsx",
+        "frontend/src/app/sessions/[id]/page.tsx",
+        "backend/routers/ws.py"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-010d-04 (自動 reconnect + 履歴 fetch) as specified by feature F-010d."
+          "text": "frontend/src/lib/api/sessions-ws.ts shall expose a SessionStreamClient class (start / close / on(event, handler)) and frontend/src/hooks/useSwarmSessionStream.ts shall expose a useSwarmSessionStream(sessionId, opts) hook returning {logs, connected, lastSeq, reconnectAttempt, error} using the backend contract: WS /api/ws/sessions/{id}?since_seq=N + GET /api/sessions/{id}/replay?since_seq=N (T-010d-01 REUSE without modifying backend/routers/ws.py); the new files shall NOT redefine VALID_RESUME_CHOICES (T-S0-08 / T-010d-03 cross-module invariant — re-import from sessions.ts only)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the user interacts with the UI for T-010d-04, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+          "text": "When the WebSocket disconnects unexpectedly (close code not in CLEAN_CLOSE_CODES = (1000, 1001, 1008)), SessionStreamClient shall schedule a reconnect with exponential backoff starting at INITIAL_RECONNECT_MS = 1000 and doubling up to MAX_RECONNECT_MS = 30000 (capped); after MAX_RECONNECT_ATTEMPTS = 8 the client shall stop retrying and emit a single 'reconnect_exhausted' event. When reconnecting, the URL query shall include since_seq=lastSeq+1 so dropped messages are replayed (deterministic resume contract with T-010d-01)."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-010d-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the hook is mounted, useSwarmSessionStream shall first invoke fetchSessionReplay (= GET /api/sessions/{id}/replay?since_seq=0) to populate the initial log history (no flash-of-empty), then open the WS for live updates; the hook shall use AbortController for the REST fetch and shall close the WS on unmount; the hook shall NOT call backend endpoints from inside the React render phase (only inside useEffect callbacks); the file shall NOT import langgraph / langchain / litellm / reactflow (ADR-010 main path invariant)."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-010d-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If sessionId is non-finite (NaN / undefined / <= 0), the hook shall NOT open a WebSocket and shall set error='invalid sessionId' without throwing; if replay fetch returns 404, the hook shall keep logs=[] and connected=false (graceful empty state, no crash); if a clean close (code 1000) is received, the client shall NOT reconnect (avoid infinite reconnect after server-initiated graceful shutdown); the SessionStreamClient.close() shall be idempotent (multiple calls do not throw)."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/task/S-031-swarm-grid.html"

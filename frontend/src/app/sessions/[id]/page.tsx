@@ -21,9 +21,9 @@ import {
   fetchAgentSession,
   resumeAgentSession,
   type ResumeChoice,
-  type SwarmLogLine,
   type SwarmSessionData,
 } from "@/lib/api/sessions";
+import { useSwarmSessionStream } from "@/hooks/useSwarmSessionStream";
 
 export default function SwarmSessionPage() {
   const params = useParams();
@@ -31,9 +31,14 @@ export default function SwarmSessionPage() {
   const sessionId = rawId ? Number(rawId) : Number.NaN;
 
   const [session, setSession] = React.useState<SwarmSessionData | null>(null);
-  const [logs] = React.useState<SwarmLogLine[]>([]);
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState<boolean>(true);
+
+  // T-010d-04: 履歴 fetch + WS 自動 reconnect
+  const stream = useSwarmSessionStream(sessionId, {
+    enabled: Number.isFinite(sessionId) && sessionId > 0,
+  });
+  const logs = stream.logs;
 
   React.useEffect(() => {
     if (!Number.isFinite(sessionId)) {
@@ -111,9 +116,32 @@ export default function SwarmSessionPage() {
 
   return (
     <main className="mx-auto max-w-4xl p-6">
-      <h1 className="mb-4 text-lg font-semibold text-slate-800">
-        Swarm Session #{session.id}
-      </h1>
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-lg font-semibold text-slate-800">
+          Swarm Session #{session.id}
+        </h1>
+        <div
+          className="flex items-center gap-2 text-xs text-slate-500"
+          data-testid="connection-status"
+        >
+          {stream.connected ? (
+            <>
+              <span className="h-2 w-2 rounded-full bg-eb-500" />
+              <span>connected · seq {stream.lastSeq}</span>
+            </>
+          ) : stream.reconnectAttempt > 0 ? (
+            <>
+              <span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
+              <span>reconnecting (attempt {stream.reconnectAttempt})</span>
+            </>
+          ) : (
+            <>
+              <span className="h-2 w-2 rounded-full bg-slate-400" />
+              <span>{stream.error ?? "disconnected"}</span>
+            </>
+          )}
+        </div>
+      </div>
       <SwarmSessionDetail
         session={session}
         logs={logs}
