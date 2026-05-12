@@ -5502,7 +5502,7 @@
     },
     {
       "id": "T-010c-06",
-      "title": "resume 機能 (4 択: from_checkpoint/再実行/cancel/手動修正)",
+      "title": "resume 機能 (4 択: from_checkpoint/再実行/cancel/手動修正 / round-trip: UI button → POST → handle_resume → status 遷移 → audit → fetch refresh / useSessionResume hook)",
       "sprint": 6,
       "feature": "F-010c",
       "layer": "WK+FE",
@@ -5512,23 +5512,31 @@
       "deps": [
         "T-010c-05"
       ],
+      "existing_files": [
+        "backend/integrations/claude_agent_runner.py",
+        "backend/routers/agent_runner.py",
+        "frontend/src/lib/api/sessions.ts",
+        "frontend/src/components/sessions/SwarmSessionDetail.tsx",
+        "frontend/src/app/sessions/[id]/page.tsx"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-010c-06 (resume 機能 (4 択: from_checkpoint/再実行/cancel/手動修正)) as specified by feature F-010c."
+          "text": "frontend/src/hooks/useSessionResume.ts shall expose a useSessionResume(sessionId, opts) hook returning {resume, isResuming, lastChoice, lastStatus, error}; the hook shall call resumeAgentSession (T-010d-03 helper) wrapping POST /api/agent/sessions/{id}/resume (T-S0-08 backend), then re-fetch via fetchAgentSession to update session state (round-trip completion); VALID_RESUME_CHOICES shall be re-imported from sessions.ts (NOT redefined / T-010d-03 / T-S0-08 cross-module invariant); backend claude_agent_runner.handle_resume + agent_runner.resume_session shall be REUSED without modification."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the user interacts with the UI for T-010c-06, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+          "text": "When resume(choice) is invoked with choice='cancel' the backend shall set SessionRecord.status='cancelled' via store.finalize_session; choice='manual_fix' shall set status='paused'; choice='from_checkpoint' shall invoke run_task(sdk_session_id=prev.sdk_session_id) preserving SDK session continuity; choice='rerun_full' shall invoke run_task(sdk_session_id=None) starting a fresh SDK session; after each successful round-trip backend/routers/agent_runner.resume_session shall emit audit event action='agent.session.resumed' with detail={session_id, choice, new_status}."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-010c-06 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the hook is mounted, isResuming shall be true only during the POST + re-fetch window (no flicker); the hook shall NOT call backend endpoints from React render phase (only inside the resume callback); lastChoice shall remain the last successful choice across re-renders; the file shall NOT import langgraph / langchain / litellm / reactflow legacy (ADR-010 main path); the deterministic status mapping ('cancel'→'cancelled', 'manual_fix'→'paused', 'from_checkpoint'/'rerun_full'→'running') shall align with claude_agent_runner.handle_resume implementation."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-010c-06, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If sessionId is non-finite or <= 0 the hook resume() callback shall set error='invalid sessionId' WITHOUT calling backend (no wasted POST); if choice is not in VALID_RESUME_CHOICES resumeAgentSession shall throw AgentSessionError('agent.invalid_resume_choice', 400) without backend hit; if backend returns 404 the hook shall set error and NOT mutate lastStatus; concurrent resume() calls shall be serialized (second call before first completes shall NOT issue a duplicate POST while isResuming=true)."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/task/S-031-swarm-grid.html"

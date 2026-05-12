@@ -19,11 +19,11 @@ import { SwarmSessionDetail } from "@/components/sessions/SwarmSessionDetail";
 import {
   AgentSessionError,
   fetchAgentSession,
-  resumeAgentSession,
   type ResumeChoice,
   type SwarmSessionData,
 } from "@/lib/api/sessions";
 import { useSwarmSessionStream } from "@/hooks/useSwarmSessionStream";
+import { useSessionResume } from "@/hooks/useSessionResume";
 
 export default function SwarmSessionPage() {
   const params = useParams();
@@ -39,6 +39,11 @@ export default function SwarmSessionPage() {
     enabled: Number.isFinite(sessionId) && sessionId > 0,
   });
   const logs = stream.logs;
+
+  // T-010c-06: 4 choice resume round-trip
+  const resumeCtl = useSessionResume(sessionId, {
+    onSession: (updated) => setSession(updated),
+  });
 
   React.useEffect(() => {
     if (!Number.isFinite(sessionId)) {
@@ -73,21 +78,11 @@ export default function SwarmSessionPage() {
 
   const handleResume = React.useCallback(
     async (choice: ResumeChoice) => {
-      if (!session) return;
-      try {
-        await resumeAgentSession(session.id, choice);
-        // 再取得 (audit_logs に worktree.created など発生する可能性)
-        const updated = await fetchAgentSession(session.id);
-        setSession(updated);
-      } catch (e: unknown) {
-        if (e instanceof AgentSessionError) {
-          setError(`${e.code}: ${e.message}`);
-        } else if (e instanceof Error) {
-          setError(e.message);
-        }
-      }
+      // T-010c-06: 単一 hook が round-trip (POST → re-fetch → state) を担う
+      await resumeCtl.resume(choice);
+      if (resumeCtl.error) setError(resumeCtl.error);
     },
-    [session],
+    [resumeCtl],
   );
 
   if (loading) {
