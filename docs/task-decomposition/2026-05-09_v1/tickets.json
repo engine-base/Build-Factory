@@ -175,7 +175,7 @@
     },
     {
       "id": "T-S0-13",
-      "title": "既存実装インベントリ監査 (39 routers + 54 services + 7 migrations) → existing-inventory.json",
+      "title": "既存実装インベントリ監査 (51 routers + 75 services + 13 migrations + 9 integrations + 3 sandbox / 281 files / T-S0-13b で UNDETERMINED 0 化) → existing-inventory.json",
       "sprint": "S0",
       "feature": "META",
       "layer": "OPS",
@@ -188,35 +188,41 @@
       "critical": true,
       "output_file": "docs/audit/2026-05-10_v1/existing-inventory.json",
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "existing_files": [
+        "scripts/audit-existing-inventory.py",
+        "scripts/regenerate_inventory.py",
+        "scripts/regenerate_inventory_md.py",
+        "docs/audit/2026-05-10_v1/existing-inventory.json",
+        "docs/audit/2026-05-10_v1/existing-inventory.md",
         "backend/main.py",
         "backend/routers/",
         "backend/services/",
-        "data/",
+        "supabase/migrations/",
         "docs/task-decomposition/2026-05-09_v1/tickets.json"
       ],
       "entities": [],
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The audit shall produce existing-inventory.json listing every backend/routers/*.py, backend/services/*.py, and data/db migration with classification (REUSE / REFACTOR / ARCHIVE / NEW / UNDETERMINED) and a 1-line rationale."
+          "text": "scripts/audit-existing-inventory.py shall scan backend/routers/*.py, backend/services/*.py, backend/integrations/*.py, backend/sandbox/*.py, and supabase/migrations/*.sql producing docs/audit/2026-05-10_v1/existing-inventory.json with top-level keys: summary (dict containing audit_id / regenerated_at / scope / counts_by_classification / orphan_tickets_count / undetermined_remaining), inventory (list of 281 entries each with file_path + ticket_ids + label + mapping_status), and orphan_tickets (list of removed/missing paths); the classification enum shall be exactly (REUSE / REFACTOR / NEW / ARCHIVE / UNDETERMINED) and each entry shall carry a 1-line rationale field (reason or match_method)."
         },
         {
-          "type": "EVENT",
-          "text": "When the audit runs, the system shall cross-reference each file with tickets.json existing_files and report tickets whose listed files do not exist in the repo."
+          "type": "EVENT-DRIVEN",
+          "text": "When scripts/audit-existing-inventory.py is invoked, the script shall cross-reference each disk file against tickets.json `existing_files` lists, classify by ticket label (REUSE/REFACTOR/NEW/ARCHIVE), and emit a deterministic JSON (key-sorted, UTF-8, newline-terminated) plus a markdown view (existing-inventory.md); orphan_tickets shall list every path that tickets.json references but is absent from disk (e.g., onlook/ / penpot/ archived via T-019-01) with reason='removed per T-019-01 ARCHIVE; intentional'."
         },
         {
-          "type": "STATE",
-          "text": "While the audit is running, the system shall not modify any source file (read-only) and shall not require external network."
+          "type": "STATE-DRIVEN",
+          "text": "While the audit runs, scripts/audit-existing-inventory.py shall NOT mutate any source file (read-only filesystem access only), shall NOT require external network access, and shall NOT import langgraph / langchain / litellm (ADR-010 main path invariant); the supersedes chain in summary shall preserve the regeneration history (audit_id='T-S0-13b' supersedes 'T-S0-13 (2026-05-10)') so T-S0-13c AC integrity check can verify lineage."
         },
         {
           "type": "OPTIONAL",
-          "text": "Where penpot_client.py / browser_use_service.py are present, the audit shall annotate them with the Phase boundary (Phase 1.5 / Phase 2) under which they will be REFACTORed or ARCHIVEd."
+          "text": "Where browser_use_service.py / browser_use*.py / litellm_router.py are present in the repo, the audit shall annotate each with a Phase boundary marker (Phase 1.5 / Phase 2) via `phase_boundary` field so downstream T-BTSTRAP-04 migration knows whether to REFACTOR or ARCHIVE; the summary.phase_annotations_applied counter shall be > 0 when at least one phase-boundary file is detected."
         },
         {
           "type": "UNWANTED",
-          "text": "If a router/service cannot be confidently classified, the audit shall record it as UNDETERMINED with the specific reason, instead of silently defaulting to REUSE."
+          "text": "If a router/service cannot be confidently classified, the audit shall record it as UNDETERMINED with the specific reason instead of silently defaulting to REUSE; the regenerated existing-inventory.json shall have summary.undetermined_remaining = 0 (post T-S0-13b cleanup) — any non-zero count shall fail the spec test; the audit shall NOT default mapping_status to REUSE without an exact path match (REUSE is reserved for tickets whose existing_files list contains the exact disk path)."
         }
       ]
     },
