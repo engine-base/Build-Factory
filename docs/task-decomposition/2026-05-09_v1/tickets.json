@@ -2312,7 +2312,7 @@
     },
     {
       "id": "T-003-02",
-      "title": "AI 社員召喚 API (existing secretary_chat/delegation_service 統合 + LangGraph)",
+      "title": "AI 社員召喚 API + Workspace Dashboard (existing secretary_chat/delegation_service 統合, claude-agent-sdk handoff)",
       "sprint": "S2",
       "feature": "F-003",
       "layer": "BE",
@@ -2333,6 +2333,7 @@
         "backend/services/secretary_chat.py"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-3",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "mock_link": "../../mocks/2026-05-09_v1/workspace/S-012-workspace-dashboard.html",
       "entities": [
         "workspaces",
@@ -2354,12 +2355,20 @@
           "text": "While sessions are running, the system shall show pulse-dot animation on the running count."
         },
         {
+          "type": "STATE",
+          "text": "While the backend handles handoff between AI personas, it shall use claude-agent-sdk Subagent (Task tool) and shall NOT introduce LangGraph / LangChain in the main runner path (ADR-010)."
+        },
+        {
           "type": "OPTIONAL",
           "text": "Where the user has access to multiple workspaces, the system shall provide quick switch via the sidebar."
         },
         {
           "type": "UNWANTED",
           "text": "If the user tries to access a workspace without permission, the system shall return 403 and shall not render the dashboard."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If LangGraph or LangChain imports are introduced in the handoff path of secretary_chat / delegation_service, the lint script shall fail (ADR-010 §UNWANTED)."
         }
       ]
     },
@@ -2468,40 +2477,81 @@
     },
     {
       "id": "T-M27-01",
-      "title": "LangGraph base setup + entry node",
+      "title": "(ARCHIVED) LangGraph base setup — superseded by T-M27-01b per ADR-010",
+      "sprint": 2,
+      "feature": "M-27",
+      "layer": "RUN",
+      "label": "ARCHIVE",
+      "human_days": 0,
+      "claude_code_hours": 0,
+      "deps": [
+        "T-S0-08"
+      ],
+      "existing_files": [],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-27",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
+      "superseded_by": "T-M27-01b",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall NOT introduce LangGraph as the runtime layer per ADR-010 (5-layer to 3-layer redesign). This ticket is archived; its scope is superseded by T-M27-01b (claude-agent-sdk entry node)."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When a developer or AI agent attempts to start work on T-M27-01, the system (lint script) shall reject any new file that imports LangGraph in the main runner path (ADR-010 §UNWANTED)."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While T-M27-01 remains in the ticket list, the system shall keep its label=ARCHIVE so dependency resolvers skip it and AI implementers see the superseded_by pointer."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If LangGraph or LangChain imports appear in the main runner code path, the lint script shall fail (ADR-010 §UNWANTED). The ARCHIVE state shall not be overridden without a new ADR superseding ADR-010."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/index.html"
+    },
+    {
+      "id": "T-M27-01b",
+      "title": "claude-agent-sdk entry node (replaces T-M27-01 per ADR-010)",
       "sprint": 2,
       "feature": "M-27",
       "layer": "RUN",
       "label": "NEW",
-      "human_days": 0.5,
-      "claude_code_hours": 2,
+      "human_days": 0.3,
+      "claude_code_hours": 1.5,
       "deps": [
         "T-S0-08"
       ],
+      "existing_files": [
+        "(claude-agent-sdk built-in entry / backend/integrations/skill_runner.py)"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-27",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
+      "supersedes": "T-M27-01",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-M27-01 (LangGraph base setup + entry node) as specified by feature M-27."
+          "text": "The Intent Router entry node shall use claude-agent-sdk (Anthropic official) as the runtime layer and shall NOT introduce LangGraph. The entry node receives a user message + session_id and returns the chosen persona (mary/devon/quinn/...) for handoff to T-M27-03."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-M27-01 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When the entry node receives a request, it shall classify intent (via T-M27-02 wrapper) and emit audit_logs event_type='m27.entry_node.dispatched' with chosen_persona, latency_ms, and session_id within 2 seconds."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-M27-01 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the entry node is active, the system shall apply Row Level Security on audit_logs and shall persist routing decisions to sessions table per CLAUDE.md §5.3."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-M27-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If LangGraph/LangChain imports are introduced in this module, the lint script shall fail (ADR-010). If invalid input or unauthorized actor is detected, the system shall reject with 4xx {detail:{code,message}} and shall not mutate persistent state."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-M27-02",
-      "title": "Intent 分類 (existing intent_preprocessor/mode_detector 統合)",
+      "title": "Intent 分類 (existing intent_preprocessor/mode_detector/skill_detector 統合)",
       "sprint": 2,
       "feature": "M-27",
       "layer": "RUN",
@@ -2518,56 +2568,64 @@
       ],
       "reference_oss": "openai/codex",
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-27",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-M27-02 (Intent 分類 (existing intent_preprocessor/mode_detector 統合)) as specified by feature M-27."
+          "text": "The intent_classifier service shall provide a unified read API (classify()) that runs the 3 existing detectors (intent_preprocessor.detect_explicit_intent / mode_detector.detect_mode / skill_detector.detect_skill) in parallel and returns a normalized IntentSignal dict with top_signal priority (explicit > skill > mode). The existing 3 detector modules shall NOT be modified (REFACTOR backwards-compat)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-M27-02 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When classify() is invoked, the system shall execute the 3 detectors in parallel via asyncio, apply the top_signal priority rule, and emit an audit_logs entry with event_type='intent.classified' carrying top_signal_kind/value/mode/skill/has_explicit/latency_ms within 2 seconds."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While refactoring for T-M27-02 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+          "text": "While the classifier is active, the system shall preserve the existing 3 detector module symbol surfaces (cross-module assert) and shall maintain backwards compatibility (REFACTOR coverage >= baseline). Read endpoints (health) shall NOT emit audit events."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-M27-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If the SDK / alternative LLM classifier backend (register_classifier_backend) returns invalid output (missing keys / invalid mode / wrong types), the system shall fall back to the 3-detector default path with a warning log (silent failure 防止). If invalid input or unauthorized actor is detected, the system shall reject with 4xx {detail:{code,message}} and shall NOT mutate persistent state. If application code re-implements intent classification in a way that bypasses the 3 detectors (e.g., inlined keyword matching outside the existing modules), the lint script shall flag it during code review."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-M27-03",
-      "title": "Agent / Role Selector + handoff",
+      "title": "Agent / Role Selector + handoff (SDK Task tool activation + ai_employees lookup wrapper)",
       "sprint": 2,
       "feature": "M-27",
       "layer": "RUN",
-      "label": "NEW",
-      "human_days": 0.5,
-      "claude_code_hours": 2,
+      "label": "REUSE",
+      "human_days": 0.3,
+      "claude_code_hours": 1.5,
       "deps": [
         "T-M27-02",
-        "T-003-02"
+        "T-003-02",
+        "T-022-03"
+      ],
+      "existing_files": [
+        "(claude-agent-sdk Task tool / handoff API built-in)",
+        "backend/routers/ai_employees.py",
+        "backend/services/ai_employees.py"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-27",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-M27-03 (Agent / Role Selector + handoff) as specified by feature M-27."
+          "text": "The system shall use claude-agent-sdk's built-in Subagent / Task tool for AI employee handoff (mary -> devon -> quinn etc.) and shall NOT re-implement a handoff/orchestration layer. Role selection looks up the target persona from existing ai_employees CRUD (T-022-03)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-M27-03 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When a handoff is invoked, the system shall record an audit_logs entry with event_type='m27.handoff', source_persona, target_persona, session_id, and timestamp within 2 seconds."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-M27-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While a handoff is in flight, the system shall maintain the SDK session context (claude-agent-sdk session resume) and shall apply Row Level Security on audit_logs / sessions per CLAUDE.md §5.3."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-M27-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If application code re-implements handoff logic (manual message routing between personas, custom Subagent dispatcher) instead of using SDK Task tool, the lint script shall fail (ADR-010). If invalid persona / unauthorized actor / unknown session is detected, the system shall reject with 4xx {detail:{code,message}} and shall not mutate persistent state."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
@@ -2615,99 +2673,113 @@
     },
     {
       "id": "T-M28-02",
-      "title": "Tier 1 tool result trimming",
+      "title": "Tier 1 tool result trimming (SDK auto activation + audit wrapper)",
       "sprint": 2,
       "feature": "M-28",
       "layer": "RUN",
-      "label": "NEW",
-      "human_days": 0.5,
-      "claude_code_hours": 2,
+      "label": "REUSE",
+      "human_days": 0.2,
+      "claude_code_hours": 1,
       "deps": [
-        "T-M28-01"
+        "T-S0-08"
+      ],
+      "existing_files": [
+        "(claude-agent-sdk built-in)"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-M28-02 (Tier 1 tool result trimming) as specified by feature M-28."
+          "text": "The system shall enable claude-agent-sdk's built-in tool result trim feature using SDK defaults and shall NOT re-implement trimming logic in application code (ADR-010: SDK-native, no duplicate of auto features)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-M28-02 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When the SDK trims a tool result during a session, the system shall record an audit_logs entry with event_type='tier1.tool_result_trimmed', the session_id, original size, and trimmed size."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-M28-02 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the SDK trim feature is active, the system shall preserve the original tool result in chat_messages (no destructive mutation) and shall apply Row Level Security on audit_logs per CLAUDE.md §5.3."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-M28-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If application code re-implements tool result trimming logic (size cap / age cap / dedup), the lint script shall fail. If invalid input or unauthorized actor is detected, the system shall reject with 4xx {detail:{code,message}} and shall not mutate persistent state."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-M28-03",
-      "title": "Tier 2 prompt cache friendly (cache_control: ephemeral 5min)",
+      "title": "Tier 2 prompt cache friendly (cache_control: ephemeral 5min) — SDK + anthropic-python auto activation",
       "sprint": 2,
       "feature": "M-28",
       "layer": "RUN",
-      "label": "NEW",
-      "human_days": 0.3,
+      "label": "REUSE",
+      "human_days": 0.2,
       "claude_code_hours": 1,
       "deps": [
         "T-020-04"
       ],
+      "existing_files": [
+        "(claude-agent-sdk + anthropic-python built-in)"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-M28-03 (Tier 2 prompt cache friendly (cache_control: ephemeral 5min)) as specified by feature M-28."
+          "text": "The system shall enable cache_control={'type':'ephemeral'} on all anthropic-python and claude-agent-sdk calls (TTL 5min) and shall NOT re-implement prompt caching logic in application code (ADR-010 / requirements §11.6 STATE)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-M28-03 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When an anthropic-python response includes usage.cache_read_input_tokens or usage.cache_creation_input_tokens, the system shall record both values in cost_logs along with session_id and timestamp."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-M28-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While prompt cache is active, the system shall expose a daily cache_hit_rate metric (cache_read / (cache_read + cache_creation + input)) and shall apply Row Level Security on cost_logs per CLAUDE.md §5.3."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-M28-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If application code re-implements prompt caching or attempts to manage TTL manually, the lint script shall fail. If invalid input or unauthorized actor is detected, the system shall reject with 4xx {detail:{code,message}} and shall not mutate persistent state."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
     {
       "id": "T-M28-04",
-      "title": "Tier 3 9-section structured summary (background task)",
+      "title": "Tier 3 9-section structured summary persistence (SDK auto-generated, DB persist wrapper only)",
       "sprint": 2,
       "feature": "M-28",
       "layer": "RUN",
-      "label": "NEW",
-      "human_days": 0.7,
-      "claude_code_hours": 3,
+      "label": "REFACTOR",
+      "human_days": 0.3,
+      "claude_code_hours": 1.5,
       "deps": [
-        "T-M28-01"
+        "T-S0-08",
+        "T-M30-01"
+      ],
+      "existing_files": [
+        "backend/services/chat_thread_store.py",
+        "backend/services/memory_service.py"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-28",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-M28-04 (Tier 3 9-section structured summary (background task)) as specified by feature M-28."
+          "text": "The system shall persist the 9-section structured summary auto-generated by claude-agent-sdk at 95% context into chat_messages.compressed_summary, and shall NOT re-implement the summarization logic (no keyword heuristic, no LLM call from application code — ADR-010 / requirements §11.6 EVENT)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-M28-04 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When the SDK emits a memory_compacted event (95% threshold reached), the system shall persist the 9 sections to chat_messages.compressed_summary and emit audit_logs event_type='memory_compacted' with summary_message_id and section keys within 2 seconds."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-M28-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While persistence is in progress, the system shall preserve original messages in chat_messages (no destructive mutation) and shall apply Row Level Security + audit_logs per CLAUDE.md §5.3."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-M28-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If application code generates the 9-section summary itself (keyword heuristic, LLM call from application layer, or any rule-based extractor), the lint script shall fail. If the SDK output schema is invalid (missing any of 9 sections), the system shall reject persistence with a 4xx response and shall not mutate persistent state."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
@@ -2826,7 +2898,7 @@
     },
     {
       "id": "T-M30-03",
-      "title": "中期 layer (existing conversation_summarizer 活用)",
+      "title": "中期 layer (mid_term_layer; chat_thread_store + conversation_summarizer 統一 read view + persistence wrapper)",
       "sprint": 2,
       "feature": "M-30",
       "layer": "BE",
@@ -2838,25 +2910,28 @@
       ],
       "existing_files": [
         "backend/services/conversation_summarizer.py",
-        "backend/services/conversation_memory.py"
+        "backend/services/conversation_memory.py",
+        "backend/services/chat_thread_store.py",
+        "backend/services/memory_service.py"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-M30-03 (中期 layer (existing conversation_summarizer 活用)) as specified by feature M-30."
+          "text": "The mid_term_layer module shall provide a unified read view (latest_summary / list_summaries) + persistence wrapper (record_summary) for 9-section structured summaries persisted by either chat_thread_store (SDK auto-compaction path) or memory_service.persist_compaction (legacy sqlite path). The 9-section SECTION_KEYS invariant shall hold cross-module (mid_term_layer / tier2_cache / tier3_structured_summary)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the relevant API endpoint or service function is invoked for T-M30-03, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+          "text": "When latest_summary or record_summary is invoked, the system shall return a structured response within 2 seconds and emit an audit_logs entry ('mid_term.read' / 'mid_term.recorded') carrying thread_id and source ('chat_thread_store' | 'memory_service'). Read endpoints shall not emit audit events."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While refactoring for T-M30-03 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+          "text": "While both persistence paths (chat_thread_store and memory_service) coexist in Phase 1, the system shall preserve the 9-section invariant and shall NOT modify existing conversation_summarizer.generate_summary (G9 backwards-compat). record_summary shall dual-write to both paths via legacy_persist_best_effort (G4 dual-write)."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-M30-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If the SDK summarizer backend (register_summarizer_backend) returns invalid output (missing SECTION_KEYS / wrong types), the system shall fall back to the input summary unchanged and emit a warning log (silent failure 防止). If invalid input or unauthorized actor is detected, the system shall reject with 4xx {detail:{code,message}} and shall NOT mutate persistent state. If application code re-implements 9-section summary generation outside the SDK auto-compaction path, the lint script shall fail (ADR-010 cross-ref with T-M28-04 UNWANTED)."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
@@ -2901,7 +2976,7 @@
     },
     {
       "id": "T-M30-05",
-      "title": "Memory 統合テスト (3 層 → context 組立)",
+      "title": "Memory 統合 orchestrator (memory_pipeline; 3 層 short+mid+long → context 組立) + 統合テスト",
       "sprint": 2,
       "feature": "M-30",
       "layer": "TST",
@@ -2911,23 +2986,29 @@
       "deps": [
         "T-M30-04"
       ],
+      "existing_files": [
+        "backend/services/chat_thread_store.py",
+        "backend/services/mid_term_layer.py",
+        "backend/services/long_term_layer.py"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-M30-05 (Memory 統合テスト (3 層 → context 組立)) as specified by feature M-30."
+          "text": "The memory_pipeline module shall integrate the 3-tier memory layers (short=raw chat_messages via chat_thread_store / mid=9-section compressed_summary via mid_term_layer / long=Mem0+Obsidian via long_term_layer) and assemble a unified context block for AI session prompts. Integration tests shall verify cross-layer invariants (9-section SECTION_KEYS / tier ordering / source attribution). The module shall NOT modify the underlying 3 layer modules (NEW + REUSE)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-M30-05 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When build_context(thread_id, query) is invoked, the system shall fetch all 3 tiers in parallel via asyncio and return an assembled context dict within 2 seconds, emitting audit_logs entry 'memory.context_built' with tier_hit_count and total_chars."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-M30-05 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the orchestrator is active, the system shall NOT modify any of the underlying layer modules (chat_thread_store / mid_term_layer / long_term_layer) and shall preserve their existing API contracts. If any single tier fails to fetch, the system shall degrade gracefully (return partial context + log warning) rather than abort the whole pipeline."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-M30-05, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If a tier fetch raises an exception, the system shall log the warning and continue with remaining tiers (graceful degradation). If invalid input (empty thread_id / oversized query / non-positive max_tokens) is provided, the system shall reject with 4xx {detail:{code,message}} and shall NOT mutate persistent state. If application code re-implements 3-tier compaction in the orchestrator instead of delegating to the layer modules, the lint script shall flag it during code review (ADR-010 cross-ref with T-M28-02/03/04 UNWANTED)."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
