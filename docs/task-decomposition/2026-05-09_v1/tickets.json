@@ -5223,7 +5223,7 @@
     },
     {
       "id": "T-M29-01",
-      "title": "git worktree manager (作成/cleanup)",
+      "title": "git worktree manager (作成/cleanup / Codex CLI 参考 / swarm 並列の各 cell を独立 worktree に展開 / .worktrees/swarm_{pool}/cell_{i} / branch swarm/{pool}/cell-{i})",
       "sprint": 6,
       "feature": "M-29",
       "layer": "WK",
@@ -5231,24 +5231,35 @@
       "human_days": 0.5,
       "claude_code_hours": 2,
       "deps": [],
+      "existing_files": [
+        "backend/services/swarm/worktree.py",
+        "backend/services/swarm/orchestrator.py",
+        "backend/services/swarm/file_lock.py",
+        "backend/services/swarm/models.py",
+        "backend/services/swarm/__init__.py",
+        "backend/routers/swarm.py",
+        "backend/tests/test_t_m29_01_worktree_manager.py",
+        "backend/tests/test_swarm.py"
+      ],
       "reference_oss": "openai/codex",
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-29",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-M29-01 (git worktree manager (作成/cleanup)) as specified by feature M-29."
+          "text": "backend/services/swarm/worktree.py shall expose public symbols REPO_ROOT, WORKTREES_BASE (=REPO_ROOT/.worktrees), worktree_path(pool_id, cell_index)->Path, branch_name(pool_id, cell_index)->str, create_worktree, remove_worktree, list_worktrees, is_inside_cell_worktree, InvalidWorktreeArgs; worktree_path shall return WORKTREES_BASE/swarm_{pool_id}/cell_{cell_index} and branch_name shall return 'swarm/{pool_id}/cell-{cell_index}' (deterministic naming for swarm orchestration)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-M29-01 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When create_worktree(pool_id, cell_index, workspace_id=None) completes successfully, the module shall emit a 'worktree.created' event to audit_logs via services.memory_service.emit_event with detail containing pool_id / cell_index / path / branch; when remove_worktree completes the module shall emit 'worktree.removed'; audit-emit failure shall NOT abort the worktree operation (silent log, AC-3 invariant)."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-M29-01 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the worktree manager is operational, all git operations shall be executed via asyncio.create_subprocess_exec with cwd defaulting to REPO_ROOT (NOT shell=True / no os.system / no subprocess.run blocking call) so the manager is fully async-compatible; the module shall NOT import langgraph / langchain / litellm (ADR-010 main path) and shall NOT redefine SECTION_KEYS / REVIEW_DIMENSIONS / PERSONA_NAME (G15 cross-module invariant)."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-M29-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If pool_id is non-int or <= 0, or cell_index is non-int or < 0, _validate shall raise InvalidWorktreeArgs (a ValueError subclass) which the router shall map to 4xx {detail:{code:'worktree.invalid_input', message}}; create_worktree shall NOT leave a partially-created worktree on validation failure and shall NOT swallow git errors silently — git non-zero exit shall surface to the caller with stderr included."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
