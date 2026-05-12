@@ -1,0 +1,1093 @@
+"""T-M30-03: 中期 layer (existing conversation_summarizer 活用) — 4 AC 全網羅 + spec gap closure.
+
+AC マッピング (1:1 テスト):
+  AC-1 UBIQUITOUS    : M-30 中期 layer 統一 read view (REFACTOR REUSE 既存 modules,
+                       書き手 経路 A/B を統一 9-section dict として返す)
+  AC-2 EVENT-DRIVEN  : 各 endpoint は 2 秒以内 + {detail:{code,message}}
+  AC-3 STATE-DRIVEN  : 既存 conversation_summarizer / conversation_memory /
+                       chat_thread_store / memory_service module 不変 +
+                       record 経由は audit emit / read は audit emit しない
+  AC-4 UNWANTED      : invalid input / unauthorized actor / 不明 thread →
+                       4xx structured / persistent state mutate しない
+
+Spec gap closure (PR #128 G1-G6 と同じ精神):
+  G7  : register_summarizer_backend hook (SDK 差替点)
+  G8  : record_summary dual-write (chat_thread_store + memory_service)
+  G9  : conversation_summarizer は不変 (補助 LLM 温存ハッチ)
+  G10 : SECTION_KEYS は tier3_structured_summary と完全一致 (cross-module)
+"""
+from __future__ import annotations
+
+import asyncio
+import json
+import os
+import time
+from typing import Any
+
+import pytest
+from fastapi.testclient import TestClient
+
+from services import chat_thread_store as cts
+from services import mid_term_layer as mtl
+from services.mid_term_layer import (
+    DEFAULT_HISTORY_LIMIT,
+    DEFAULT_PREFER_SOURCE,
+    MAX_ACTOR_USER_ID_LEN,
+    MAX_HISTORY_LIMIT,
+    MIN_HISTORY_LIMIT,
+    MidTermLayerError,
+    SECTION_KEYS,
+    SUMMARY_ROLE_SYSTEM,
+    SUMMARY_ROLE_SYSTEM_SUMMARY,
+    VALID_PREFER_SOURCES,
+    empty_summary,
+)
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Fixtures
+# ──────────────────────────────────────────────────────────────────────
+
+
+@pytest.fixture(scope="module")
+def client():
+    os.environ.setdefault("DISABLE_BACKGROUND_WORKERS", "1")
+    from main import app
+    return TestClient(app, raise_server_exceptions=False)
+
+
+@pytest.fixture(autouse=True)
+def _reset_store():
+    """各テストで in-memory store を初期化."""
+    cts.reset_store()
+    # backend hook も clear (テスト間の状態漏れ防止)
+    mtl.register_summarizer_backend(None)
+    yield
+    cts.reset_store()
+    mtl.register_summarizer_backend(None)
+
+
+@pytest.fixture(autouse=True)
+def _capture_audit(monkeypatch):
+    """memory_service.emit_event を mock し event を集める."""
+    captured: list[dict] = []
+
+    async def fake_emit(event_type, *, session_id=None, user_id=None, detail=None):
+        captured.append({
+            "event_type": event_type,
+            "session_id": session_id,
+            "user_id": user_id,
+            "detail": detail or {},
+        })
+        return len(captured)
+
+    import services.memory_service as ms
+    monkeypatch.setattr(ms, "emit_event", fake_emit)
+    yield captured
+
+
+@pytest.fixture
+def stub_legacy_persist(monkeypatch):
+    """memory_service.persist_compaction を stub (sqlite 非依存)."""
+    persisted: list[dict] = []
+
+    async def fake_persist_compaction(thread_id, summary):
+        persisted.append({"thread_id": thread_id, "summary": dict(summary)})
+        return 9999 + len(persisted)
+
+    import services.memory_service as ms
+    monkeypatch.setattr(ms, "persist_compaction", fake_persist_compaction)
+    return persisted
+
+
+def _make_thread() -> int:
+    """テスト用の thread を作成し id を返す."""
+    return cts.get_store().create_thread(title="T-M30-03 test").id
+
+
+def _add_compressed_message(
+    thread_id: int,
+    summary: dict[str, Any],
+    *,
+    role: str = SUMMARY_ROLE_SYSTEM,
+    content: str = "[compressed]",
+):
+    return cts.get_store().add_message(
+        thread_id, role, content, compressed_summary=summary,
+    )
+
+
+_NEXT_INJECTED_MSG_ID = [10_000]
+
+
+def _add_system_summary_message(thread_id: int, summary: dict[str, Any]):
+    """memory_service.persist_compaction が書く形式 (role='system_summary' + JSON content).
+
+    chat_thread_store.VALID_ROLES に 'system_summary' は含まれないため
+    (memory_service は raw SQL で sqlite chat_messages に書く), in-memory
+    store には ChatMessage dataclass を直接挿入して mirror をシミュレート.
+    Phase 2 で sqlite ↔ in-memory store の mirror sync が入った時の挙動を
+    Phase 1 のテストで先取りする.
+    """
+    store = cts.get_store()
+    if store.get_thread(thread_id) is None:
+        raise ValueError(f"thread not found: {thread_id}")
+    _NEXT_INJECTED_MSG_ID[0] += 1
+    msg = cts.ChatMessage(
+        id=_NEXT_INJECTED_MSG_ID[0],
+        thread_id=thread_id,
+        role=SUMMARY_ROLE_SYSTEM_SUMMARY,
+        content=json.dumps(summary, ensure_ascii=False),
+        compressed_summary=None,
+        token_count=None,
+        created_at=time.time(),
+    )
+    with store._lock:
+        store._messages[msg.id] = msg
+        store._by_thread.setdefault(thread_id, []).append(msg.id)
+    return msg
+
+
+def _full_summary(prefix: str = "v") -> dict[str, list[str]]:
+    """全 9 section に bullet を 1 件ずつ持つ summary."""
+    return {k: [f"{prefix}-{k}-1"] for k in SECTION_KEYS}
+
+
+# ══════════════════════════════════════════════════════════════════════
+# Service: constants & invariants
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_section_keys_exactly_9():
+    assert len(SECTION_KEYS) == 9
+    assert len(set(SECTION_KEYS)) == 9
+
+
+def test_g10_section_keys_match_tier3_module_when_available():
+    """G10: tier3_structured_summary が import 可能な環境では SECTION_KEYS が一致."""
+    try:
+        from services import tier3_structured_summary as t3  # noqa: F401
+    except ImportError:
+        pytest.skip("tier3_structured_summary not yet merged (PR #128 pending)")
+    assert tuple(SECTION_KEYS) == tuple(t3.SECTION_KEYS), (
+        "SECTION_KEYS divergence between mid_term_layer and tier3_structured_summary"
+    )
+
+
+def test_empty_summary_is_9_sections_all_lists():
+    e = empty_summary()
+    assert set(e.keys()) == set(SECTION_KEYS)
+    assert all(isinstance(v, list) and v == [] for v in e.values())
+
+
+def test_valid_prefer_sources_tuple():
+    assert "auto" in VALID_PREFER_SOURCES
+    assert "compressed_summary" in VALID_PREFER_SOURCES
+    assert "system_summary" in VALID_PREFER_SOURCES
+
+
+# ══════════════════════════════════════════════════════════════════════
+# Service: validation (UNWANTED AC-4)
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_validate_thread_id_rejects_zero_negative_bool_str():
+    for bad in (0, -1, True, False, "1", 1.0, None):
+        with pytest.raises(MidTermLayerError):
+            mtl._validate_thread_id(bad)
+
+
+def test_validate_thread_id_accepts_positive_int():
+    assert mtl._validate_thread_id(7) == 7
+
+
+def test_validate_limit_bounds():
+    with pytest.raises(MidTermLayerError):
+        mtl._validate_limit(MIN_HISTORY_LIMIT - 1)
+    with pytest.raises(MidTermLayerError):
+        mtl._validate_limit(MAX_HISTORY_LIMIT + 1)
+    with pytest.raises(MidTermLayerError):
+        mtl._validate_limit(True)
+    with pytest.raises(MidTermLayerError):
+        mtl._validate_limit("20")
+    assert mtl._validate_limit(MIN_HISTORY_LIMIT) == MIN_HISTORY_LIMIT
+    assert mtl._validate_limit(MAX_HISTORY_LIMIT) == MAX_HISTORY_LIMIT
+
+
+def test_validate_prefer_source():
+    for ok in VALID_PREFER_SOURCES:
+        assert mtl._validate_prefer_source(ok) == ok
+    for bad in ("foo", "", None, 1, True):
+        with pytest.raises(MidTermLayerError):
+            mtl._validate_prefer_source(bad)
+
+
+def test_validate_actor_user_id():
+    assert mtl._validate_actor_user_id(None) is None
+    assert mtl._validate_actor_user_id(" alice ") == "alice"
+    with pytest.raises(MidTermLayerError):
+        mtl._validate_actor_user_id("   ")
+    with pytest.raises(MidTermLayerError):
+        mtl._validate_actor_user_id(123)
+    with pytest.raises(MidTermLayerError):
+        mtl._validate_actor_user_id("x" * (MAX_ACTOR_USER_ID_LEN + 1))
+
+
+def test_require_thread_exists_raises_for_unknown():
+    with pytest.raises(MidTermLayerError):
+        mtl._require_thread_exists(99999)
+
+
+# ══════════════════════════════════════════════════════════════════════
+# Service: _normalize_summary
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_normalize_summary_returns_none_for_non_dict():
+    assert mtl._normalize_summary(None) is None
+    assert mtl._normalize_summary("foo") is None
+    assert mtl._normalize_summary([1, 2]) is None
+
+
+def test_normalize_summary_returns_none_when_no_known_key():
+    assert mtl._normalize_summary({"unrelated": ["x"]}) is None
+
+
+def test_normalize_summary_fills_missing_sections():
+    out = mtl._normalize_summary({"context": ["c1"]})
+    assert out is not None
+    assert set(out.keys()) == set(SECTION_KEYS)
+    assert out["context"] == ["c1"]
+    assert out["goals"] == []
+
+
+def test_normalize_summary_coerces_non_str_list_items():
+    out = mtl._normalize_summary({"context": [1, "two", None, 3.5]})
+    assert out is not None
+    assert out["context"] == ["1", "two", "3.5"]  # None は除外
+
+
+def test_normalize_summary_accepts_string_value():
+    """defensive: 非 list value も str 化して 1-elem list に."""
+    out = mtl._normalize_summary({"context": "single"})
+    assert out is not None
+    assert out["context"] == ["single"]
+
+
+def test_normalize_summary_ignores_extra_keys():
+    out = mtl._normalize_summary({"context": ["c"], "extra": ["e"]})
+    assert out is not None
+    assert "extra" not in out
+
+
+def test_normalize_summary_explicit_none_value_becomes_empty_list():
+    out = mtl._normalize_summary({"context": None, "goals": ["g"]})
+    assert out is not None
+    assert out["context"] == []
+    assert out["goals"] == ["g"]
+
+
+def test_extract_summary_path_b_returns_none_for_non_string_content_after_json():
+    """role='system_summary' で content が JSON 数値 (dict でない) → None."""
+    tid = _make_thread()
+    _inject_system_summary_with_content(tid, "12345")
+    out = mtl.latest_summary(tid)
+    assert out["found"] is False
+
+
+def test_extract_summary_no_summary_returns_none_at_end():
+    """role='user' / no compressed_summary → _extract_summary_from_message が None."""
+    tid = _make_thread()
+    cts.get_store().add_message(tid, "user", "plain text")
+    out = mtl.latest_summary(tid)
+    assert out["found"] is False
+
+
+# ══════════════════════════════════════════════════════════════════════
+# Service: latest_summary (AC-1 UBIQUITOUS)
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_latest_summary_empty_thread_returns_empty_skeleton():
+    tid = _make_thread()
+    out = mtl.latest_summary(tid)
+    assert out["found"] is False
+    assert out["source"] is None
+    assert out["summary"] == empty_summary()
+    assert set(out["summary"].keys()) == set(SECTION_KEYS)
+
+
+def test_latest_summary_path_a_compressed_summary():
+    tid = _make_thread()
+    s = _full_summary("a")
+    msg = _add_compressed_message(tid, s)
+    out = mtl.latest_summary(tid)
+    assert out["found"] is True
+    assert out["source"] == "compressed_summary"
+    assert out["message_id"] == msg.id
+    assert out["summary"] == s
+
+
+def test_latest_summary_path_b_system_summary_json():
+    tid = _make_thread()
+    s = _full_summary("b")
+    msg = _add_system_summary_message(tid, s)
+    out = mtl.latest_summary(tid)
+    assert out["found"] is True
+    assert out["source"] == "system_summary"
+    assert out["message_id"] == msg.id
+    assert out["summary"] == s
+
+
+def test_latest_summary_newest_first_across_paths():
+    tid = _make_thread()
+    s_old = _full_summary("old")
+    s_new = _full_summary("new")
+    _add_compressed_message(tid, s_old)
+    time.sleep(0.001)  # ensure created_at order
+    _add_system_summary_message(tid, s_new)
+    out = mtl.latest_summary(tid)
+    assert out["source"] == "system_summary"
+    assert out["summary"] == s_new
+
+
+def test_latest_summary_prefer_compressed_only():
+    tid = _make_thread()
+    s_old = _full_summary("old")
+    s_new = _full_summary("new")
+    _add_compressed_message(tid, s_old)
+    time.sleep(0.001)
+    _add_system_summary_message(tid, s_new)
+    out = mtl.latest_summary(tid, prefer_source="compressed_summary")
+    assert out["source"] == "compressed_summary"
+    assert out["summary"] == s_old
+
+
+def test_latest_summary_prefer_system_summary_only():
+    tid = _make_thread()
+    s_old = _full_summary("old")
+    s_new = _full_summary("new")
+    _add_system_summary_message(tid, s_old)
+    time.sleep(0.001)
+    _add_compressed_message(tid, s_new)
+    out = mtl.latest_summary(tid, prefer_source="system_summary")
+    assert out["source"] == "system_summary"
+    assert out["summary"] == s_old
+
+
+def test_latest_summary_skips_non_summary_messages():
+    tid = _make_thread()
+    cts.get_store().add_message(tid, "user", "hello")
+    cts.get_store().add_message(tid, "assistant", "hi")
+    out = mtl.latest_summary(tid)
+    assert out["found"] is False
+
+
+def _inject_system_summary_with_content(thread_id: int, content: str):
+    """role='system_summary' のメッセージを raw content で in-memory store に注入."""
+    store = cts.get_store()
+    if store.get_thread(thread_id) is None:
+        raise ValueError(f"thread not found: {thread_id}")
+    _NEXT_INJECTED_MSG_ID[0] += 1
+    msg = cts.ChatMessage(
+        id=_NEXT_INJECTED_MSG_ID[0],
+        thread_id=thread_id,
+        role=SUMMARY_ROLE_SYSTEM_SUMMARY,
+        content=content,
+        compressed_summary=None,
+        token_count=None,
+        created_at=time.time(),
+    )
+    with store._lock:
+        store._messages[msg.id] = msg
+        store._by_thread.setdefault(thread_id, []).append(msg.id)
+    return msg
+
+
+def test_latest_summary_system_summary_with_invalid_json_skipped():
+    tid = _make_thread()
+    _inject_system_summary_with_content(tid, "not json")
+    out = mtl.latest_summary(tid)
+    assert out["found"] is False
+
+
+def test_latest_summary_system_summary_with_unknown_keys_skipped():
+    tid = _make_thread()
+    _inject_system_summary_with_content(tid, json.dumps({"foo": ["bar"]}))
+    out = mtl.latest_summary(tid)
+    assert out["found"] is False
+
+
+def test_latest_summary_actor_validated():
+    tid = _make_thread()
+    with pytest.raises(MidTermLayerError):
+        mtl.latest_summary(tid, actor_user_id="   ")
+
+
+def test_latest_summary_thread_id_validated():
+    with pytest.raises(MidTermLayerError):
+        mtl.latest_summary(0)
+    with pytest.raises(MidTermLayerError):
+        mtl.latest_summary(True)
+
+
+def test_latest_summary_prefer_source_validated():
+    tid = _make_thread()
+    with pytest.raises(MidTermLayerError):
+        mtl.latest_summary(tid, prefer_source="bogus")
+
+
+def test_latest_summary_unknown_thread_404():
+    with pytest.raises(MidTermLayerError) as ei:
+        mtl.latest_summary(99999)
+    assert "not found" in str(ei.value)
+
+
+# ══════════════════════════════════════════════════════════════════════
+# Service: compressed_history
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_compressed_history_empty():
+    tid = _make_thread()
+    out = mtl.compressed_history(tid)
+    assert out["count"] == 0
+    assert out["entries"] == []
+
+
+def test_compressed_history_newest_first():
+    tid = _make_thread()
+    a = _full_summary("a")
+    b = _full_summary("b")
+    c = _full_summary("c")
+    _add_compressed_message(tid, a)
+    time.sleep(0.001)
+    _add_system_summary_message(tid, b)
+    time.sleep(0.001)
+    _add_compressed_message(tid, c)
+    out = mtl.compressed_history(tid)
+    assert out["count"] == 3
+    assert out["entries"][0]["summary"] == c
+    assert out["entries"][1]["summary"] == b
+    assert out["entries"][2]["summary"] == a
+
+
+def test_compressed_history_limit_truncates():
+    tid = _make_thread()
+    for i in range(5):
+        _add_compressed_message(tid, _full_summary(f"v{i}"))
+    out = mtl.compressed_history(tid, limit=2)
+    assert out["count"] == 2
+    assert out["limit"] == 2
+
+
+def test_compressed_history_limit_validated():
+    tid = _make_thread()
+    with pytest.raises(MidTermLayerError):
+        mtl.compressed_history(tid, limit=0)
+    with pytest.raises(MidTermLayerError):
+        mtl.compressed_history(tid, limit=MAX_HISTORY_LIMIT + 1)
+
+
+def test_compressed_history_skips_non_summary():
+    tid = _make_thread()
+    cts.get_store().add_message(tid, "user", "hi")
+    _add_compressed_message(tid, _full_summary("ok"))
+    out = mtl.compressed_history(tid)
+    assert out["count"] == 1
+
+
+def test_compressed_history_unknown_thread_404():
+    with pytest.raises(MidTermLayerError) as ei:
+        mtl.compressed_history(99999)
+    assert "not found" in str(ei.value)
+
+
+# ══════════════════════════════════════════════════════════════════════
+# Service: mid_tier_stats
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_mid_tier_stats_empty_thread():
+    tid = _make_thread()
+    out = mtl.mid_tier_stats(tid)
+    assert out["total_messages"] == 0
+    assert out["summary_count"] == 0
+    assert out["by_source"] == {"compressed_summary": 0, "system_summary": 0}
+    assert out["compression_ratio"] == 0.0
+    assert out["latest_summary_created_at"] is None
+    assert out["latest_summary_source"] is None
+    assert out["covered_section_count"] == 0
+    assert out["section_keys"] == list(SECTION_KEYS)
+    # 9 section の coverage 0
+    assert all(out["section_coverage"][k] == 0 for k in SECTION_KEYS)
+
+
+def test_mid_tier_stats_with_mixed_sources():
+    tid = _make_thread()
+    cts.get_store().add_message(tid, "user", "hi")
+    _add_compressed_message(tid, {"context": ["c1", "c2"]})
+    time.sleep(0.001)
+    _add_system_summary_message(tid, {"goals": ["g1"]})
+    out = mtl.mid_tier_stats(tid)
+    assert out["total_messages"] == 3
+    assert out["summary_count"] == 2
+    assert out["by_source"] == {"compressed_summary": 1, "system_summary": 1}
+    assert out["compression_ratio"] == pytest.approx(2 / 3)
+    assert out["latest_summary_source"] == "system_summary"
+    assert out["section_coverage"]["context"] == 2
+    assert out["section_coverage"]["goals"] == 1
+    assert out["covered_section_count"] == 2
+
+
+def test_mid_tier_stats_unknown_thread_404():
+    with pytest.raises(MidTermLayerError) as ei:
+        mtl.mid_tier_stats(99999)
+    assert "not found" in str(ei.value)
+
+
+def test_mid_tier_stats_actor_validated():
+    tid = _make_thread()
+    with pytest.raises(MidTermLayerError):
+        mtl.mid_tier_stats(tid, actor_user_id="   ")
+
+
+# ══════════════════════════════════════════════════════════════════════
+# G7: register_summarizer_backend hook
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_g7_register_backend_callable_only():
+    with pytest.raises(MidTermLayerError):
+        mtl.register_summarizer_backend("not callable")
+    with pytest.raises(MidTermLayerError):
+        mtl.register_summarizer_backend(123)
+    # OK paths
+    mtl.register_summarizer_backend(lambda msgs: empty_summary())
+    assert callable(mtl.get_summarizer_backend())
+    mtl.register_summarizer_backend(None)
+    assert mtl.get_summarizer_backend() is None
+
+
+def test_g7_backend_swap_used_in_record(stub_legacy_persist):
+    tid = _make_thread()
+    # backend が完全に違う summary を返す
+    custom = {k: [f"backend-{k}"] for k in SECTION_KEYS}
+    mtl.register_summarizer_backend(lambda msgs: custom)
+    res = asyncio.run(mtl.record_summary(tid, _full_summary("ignored")))
+    assert res["backend_used"] is True
+    assert res["summary"] == custom
+
+
+def test_g7_backend_exception_falls_back_to_provided(stub_legacy_persist):
+    tid = _make_thread()
+    def boom(msgs):
+        raise RuntimeError("backend down")
+    mtl.register_summarizer_backend(boom)
+    provided = _full_summary("provided")
+    res = asyncio.run(mtl.record_summary(tid, provided))
+    assert res["backend_used"] is False
+    assert res["summary"] == provided
+
+
+def test_g7_backend_invalid_output_falls_back_to_provided(stub_legacy_persist):
+    tid = _make_thread()
+    mtl.register_summarizer_backend(lambda msgs: {"invalid_only": ["x"]})
+    provided = _full_summary("provided")
+    res = asyncio.run(mtl.record_summary(tid, provided))
+    assert res["backend_used"] is False
+    assert res["summary"] == provided
+
+
+def test_g7_backend_disabled_via_use_backend_false(stub_legacy_persist):
+    tid = _make_thread()
+    mtl.register_summarizer_backend(lambda msgs: _full_summary("backend"))
+    provided = _full_summary("provided")
+    res = asyncio.run(mtl.record_summary(tid, provided, use_backend=False))
+    assert res["backend_used"] is False
+    assert res["summary"] == provided
+
+
+# ══════════════════════════════════════════════════════════════════════
+# G8: dual-write helper (record_summary)
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_g8_record_summary_writes_path_a(stub_legacy_persist):
+    tid = _make_thread()
+    s = _full_summary("rec")
+    res = asyncio.run(mtl.record_summary(tid, s))
+    # 経路 A: chat_thread_store に role='system' + compressed_summary
+    msg = cts.get_store().get_message(res["message_id"])
+    assert msg is not None
+    assert msg.role == SUMMARY_ROLE_SYSTEM
+    assert msg.compressed_summary == s
+
+
+def test_g8_record_summary_writes_path_b_when_persist_legacy_true(stub_legacy_persist):
+    tid = _make_thread()
+    s = _full_summary("rec")
+    res = asyncio.run(mtl.record_summary(tid, s, persist_legacy=True))
+    assert res["legacy_result"]["status"] == "ok"
+    assert len(stub_legacy_persist) == 1
+    assert stub_legacy_persist[0]["summary"] == s
+
+
+def test_g8_record_summary_skips_path_b_when_persist_legacy_false(stub_legacy_persist):
+    tid = _make_thread()
+    res = asyncio.run(mtl.record_summary(
+        tid, _full_summary("x"), persist_legacy=False,
+    ))
+    assert res["legacy_result"] is None
+    assert stub_legacy_persist == []
+
+
+def test_g8_record_summary_legacy_failure_does_not_raise(monkeypatch):
+    tid = _make_thread()
+
+    async def boom(thread_id, summary):
+        raise RuntimeError("sqlite down")
+
+    import services.memory_service as ms
+    monkeypatch.setattr(ms, "persist_compaction", boom)
+    res = asyncio.run(mtl.record_summary(tid, _full_summary("x")))
+    assert res["legacy_result"]["status"] == "error"
+    # Path A は成功しているべき
+    assert res["message_id"] is not None
+
+
+def test_g8_record_summary_invalid_summary_rejected(stub_legacy_persist):
+    tid = _make_thread()
+    with pytest.raises(MidTermLayerError):
+        asyncio.run(mtl.record_summary(tid, {"unknown": ["x"]}))
+    with pytest.raises(MidTermLayerError):
+        asyncio.run(mtl.record_summary(tid, "not dict"))
+    # state mutate していない
+    assert cts.get_store().count_messages(tid) == 0
+    assert stub_legacy_persist == []
+
+
+def test_g8_record_summary_unknown_thread_404(stub_legacy_persist):
+    with pytest.raises(MidTermLayerError) as ei:
+        asyncio.run(mtl.record_summary(99999, _full_summary("x")))
+    assert "not found" in str(ei.value)
+    assert stub_legacy_persist == []
+
+
+def test_g8_record_summary_persist_legacy_must_be_bool():
+    tid = _make_thread()
+    with pytest.raises(MidTermLayerError):
+        asyncio.run(mtl.record_summary(tid, _full_summary("x"), persist_legacy="yes"))
+
+
+def test_g8_record_summary_use_backend_must_be_bool():
+    tid = _make_thread()
+    with pytest.raises(MidTermLayerError):
+        asyncio.run(mtl.record_summary(tid, _full_summary("x"), use_backend="yes"))
+
+
+# ══════════════════════════════════════════════════════════════════════
+# G9: conversation_summarizer / conversation_memory 不変
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_g9_conversation_summarizer_unchanged():
+    from services import conversation_summarizer as cs
+    assert hasattr(cs, "generate_summary")
+    assert hasattr(cs, "format_for_prompt")
+    assert hasattr(cs, "SUMMARY_PROMPT")
+
+
+def test_g9_conversation_memory_unchanged():
+    from services import conversation_memory as cm
+    assert hasattr(cm, "embed_message")
+    assert hasattr(cm, "search_related_history")
+    assert hasattr(cm, "build_context_for_agent")
+    assert hasattr(cm, "estimate_tokens")
+    assert hasattr(cm, "CONTEXT_WINDOWS")
+
+
+def test_g9_chat_thread_store_unchanged():
+    """chat_thread_store の API surface が変わっていない."""
+    s = cts.ChatThreadStore()
+    for sym in (
+        "create_thread", "get_thread", "list_threads", "update_thread", "delete_thread",
+        "add_message", "get_message", "list_messages", "delete_message", "count_messages",
+    ):
+        assert hasattr(s, sym), f"chat_thread_store.{sym} missing"
+
+
+def test_g9_memory_service_unchanged():
+    from services import memory_service as ms
+    for sym in (
+        "emit_event", "persist_compaction", "write_fact",
+        "merge_for_session", "mirror_to_obsidian", "fact_fingerprint",
+    ):
+        assert hasattr(ms, sym), f"memory_service.{sym} missing"
+
+
+# ══════════════════════════════════════════════════════════════════════
+# AC-1 UBIQUITOUS: endpoint smoke
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_ac1_endpoint_summary(client):
+    tid = _make_thread()
+    s = _full_summary("v")
+    _add_compressed_message(tid, s)
+    r = client.get("/api/mid-term/summary", params={"thread_id": tid})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["found"] is True
+    assert body["summary"] == s
+    assert set(body["summary"].keys()) == set(SECTION_KEYS)
+
+
+def test_ac1_endpoint_compressed(client):
+    tid = _make_thread()
+    _add_compressed_message(tid, _full_summary("a"))
+    _add_system_summary_message(tid, _full_summary("b"))
+    r = client.get("/api/mid-term/compressed", params={"thread_id": tid})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["count"] == 2
+
+
+def test_ac1_endpoint_stats(client):
+    tid = _make_thread()
+    _add_compressed_message(tid, _full_summary("v"))
+    r = client.get("/api/mid-term/stats", params={"thread_id": tid})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["section_keys"] == list(SECTION_KEYS)
+    assert body["summary_count"] == 1
+
+
+def test_ac1_endpoint_record(client, stub_legacy_persist):
+    tid = _make_thread()
+    s = _full_summary("rec")
+    r = client.post("/api/mid-term/record", json={
+        "thread_id": tid,
+        "summary": s,
+        "persist_legacy": True,
+    })
+    assert r.status_code == 200
+    body = r.json()
+    assert body["summary"] == s
+    assert body["legacy_result"]["status"] == "ok"
+
+
+# ══════════════════════════════════════════════════════════════════════
+# AC-2 EVENT-DRIVEN: 2 秒以内 + {detail:{code,message}}
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_ac2_summary_within_2sec(client):
+    tid = _make_thread()
+    _add_compressed_message(tid, _full_summary("x"))
+    t0 = time.time()
+    r = client.get("/api/mid-term/summary", params={"thread_id": tid})
+    elapsed = time.time() - t0
+    assert r.status_code == 200
+    assert elapsed < 2.0
+
+
+def test_ac2_compressed_within_2sec(client):
+    tid = _make_thread()
+    for i in range(50):
+        _add_compressed_message(tid, _full_summary(f"v{i}"))
+    t0 = time.time()
+    r = client.get(
+        "/api/mid-term/compressed",
+        params={"thread_id": tid, "limit": MAX_HISTORY_LIMIT},
+    )
+    elapsed = time.time() - t0
+    assert r.status_code == 200
+    assert elapsed < 2.0
+
+
+def test_ac2_stats_within_2sec(client):
+    tid = _make_thread()
+    for i in range(20):
+        _add_compressed_message(tid, _full_summary(f"v{i}"))
+    t0 = time.time()
+    r = client.get("/api/mid-term/stats", params={"thread_id": tid})
+    elapsed = time.time() - t0
+    assert r.status_code == 200
+    assert elapsed < 2.0
+
+
+def test_ac2_record_within_2sec(client, stub_legacy_persist):
+    tid = _make_thread()
+    t0 = time.time()
+    r = client.post("/api/mid-term/record", json={
+        "thread_id": tid,
+        "summary": _full_summary("x"),
+    })
+    elapsed = time.time() - t0
+    assert r.status_code == 200
+    assert elapsed < 2.0
+
+
+def test_ac2_error_shape_consistency(client):
+    """全 error path で {detail:{code,message}} で code が 'mid_term.' prefix."""
+    cases = [
+        ("GET", "/api/mid-term/summary", {"thread_id": 99999}, None, 404),
+        ("GET", "/api/mid-term/summary",
+         {"thread_id": 1, "actor_user_id": "  "}, None, 401),
+        ("GET", "/api/mid-term/summary",
+         {"thread_id": 1, "prefer_source": "bogus"}, None, 400),
+        ("GET", "/api/mid-term/compressed", {"thread_id": 99999}, None, 404),
+        ("GET", "/api/mid-term/stats", {"thread_id": 99999}, None, 404),
+    ]
+    # thread_id=1 のケースに備え、1 を作っておく
+    tid = _make_thread()
+    assert tid == 1  # reset_store により毎回 1 から
+    for method, path, params, body, expected_status in cases:
+        if method == "GET":
+            r = client.get(path, params=params)
+        else:
+            r = client.post(path, json=body)
+        assert r.status_code == expected_status, f"{path}/{params}: {r.status_code}"
+        detail = r.json()["detail"]
+        assert isinstance(detail, dict)
+        assert "code" in detail and "message" in detail
+        assert detail["code"].startswith("mid_term."), f"{path}: {detail['code']}"
+
+
+def test_ac2_record_invalid_summary_returns_400(client, stub_legacy_persist):
+    tid = _make_thread()
+    r = client.post("/api/mid-term/record", json={
+        "thread_id": tid,
+        "summary": {"unknown": ["x"]},
+    })
+    assert r.status_code == 400
+    detail = r.json()["detail"]
+    assert detail["code"] == "mid_term.invalid"
+
+
+# ══════════════════════════════════════════════════════════════════════
+# AC-3 STATE-DRIVEN: 既存 module 不変 + audit emit / read は emit しない
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_ac3_summary_no_audit(client, _capture_audit):
+    tid = _make_thread()
+    _add_compressed_message(tid, _full_summary("v"))
+    client.get("/api/mid-term/summary", params={"thread_id": tid})
+    assert not [e for e in _capture_audit if e["event_type"].startswith("mid_term.")]
+
+
+def test_ac3_compressed_no_audit(client, _capture_audit):
+    tid = _make_thread()
+    client.get("/api/mid-term/compressed", params={"thread_id": tid})
+    assert not [e for e in _capture_audit if e["event_type"].startswith("mid_term.")]
+
+
+def test_ac3_stats_no_audit(client, _capture_audit):
+    tid = _make_thread()
+    client.get("/api/mid-term/stats", params={"thread_id": tid})
+    assert not [e for e in _capture_audit if e["event_type"].startswith("mid_term.")]
+
+
+def test_ac3_record_emits_audit(client, _capture_audit, stub_legacy_persist):
+    tid = _make_thread()
+    r = client.post("/api/mid-term/record", json={
+        "thread_id": tid,
+        "summary": _full_summary("v"),
+        "actor_user_id": "alice",
+    })
+    assert r.status_code == 200
+    events = [e for e in _capture_audit if e["event_type"] == "mid_term.recorded"]
+    assert len(events) == 1
+    detail = events[0]["detail"]
+    assert detail["thread_id"] == tid
+    assert detail["source"] == "compressed_summary"
+    assert detail["legacy_status"] == "ok"
+    assert events[0]["user_id"] == "alice"
+
+
+def test_ac3_existing_modules_api_surface_unchanged(client):
+    """summary endpoint 呼出後も既存 chat_threads router が変わっていない."""
+    tid = _make_thread()
+    _add_compressed_message(tid, _full_summary("v"))
+    client.get("/api/mid-term/summary", params={"thread_id": tid})
+    # chat_threads router (T-M30-01) 不変確認
+    routes = [getattr(r, "path", "") for r in client.app.routes]
+    assert "/api/chat-threads" in routes or any(
+        p.startswith("/api/chat-threads") for p in routes
+    )
+
+
+# ══════════════════════════════════════════════════════════════════════
+# AC-4 UNWANTED: invalid input は 4xx + state mutate しない
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_ac4_summary_thread_id_pydantic_422(client):
+    r = client.get("/api/mid-term/summary", params={"thread_id": 0})
+    assert r.status_code == 422
+
+
+def test_ac4_summary_unknown_thread_404(client):
+    r = client.get("/api/mid-term/summary", params={"thread_id": 88888})
+    assert r.status_code == 404
+    assert r.json()["detail"]["code"] == "mid_term.not_found"
+
+
+def test_ac4_summary_invalid_prefer_source_400(client):
+    tid = _make_thread()
+    r = client.get(
+        "/api/mid-term/summary",
+        params={"thread_id": tid, "prefer_source": "bogus"},
+    )
+    assert r.status_code == 400
+    assert r.json()["detail"]["code"] == "mid_term.invalid"
+
+
+def test_ac4_summary_empty_actor_401(client):
+    tid = _make_thread()
+    r = client.get(
+        "/api/mid-term/summary",
+        params={"thread_id": tid, "actor_user_id": "  "},
+    )
+    assert r.status_code == 401
+    assert r.json()["detail"]["code"] == "mid_term.unauthorized"
+
+
+def test_ac4_compressed_invalid_limit_pydantic_422(client):
+    tid = _make_thread()
+    for bad in (0, MAX_HISTORY_LIMIT + 1):
+        r = client.get(
+            "/api/mid-term/compressed",
+            params={"thread_id": tid, "limit": bad},
+        )
+        assert r.status_code == 422, f"limit={bad}: {r.status_code}"
+
+
+def test_ac4_stats_unknown_thread_404(client):
+    r = client.get("/api/mid-term/stats", params={"thread_id": 88888})
+    assert r.status_code == 404
+    assert r.json()["detail"]["code"] == "mid_term.not_found"
+
+
+def test_ac4_record_invalid_thread_id_422(client):
+    r = client.post("/api/mid-term/record", json={
+        "thread_id": 0, "summary": _full_summary("x"),
+    })
+    assert r.status_code == 422
+
+
+def test_ac4_record_unknown_thread_does_not_mutate(
+    client, stub_legacy_persist, _capture_audit,
+):
+    r = client.post("/api/mid-term/record", json={
+        "thread_id": 88888, "summary": _full_summary("x"),
+    })
+    assert r.status_code == 404
+    # state mutate なし: legacy にも書かれない / audit emit なし
+    assert stub_legacy_persist == []
+    assert not [e for e in _capture_audit if e["event_type"] == "mid_term.recorded"]
+
+
+def test_ac4_record_invalid_summary_does_not_mutate(
+    client, stub_legacy_persist, _capture_audit,
+):
+    tid = _make_thread()
+    before_msg_count = cts.get_store().count_messages(tid)
+    r = client.post("/api/mid-term/record", json={
+        "thread_id": tid, "summary": {"unknown": ["x"]},
+    })
+    assert r.status_code == 400
+    # state mutate なし
+    assert cts.get_store().count_messages(tid) == before_msg_count
+    assert stub_legacy_persist == []
+    assert not [e for e in _capture_audit if e["event_type"] == "mid_term.recorded"]
+
+
+def test_ac4_record_summary_must_be_dict_pydantic_422(client):
+    tid = _make_thread()
+    r = client.post("/api/mid-term/record", json={
+        "thread_id": tid, "summary": "not dict",
+    })
+    assert r.status_code == 422
+
+
+def test_ac4_endpoint_does_not_mutate_state_on_summary_error(client):
+    """summary endpoint 失敗時 in-memory state 変化なし."""
+    tid = _make_thread()
+    before_count = cts.get_store().count_messages(tid)
+    client.get(
+        "/api/mid-term/summary",
+        params={"thread_id": tid, "prefer_source": "bogus"},
+    )
+    assert cts.get_store().count_messages(tid) == before_count
+
+
+# ══════════════════════════════════════════════════════════════════════
+# Cross-check: mid layer と既存 store の整合
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_cross_check_compressed_summary_field_persisted_correctly():
+    """chat_thread_store の compressed_summary フィールドに dict を保持できる."""
+    tid = _make_thread()
+    s = _full_summary("v")
+    msg = cts.get_store().add_message(
+        tid, "system", "[test]", compressed_summary=s,
+    )
+    fetched = cts.get_store().get_message(msg.id)
+    assert fetched.compressed_summary == s
+
+
+def test_cross_check_system_summary_role_is_valid():
+    """role='system_summary' は ChatThreadStore の VALID_ROLES に無いため,
+    mid layer の経路 B は memory_service.persist_compaction が直接書いた
+    chat_messages レコードを読む経路を想定する (chat_thread_store.add_message
+    では作れない). 本テストはこの仕様境界の明示記録."""
+    assert SUMMARY_ROLE_SYSTEM_SUMMARY not in cts.VALID_ROLES
+    # chat_thread_store.add_message でこの role を使うと拒否される
+    tid = _make_thread()
+    with pytest.raises(cts.ChatThreadError):
+        cts.get_store().add_message(tid, SUMMARY_ROLE_SYSTEM_SUMMARY, "x")
+
+
+def test_cross_check_in_memory_path_b_via_internal_dataclass():
+    """in-memory store でも経路 B のレコード形を直接構築すれば read できる."""
+    import time as _t
+    tid = _make_thread()
+    store = cts.get_store()
+    # 内部 dict に直接挿入 (テスト専用) — 経路 B の Postgres 経由を simulate
+    msg = cts.ChatMessage(
+        id=99001,
+        thread_id=tid,
+        role=SUMMARY_ROLE_SYSTEM_SUMMARY,
+        content=json.dumps(_full_summary("b")),
+        compressed_summary=None,
+        token_count=None,
+        created_at=_t.time(),
+    )
+    with store._lock:
+        store._messages[msg.id] = msg
+        store._by_thread.setdefault(tid, []).append(msg.id)
+    out = mtl.latest_summary(tid)
+    assert out["found"] is True
+    assert out["source"] == "system_summary"
+
+
+# ══════════════════════════════════════════════════════════════════════
+# Module docstring / divergence note (G10 cross-module note)
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_module_docstring_documents_g7_g10():
+    """module docstring に G7-G10 が明示されている (Phase 2 hook の発見性)."""
+    doc = mtl.__doc__ or ""
+    for tag in ("G7", "G8", "G9", "G10"):
+        assert tag in doc, f"module docstring must mention {tag}"
+
+
+def test_module_docstring_documents_path_a_and_b():
+    doc = mtl.__doc__ or ""
+    assert "経路 A" in doc
+    assert "経路 B" in doc
