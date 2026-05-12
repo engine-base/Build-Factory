@@ -94,6 +94,7 @@ from routers.chat_threads import router as chat_threads_router
 from routers.ai_employees import employees_router as ai_employees_router, personas_router as ai_personas_router
 from routers.hierarchy import router as hierarchy_router
 from routers.long_term_layer import router as long_term_layer_router
+from routers.mid_term_layer import router as mid_term_layer_router
 from routers.intent_classifier import router as intent_classifier_router
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
@@ -240,6 +241,7 @@ app.include_router(ai_employees_router)
 app.include_router(ai_personas_router)
 app.include_router(hierarchy_router)
 app.include_router(long_term_layer_router)
+app.include_router(mid_term_layer_router)
 app.include_router(intent_classifier_router)
 
 

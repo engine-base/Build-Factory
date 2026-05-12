@@ -144,3 +144,82 @@ SDK が自動で面倒見ない領域は、以下を必ず自前実装する:
 - Anthropic Engineering Blog: "How we built our multi-agent research system"
 - claude-agent-sdk Python リファレンス
 - Anthropic Memory API ドキュメント (2025)
+
+## Amendments
+
+### 2026-05-12: tickets.json 更新漏れ監査 + 7 タスク仕様修正 (PR #131)
+
+ADR-010 改訂時 (2026-05-10) に tickets.json の対応更新が一部漏れていたことが
+判明し、SDK auto 機能を「自前実装 (NEW)」として残していた 7 タスクを
+ADR-010 準拠に書き直した。
+
+#### きっかけ
+セッション中に T-M28-02 (Tier 1 tool result trim) を `label: NEW` の記述に
+従って自前 3 戦略 (size cap / age cap / dedup) で実装しかけた所、masato が
+「これは claude-agent-sdk が auto で提供する機能 = 自作不要」と指摘。
+さらに PR #128 (T-M28-04) も同じ誤りで keyword heuristic を自前実装して
+いたことが判明。tickets.json と ADR-010 の整合性監査を実施した。
+
+#### 監査範囲
+tickets.json 全 178 タスクから SDK 関連キーワード 17 種で 17 候補を抽出し、
+ADR-010 の規定 (`SDK 任せ` vs `自前実装必須 8 項目 T-AI-01〜08`) と照合。
+加えて main にマージ済の 4 PR (#120/#121/#122/#126) の実装を確認、
+本セッション未マージの 3 PR (#128/#129/#130) も検査。
+
+#### 監査結果
+
+| カテゴリ | 件数 | TIDs |
+|---|---|---|
+| 仕様修正必要 → PR #131 で修正 | 7 | T-M28-02/03/04, T-M27-01, T-M27-01b (新規), T-M27-03, T-003-02 |
+| 仕様 OK (元から ADR-010 整合) | 9 | T-S0-08, T-020-02, T-021-03, T-AI-01〜08, T-M12-01 |
+| マージ済実装 OK | 4 PRs | #120, #121, #122, #126 |
+| マージ済 (未) → close | 1 PR | **#128 (T-M28-04 keyword heuristic 自前)** |
+
+#### 修正内容 (PR #131)
+
+- `T-M28-02` NEW → **REUSE** (SDK auto trim activation + audit_logs wrapper)
+- `T-M28-03` NEW → **REUSE** (cache_control: ephemeral 有効化 + cost_logs に
+  cache_read_input_tokens 記録)
+- `T-M28-04` NEW → **REFACTOR** (SDK auto-generated 9-section summary を
+  chat_messages.compressed_summary に persist する wrapper のみ; summarization
+  ロジック自前禁止)
+- `T-M27-01` NEW → **ARCHIVE** (LangGraph base setup; superseded by T-M27-01b)
+- `T-M27-01b` **NEW** (新規追加) (claude-agent-sdk entry node)
+- `T-M27-03` NEW → **REUSE** (SDK Task tool handoff wrapper)
+- `T-003-02` title + AC cleanup (「+ LangGraph」削除 / claude-agent-sdk 明示)
+
+各修正タスクの UNWANTED に「自前実装したら lint script が fail する」機械的
+ガード文言を追加 (再発防止)。`scripts/lint-mock.sh --no-langgraph` で監視。
+
+加えて `adr_link` フィールドを 7 タスクに追加し、ADR ↔ tickets の双方向
+traceability を確立。
+
+#### 教訓 (Lessons Learned)
+
+1. **ADR 改訂時は必ず tickets.json の依存変更を同時に行う**。決定だけ書いて
+   仕様 (tickets) を更新しないと、ADR 不読の実装者 (AI 含む) が古い仕様で
+   走ってしまう。
+2. **`label: NEW` の AC が "implement as specified" 等の generic 文言の場合は
+   要警戒**。ADR で REUSE/REFACTOR に書き換わっているはず。
+3. **機械的ガード (lint UNWANTED) を仕様に組み込む**。「lint fail させる」
+   文言を AC の UNWANTED に明記することで、再発防止を仕様レベルで強制。
+4. **既存実装 PR の事前監査**。新仕様で見直すと既存実装が違反していること
+   がある (PR #128 の例)。PR 作成時に ADR cross-ref をレビュー必須化。
+
+#### 影響範囲
+
+- ❌ コード変更: なし (本 PR は tickets.json + ADR-010 のみ)
+- ✅ tickets: 178 → 179 (T-M27-01b 追加)
+- ✅ validate-tickets.py: 179/179 PASS
+- ✅ lint-no-langgraph: PASS (実装側に LangGraph import 残骸なし)
+- 既存マージ済実装は全て新仕様と整合 (修正不要)
+- 未マージ PR #128 のみ閉鎖、他 PR は新仕様と元から整合
+
+#### Follow-up (本 Amendment 範囲外)
+
+T-S0-08 (claude-agent-sdk runner 基盤) マージ後に以下の実装 PR を作り直す:
+- T-M28-04 SDK auto summary persist wrapper (~50 行)
+- T-M28-02 SDK auto trim activation wrapper (~30 行)
+- T-M28-03 cost_logs cache_read_tokens recorder (T-AI-05 と連携)
+- T-M27-01b claude-agent-sdk entry node
+- T-M27-03 SDK Task tool handoff wrapper (T-M27-02 + T-003-02 マージ後)
