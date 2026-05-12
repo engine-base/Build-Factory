@@ -228,7 +228,7 @@
     },
     {
       "id": "T-S0-13b",
-      "title": "UNDETERMINED 64 件 + Orphan 6 件のチケット紐付けクリーンアップ",
+      "title": "UNDETERMINED 64 件 → 0 化 + Orphan 6 件 → 16 annotated (T-S0-13 監査 follow-up / supersedes lineage / triage_needed=1 / phase_annotations_applied=15)",
       "label": "REFACTOR",
       "feature": "META",
       "layer": "OPS",
@@ -240,33 +240,38 @@
       "claude_code_hours": 3,
       "human_days": 0.5,
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "entities": [],
       "existing_files": [
         "docs/task-decomposition/2026-05-09_v1/tickets.json",
-        "docs/audit/2026-05-10_v1/existing-inventory.json"
+        "docs/audit/2026-05-10_v1/existing-inventory.json",
+        "docs/audit/2026-05-10_v1/existing-inventory.md",
+        "scripts/audit-existing-inventory.py",
+        "scripts/regenerate_inventory.py",
+        "scripts/regenerate_inventory_md.py"
       ],
       "output_file": "docs/audit/2026-05-10_v1/existing-inventory.json (UNDETERMINED 0 化)",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The cleanup shall reduce existing-inventory.json UNDETERMINED count to zero or annotate each remaining file with a phase_boundary (Phase 1.5 / Phase 2) and explicit reason."
+          "text": "T-S0-13b shall regenerate docs/audit/2026-05-10_v1/existing-inventory.json such that summary.undetermined_remaining = 0 (down from 64) and summary.audit_id='T-S0-13b' supersedes 'T-S0-13 (2026-05-10)' preserving the audit lineage; the regenerated inventory shall classify all 281 disk files into counts_by_classification keyed by exactly (REUSE / REFACTOR / NEW) with NO UNDETERMINED entries; orphan_tickets shall expand from 6 to ~16 entries each carrying a phase_boundary annotation (ARCHIVED / Phase 1.5 / Phase 2 / directory_reference) and a non-empty reason."
         },
         {
-          "type": "EVENT",
-          "text": "When a file matches an existing REFACTOR ticket by basename or feature, the system shall add the file's exact path to that ticket's existing_files."
+          "type": "EVENT-DRIVEN",
+          "text": "When the regeneration runs, each disk file matched to an existing REFACTOR ticket by basename / feature shall have its exact path appended to that ticket's existing_files (deduplicated); each previously-UNDETERMINED router/service shall be re-classified by re-running scripts/audit-existing-inventory.py + ticket walk; the regenerated JSON shall be deterministic (UTF-8 no BOM, } terminated, top-level keys = {summary, inventory, orphan_tickets}) so git diff stays clean across reruns."
         },
         {
-          "type": "STATE",
-          "text": "While the cleanup is running, the system shall not introduce duplicate entries to any ticket's existing_files."
+          "type": "STATE-DRIVEN",
+          "text": "While the cleanup is running, scripts/regenerate_inventory.py shall NOT introduce duplicate entries to any ticket's existing_files (set semantics via list-dedup), shall NOT mutate source files under backend/ / frontend/ / supabase/, and shall NOT import langgraph / langchain / litellm (ADR-010 main path invariant); the supersedes chain in summary shall remain a string referencing the predecessor audit_id (T-S0-13)."
         },
         {
           "type": "OPTIONAL",
-          "text": "Where multiple tickets could plausibly own a file, the cleanup shall pick the highest-specificity ticket (REFACTOR > REUSE > NEW) and document the choice."
+          "text": "Where multiple tickets could plausibly own a file, the cleanup shall pick the highest-specificity ticket using priority REFACTOR > REUSE > NEW (more specific label wins) and document the choice via the entry's primary_ticket field plus ticket_ids array (ordered: primary first, secondaries follow); the multi-ticket case shall be visible in existing-inventory.md so reviewers can audit the choice."
         },
         {
           "type": "UNWANTED",
-          "text": "If a file cannot be mapped with confidence, the cleanup shall mark it as triage_needed with a 1-line reason instead of silently assigning to the closest ticket."
+          "text": "If a file cannot be mapped with confidence after the rule walk, the cleanup shall mark it as `mapping_status='triage_needed'` with a 1-line reason (e.g. 'placeholder reference; BA review pending') instead of silently assigning to the closest ticket; summary.triage_needed_count shall match the count of such entries in inventory; the regenerated JSON shall NOT contain any entry whose label or mapping_status is the legacy 'UNDETERMINED' string (post-cleanup invariant)."
         }
       ]
     },
