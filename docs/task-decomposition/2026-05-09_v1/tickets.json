@@ -4040,7 +4040,7 @@
     },
     {
       "id": "T-009-05",
-      "title": "依存追加/削除 drag&drop",
+      "title": "依存追加/削除 drag&drop (pure validation + DependencyDnDPanel / cycle 防止)",
       "sprint": 4,
       "feature": "F-009",
       "layer": "FE",
@@ -4050,23 +4050,27 @@
       "deps": [
         "T-009-02"
       ],
+      "existing_files": [
+        "frontend/src/components/dag/DependencyGraph.tsx"
+      ],
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-9",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-009-05 (依存追加/削除 drag&drop) as specified by feature F-009."
+          "text": "The system shall provide `frontend/src/components/dag/DependencyDnD.tsx` with pure helpers `validateNewDependency / proposeAddEdge / proposeRemoveEdge / applyPending` and React component `DependencyDnDPanel`. The validation enforces 5 rules: source/target must be integer > 0, no self-edge, no duplicate, no cycle creation (BFS check from target). Existing `DependencyGraph.tsx` SHALL NOT be modified (REUSE: caller wires React Flow onConnect/onEdgesDelete to proposeAddEdge/proposeRemoveEdge)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the user interacts with the UI for T-009-05, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+          "text": "When the user drags an edge in React Flow, the caller invokes `proposeAddEdge(source, target, existing, pending)` which returns DependencyChange or {error: ValidationResult}. When the user clicks Undo on a pending change, `onUndo(changeIndex)` callback fires. When the user clicks Confirm, `onConfirm()` callback fires to commit pending to backend."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-009-05 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While pending changes exist, the panel shall display add/remove counts + per-change Undo buttons. The pending state is controlled (caller owns DependencyChange[]). All colors shall be eb-* palette (border-eb-500/400/200, bg-eb-500/50, text-eb-500) and icons Lucide (Plus, Trash2, Undo2, AlertCircle)."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-009-05, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If source/target is not a positive integer (negative / 0 / NaN / Infinity / non-number), validateNewDependency returns {valid: false, code: 'dep.invalid_type' | 'dep.invalid_value'}. If source === target (self-edge), code='dep.self_edge'. If edge already exists, code='dep.duplicate'. If adding would create a cycle (BFS from target reaches source), code='dep.cycle'. Hardcoded color literals outside eb-* palette SHALL NOT appear in source."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/moat/S-017-dependency-graph.html"
