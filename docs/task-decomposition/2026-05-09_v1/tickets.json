@@ -6040,7 +6040,7 @@
     },
     {
       "id": "T-017-01",
-      "title": "Langfuse self-host docker-compose",
+      "title": "Langfuse self-host docker-compose (v3 / langfuse-web + langfuse-worker + langfuse-clickhouse + langfuse-minio / main compose と分離 / optional merge / port 3001)",
       "sprint": 7,
       "feature": "F-017",
       "layer": "OPS",
@@ -6050,23 +6050,28 @@
       "deps": [
         "T-S0-01"
       ],
+      "existing_files": [
+        "docker-compose.yml",
+        "backend/services/observability.py"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-17",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-017-01 (Langfuse self-host docker-compose) as specified by feature F-017."
+          "text": "docker-compose.langfuse.yml shall declare 4 services: langfuse-web (image langfuse/langfuse:3, port 3001:3000 to avoid conflict with frontend default 3000), langfuse-worker (image langfuse/langfuse-worker:3), langfuse-clickhouse (image clickhouse/clickhouse-server with named volume), langfuse-minio (image minio/minio with named volume); main docker-compose.yml shall be left UNCHANGED (separate file for optional merge via `docker compose -f docker-compose.yml -f docker-compose.langfuse.yml up -d`)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-017-01 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When `docker compose -f docker-compose.langfuse.yml config --quiet` is executed, the parsed config shall list exactly the 4 langfuse-* services with depends_on chain (web depends_on worker + clickhouse + minio; worker depends_on clickhouse); the langfuse-web environment shall include DATABASE_URL pointing to the existing supabase postgres service (postgres:5432) and CLICKHOUSE_URL pointing to langfuse-clickhouse:8123 so the existing Build-Factory database is reused (T-S0-01 REUSE) and no second postgres instance is launched."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-017-01 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While langfuse-web is running, the system shall expose the dashboard at http://localhost:3001 and shall persist data via 2 named volumes: langfuse_clickhouse_data + langfuse_minio_data; .env.langfuse.example shall document the minimum 8 required ENV (NEXTAUTH_SECRET / SALT / ENCRYPTION_KEY / TELEMETRY_ENABLED / LANGFUSE_INIT_ORG_NAME / LANGFUSE_INIT_USER_EMAIL / LANGFUSE_INIT_PROJECT_PUBLIC_KEY / LANGFUSE_INIT_PROJECT_SECRET_KEY) so first-time bootstrap is deterministic; the file shall NOT contain real secrets (placeholders only)."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-017-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If docker-compose.langfuse.yml mutates / overrides any service from docker-compose.yml (postgres / redis / backend / litellm / frontend), the spec test shall fail; if any langfuse-* service uses image tag 'latest' instead of pinned major version (langfuse:3 / clickhouse-server:24 / minio:RELEASE-2024-* with concrete tag), the test shall fail (reproducibility invariant); the file shall NOT contain any sk-ant-* / supabase service_key / real LANGFUSE_*_KEY values (only placeholders like 'change-me' / hex placeholder)."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
