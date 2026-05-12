@@ -1,0 +1,104 @@
+# =============================================================================
+# T-020-01 / F-020: LiteLLM proxy config (ADR-010 Layer 2b マルチプロバイダ抽象化)
+# =============================================================================
+# 用途 (Build-Factory メイン経路ではない):
+#   - 安価バッチ      → Gemini 1.5 Flash
+#   - 画像生成        → Gemini Image / OpenAI DALL-E
+#   - 音声認識        → OpenAI Whisper
+#   - 緊急代替        → Anthropic 障害時の GPT-4o / Gemini フォールバック
+#
+# メイン経路 (claude-agent-sdk + anthropic-python) は LiteLLM を通さない.
+# (ADR-010 §「Layer 2a (メイン)」参照)
+#
+# 起動:
+#   docker compose --profile litellm up -d litellm
+#
+# Health:
+#   curl http://localhost:4000/health/liveliness
+#
+# 認証:
+#   LITELLM_MASTER_KEY env で master key 設定. リクエスト時に
+#   `Authorization: Bearer ${LITELLM_MASTER_KEY}` 必須.
+# =============================================================================
+
+# ─────────────────────────────────────────────────────────────────────────
+# Model routes (provider → LiteLLM 標準モデル名 mapping)
+# ─────────────────────────────────────────────────────────────────────────
+model_list:
+  # ──────────────────────────────────────────────────────────────────────
+  # 安価バッチ (Gemini Flash) — ADR-010 Layer 2b §1
+  # ──────────────────────────────────────────────────────────────────────
+  - model_name: cheap-batch
+    litellm_params:
+      model: gemini/gemini-1.5-flash
+      api_key: os.environ/GEMINI_API_KEY
+
+  - model_name: gemini-flash
+    litellm_params:
+      model: gemini/gemini-1.5-flash
+      api_key: os.environ/GEMINI_API_KEY
+
+  # ──────────────────────────────────────────────────────────────────────
+  # 画像生成 (Gemini Image / DALL-E) — ADR-010 Layer 2b §2
+  # ──────────────────────────────────────────────────────────────────────
+  - model_name: image-gen
+    litellm_params:
+      model: gemini/gemini-2.5-flash-image
+      api_key: os.environ/GEMINI_API_KEY
+
+  - model_name: dalle-3
+    litellm_params:
+      model: dall-e-3
+      api_key: os.environ/OPENAI_API_KEY
+
+  # ──────────────────────────────────────────────────────────────────────
+  # 音声認識 (Whisper) — ADR-010 Layer 2b §3
+  # ──────────────────────────────────────────────────────────────────────
+  - model_name: whisper
+    litellm_params:
+      model: whisper-1
+      api_key: os.environ/OPENAI_API_KEY
+
+  # ──────────────────────────────────────────────────────────────────────
+  # 緊急代替 (Anthropic 障害時) — ADR-010 Layer 2b §4 + T-AI-08
+  # ──────────────────────────────────────────────────────────────────────
+  - model_name: anthropic-fallback
+    litellm_params:
+      model: gpt-4o
+      api_key: os.environ/OPENAI_API_KEY
+
+  - model_name: gemini-fallback
+    litellm_params:
+      model: gemini/gemini-2.5-pro
+      api_key: os.environ/GEMINI_API_KEY
+
+# ─────────────────────────────────────────────────────────────────────────
+# General settings
+# ─────────────────────────────────────────────────────────────────────────
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  # Audit log: structured JSON to stdout (T-S0-11 structlog と整合)
+  json_logs: true
+  # Drop unsupported params silently (互換性吸収)
+  drop_params: true
+
+# ─────────────────────────────────────────────────────────────────────────
+# Router settings (Phase 1 は単純 round-robin / Phase 2 で elaborate)
+# ─────────────────────────────────────────────────────────────────────────
+router_settings:
+  # 失敗時の retry (T-AI-06 tenacity と協調)
+  num_retries: 2
+  request_timeout: 60
+  # Anthropic 障害時に anthropic-fallback へ routing
+  fallbacks:
+    - claude-sonnet-4-6: [anthropic-fallback, gemini-fallback]
+
+# ─────────────────────────────────────────────────────────────────────────
+# Litellm settings (PII / logging)
+# ─────────────────────────────────────────────────────────────────────────
+litellm_settings:
+  # AC-4 UNWANTED: PII / 機密情報を log に出さない
+  # set_verbose: false  # production
+  redact_user_api_key_info: true
+  # cost tracking (T-AI-05 と協調)
+  success_callback: []  # 実 callback は T-AI-05 で配線
