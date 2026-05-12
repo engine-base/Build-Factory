@@ -675,7 +675,7 @@
     },
     {
       "id": "T-S0-10",
-      "title": "Sentry 設定 (FE+BE)",
+      "title": "Sentry 設定 (FE+BE / error reporting + perf tracing / graceful degradation)",
       "sprint": 0,
       "feature": "META",
       "layer": "OPS",
@@ -683,23 +683,28 @@
       "human_days": 0.3,
       "claude_code_hours": 1,
       "deps": [],
+      "existing_files": [
+        "backend/requirements.txt",
+        "frontend/package.json"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-S0-10 (Sentry 設定 (FE+BE)) as specified by feature META."
+          "text": "The backend shall provide `backend/sentry_config.py` (sentry-sdk graceful import) and the frontend shall provide `frontend/src/lib/sentry.ts` (@sentry/nextjs dynamic import). Both shall expose `init / captureException / captureMessage / setUser / setTag` and shall coexist with structlog (T-S0-11) and audit_logs (memory_service) as 3 independent observability layers."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-S0-10 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When init_sentry(dsn, environment, traces_sample_rate, release, send_default_pii) is called, the system shall validate parameters, set the global SDK state (idempotent), and log success/failure to stdlib logging. capture_exception / capture_message shall return event_id or None (no-op when not configured)."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-S0-10 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While sentry-sdk / @sentry/nextjs is NOT installed OR SENTRY_DSN env var is unset, the system shall fall back gracefully to no-op for all public APIs (no ImportError, no crash). send_default_pii shall default to False (no PII / cookie / IP forwarded). max_breadcrumbs shall be capped at 50."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-S0-10, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If invalid traces_sample_rate (outside [0.0, 1.0]) or invalid environment (not in development/staging/production/ci/test) is passed, the system shall raise ValueError. The Sentry module shall NOT write to audit_logs DB (separated concern). The module source SHALL NOT contain hardcoded DSN / API keys (DSN comes from env only)."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
