@@ -91,6 +91,19 @@ jobs:
         run: python3 scripts/validate-tickets.py
 
       # ──────────────────────────────────────────────────────────────
+      # T-S0-03 follow-up (T-025-01 #145 / T-025-02 #146 後追加):
+      # EARS AC JSON Schema validation (Draft-07)
+      # 全 tickets が 5 EARS forms (UBIQUITOUS/EVENT-DRIVEN/STATE-DRIVEN/OPTIONAL/UNWANTED)
+      # の pattern (When/While/Where/If/shall) を満たすことを enforce.
+      # ──────────────────────────────────────────────────────────────
+
+      - name: Install jsonschema for EARS validation
+        run: pip install "jsonschema>=4.0"
+
+      - name: EARS AC JSON Schema validation (validate-ears-ac.py)
+        run: python3 scripts/validate-ears-ac.py
+
+      # ──────────────────────────────────────────────────────────────
       # AC-2: Summary (常に実行 / log 残し用)
       # ──────────────────────────────────────────────────────────────
 
@@ -104,5 +117,6 @@ jobs:
           echo "Secrets:          ${{ steps.secrets.outcome || 'see above' }}"
           echo "ARCHIVE residual: ${{ steps.archive.outcome || 'see above' }}"
           echo "Tickets baseline: ${{ steps.tickets.outcome || 'see above' }}"
+          echo "EARS AC schema:   ${{ steps.ears-schema.outcome || 'see above' }}"
           echo ""
           echo "詳細は ADR-010 / requirements §11.6 / CLAUDE.md §5 参照."

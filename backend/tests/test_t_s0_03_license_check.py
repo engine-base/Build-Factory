@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -168,6 +169,57 @@ def test_ac2_invocations_in_declared_order(workflow_yaml):
     actual_order = [t for t, _ in sorted(found_positions.items(), key=lambda x: x[1])]
     assert actual_order == expected, (
         f"step order mismatch:\n  expected: {expected}\n  actual:   {actual_order}"
+    )
+
+
+# ══════════════════════════════════════════════════════════════════════
+# Follow-up (T-025-01 #145 / T-025-02 #146): EARS AC JSON Schema validator step
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_followup_workflow_runs_validate_ears_ac(workflow_yaml):
+    """EARS AC JSON Schema validation step が workflow に追加されている."""
+    steps = _get_steps(workflow_yaml)
+    runs = [s.get("run", "") for s in steps if "run" in s]
+    assert any("validate-ears-ac.py" in r for r in runs), (
+        "license-check.yml must run scripts/validate-ears-ac.py "
+        "(T-S0-03 follow-up after T-025-01)"
+    )
+
+
+def test_followup_installs_jsonschema_before_validation(workflow_yaml):
+    """jsonschema install step が validate-ears-ac.py の前にある."""
+    steps = _get_steps(workflow_yaml)
+    install_idx = next(
+        (i for i, s in enumerate(steps)
+         if "pip install" in s.get("run", "") and "jsonschema" in s.get("run", "")),
+        -1,
+    )
+    validate_idx = next(
+        (i for i, s in enumerate(steps)
+         if "validate-ears-ac.py" in s.get("run", "")),
+        -1,
+    )
+    assert install_idx >= 0, "jsonschema install step missing"
+    assert validate_idx >= 0, "validate-ears-ac.py step missing"
+    assert install_idx < validate_idx, "jsonschema must be installed BEFORE validation"
+
+
+def test_followup_summary_includes_ears_outcome():
+    """Summary step が EARS schema 結果に言及."""
+    text = WORKFLOW_PATH.read_text(encoding="utf-8")
+    summary_section = text.split("name: Summary")[1] if "name: Summary" in text else ""
+    assert "EARS" in summary_section or "ears" in summary_section
+
+
+def test_followup_local_validate_ears_ac_passes():
+    """ローカル baseline: validate-ears-ac.py が exit 0."""
+    r = subprocess.run(
+        [sys.executable, "scripts/validate-ears-ac.py"],
+        cwd=REPO_ROOT, capture_output=True, text=True, timeout=30,
+    )
+    assert r.returncode == 0, (
+        f"validate-ears-ac baseline broken: {r.stdout[-1000:]}\n{r.stderr[-500:]}"
     )
 
 
