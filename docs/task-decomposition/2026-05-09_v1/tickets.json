@@ -2011,7 +2011,7 @@
     },
     {
       "id": "T-020-01",
-      "title": "LiteLLM docker-compose 追加",
+      "title": "LiteLLM docker-compose 追加 (ADR-010 Layer 2b サブ用途: cheap-batch / image / voice / fallback)",
       "sprint": 2,
       "feature": "F-020",
       "layer": "OPS",
@@ -2021,23 +2021,27 @@
       "deps": [
         "T-S0-01"
       ],
+      "existing_files": [
+        "docker-compose.yml"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-20",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-020-01 (LiteLLM docker-compose 追加) as specified by feature F-020."
+          "text": "The system shall add a `litellm` service to `docker-compose.yml` (port 4000, image `ghcr.io/berriai/litellm:main-stable`) and provide `monitoring/litellm-config.yaml` defining ADR-010 Layer 2b routes (cheap-batch=Gemini Flash / image-gen=Gemini Image+DALL-E / whisper / anthropic-fallback=GPT-4o / gemini-fallback). The service shall be opt-in via `profiles: [litellm]` (Phase 1 manual start). Main path (claude-agent-sdk + anthropic-python) shall NOT route through LiteLLM."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-020-01 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When `docker compose --profile litellm up -d litellm` is run, the litellm service shall start on port 4000 with healthcheck `/health/liveliness`, authenticated via LITELLM_MASTER_KEY env. The config shall include `num_retries: 2` and `request_timeout: 60` for graceful failure handling (cooperates with T-AI-06 tenacity)."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-020-01 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the litellm service runs, the system shall mount `monitoring/litellm-config.yaml` read-only and shall persist API keys only via env vars (ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY). The service shall use json_logs:true (T-S0-11 structlog 整合) and shall redact user API key info in logs. PII / secrets shall NOT appear in service logs."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-020-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If LITELLM_MASTER_KEY env is missing, the service shall fail to start (no anonymous access). If hardcoded API keys appear in docker-compose.yml or litellm-config.yaml (literal sk-* / eyJ* / google-api JWT), the lint script shall fail. The service shall NOT be started by default (profiles requirement), preventing accidental usage in main path."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
