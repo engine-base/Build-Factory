@@ -112,6 +112,7 @@
     "prosemirror-keymap": "^1.2.2",
     "prosemirror-model": "^1.24.1",
     "pino": "^9.5.0",
+    "@sentry/nextjs": "^8.42.0",
     "prosemirror-state": "^1.4.3",
     "prosemirror-view": "^1.37.1",
     "radix-ui": "^1.4.3",
