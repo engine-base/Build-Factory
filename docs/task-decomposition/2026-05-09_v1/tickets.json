@@ -5601,7 +5601,7 @@
     },
     {
       "id": "T-010d-03",
-      "title": "swarm_session_detail UI (個別全画面 + ライブログ)",
+      "title": "swarm_session_detail UI (個別全画面 + ライブログ / GET /api/agent/sessions/{id} REUSE / log line timestamp + tool + status palette + Lucide check / 4-status カラー)",
       "sprint": 6,
       "feature": "F-010d",
       "layer": "FE",
@@ -5611,26 +5611,32 @@
       "deps": [
         "T-010d-01"
       ],
+      "existing_files": [
+        "frontend/src/lib/api/sessions.ts",
+        "frontend/src/components/sessions/PlaySessionButton.tsx",
+        "backend/routers/agent_runner.py"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-010d-03 (swarm_session_detail UI (個別全画面 + ライブログ)) as specified by feature F-010d."
+          "text": "frontend/src/components/sessions/SwarmSessionDetail.tsx shall export a default + named React component SwarmSessionDetail(props: {session, logs, onResume?, onCancel?, className?}) consuming SwarmSessionData / SwarmLogLine types from frontend/src/lib/api/sessions.ts (REUSE existing fetch helper); the component shall be reachable via frontend/src/app/sessions/[id]/page.tsx (Next.js App Router dynamic segment) and shall import the GET /api/agent/sessions/{id} endpoint contract from sessions.ts (no fetch duplication)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the user interacts with the UI for T-010d-03, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+          "text": "When the page mounts with a session_id route param, it shall call fetchAgentSession(sessionId) (typed wrapper around GET /api/agent/sessions/{id}) and render the SwarmSessionDetail component with the response; when onResume(choice) is invoked the page shall call POST /api/agent/sessions/{id}/resume with one of VALID_RESUME_CHOICES = ('from_checkpoint', 'rerun_full', 'manual_fix', 'cancel') matching T-S0-08 backend invariant."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-010d-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the component renders, the system shall apply a 4-status palette for session.status (running / done / crashed / paused) using border-eb-500 for running, border-eb-700 for done, border-rose-500 for crashed, border-amber-500 for paused (CLAUDE.md §5.2 ENGINE BASE green); log lines shall render with 3 column layout (time / tool / status) using Lucide check icon for completed steps; the file shall NOT use emoji characters (Lucide-only per CLAUDE.md §5.1) and shall NOT redefine the design tokens."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-010d-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If the session fetch returns 404, the page shall render an empty-state with a 'session not found' message (no crash); if logs is empty, the component shall render a 'No logs yet' placeholder (no error); the component shall NOT call backend endpoints directly from the component file (data-fetching is the page's responsibility, layer separation invariant — only sessions.ts exposes fetch helpers); reactflow legacy / langgraph / langchain / litellm imports shall NOT appear (ADR-010 main path)."
         }
       ],
-      "mock_link": "../../mocks/2026-05-09_v1/task/S-031-swarm-grid.html"
+      "mock_link": "../../mocks/2026-05-09_v1/task/S-032-swarm-session-detail.html"
     },
     {
       "id": "T-010d-04",
