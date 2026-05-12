@@ -2073,7 +2073,7 @@
     },
     {
       "id": "T-023-03",
-      "title": "pgsodium 暗号化保管",
+      "title": "pgsodium 暗号化保管 (encrypted_store.py adapter + encrypted_secrets table + RLS owner_id = auth.uid() / Phase 1 Fernet local via credentials_store + Phase 2 pgsodium-ready)",
       "sprint": 1,
       "feature": "F-023",
       "layer": "BE",
@@ -2084,29 +2084,36 @@
         "T-001-07"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-23",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "Every value persisted to encrypted_credentials.ciphertext shall be encrypted with pgsodium (or fernet-compatible fallback) and shall never be stored as plain text."
+          "text": "backend/services/encrypted_store.py shall expose set_secret / get_secret / delete_secret / list_keys with the signature (scope: str, key: str[, value: str], *, owner_id: Optional[str] = None) and shall dispatch via _backend() which returns 'postgres' when DATABASE_URL starts with 'postgres://' / 'postgresql://' / 'postgresql+' and 'fernet_local' otherwise; every value persisted via set_secret shall be encrypted (Fernet-base64 string in encrypted_secrets.encrypted_value, NEVER stored as plain text)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When get_credential(user_id, provider) is called, the system shall decrypt the stored ciphertext with the active key and return the plain text to the caller."
+          "text": "When get_secret(scope, key, owner_id=...) is called against the Postgres backend, the system shall query encrypted_secrets WHERE scope=? AND key=? AND owner_id IS NOT DISTINCT FROM ? LIMIT 1 and shall decrypt the returned encrypted_value via _fernet_decrypt_from_db() before returning the plain text; when get_secret is called against the Fernet local backend, it shall route to credentials_store.get_credential() with the _scoped_key('scope:key[:owner_id]') value."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While multiple key versions exist (after rotation), the system shall use key_version to select the correct key for decryption of each row."
+          "text": "While supabase/migrations/20260511000001_encrypted_secrets.sql is applied, the encrypted_secrets table shall enforce UNIQUE (scope, key, owner_id), shall have indexes idx_encrypted_secrets_scope_key and idx_encrypted_secrets_owner, shall have ROW LEVEL SECURITY enabled, and shall expose 2 policies: encrypted_secrets_service_role (FOR ALL TO postgres, service_role USING true) and encrypted_secrets_self (FOR ALL TO authenticated USING owner_id = auth.uid()::text)."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where Phase 2 column-level encryption is enabled, the encrypted_value column shall be re-encrypted with pgsodium.crypto_aead_det_encrypt without a schema change (forward-compatible storage as TEXT); where the local backend is active (no DATABASE_URL), the credentials file shall be persisted under BF_CREDENTIALS_DIR (default ~/.build-factory) with key file at 0600 permissions so the master key is not world-readable."
         },
         {
           "type": "UNWANTED",
-          "text": "If no decryption key is configured at runtime, the system shall raise RuntimeError on get_credential and shall not silently return None or the ciphertext."
+          "text": "If the Postgres backend cannot obtain a connection (psycopg import failure or DATABASE_URL unset on the postgres path), _pg_conn shall raise RuntimeError('DATABASE_URL is not set; cannot use postgres backend') instead of silently returning None or the ciphertext; the encrypted_store module shall not import langgraph / langchain / litellm (ADR-010), shall not log plain-text secrets, and shall not contain hardcoded Supabase / Anthropic credentials."
         }
       ],
       "existing_files": [
-        "backend/services/credentials_store.py"
+        "backend/services/credentials_store.py",
+        "backend/services/encrypted_store.py",
+        "supabase/migrations/20260511000001_encrypted_secrets.sql"
       ],
       "entities": [
-        "encrypted_credentials"
+        "encrypted_secrets"
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
     },
