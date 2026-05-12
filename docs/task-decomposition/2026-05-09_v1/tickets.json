@@ -4014,7 +4014,7 @@
     },
     {
       "id": "T-009-02",
-      "title": "DAG 可視化 UI (React Flow)",
+      "title": "DAG 可視化 UI (React Flow @xyflow/react v12 / 6 status palette eb-500 / Sugiyama 風 auto-layout / onNodeClick callback)",
       "sprint": 4,
       "feature": "F-009",
       "layer": "FE",
@@ -4024,23 +4024,33 @@
       "deps": [
         "T-S0-05"
       ],
+      "existing_files": [
+        "frontend/src/components/dag/DependencyGraph.tsx",
+        "frontend/src/components/dag/DependencyDnD.tsx",
+        "frontend/src/components/dag/DagHierarchy.tsx",
+        "frontend/src/components/tasks/TaskDagView.tsx",
+        "frontend/src/components/org/OrganizationChart.tsx",
+        "frontend/src/app/workspaces/[id]/dependency-graph/page.tsx",
+        "frontend/package.json"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-9",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-009-02 (DAG 可視化 UI (React Flow)) as specified by feature F-009."
+          "text": "frontend/src/components/dag/DependencyGraph.tsx shall export a default + named React component DependencyGraph(props: {tasks: TaskNodeData[], edges: TaskEdge[], onNodeClick?: (task)=>void, className?: string}) that imports ReactFlow / Background / Controls / MiniMap from @xyflow/react v12 (NOT the legacy reactflow package); the component shall render an SVG DAG with Sugiyama-風 auto-layout (BFS level + column stacking) and shall be reachable via frontend/src/app/workspaces/[id]/dependency-graph/page.tsx (workspaces nested route)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the user interacts with the UI for T-009-02, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+          "text": "When the user clicks a DAG node, the system shall invoke onNodeClick(task) within 100ms passing the TaskNodeData payload (id / title / status); when tasks or edges props change, the component shall recompute the layout via useMemo so layoutNodes is called exactly once per render (no re-layout on pan/zoom interactions)."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-009-02 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the component is rendered, the system shall apply 6 status-aware Tailwind classes from STATUS_BORDER / STATUS_BG matching TaskStatus enum (pending / in_progress / completed / blocked_question / blocked_dependency / failed); the in_progress node shall use border-eb-500 and completed shall use border-eb-700 (ENGINE BASE green palette per CLAUDE.md §5.2); the file shall NOT use emoji characters (Lucide-only per CLAUDE.md §5.1)."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-009-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If tasks is empty, layoutNodes shall return [] (no error); if edges reference unknown task ids, those edges shall be silently skipped (incoming/outgoing maps guard with .has() check) and shall NOT throw; the component shall NOT call backend endpoints directly (data-fetching is the page's responsibility, layer separation invariant)."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/moat/S-017-dependency-graph.html"
