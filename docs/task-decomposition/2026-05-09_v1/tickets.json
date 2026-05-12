@@ -277,7 +277,7 @@
     },
     {
       "id": "T-S0-13c",
-      "title": "tickets.json 全件 AC 整合検査 (title ↔ AC + テンプレ転用検出)",
+      "title": "tickets.json 全件 AC 整合検査 (title ↔ AC + テンプレ転用検出 / verbatim 重複 0 / title-AC mismatch report / 178 tickets walk)",
       "label": "REFACTOR",
       "feature": "META",
       "layer": "OPS",
@@ -290,32 +290,35 @@
       "claude_code_hours": 2,
       "human_days": 0.3,
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "entities": [],
       "existing_files": [
+        "scripts/audit-ac-coherence.py",
+        "docs/audit/2026-05-10_v1/ac-coherence-report.md",
         "docs/task-decomposition/2026-05-09_v1/tickets.json"
       ],
       "output_file": "docs/audit/2026-05-10_v1/ac-coherence-report.md + scripts/audit-ac-coherence.py",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The audit shall enumerate all tickets and flag any whose acceptance_criteria text appears (verbatim) in 2 or more different tickets, treating such duplication as a template-leftover signal."
+          "text": "scripts/audit-ac-coherence.py shall enumerate all tickets in docs/task-decomposition/2026-05-09_v1/tickets.json (179 entries) and produce docs/audit/2026-05-10_v1/ac-coherence-report.md containing exactly 4 sections numbered 1-4: (1) Verbatim 重複 AC text, (2) title↔AC キーワード乖離, (3) AC < 3 件 / insufficient, (4) AC 不在 / review_needed; the report header shall list Total tickets count and per-section counts (Verbatim 重複 AC text 0 / 既修正 PREVIOUSLY_FIXED ≥ 1 / title↔AC 乖離 ≥ 0 / AC 不在 review_needed ≥ 0)."
         },
         {
-          "type": "EVENT",
-          "text": "When the audit detects a title↔AC keyword mismatch (e.g., title contains DDL but AC contains no schema/table/migration term), the system shall record it in ac-coherence-report.md with both title and AC excerpt."
+          "type": "EVENT-DRIVEN",
+          "text": "When the audit detects a title↔AC keyword mismatch (e.g., title contains 'DDL' / 'schema' but AC contains no schema/table/migration term), the script shall record it under section 2 with both title and AC excerpt (first 3 lines); when a verbatim AC text appears in 2 or more different tickets (post canonical-EARS normalization), it shall be recorded under section 1 as a template-leftover signal."
         },
         {
-          "type": "STATE",
-          "text": "While the audit runs, the system shall not modify tickets.json (read-only) and shall not access external network."
+          "type": "STATE-DRIVEN",
+          "text": "While the audit runs, scripts/audit-ac-coherence.py shall NOT modify tickets.json (read-only filesystem access only), shall NOT require external network access, and shall NOT import langgraph / langchain / litellm (ADR-010 main path invariant); the script shall emit deterministic markdown so re-running produces byte-identical output for the same tickets.json input."
         },
         {
           "type": "OPTIONAL",
-          "text": "Where a ticket already had its AC corrected in a prior PR (T-019-01 / T-S0-13 / T-001-01 / T-001-02 / T-001-04 / T-S0-08 / T-S0-09), the report shall mark it as 'previously_fixed' so reviewers can focus on remaining mismatches."
+          "text": "Where a ticket already had its AC corrected in a prior PR (e.g. T-019-01 / T-S0-13 / T-001-01 / T-001-02 / T-001-04 / T-S0-08 / T-S0-09), the report shall mark it with `[previously_fixed]` annotation under its section 2 entry so reviewers can focus on remaining mismatches; this set shall include at least all 26+ tickets resolved in PR #159-#185 (T-006-02 / T-M30-02 / T-019-03 / T-S0-05 / T-005b-03 / T-011-01 / T-S0-04 / T-S0-01 / T-006-04 / T-010b-04 / T-019-01 / T-011-02 / T-S0-08 / T-020-02 / T-011-04 / T-S0-09 / T-012-03 / T-009-02 / T-S0-06 / T-M29-01 / T-010d-03 / T-010d-04 / T-010c-06 / T-017-01 / T-018-03 / T-017-03 / T-S0-13 / T-S0-13b)."
         },
         {
           "type": "UNWANTED",
-          "text": "If the audit cannot determine a verdict (insufficient title or AC), it shall list the ticket as 'review_needed' with reason instead of silently passing."
+          "text": "If the audit cannot determine a verdict for a ticket (missing title / empty acceptance_criteria), the script shall list it under section 4 as 'review_needed' with a 1-line reason instead of silently passing; the audit shall NOT mutate any source file (read-only invariant) and shall NOT default a ticket's verdict to 'pass' when title/AC parsing fails."
         }
       ]
     },
