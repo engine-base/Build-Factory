@@ -5601,7 +5601,7 @@
     },
     {
       "id": "T-010d-02",
-      "title": "swarm_grid UI (4×4 default + 4/9/16/64 + 仮想化)",
+      "title": "swarm_grid UI (SwarmGrid.tsx / 4 size preset 4/9/16/64 / cell click → /sessions/[id] / 仮想化 64+ / 4 status palette eb-500)",
       "sprint": 6,
       "feature": "F-010d",
       "layer": "FE",
@@ -5611,23 +5611,31 @@
       "deps": [
         "T-S0-06"
       ],
+      "existing_files": [
+        "frontend/src/components/ui/button.tsx",
+        "frontend/src/components/ui/badge.tsx",
+        "frontend/src/lib/api/sessions.ts",
+        "frontend/src/components/sessions/SwarmSessionDetail.tsx",
+        "frontend/src/app/sessions/[id]/page.tsx"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-010d-02 (swarm_grid UI (4×4 default + 4/9/16/64 + 仮想化)) as specified by feature F-010d."
+          "text": "frontend/src/components/swarm/SwarmGrid.tsx shall export a default + named React component SwarmGrid(props: {cells: SwarmCell[], size?: SwarmGridSize, onCellClick?: (cell)=>void, className?: string}) where SwarmGridSize is the literal union '4' | '9' | '16' | '64' (default '16'); the component shall render a CSS Grid with cols = sqrt(size) and shall be reachable via frontend/src/app/dashboard/swarm/page.tsx; SwarmCell type shall include {session_id, status, pool_id, cell_index, label?} and the file shall REUSE T-010d-03 SwarmSessionStatus / sessions.ts types (no type duplication)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the user interacts with the UI for T-010d-02, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+          "text": "When the user clicks a cell, onCellClick(cell) shall be invoked within 100ms passing the SwarmCell payload; when size > 16 (i.e. 64), the component shall use windowing/virtualization to render at most 16 cells per viewport step (React.useMemo + visible slice / containerized scroll) so 64-cell grids stay smooth (<= 16ms render budget per frame)."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-010d-02 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the grid is rendered, each cell shall apply the 4-status palette identical to SwarmSessionDetail (running=border-eb-500 / done=border-eb-700 / crashed=border-rose-500 / paused=border-amber-500) maintaining cross-component visual consistency (CLAUDE.md §5.2 ENGINE BASE green); the component shall NOT use emoji (Lucide-only / CLAUDE.md §5.1) and shall NOT redefine SwarmSessionStatus enum (import from sessions.ts / G15 single-source)."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-010d-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If cells.length > size, the component shall slice to the first `size` cells and emit no error (graceful overflow); if size is not in (4, 9, 16, 64), the component shall fall back to default 16 (no crash); the component shall NOT call backend endpoints directly (layer separation; page handles data, component renders) and shall NOT import langgraph / langchain / litellm / reactflow legacy (ADR-010 main path)."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/task/S-031-swarm-grid.html"
