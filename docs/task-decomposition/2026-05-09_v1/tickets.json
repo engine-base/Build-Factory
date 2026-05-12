@@ -571,7 +571,7 @@
     },
     {
       "id": "T-S0-08",
-      "title": "claude-agent-sdk runner 基盤 (subprocess + session resume)",
+      "title": "claude-agent-sdk runner 基盤 (subprocess + session resume / SDK auto 3-tier compaction / 4-choice resume / ADR-010 main path)",
       "sprint": "S0",
       "feature": "META",
       "layer": "BE",
@@ -581,9 +581,16 @@
       "deps": [],
       "critical": true,
       "existing_files": [
-        "backend/integrations/skill_runner.py"
+        "backend/integrations/claude_agent_runner.py",
+        "backend/integrations/skill_runner.py",
+        "backend/routers/agent_runner.py",
+        "backend/services/parallel_task_runner.py",
+        "backend/tests/test_claude_agent_runner.py",
+        "backend/tests/test_t_010b_01_agent_runner_rest.py",
+        "supabase/migrations/20260510000003_runner_session_tables.sql"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-10",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "mock_link": "../../mocks/2026-05-09_v1/task/S-032-swarm-session-detail.html",
       "entities": [
         "sessions",
@@ -592,31 +599,31 @@
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The runner shall use claude-agent-sdk (Anthropic official) — NOT LangGraph — to spawn Claude Code as a subprocess and capture stdout/stderr."
+          "text": "backend/integrations/claude_agent_runner.py shall import claude_agent_sdk (Anthropic official) — explicitly NOT langgraph / langchain — to spawn Claude Code as a subprocess and capture stdout/stderr via the SDK's async message stream; the module shall expose ClaudeAgentRunner, SessionRecord, CostRecord, AuditEvent, SessionStore (+ DbSessionStore / InMemorySessionStore), CostHook (+ DbCostHook / NoopCostHook), SummaryHook (+ DbSummaryHook / NoopSummaryHook), AuditHook (+ DbAuditHook / NoopAuditHook), and VALID_RESUME_CHOICES."
         },
         {
           "type": "UBIQUITOUS",
-          "text": "The runner shall pass session_id to claude-agent-sdk so the SDK auto-restores conversation history and applies 3-tier compaction."
+          "text": "ClaudeAgentRunner.run() shall accept an sdk_session_id parameter (Optional[str], default None) and pass it via the SDK's resume mechanism so the SDK auto-restores conversation history and applies 3-tier compaction; the runner shall NOT re-implement the SDK's auto-compaction (ADR-010 §自前実装禁止)."
         },
         {
-          "type": "EVENT",
-          "text": "When a task starts, the system shall create a sessions row with status=running and stream logs to session_logs."
+          "type": "EVENT-DRIVEN",
+          "text": "When ClaudeAgentRunner.run_task() is invoked, the system shall create a SessionRecord with status='running' via SessionStore.create_session() within 2 seconds, then stream each message line to session_logs via SessionStore.append_log(); the SessionRecord.status field shall be constrained to one of (running, done, crashed, cancelled, paused) consistent with supabase/migrations/20260510000003_runner_session_tables.sql CHECK constraint."
         },
         {
-          "type": "STATE",
-          "text": "While the runner is active, the SDK shall apply prompt cache (cache_control: ephemeral, 5min TTL) automatically; the system shall record cache hit rate to cost_logs."
+          "type": "STATE-DRIVEN",
+          "text": "While the runner is active, ClaudeAgentRunner.cache_ttl_seconds shall default to 300 (5min ephemeral) so the SDK applies prompt cache automatically; the system shall record cache hit rate / input_tokens / output_tokens to cost_logs via CostHook.record() (DbCostHook implementation INSERTs into cost_logs with cache_read_tokens / cache_write_tokens columns per migration schema)."
         },
         {
-          "type": "STATE",
-          "text": "While context usage exceeds 95%, the SDK shall auto-generate a 9-section structured summary; the system shall persist it to chat_messages.compressed_summary."
+          "type": "STATE-DRIVEN",
+          "text": "While context usage exceeds 95%, the SDK shall auto-generate a 9-section structured summary which the system shall persist via SummaryHook.persist() to chat_messages.compressed_summary (JSONB column per migration); the runner shall NOT generate the summary itself (SDK auto-feature reuse, ADR-010)."
         },
         {
-          "type": "EVENT",
-          "text": "When the subprocess crashes, the system shall mark status=crashed and offer 4-choice resume (from_checkpoint / rerun_full / manual_fix / cancel)."
+          "type": "EVENT-DRIVEN",
+          "text": "When the subprocess crashes (exception thrown by the SDK message loop), the system shall set SessionRecord.status='crashed' with crash_reason set, and ClaudeAgentRunner.handle_resume(choice) shall validate choice against VALID_RESUME_CHOICES = ('from_checkpoint', 'rerun_full', 'manual_fix', 'cancel') raising ValueError on invalid input; supabase migration sessions.resume_choice CHECK constraint shall mirror the same 4 values."
         },
         {
           "type": "UNWANTED",
-          "text": "If LangGraph or LangChain imports are introduced anywhere in this module, the lint script shall fail (ADR-010 forbids them in main path)."
+          "text": "If `from langgraph` / `import langgraph` / `from langchain` / `import langchain` appears in backend/integrations/claude_agent_runner.py or any module on the main runner path, scripts/lint-mock.sh --no-langgraph shall exit non-zero (ADR-010 forbids them in main path); the pytest module test_t_s0_08_runner_invariants.py shall mechanically assert the import is absent."
         }
       ],
       "output_file": "backend/integrations/claude_agent_runner.py + supabase/migrations/20260510000003_runner_session_tables.sql"
