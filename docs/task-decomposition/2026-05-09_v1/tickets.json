@@ -1847,7 +1847,7 @@
     },
     {
       "id": "T-021-03",
-      "title": "Swarm 並列実行 (Subagent / Task tool + git worktree)",
+      "title": "Swarm 並列実行 (backend/services/swarm/orchestrator.start_swarm + ALLOWED_SIZES (4/9/16/64) + claude-agent-sdk Subagent via integrations/claude_agent_runner.ClaudeAgentRunner.run_task + worktree.create_worktree (.worktrees/swarm_{pool_id}/cell_{n}) + file_lock + check_sandbox_escape RedlineEvent)",
       "sprint": "S1",
       "feature": "F-021",
       "layer": "BE",
@@ -1858,33 +1858,43 @@
         "T-021-02"
       ],
       "critical": true,
-      "existing_files": [],
+      "existing_files": [
+        "backend/services/swarm/__init__.py",
+        "backend/services/swarm/orchestrator.py",
+        "backend/services/swarm/models.py",
+        "backend/services/swarm/worktree.py",
+        "backend/services/swarm/file_lock.py",
+        "backend/routers/swarm.py"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-11",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "mock_link": "../../mocks/2026-05-09_v1/task/S-031-swarm-grid.html",
       "entities": [
-        "sessions",
-        "swarm_pools"
+        "swarm_pools",
+        "swarm_cells",
+        "swarm_redline_events",
+        "swarm_file_locks"
       ],
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "Swarm shall spawn 4 / 9 / 16 / 64 parallel sessions, each via claude-agent-sdk Subagent (Task tool) + a dedicated git worktree + branch."
+          "text": "backend/services/swarm/__init__.py shall re-export start_swarm / get_pool / get_cells / cancel_pool / get_stats + SwarmPool / SwarmCell / RedlineEvent / ALLOWED_SIZES = (4, 9, 16, 64); start_swarm(name, size, task_prompt, base_branch='main', created_by=None) shall raise ValueError if size is not in ALLOWED_SIZES; each cell shall execute the Subagent via integrations/claude_agent_runner.ClaudeAgentRunner.run_task(prompt, agent_persona='swarm_cell_{i}', cwd=str(worktree)) (ADR-010 main path = claude-agent-sdk, no langgraph)."
         },
         {
-          "type": "EVENT",
-          "text": "When the swarm starts, the system shall allocate one worktree per session under .worktrees/swarm_{pool_id}/cell_{n} to prevent file conflicts."
+          "type": "EVENT-DRIVEN",
+          "text": "When start_swarm is called, the orchestrator shall (a) INSERT a swarm_pools row with status='queued', (b) INSERT one swarm_cells row per cell with worktree_path = .worktrees/swarm_{pool_id}/cell_{n} and branch_name = swarm/{pool_id}/cell-{n}, (c) update pool status to 'running' via update_pool_status(started=True), (d) spawn each cell as an asyncio.create_task and register them in _pool_tasks[pool_id]; create_worktree(pool_id, cell_index) shall run `git worktree add -b <branch> <path> <base_branch>` and emit a 'worktree.created' audit event."
         },
         {
-          "type": "STATE",
-          "text": "While a swarm is running, the system shall stream per-cell logs and aggregate stats (queued/running/done/failed/crashed)."
+          "type": "STATE-DRIVEN",
+          "text": "While a swarm is running, get_stats(pool_id) shall return a dict with keys {total, queued, running, done, failed, crashed, killed} computed via collections.Counter over SwarmCell.status; _finalize_pool shall aggregate the final status as 'failed' (any failed/crashed > 0) else 'cancelled' (any killed > 0) else 'done', then update_pool_status(completed=True, stats=...)."
         },
         {
           "type": "OPTIONAL",
-          "text": "Where two cells touch the same file, the system shall serialize them via a file-level lock and shall not allow both to commit simultaneously."
+          "text": "Where two cells touch the same file, file_lock(pool_id, cell_id, file_path) async context manager shall serialize them via (a) an in-process asyncio.Lock keyed by file_path AND (b) an INSERT into swarm_file_locks with released_at = NULL until the context exits; cancel_pool(pool_id) shall iterate _pool_tasks[pool_id] and call task.cancel() on any task that is not yet done so users can abort in-flight pools without leaking subprocesses."
         },
         {
           "type": "UNWANTED",
-          "text": "If a Subagent escapes its sandbox or attempts to access another cell's worktree, the system shall kill that cell and emit a redline event."
+          "text": "If a cell attempts to access a path outside its worktree, check_sandbox_escape(pool_id, cell_id, cell_index, attempted_path) shall emit a 'cross_cell_access' RedlineEvent into swarm_redline_events and mark the cell as 'killed' via update_cell_status; if cell execution raises any uncaught Exception, _run_cell shall mark the cell 'crashed' AND emit a 'sandbox_escape' RedlineEvent; the swarm modules shall not import langgraph / langchain / litellm (ADR-010) and shall not contain hardcoded Supabase / Anthropic credentials."
         }
       ]
     },
