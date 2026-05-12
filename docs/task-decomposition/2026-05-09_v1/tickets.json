@@ -49,7 +49,7 @@
   "tickets": [
     {
       "id": "T-019-01",
-      "title": "bootstrap archive 9 ファイル",
+      "title": "bootstrap archive 9 ファイル / dirs (onlook + penpot + design-canvas + cookiecutter_legacy / SaaS friction 除去)",
       "sprint": "S0",
       "feature": "F-019",
       "layer": "OPS",
@@ -59,29 +59,36 @@
       "deps": [],
       "blocks": "all",
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-19",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "existing_files": [
         "onlook/",
         "penpot/",
-        "frontend/src/components/onlook/"
+        "frontend/src/components/onlook/",
+        "frontend/src/components/design-canvas/",
+        "frontend/src/app/workspaces/[id]/design/",
+        "services/cookiecutter_legacy/",
+        "scripts/lint-mock.sh",
+        "scripts/pre-commit-check.sh",
+        "docs/decisions/0010-ai-stack-3-layer.md"
       ],
       "entities": [],
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The repository shall not contain the onlook/ or penpot/ directories after this task."
+          "text": "The repository shall not contain any of the 9 archived items at the project root or under frontend/src/: onlook/, penpot/, frontend/src/components/onlook/, frontend/src/components/design-canvas/, frontend/src/app/workspaces/[id]/design/, services/cookiecutter_legacy/, plus 3 corresponding lint guards in scripts/lint-mock.sh (ARCHIVE check / emoji exempt list / AGPL block list). The pytest module test_t_019_01_archive_invariants.py shall mechanically assert each is absent."
         },
         {
-          "type": "EVENT",
-          "text": "When `git status` is run, the system shall report no remaining onlook references."
+          "type": "EVENT-DRIVEN",
+          "text": "When `bash scripts/lint-mock.sh --archive` is invoked, the system shall exit 0 with 'OK: ARCHIVE 残留なし' and shall scan frontend/src + backend for the string 'onlook' (excluding allow-listed ARCHIVE verification test files) emitting a WARN with exact file:line if any source reference reappears, and shall complete within 5 seconds for the full repo."
         },
         {
-          "type": "STATE",
-          "text": "While the build process runs, the system shall not import any onlook modules."
+          "type": "STATE-DRIVEN",
+          "text": "While the project is operational, the system shall keep frontend/package.json free of onlook / @onlook/* / @penpot/* dependency keys (NOTE: ARCHIVE removes only the self-hosted Penpot Docker stack at penpot/; Penpot SaaS API client backend/services/penpot_client.py remains as a separate integration), shall keep backend/requirements.txt free of cookiecutter / penpot packages, and shall ensure backend/main.py imports no module from the 9 archived paths; the smoke route count baseline (>= 300 routes) shall hold without onlook routers re-appearing."
         },
         {
           "type": "UNWANTED",
-          "text": "If any reference to onlook remains in package.json or imports, the lint script shall fail."
+          "text": "If any reference to onlook / penpot reappears in package.json, requirements.txt, .tsx/.ts/.py source under frontend/src or backend (outside the documented ARCHIVE verification test files), or if any of the 9 archived directories is recreated at repo root, scripts/lint-mock.sh and the pytest module shall both fail with an explicit assertion identifying the regression (silent skip 禁止 / CI mechanical reject)."
         }
       ]
     },
