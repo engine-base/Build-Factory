@@ -56,6 +56,7 @@ ALLOWED_REFERENCE_FILES = {
     "test_supabase_migrations.py",
     "test_t_019_03_bootstrap_health.py",
     "test_t_019_01_archive_invariants.py",
+    "test_t_s0_13_inventory_invariants.py",  # T-019-01 orphan check
 }
 
 
@@ -192,7 +193,8 @@ def test_ac3_no_onlook_in_backend_outside_allowed_test_files():
 
 
 def test_ac4_lint_mock_archive_check_excludes_known_test_files():
-    """lint exclude list に T-019-03 + T-019-01 test を入れて infinite loop しない."""
+    """lint exclude list に T-019-03 + T-019-01 + T-S0-13 test を入れて
+    infinite loop しない."""
     src = LINT_MOCK.read_text(encoding="utf-8")
     # excludes for grep against frontend/src + backend
     assert "test_supabase_migrations.py" in src
