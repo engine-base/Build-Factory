@@ -363,7 +363,7 @@
     },
     {
       "id": "T-S0-02",
-      "title": "GitHub Actions ci.yml (pytest + coverage + pre-commit-check + smoke 統合)",
+      "title": "GitHub Actions ci.yml (pytest + coverage + pre-commit-check + smoke 統合 / 4 parallel jobs / actions @v4/@v5 pin / permissions:contents=read / concurrency cancel-in-progress)",
       "sprint": 0,
       "feature": "META",
       "layer": "OPS",
@@ -372,7 +372,9 @@
       "claude_code_hours": 2,
       "deps": [],
       "existing_files": [
+        ".github/workflows/ci.yml",
         "scripts/pre-commit-check.sh",
+        "scripts/lint-mock.sh",
         "backend/requirements.txt"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
@@ -388,11 +390,15 @@
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While a pull_request is open, the workflow status shall be visible in the GitHub UI and shall preserve pytest baseline (>= 2823 passing tests excluding deselect). The workflow shall NOT modify repository state (permissions: contents=read)."
+          "text": "While a pull_request is open, the workflow status shall be visible in the GitHub UI and shall preserve pytest baseline (>= 2823 passing tests excluding deselect). The workflow shall NOT modify repository state (permissions: contents=read) and shall use concurrency.group='ci-${{ github.ref }}' with cancel-in-progress=true so stale runs from earlier commits on the same branch are cancelled."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where multiple commits are pushed to the same branch in rapid succession, concurrency.cancel-in-progress=true shall cancel the previous CI run for that ref so only the latest commit is fully tested (CI compute economy / faster PR feedback); all action references shall be pinned to specific major versions (actions/checkout@v4 / actions/setup-python@v5 / actions/upload-artifact@v4) — no @main / @master / @latest / floating refs (reproducibility invariant)."
         },
         {
           "type": "UNWANTED",
-          "text": "If pytest fails (excluding documented deselect), pre-commit-check fails, or main:app import fails, the workflow shall fail with exit_code != 0. continue-on-error: true shall NOT be used. The workflow shall NOT mutate persistent state (no writes, no audit_logs DB rows)."
+          "text": "If pytest fails (excluding documented deselect), pre-commit-check fails, or main:app import fails, the workflow shall fail with exit_code != 0. continue-on-error: true shall NOT be used. The workflow shall NOT mutate persistent state (no writes, no audit_logs DB rows). The workflow shall NOT contain any hardcoded JWT (eyJ...) / sb_(publishable|secret)_*key / sk-ant-*; secrets shall always be referenced via ${{ secrets.NAME }}."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
