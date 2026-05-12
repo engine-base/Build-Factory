@@ -1,0 +1,152 @@
+# T-S0-02: GitHub Actions ci.yml (CI 統合ゲート)
+#
+# 本 PR + main push 時に pytest 全件 + coverage + 構造 lint (pre-commit-check
+# 経由) + backend smoke を並列実行し、品質 baseline を維持する.
+#
+# T-S0-03 (license-check.yml) との役割分担:
+#   - license-check.yml : AGPL + ADR-010 機械的ガード + tickets baseline
+#                         (高速 / 5 分以内 / lint scripts のみ)
+#   - ci.yml (本 PR)    : pytest 全件 + coverage + pre-commit-check + smoke
+#                         (重め / 15 分上限 / 実際のコード動作確認)
+#
+# 既知失敗の取扱い:
+#   - tests/test_chat_search.py::test_vector_score_for_returns_0_when_embedding_unavailable
+#     は numpy/embedding 環境依存の既存 fail. T-S0-02 範囲外のため --deselect
+#     で除外し別タスクで追跡 (CLAUDE.md 既知).
+#
+# AC マッピング (1:1):
+#   AC-1 UBIQUITOUS    : PR + push に動き backend pytest + pre-commit-check を
+#                        並列実行、いずれかが fail でビルド fail.
+#   AC-2 EVENT-DRIVEN  : 各 job が exit code を GitHub Actions log に残す.
+#                        coverage は XML artifact として upload.
+#   AC-3 STATE-DRIVEN  : workflow は read-only (state mutate なし) /
+#                        既存 scripts (pre-commit-check / requirements.txt)
+#                        は touch しない (REUSE 精神).
+#   AC-4 UNWANTED      : pytest fail / pre-commit fail / smoke fail で workflow
+#                        fail. continue-on-error: true 禁止 (既知 deselect を除く).
+
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pre-commit-check:
+    name: pre-commit-check.sh (構造 lint + smoke / ADR-011 完了判定ゲート)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install backend deps
+        run: |
+          if [ -f backend/requirements.txt ]; then
+            pip install -r backend/requirements.txt
+          else
+            echo "::warning::backend/requirements.txt missing — installing minimum"
+            pip install fastapi pydantic pyyaml
+          fi
+
+      - name: Run pre-commit-check quick mode (tsc skip / node_modules 不要)
+        # frontend tsc は別 job で実行する (依存分離). --quick で tsc を skip.
+        run: bash scripts/pre-commit-check.sh --quick
+
+  backend-pytest:
+    name: backend pytest + coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install backend deps
+        run: pip install -r backend/requirements.txt
+
+      - name: Run pytest with coverage (既知 numpy compat fail を deselect)
+        working-directory: backend
+        env:
+          DISABLE_BACKGROUND_WORKERS: '1'
+        run: |
+          python3 -m pytest tests/ \
+            --tb=short \
+            --cov=. \
+            --cov-report=term \
+            --cov-report=xml \
+            --deselect tests/test_chat_search.py::test_vector_score_for_returns_0_when_embedding_unavailable
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage-${{ github.run_id }}
+          path: backend/coverage.xml
+          retention-days: 7
+
+  backend-smoke:
+    name: backend main:app import smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install backend deps
+        run: pip install -r backend/requirements.txt
+
+      - name: Backend import smoke
+        working-directory: backend
+        env:
+          DISABLE_BACKGROUND_WORKERS: '1'
+        run: |
+          python3 -c "from main import app; print(f'routes: {len(app.routes)}'); assert len(app.routes) > 0"
+
+  summary:
+    name: CI Summary
+    if: always()
+    needs: [pre-commit-check, backend-pytest, backend-smoke]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aggregate results
+        run: |
+          echo "==================== T-S0-02 CI Summary ===================="
+          echo "pre-commit-check: ${{ needs.pre-commit-check.result }}"
+          echo "backend-pytest:   ${{ needs.backend-pytest.result }}"
+          echo "backend-smoke:    ${{ needs.backend-smoke.result }}"
+          echo ""
+          if [ "${{ needs.pre-commit-check.result }}" != "success" ] || \
+             [ "${{ needs.backend-pytest.result }}" != "success" ] || \
+             [ "${{ needs.backend-smoke.result }}" != "success" ]; then
+            echo "::error::CI fail — see individual jobs above."
+            exit 1
+          fi
+          echo "All jobs PASS."
