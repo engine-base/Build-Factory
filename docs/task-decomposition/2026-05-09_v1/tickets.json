@@ -4139,7 +4139,7 @@
     },
     {
       "id": "T-007-03",
-      "title": "task_dag_view (React Flow)",
+      "title": "task_dag_view (existing DependencyGraph.tsx REUSE wrapper / task → DAG mapping)",
       "sprint": 4,
       "feature": "F-007",
       "layer": "FE",
@@ -4149,27 +4149,28 @@
       "deps": [
         "T-009-02"
       ],
+      "existing_files": [
+        "frontend/src/components/dag/DependencyGraph.tsx"
+      ],
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-7",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-007-03 (task_dag_view (React Flow)) as specified by feature F-007."
+          "text": "The system shall provide `frontend/src/components/tasks/TaskDagView.tsx` as a thin wrapper around existing `DependencyGraph.tsx` (T-009-02). Exports: `TaskDagView` component / `DagTask` + `DagDependency` interfaces / `__testing__` (normalizeStatus, tasksToNodes, dependenciesToEdges, VALID_STATUSES). Existing `DependencyGraph.tsx` SHALL NOT be modified (REUSE)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the user interacts with the UI for T-007-03, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+          "text": "When tasks/dependencies props change, the component shall recompute node/edge conversions via React.useMemo. When the user clicks a node, the component shall locate the original DagTask by id and invoke onTaskClick(original). Pure helpers shall be exported via `__testing__` for unit verification."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the existing implementation is in use, the system shall not regress: existing tests and integrations for T-007-03 shall continue to pass."
+          "text": "While the component renders, eb-* palette + Lucide icons (Workflow for fallback) shall be used (inherits from DependencyGraph). The component is controlled (no internal state). Unknown status values shall be normalized: review_needed→in_progress / cancelled→failed / fallback→pending."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-007-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If tasks is null/undefined/non-array, the component shall render the empty fallback (`data-testid=task-dag-empty`) without crashing. Tasks with non-positive or non-numeric id shall be filtered silently. Edges with source==target or invalid endpoints shall be filtered silently. Hardcoded color literals outside eb-* palette SHALL NOT appear in source."
         }
-      ],
-      "existing_files": [
-        "TBD: specify in BA review"
       ],
       "mock_link": "../../mocks/2026-05-09_v1/workspace/S-012-workspace-dashboard.html"
     },
