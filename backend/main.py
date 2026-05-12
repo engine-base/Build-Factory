@@ -100,6 +100,7 @@ from routers.short_term_layer import router as short_term_layer_router
 from routers.component_catalog import router as component_catalog_router
 from routers.reviewer_persona import router as reviewer_persona_router
 from routers.reviewer_turn_counter import router as reviewer_turn_counter_router
+from routers.integration_test_conductor import router as integration_test_conductor_router
 from routers.memory_pipeline import router as memory_pipeline_router
 from routers.handoff import router as handoff_router
 from routers.ears_classifier import router as ears_classifier_router
@@ -257,6 +258,7 @@ app.include_router(short_term_layer_router)
 app.include_router(component_catalog_router)
 app.include_router(reviewer_persona_router)
 app.include_router(reviewer_turn_counter_router)
+app.include_router(integration_test_conductor_router)
 app.include_router(memory_pipeline_router)
 app.include_router(handoff_router)
 app.include_router(ears_classifier_router)
