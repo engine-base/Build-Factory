@@ -3735,7 +3735,7 @@
     },
     {
       "id": "T-006-04",
-      "title": "タスク分解 UI",
+      "title": "タスク分解 UI (TaskDecomposeForm.tsx / POST /api/task-decomposition/decompose 呼出 + EARS AC 表示)",
       "sprint": 3,
       "feature": "F-006",
       "layer": "FE",
@@ -3745,23 +3745,31 @@
       "deps": [
         "T-006-02"
       ],
+      "existing_files": [
+        "frontend/src/components/tasks/TaskDetailDrawer.tsx",
+        "frontend/src/components/ui/button.tsx",
+        "frontend/src/components/ui/card.tsx",
+        "frontend/src/components/ui/input.tsx",
+        "frontend/src/lib/utils.ts"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-6",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-006-04 (タスク分解 UI) as specified by feature F-006."
+          "text": "The system shall provide frontend/src/components/task-decomposition/TaskDecomposeForm.tsx (client component) and frontend/src/lib/api/task-decomposition.ts (typed client) that POST to /api/task-decomposition/decompose with {parent_brief, subtask_count, use_backend} and render the returned subtasks: each subtask shall show its title plus its UBIQUITOUS + UNWANTED EARS AC, using shadcn/ui Button/Card/Input + Lucide icons (no emoji per CLAUDE.md §5.1) + cn() from lib/utils."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the user interacts with the UI for T-006-04, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+          "text": "When the user submits the form with a valid parent_brief, the system shall show a loading state, call the API within 2 seconds for the rule-based path, render the response config.backend_used + count_returned + each subtask card, and on HTTP error display the error.detail.code + message from the structured 4xx response without leaking stack traces."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-006-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While TaskDecomposeForm is mounted, the component shall enforce subtask_count in [1, 20] via input min/max attributes (mirrors backend MIN/MAX_SUBTASK_COUNT), shall disable the submit button while loading, and shall NOT mutate any other frontend state outside the component's local state (no global store write)."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-006-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If parent_brief is empty/whitespace-only/over 2000 chars, the form shall display a client-side validation error (no API call) using shadcn Alert/red text, and if the backend returns {detail:{code,message}}, the form shall render the code+message verbatim instead of a generic 'Error' message; the pytest module test_t_006_04_task_decompose_ui.py shall mechanically assert these invariants by static analysis of the .tsx source (no node_modules required)."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/task/S-030-task-detail.html"
