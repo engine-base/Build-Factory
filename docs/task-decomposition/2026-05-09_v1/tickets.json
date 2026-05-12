@@ -863,7 +863,7 @@
     },
     {
       "id": "T-001-01",
-      "title": "Supabase project init + 環境変数 (env 必須化、ハードコード鍵除去)",
+      "title": "Supabase project init + 環境変数 (env 必須化 / 4 vars / ハードコード鍵除去 / lint sb_*_key pattern reject / .env.example placeholder REPLACE_WITH_*)",
       "sprint": "S0",
       "feature": "F-001",
       "layer": "OPS",
@@ -877,31 +877,33 @@
       "existing_files": [
         "backend/services/supabase_client.py",
         "backend/main.py",
-        ".env.example"
+        ".env.example",
+        "scripts/lint-mock.sh"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "mock_link": "../../mocks/2026-05-09_v1/index.html",
       "entities": [],
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall require SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_SERVICE_KEY / SUPABASE_JWT_SECRET to be supplied via environment variables (no hardcoded fallbacks)."
+          "text": "backend/services/supabase_client.py shall declare _REQUIRED = ('SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_KEY', 'SUPABASE_JWT_SECRET') exactly (4 vars / no hardcoded fallbacks); .env.example shall list those 4 vars + SUPABASE_BUCKET=artifacts (default) using REPLACE_WITH_<NAME> placeholder syntax; the lint script scripts/lint-mock.sh shall include a check_secrets() step (#5) detecting sb_(publishable|secret)_[A-Za-z0-9_-]{20,} pattern."
         },
         {
-          "type": "EVENT",
-          "text": "When supabase_client is imported and any required SUPABASE_* env var is missing, the module shall raise a clear configuration error with the missing variable name."
+          "type": "EVENT-DRIVEN",
+          "text": "When supabase_client is imported and any required SUPABASE_* env var is missing, the module shall raise RuntimeError listing every missing variable name (`Supabase 環境変数が未設定です: VAR1, VAR2, ...`) at import time (fail-fast, no lazy stub fallback); the check shall be implemented as `_missing = [k for k in _REQUIRED if not os.environ.get(k)]` so partial population is correctly detected."
         },
         {
-          "type": "STATE",
-          "text": "While running locally without a populated .env, the application shall fail fast at startup with a list of all missing SUPABASE_* variables."
+          "type": "STATE-DRIVEN",
+          "text": "While the application starts up without a populated .env, backend/main.py loading shall transitively trigger supabase_client import and fail fast with a list of ALL missing SUPABASE_* variables (not just the first one); the module shall NOT contain any hardcoded fallback url / key strings (no `or 'https://example.supabase.co'`, no `or 'sb_...'` patterns)."
         },
         {
           "type": "OPTIONAL",
-          "text": "Where .env.example provides example values, those values shall be obvious placeholders (containing 'REPLACE_WITH_' or '<...>') and never look like real Supabase keys."
+          "text": "Where .env.example provides example values, every SUPABASE_* line shall use the REPLACE_WITH_<NAME> placeholder syntax (matched by regex `REPLACE_WITH_[A-Z_]+`) so the example file passes the secret-leak lint check; the file shall NOT contain any value that matches the production key pattern sb_(publishable|secret)_[A-Za-z0-9_-]{20,}."
         },
         {
           "type": "UNWANTED",
-          "text": "If a real-looking Supabase key (matching ^sb_(publishable|secret)_[A-Za-z0-9_-]{20,}$) is committed to version control, the lint shall detect and fail."
+          "text": "If a real-looking Supabase key (matching `^sb_(publishable|secret)_[A-Za-z0-9_-]{20,}$`) is committed to any tracked file (excluding .env / .env.example which are gitignored or use placeholders), scripts/lint-mock.sh check_secrets() shall exit non-zero with the file:line hits; the production code shall NOT use `default=` arguments for these env reads to prevent silent fallback."
         }
       ]
     },
