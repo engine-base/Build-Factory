@@ -2025,7 +2025,7 @@
     },
     {
       "id": "T-023-02",
-      "title": "API キー管理 UI (existing credentials_store 活用)",
+      "title": "API キー管理 UI (ApiKeysTab + OAuthConnectionsCard + OAuthRow + PROVIDER_META slack/github/anthropic + workspace-api.fetchOAuthProviders / fetchOAuthStatus / startOAuthAuthorize / disconnectOAuth + sessionStorage oauth_state_${provider} CSRF guard + backend/routers/oauth.py callback expected_state vs received_state)",
       "sprint": 1,
       "feature": "F-023",
       "layer": "FE+BE",
@@ -2038,25 +2038,31 @@
       "existing_files": [
         "backend/services/credentials_store.py",
         "backend/routers/oauth.py",
-        "frontend/src/app/settings/profile/page.tsx"
+        "frontend/src/app/settings/profile/page.tsx",
+        "frontend/src/lib/workspace-api.ts"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-23",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The /settings/profile API-keys tab shall display the connection status of Slack, GitHub, and Anthropic OAuth providers."
+          "text": "frontend/src/app/settings/profile/page.tsx ApiKeysTab component shall render OAuthConnectionsCard + OAuthRow for the three OAuthProvider keys ['slack', 'github', 'anthropic'] with PROVIDER_META labels and lucide-react icons (MessageSquare / FileCode2 / Bot / KeyRound / Link2 / Unlink / Loader2); the row shall display a binary connection state derived from workspace-api.fetchOAuthStatus(provider, USER_ID) (GET /api/oauth/{provider}/status); ENGINE BASE green bg-eb-500 shall be used as the primary CTA color (no emoji per CLAUDE.md §5.1)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the user clicks the connect button for a provider, the system shall request GET /api/oauth/{provider}/authorize, store the returned state in sessionStorage, and navigate to authorize_url."
+          "text": "When the user clicks the connect button for a provider, the system shall call workspace-api.startOAuthAuthorize() (GET /api/oauth/{provider}/authorize?redirect_uri=...) and on success shall (a) store the returned state into sessionStorage under the key oauth_state_${provider} as a CSRF guard, (b) redirect via window.location.href = authorize_url; when the user clicks the disconnect button, the system shall call workspace-api.disconnectOAuth() (DELETE /api/oauth/{provider}?owner_id=...) and invalidate the React Query key ['oauth-status', provider, USER_ID] on success."
         },
         {
-          "type": "EVENT-DRIVEN",
-          "text": "When the user clicks the disconnect button, the system shall send DELETE /api/oauth/{provider} and update the displayed status to 'unconnected' on success."
+          "type": "STATE-DRIVEN",
+          "text": "While statusQ.isLoading is true for an OAuthRow, a Loader2 spinner shall render in place of the connect / disconnect button; while providersQ.data is undefined, the row list shall fall back to Object.keys(PROVIDER_META) (defensive default to the 3 known providers); connection state shall be a one-way mirror of the backend (UI never marks 'connected' without statusQ.data.connected === true)."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where startOAuthAuthorize returns null (backend client_id missing / not configured), the UI shall alert the user with a JA message containing the provider label and '.env' hint and shall NOT navigate; where disconnect is requested, the UI shall confirm() with a JA prompt before issuing the DELETE so a misclick does not silently sever the connection."
         },
         {
           "type": "UNWANTED",
-          "text": "If the OAuth callback state does not match the value in sessionStorage, the system shall clear sessionStorage and display a CSRF error toast."
+          "text": "If backend/routers/oauth.py callback receives expected_state and received_state that differ, the router shall raise HTTPException(400, {'code': 'csrf_mismatch'}) instead of exchanging the code (CSRF defense); the page module shall not import langgraph / langchain / litellm (ADR-010), shall not use dangerouslySetInnerHTML (XSS), and shall not contain hardcoded Supabase / Anthropic credentials."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/account/S-009-profile-settings.html",
