@@ -13,8 +13,11 @@ M-30 3 層 memory の Tier 2 (中期 = 圧縮済) を統一インターフェー
 公開 API (read view が中心):
   - latest_summary(thread_id, *, prefer_source="auto")
       最新の 9-section structured summary を返す (newest-first).
+  - list_summaries(thread_id, *, limit=20)
+      圧縮済 entries の一覧 (newest-first). tickets.json T-M30-03 AC-1 命名.
+      compressed_history(...) と完全同義 (alias).
   - compressed_history(thread_id, *, limit=20)
-      圧縮済 entries の一覧 (newest-first).
+      list_summaries の旧名 alias (G11 backwards-compat). 等価.
   - mid_tier_stats(thread_id)
       圧縮率 / section coverage / 最終 summary 時刻 等の統計.
 
@@ -349,6 +352,12 @@ def compressed_history(
         "count": len(entries),
         "entries": entries,
     }
+
+
+# AC-1 命名 alias: tickets.json T-M30-03 UBIQUITOUS は read view を
+# "latest_summary / list_summaries" と呼ぶ. compressed_history の旧名は
+# G11 backwards-compat として温存し、両者を等価に保つ.
+list_summaries = compressed_history
 
 
 # ──────────────────────────────────────────────────────────────────────

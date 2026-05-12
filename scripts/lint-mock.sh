@@ -273,11 +273,24 @@ check_tickets() {
 # Dispatch
 # ----------------------------------------------------------------
 check_domain_boundaries() {
-  echo "[8/8] backend bounded-context domain barrel + 循環依存検出..."
+  echo "[8/9] backend bounded-context domain barrel + 循環依存検出..."
   if python3 scripts/check-domain-boundaries.py > /tmp/lint_domains.log 2>&1; then
     echo -e "${GREEN}OK: backend/domains/ 13 barrel 健全 (no bypass / no cycle)${NC}"
   else
     cat /tmp/lint_domains.log
+    EXIT_CODE=1
+  fi
+}
+
+# T-M30-03 AC-4 UNWANTED: 9-section SECTION_KEYS の application-code 再実装禁止
+# (ADR-010 / T-M28-04 連動: SDK auto-compaction 経路のみが summary を生成する)
+check_section_keys_uniqueness() {
+  echo "[9/9] mid_term_layer 9-section SECTION_KEYS 再実装検知 (T-M30-03 AC-4)..."
+  if python3 scripts/check-section-keys-uniqueness.py > /tmp/lint_section.log 2>&1; then
+    tail -1 /tmp/lint_section.log
+    echo -e "${GREEN}OK: 9-section SECTION_KEYS は mid_term_layer / tier2_cache に集約${NC}"
+  else
+    cat /tmp/lint_section.log
     EXIT_CODE=1
   fi
 }
@@ -291,6 +304,7 @@ case "$MODE" in
   --no-langgraph) check_no_langgraph ;;
   --no-litellm-in-runner) check_no_litellm_in_runner ;;
   --domains)      check_domain_boundaries ;;
+  --section-keys) check_section_keys_uniqueness ;;
   all|"")
     check_emoji
     check_agpl
@@ -300,9 +314,10 @@ case "$MODE" in
     check_no_langgraph
     check_no_litellm_in_runner
     check_domain_boundaries
+    check_section_keys_uniqueness
     ;;
   *)
-    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|all]"
+    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|--section-keys]"
     exit 2
     ;;
 esac

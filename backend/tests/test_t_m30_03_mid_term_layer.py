@@ -174,6 +174,23 @@ def test_g10_section_keys_match_tier3_module_when_available():
     )
 
 
+def test_g10_section_keys_match_tier2_cache_known_sections():
+    """G10 / T-M30-03 AC-1: tier2_cache.KNOWN_SUMMARY_SECTIONS は
+    mid_term_layer.SECTION_KEYS と完全一致 (順序含む).
+    9-section invariant の cross-module 担保."""
+    from services.tier2_cache import KNOWN_SUMMARY_SECTIONS
+    assert tuple(SECTION_KEYS) == tuple(KNOWN_SUMMARY_SECTIONS), (
+        "SECTION_KEYS divergence between mid_term_layer and tier2_cache"
+    )
+
+
+def test_list_summaries_is_alias_of_compressed_history():
+    """T-M30-03 AC-1 UBIQUITOUS: 仕様命名 list_summaries は
+    compressed_history と完全同義 (alias)."""
+    from services.mid_term_layer import compressed_history, list_summaries
+    assert list_summaries is compressed_history
+
+
 def test_empty_summary_is_9_sections_all_lists():
     e = empty_summary()
     assert set(e.keys()) == set(SECTION_KEYS)
@@ -1091,3 +1108,56 @@ def test_module_docstring_documents_path_a_and_b():
     doc = mtl.__doc__ or ""
     assert "経路 A" in doc
     assert "経路 B" in doc
+
+
+# ══════════════════════════════════════════════════════════════════════
+# AC-1 命名 alias: list_summaries (service + endpoint)
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_list_summaries_same_behavior_as_compressed_history():
+    """T-M30-03 AC-1 UBIQUITOUS: list_summaries は compressed_history と
+    完全同じ結果を返す (alias 仕様の動作確認)."""
+    tid = _make_thread()
+    s1 = _full_summary("a")
+    s2 = _full_summary("b")
+    _add_compressed_message(tid, s1)
+    _add_system_summary_message(tid, s2)
+    a = mtl.list_summaries(tid)
+    b = mtl.compressed_history(tid)
+    assert a == b
+    assert a["count"] == 2
+
+
+def test_endpoint_list_alias_returns_same_as_compressed(client):
+    """AC-1 命名 alias: GET /api/mid-term/list は GET /api/mid-term/compressed
+    と等価."""
+    tid = _make_thread()
+    _add_compressed_message(tid, _full_summary("a"))
+    _add_system_summary_message(tid, _full_summary("b"))
+    r1 = client.get("/api/mid-term/list", params={"thread_id": tid})
+    r2 = client.get("/api/mid-term/compressed", params={"thread_id": tid})
+    assert r1.status_code == 200
+    assert r2.status_code == 200
+    assert r1.json() == r2.json()
+
+
+def test_endpoint_list_validates_input(client):
+    """AC-4 UNWANTED: /list も /compressed と同じ validation を共有."""
+    # unknown thread → 404
+    r = client.get("/api/mid-term/list", params={"thread_id": 99999})
+    assert r.status_code == 404
+    detail = r.json()["detail"]
+    assert detail["code"] == "mid_term.not_found"
+
+
+def test_endpoint_list_within_2sec(client):
+    """AC-2 EVENT-DRIVEN: /list も 2 秒以内に応答."""
+    tid = _make_thread()
+    for i in range(20):
+        _add_compressed_message(tid, _full_summary(f"v{i}"))
+    t0 = time.time()
+    r = client.get("/api/mid-term/list", params={"thread_id": tid})
+    elapsed = time.time() - t0
+    assert r.status_code == 200
+    assert elapsed < 2.0
