@@ -2551,7 +2551,7 @@
     },
     {
       "id": "T-M27-02",
-      "title": "Intent 分類 (existing intent_preprocessor/mode_detector 統合)",
+      "title": "Intent 分類 (existing intent_preprocessor/mode_detector/skill_detector 統合)",
       "sprint": 2,
       "feature": "M-27",
       "layer": "RUN",
@@ -2568,22 +2568,23 @@
       ],
       "reference_oss": "openai/codex",
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-27",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-M27-02 (Intent 分類 (existing intent_preprocessor/mode_detector 統合)) as specified by feature M-27."
+          "text": "The intent_classifier service shall provide a unified read API (classify()) that runs the 3 existing detectors (intent_preprocessor.detect_explicit_intent / mode_detector.detect_mode / skill_detector.detect_skill) in parallel and returns a normalized IntentSignal dict with top_signal priority (explicit > skill > mode). The existing 3 detector modules shall NOT be modified (REFACTOR backwards-compat)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-M27-02 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When classify() is invoked, the system shall execute the 3 detectors in parallel via asyncio, apply the top_signal priority rule, and emit an audit_logs entry with event_type='intent.classified' carrying top_signal_kind/value/mode/skill/has_explicit/latency_ms within 2 seconds."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While refactoring for T-M27-02 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+          "text": "While the classifier is active, the system shall preserve the existing 3 detector module symbol surfaces (cross-module assert) and shall maintain backwards compatibility (REFACTOR coverage >= baseline). Read endpoints (health) shall NOT emit audit events."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-M27-02, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If the SDK / alternative LLM classifier backend (register_classifier_backend) returns invalid output (missing keys / invalid mode / wrong types), the system shall fall back to the 3-detector default path with a warning log (silent failure 防止). If invalid input or unauthorized actor is detected, the system shall reject with 4xx {detail:{code,message}} and shall NOT mutate persistent state. If application code re-implements intent classification in a way that bypasses the 3 detectors (e.g., inlined keyword matching outside the existing modules), the lint script shall flag it during code review."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
@@ -2897,7 +2898,7 @@
     },
     {
       "id": "T-M30-03",
-      "title": "中期 layer (existing conversation_summarizer 活用)",
+      "title": "中期 layer (mid_term_layer; chat_thread_store + conversation_summarizer 統一 read view + persistence wrapper)",
       "sprint": 2,
       "feature": "M-30",
       "layer": "BE",
@@ -2909,25 +2910,28 @@
       ],
       "existing_files": [
         "backend/services/conversation_summarizer.py",
-        "backend/services/conversation_memory.py"
+        "backend/services/conversation_memory.py",
+        "backend/services/chat_thread_store.py",
+        "backend/services/memory_service.py"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-M30-03 (中期 layer (existing conversation_summarizer 活用)) as specified by feature M-30."
+          "text": "The mid_term_layer module shall provide a unified read view (latest_summary / list_summaries) + persistence wrapper (record_summary) for 9-section structured summaries persisted by either chat_thread_store (SDK auto-compaction path) or memory_service.persist_compaction (legacy sqlite path). The 9-section SECTION_KEYS invariant shall hold cross-module (mid_term_layer / tier2_cache / tier3_structured_summary)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the relevant API endpoint or service function is invoked for T-M30-03, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+          "text": "When latest_summary or record_summary is invoked, the system shall return a structured response within 2 seconds and emit an audit_logs entry ('mid_term.read' / 'mid_term.recorded') carrying thread_id and source ('chat_thread_store' | 'memory_service'). Read endpoints shall not emit audit events."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While refactoring for T-M30-03 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+          "text": "While both persistence paths (chat_thread_store and memory_service) coexist in Phase 1, the system shall preserve the 9-section invariant and shall NOT modify existing conversation_summarizer.generate_summary (G9 backwards-compat). record_summary shall dual-write to both paths via legacy_persist_best_effort (G4 dual-write)."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-M30-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If the SDK summarizer backend (register_summarizer_backend) returns invalid output (missing SECTION_KEYS / wrong types), the system shall fall back to the input summary unchanged and emit a warning log (silent failure 防止). If invalid input or unauthorized actor is detected, the system shall reject with 4xx {detail:{code,message}} and shall NOT mutate persistent state. If application code re-implements 9-section summary generation outside the SDK auto-compaction path, the lint script shall fail (ADR-010 cross-ref with T-M28-04 UNWANTED)."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
@@ -2972,7 +2976,7 @@
     },
     {
       "id": "T-M30-05",
-      "title": "Memory 統合テスト (3 層 → context 組立)",
+      "title": "Memory 統合 orchestrator (memory_pipeline; 3 層 short+mid+long → context 組立) + 統合テスト",
       "sprint": 2,
       "feature": "M-30",
       "layer": "TST",
@@ -2982,23 +2986,29 @@
       "deps": [
         "T-M30-04"
       ],
+      "existing_files": [
+        "backend/services/chat_thread_store.py",
+        "backend/services/mid_term_layer.py",
+        "backend/services/long_term_layer.py"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-30",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-M30-05 (Memory 統合テスト (3 層 → context 組立)) as specified by feature M-30."
+          "text": "The memory_pipeline module shall integrate the 3-tier memory layers (short=raw chat_messages via chat_thread_store / mid=9-section compressed_summary via mid_term_layer / long=Mem0+Obsidian via long_term_layer) and assemble a unified context block for AI session prompts. Integration tests shall verify cross-layer invariants (9-section SECTION_KEYS / tier ordering / source attribution). The module shall NOT modify the underlying 3 layer modules (NEW + REUSE)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-M30-05 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When build_context(thread_id, query) is invoked, the system shall fetch all 3 tiers in parallel via asyncio and return an assembled context dict within 2 seconds, emitting audit_logs entry 'memory.context_built' with tier_hit_count and total_chars."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-M30-05 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the orchestrator is active, the system shall NOT modify any of the underlying layer modules (chat_thread_store / mid_term_layer / long_term_layer) and shall preserve their existing API contracts. If any single tier fails to fetch, the system shall degrade gracefully (return partial context + log warning) rather than abort the whole pipeline."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-M30-05, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If a tier fetch raises an exception, the system shall log the warning and continue with remaining tiers (graceful degradation). If invalid input (empty thread_id / oversized query / non-positive max_tokens) is provided, the system shall reject with 4xx {detail:{code,message}} and shall NOT mutate persistent state. If application code re-implements 3-tier compaction in the orchestrator instead of delegating to the layer modules, the lint script shall flag it during code review (ADR-010 cross-ref with T-M28-02/03/04 UNWANTED)."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
