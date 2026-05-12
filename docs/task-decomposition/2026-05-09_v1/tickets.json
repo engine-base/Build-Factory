@@ -1755,7 +1755,7 @@
     },
     {
       "id": "T-021-01",
-      "title": "6 ロール enum + permission matrix JSON",
+      "title": "6 ロール enum + permission matrix JSON (account_owner→owner / workspace_admin→ws_admin normalize / 30 permission keys / role-oriented matrix / GET /api/workspaces/permissions/matrix)",
       "sprint": 1,
       "feature": "F-021",
       "layer": "DB+BE",
@@ -1766,29 +1766,35 @@
         "T-001-02"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-21",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall accept only the 6 roles {owner, ws_admin, contributor, viewer, client, monitor} as workspace_members.role values."
-        },
-        {
-          "type": "UBIQUITOUS",
-          "text": "The system shall expose a permission matrix of 30 permission keys mapped across the 6 roles via GET /api/workspaces/permissions/matrix."
+          "text": "The system shall accept exactly 6 normalized roles {owner, ws_admin, contributor, viewer, client, monitor} as workspace_members.role values; backend/services/roles.py shall expose _ROLES_JSON_KEY_MAP (account_owner→owner / workspace_admin→ws_admin / contributor / viewer / client / monitor identity), get_role_definitions(), get_permission_matrix(), has_permission(), is_known_role(), validate_custom_permissions(), get_permissions_metadata(), get_role_oriented_matrix(); the canonical source is docs/functional-breakdown/2026-05-09_v1/roles.json (30 permission keys × 6 roles)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When GET /api/workspaces/permissions/matrix is called, the system shall return a JSON object with shape {roles: string[], permissions: {key, label, category}[], matrix: {role: {permission: bool}}}."
+          "text": "When GET /api/workspaces/permissions/matrix is invoked, the endpoint shall return a JSON object with shape {roles: string[6], permissions: [{key, label, category}][30], matrix: {role: {permission: bool}}, permission_keys: string[30], legacy_matrix: {permission: {role: bool|str}}} within 2 seconds; the matrix shall be deterministic (same response for same roles.json input)."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the application is running, _load_roles_json() shall cache the parsed roles.json via @lru_cache(maxsize=1) so disk I/O happens once per process; PERMISSION_MATRIX module-level constant shall be computed via get_permission_matrix() at import time; the roles.py shall NOT import langgraph / langchain / litellm (ADR-010) and shall NOT redefine SECTION_KEYS / REVIEW_DIMENSIONS / PERSONA_NAME (G15 cross-module invariant)."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where a workspace member has a `custom_permissions` JSONB override on workspace_members.custom_permissions, has_permission() shall consult the override FIRST and grant True when custom_permissions[key]=True (v2.1 OR-evaluation: grant-only override on top of the 6 base roles, no revoke semantics by design); validate_custom_permissions() shall return a list of warning strings for unknown permission keys (silent fail-safe / log-only)."
         },
         {
           "type": "UNWANTED",
-          "text": "If a request supplies a role value outside the 6 allowed roles, the system shall reject the request with HTTP 422 and shall not persist the change."
+          "text": "If a request supplies a role value outside the 6 normalized roles, the system shall reject the request with HTTP 422 and shall NOT persist the change; if roles.json file is missing or malformed, _load_roles_json() shall return {roles: [], permission_matrix: {}} (graceful empty) so the application boots even in test environments; the matrix endpoint shall NOT contain any hardcoded sb_(publishable|secret)_*key / sk-ant-* / JWT (eyJ...)."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/workspace/S-014-workspace-members.html",
       "existing_files": [
+        "backend/services/roles.py",
         "backend/routers/workspaces.py",
         "backend/services/workspace_service.py",
-        "backend/services/roles.py"
+        "docs/functional-breakdown/2026-05-09_v1/roles.json"
       ],
       "entities": [
         "workspaces",
