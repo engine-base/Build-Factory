@@ -111,6 +111,7 @@
     "prosemirror-history": "^1.4.1",
     "prosemirror-keymap": "^1.2.2",
     "prosemirror-model": "^1.24.1",
+    "pino": "^9.5.0",
     "prosemirror-state": "^1.4.3",
     "prosemirror-view": "^1.37.1",
     "radix-ui": "^1.4.3",
@@ -152,6 +153,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
+    "pino-pretty": "^11.3.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
