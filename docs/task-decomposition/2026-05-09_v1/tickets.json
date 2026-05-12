@@ -706,7 +706,7 @@
     },
     {
       "id": "T-S0-11",
-      "title": "structlog + pino",
+      "title": "structlog + pino (backend + frontend 中央集約 logger / 構造化ログ)",
       "sprint": 0,
       "feature": "META",
       "layer": "OPS",
@@ -714,23 +714,28 @@
       "human_days": 0.3,
       "claude_code_hours": 1,
       "deps": [],
+      "existing_files": [
+        "backend/requirements.txt",
+        "frontend/package.json"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-S0-11 (structlog + pino) as specified by feature META."
+          "text": "The backend shall provide `backend/logging_config.py` (structlog setup with stdlib logging fallback) and the frontend shall provide `frontend/src/lib/logger.ts` (pino logger). Both shall expose `configure / get_logger / bind_context / clear_context` (backend) and `logger / withContext` (frontend). Existing `import logging` / `logging.getLogger` calls SHALL NOT be modified (REUSE backwards-compat)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-S0-11 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When configure_structlog(level, json_output) is called, the system shall set both structlog and stdlib root logger to the requested level. When bind_context(**kwargs) is called, the system shall add the key-value pairs to contextvars so subsequent log emissions auto-merge the context (structlog only; stdlib fallback is no-op)."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-S0-11 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While structlog is installed, the system shall use JSON output in CI/PROD_LOGGING environments and console output in development; while structlog is NOT installed (minimal CI runtime), the system shall fall back gracefully to stdlib logging without raising ImportError. The logger module shall NOT write to audit_logs DB (audit_logs is a separate concern via memory_service.emit_event)."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-S0-11, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If structlog/pino import fails, the system shall log a warning via stdlib logging and continue with fallback (no crash). If an invalid log level is passed (not in DEBUG/INFO/WARNING/ERROR/CRITICAL), the system shall raise ValueError. The logger module shall NOT include secrets / authentication tokens / passwords in log output (caller responsibility; lint check enforced via secrets scanner)."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
