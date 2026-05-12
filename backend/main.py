@@ -96,6 +96,7 @@ from routers.ai_employees import employees_router as ai_employees_router, person
 from routers.hierarchy import router as hierarchy_router
 from routers.long_term_layer import router as long_term_layer_router
 from routers.mid_term_layer import router as mid_term_layer_router
+from routers.short_term_layer import router as short_term_layer_router
 from routers.memory_pipeline import router as memory_pipeline_router
 from routers.handoff import router as handoff_router
 from routers.ears_classifier import router as ears_classifier_router
@@ -249,6 +250,7 @@ app.include_router(ai_personas_router)
 app.include_router(hierarchy_router)
 app.include_router(long_term_layer_router)
 app.include_router(mid_term_layer_router)
+app.include_router(short_term_layer_router)
 app.include_router(memory_pipeline_router)
 app.include_router(handoff_router)
 app.include_router(ears_classifier_router)
