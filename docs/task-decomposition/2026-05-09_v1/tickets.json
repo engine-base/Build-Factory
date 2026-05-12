@@ -4003,7 +4003,7 @@
     },
     {
       "id": "T-009-04",
-      "title": "DAG 仮想化 + 階層折りたたみ",
+      "title": "DAG 仮想化 + 階層折りたたみ (pure helpers + DagHierarchyControls / DependencyGraph 補完)",
       "sprint": 4,
       "feature": "F-009",
       "layer": "FE",
@@ -4013,23 +4013,27 @@
       "deps": [
         "T-009-02"
       ],
+      "existing_files": [
+        "frontend/src/components/dag/DependencyGraph.tsx"
+      ],
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-9",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-009-04 (DAG 仮想化 + 階層折りたたみ) as specified by feature F-009."
+          "text": "The system shall provide `frontend/src/components/dag/DagHierarchy.tsx` with pure helpers `computeDepths(tasks, edges) -> Map<id, depth>` and `filterVisibleTasks(tasks, edges, collapsedIds, maxDepth) -> Set<id>`, plus React components `DagHierarchyControls` (summary + maxDepth input) and `CollapseButton` (per-node toggle). The MAX_REASONABLE_DEPTH constant (50) caps cycle-induced infinite recursion. Existing DependencyGraph.tsx SHALL NOT be modified (REUSE: caller filters visible ids before passing to DependencyGraph)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the user interacts with the UI for T-009-04, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+          "text": "When `tasks` / `edges` / `collapsedIds` / `maxDepth` props change, the controls component shall recompute visible count via React.useMemo. When the user types in the depth input, `onMaxDepthChange(parsedInt)` is invoked. When CollapseButton is clicked, `onToggleCollapse(id)` callback fires. Pure helpers are exported via `__testing__` for unit testing."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-009-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the controls are rendered, the collapsed state is controlled (caller owns Set<number>) — the component does not maintain its own collapse state. Cycles in edges shall be handled gracefully (visiting set + MAX_REASONABLE_DEPTH cap, no infinite recursion). All colors shall be eb-* palette (border-eb-500/200, bg-eb-50, text-eb-500) and icons Lucide (Layers, ChevronRight, ChevronDown)."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-009-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If `tasks` is null / undefined / non-array, helpers shall return empty Map/Set (no crash). If `maxDepth` is negative / NaN / Infinity, it shall be treated as -1 (no cap). If edges contain a cycle (A→B→A), computeDepths shall terminate within MAX_REASONABLE_DEPTH iterations. Hardcoded color literals outside eb-* palette SHALL NOT appear in source."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/moat/S-017-dependency-graph.html"
