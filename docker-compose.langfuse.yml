@@ -1,0 +1,125 @@
+# T-017-01: Langfuse self-host docker-compose (Phase 1 観測層).
+#
+# 起動方法 (main compose と merge / optional):
+#   docker compose -f docker-compose.yml -f docker-compose.langfuse.yml up -d
+#
+# 設計:
+#   - postgres は main compose の supabase/postgres を REUSE (二重 PG 起動を防ぐ).
+#   - clickhouse + minio は langfuse 専用 (named volume で永続化).
+#   - port 3001:3000 (main frontend の 3000 と衝突回避).
+#   - 全 image を major version で pin (image:latest 禁止 / 再現性 invariant).
+#
+# 必須 ENV (.env.langfuse.example 参照):
+#   NEXTAUTH_SECRET / SALT / ENCRYPTION_KEY /
+#   LANGFUSE_INIT_ORG_NAME / LANGFUSE_INIT_USER_EMAIL /
+#   LANGFUSE_INIT_PROJECT_PUBLIC_KEY / LANGFUSE_INIT_PROJECT_SECRET_KEY /
+#   TELEMETRY_ENABLED (Phase 1 = false)
+
+services:
+  # ─────────────────────────────────────────────────────────────────────
+  # langfuse-web: ダッシュボード UI + API
+  # ─────────────────────────────────────────────────────────────────────
+  langfuse-web:
+    image: langfuse/langfuse:3
+    container_name: bf-langfuse-web
+    restart: unless-stopped
+    depends_on:
+      - langfuse-worker
+      - langfuse-clickhouse
+      - langfuse-minio
+    ports:
+      - "3001:3000"
+    environment:
+      # DB: T-S0-01 既存 supabase/postgres を REUSE (二重 PG なし)
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
+      # ClickHouse: Langfuse v3 必須
+      CLICKHOUSE_URL: http://langfuse-clickhouse:8123
+      CLICKHOUSE_MIGRATION_URL: clickhouse://langfuse-clickhouse:9000
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse}
+      # MinIO: blob storage
+      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_EVENT_UPLOAD_REGION: auto
+      LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: minio
+      LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ${MINIO_SECRET_KEY:-miniosecret}
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://langfuse-minio:9000
+      LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
+      # NextAuth + 暗号化 (placeholder / production では .env で必須上書き)
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-change-me-please}
+      SALT: ${SALT:-change-me-salt}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-0000000000000000000000000000000000000000000000000000000000000000}
+      NEXTAUTH_URL: http://localhost:3001
+      # Telemetry: Phase 1 = false (送信無効)
+      TELEMETRY_ENABLED: ${TELEMETRY_ENABLED:-false}
+      LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: "false"
+      # 初回 bootstrap (deterministic / Phase 1 dogfood 用)
+      LANGFUSE_INIT_ORG_NAME: ${LANGFUSE_INIT_ORG_NAME:-engine-base}
+      LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_INIT_USER_EMAIL:-masato@engine-base.com}
+      LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_INIT_USER_PASSWORD:-change-me-init-password}
+      LANGFUSE_INIT_PROJECT_NAME: ${LANGFUSE_INIT_PROJECT_NAME:-build-factory}
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_INIT_PROJECT_PUBLIC_KEY:-pk-lf-placeholder}
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_INIT_PROJECT_SECRET_KEY:-sk-lf-placeholder}
+
+  # ─────────────────────────────────────────────────────────────────────
+  # langfuse-worker: ジョブ runner (event aggregation / clickhouse ingest)
+  # ─────────────────────────────────────────────────────────────────────
+  langfuse-worker:
+    image: langfuse/langfuse-worker:3
+    container_name: bf-langfuse-worker
+    restart: unless-stopped
+    depends_on:
+      - langfuse-clickhouse
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
+      CLICKHOUSE_URL: http://langfuse-clickhouse:8123
+      CLICKHOUSE_MIGRATION_URL: clickhouse://langfuse-clickhouse:9000
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse}
+      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_EVENT_UPLOAD_REGION: auto
+      LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: minio
+      LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ${MINIO_SECRET_KEY:-miniosecret}
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://langfuse-minio:9000
+      LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
+      SALT: ${SALT:-change-me-salt}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-0000000000000000000000000000000000000000000000000000000000000000}
+      TELEMETRY_ENABLED: ${TELEMETRY_ENABLED:-false}
+
+  # ─────────────────────────────────────────────────────────────────────
+  # langfuse-clickhouse: time-series 集計 (v3 必須)
+  # ─────────────────────────────────────────────────────────────────────
+  langfuse-clickhouse:
+    image: clickhouse/clickhouse-server:24
+    container_name: bf-langfuse-clickhouse
+    restart: unless-stopped
+    environment:
+      CLICKHOUSE_DB: default
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse}
+    volumes:
+      - langfuse_clickhouse_data:/var/lib/clickhouse
+      - langfuse_clickhouse_logs:/var/log/clickhouse-server
+
+  # ─────────────────────────────────────────────────────────────────────
+  # langfuse-minio: blob storage (event upload buffer)
+  # ─────────────────────────────────────────────────────────────────────
+  langfuse-minio:
+    image: minio/minio:RELEASE.2024-12-18T13-15-44Z
+    container_name: bf-langfuse-minio
+    restart: unless-stopped
+    entrypoint:
+      - sh
+      - -c
+      - |
+        mkdir -p /data/langfuse && \
+        minio server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-miniosecret}
+    volumes:
+      - langfuse_minio_data:/data
+
+volumes:
+  langfuse_clickhouse_data:
+  langfuse_clickhouse_logs:
+  langfuse_minio_data:
