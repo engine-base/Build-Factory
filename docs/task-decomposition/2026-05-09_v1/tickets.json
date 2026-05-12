@@ -1641,7 +1641,7 @@
     },
     {
       "id": "T-004-05",
-      "title": "owner 移譲 UI",
+      "title": "owner 移譲 UI (/workspaces/[id]/settings owner-transfer section / atomic demote+promote / target_not_member 400 / Lucide Crown)",
       "sprint": 0,
       "feature": "F-004",
       "layer": "FE",
@@ -1652,27 +1652,33 @@
         "T-004-01"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-4",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The /workspaces/{id}/settings page shall include a section enabling an owner to transfer ownership to another existing workspace member."
+          "text": "frontend/src/app/workspaces/[id]/settings/page.tsx shall include an owner-transfer section using transferOwnership() helper from @/lib/workspaces; the page shall import Lucide Crown / Loader2 icons (no emoji per CLAUDE.md §5.1) and shall list eligible targets (workspace members excluding the current owner) via fetchMembers(); backend POST /api/workspaces/{id}/transfer-ownership shall accept TransferOwnershipRequest{current_owner_id, new_owner_id} and route to ws.transfer_ownership service."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the current owner submits the owner-transfer form, the system shall demote the current owner to ws_admin and promote the selected member to owner atomically."
+          "text": "When the current owner submits the owner-transfer form, frontend invokes transferOwnership(workspaceId, CURRENT_USER_ID, targetUserId) and backend ws.transfer_ownership shall atomically (in a single DB transaction) demote the current owner role to 'ws_admin' and promote the selected member role to 'owner'; the endpoint shall return the updated members within 2 seconds."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the current user is not the workspace owner, the system shall hide or disable the owner-transfer controls."
+          "text": "While the current user is not the workspace owner (member.role !== 'owner' for CURRENT_USER_ID), the page shall disable / hide the owner-transfer submit button so non-owner cannot initiate the transfer (UI-level guard, defense-in-depth on top of backend auth); the page shall NOT call backend endpoints from React render phase (only inside useEffect / event handler / mutation) and shall NOT import langgraph / langchain / litellm (ADR-010)."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where the workspace has only one member (the current owner), the eligibleTargets list shall be empty and the submit button shall remain disabled (no self-transfer); the UI shall surface a friendly message ('eligible target なし') instead of a silent no-op so the user understands the state."
         },
         {
           "type": "UNWANTED",
-          "text": "If the selected target member is not currently a member of the workspace, the system shall reject the transfer with HTTP 400 (target_not_member)."
+          "text": "If the selected target user_id is not currently a workspace member, backend ws.transfer_ownership shall raise ValueError mapped to HTTP 400 {detail:{code:'target_not_member', message}}; if the demote+promote sequence fails mid-transaction, the DB shall roll back so neither role mutation persists (atomicity invariant); the page shall NOT contain dangerouslySetInnerHTML / fetch() outside the helper / hardcoded sb_*_key / sk-ant-*."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/workspace/S-013-workspace-settings.html",
       "existing_files": [
         "frontend/src/app/workspaces/[id]/settings/page.tsx",
+        "frontend/src/lib/workspaces.ts",
         "backend/routers/workspaces.py",
         "backend/services/workspace_service.py"
       ],
