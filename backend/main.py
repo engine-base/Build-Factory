@@ -97,6 +97,7 @@ from routers.hierarchy import router as hierarchy_router
 from routers.long_term_layer import router as long_term_layer_router
 from routers.mid_term_layer import router as mid_term_layer_router
 from routers.short_term_layer import router as short_term_layer_router
+from routers.tier3_persistence import router as tier3_persistence_router
 from routers.component_catalog import router as component_catalog_router
 from routers.reviewer_persona import router as reviewer_persona_router
 from routers.reviewer_turn_counter import router as reviewer_turn_counter_router
@@ -257,6 +258,7 @@ app.include_router(hierarchy_router)
 app.include_router(long_term_layer_router)
 app.include_router(mid_term_layer_router)
 app.include_router(short_term_layer_router)
+app.include_router(tier3_persistence_router)
 app.include_router(component_catalog_router)
 app.include_router(reviewer_persona_router)
 app.include_router(reviewer_turn_counter_router)
