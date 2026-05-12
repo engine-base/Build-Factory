@@ -1936,7 +1936,7 @@
     },
     {
       "id": "T-021-05",
-      "title": "self-strip block + owner 保護",
+      "title": "self-strip block + owner 保護 (workspace_service.SelfStripError + OwnerProtectedError + _count_role + update_member_role / remove_member guard + workspaces.py PATCH/DELETE 409 mapping {code: self_strip_blocked|owner_protected})",
       "sprint": 1,
       "feature": "F-021",
       "layer": "BE+FE",
@@ -1947,22 +1947,27 @@
         "T-021-03"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-21",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
-          "type": "UNWANTED",
-          "text": "If actor_user_id attempts to demote their own role from ws_admin to a lower role, the system shall respond HTTP 409 with detail={code: 'self_strip_blocked'}."
-        },
-        {
-          "type": "UNWANTED",
-          "text": "If a delete or role-change request would remove the last remaining owner of a workspace, the system shall respond HTTP 409 with detail={code: 'owner_protected'}."
+          "type": "UBIQUITOUS",
+          "text": "backend/services/workspace_service.py shall expose two ValueError subclasses SelfStripError and OwnerProtectedError; update_member_role and remove_member shall guard against (a) actor_user_id == target user_id (self-strip) and (b) the target being the last remaining owner (counted via _count_role(workspace_id, 'owner') <= 1); all 409 responses for this guard shall serialize as {detail: {code: <enum>, message: str}} on the FastAPI router so the frontend can parse them machine-readably."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the actor changes another member's role (not their own), the system shall apply standard permission checks and shall not raise self_strip or owner_protected."
+          "text": "When the router catches SelfStripError, PATCH /api/workspaces/{workspace_id}/members/{user_id} and DELETE /api/workspaces/{workspace_id}/members/{user_id} shall raise HTTPException(409, {'code': 'self_strip_blocked', 'message': str(e)}); when the router catches OwnerProtectedError, the same endpoints shall raise HTTPException(409, {'code': 'owner_protected', 'message': str(e)}); the guard is enforced BEFORE the UPDATE / DELETE SQL is executed (no half-applied state)."
         },
         {
-          "type": "UBIQUITOUS",
-          "text": "All 409 responses for this guard shall serialize as {detail: {code, message}} for machine-readable handling on the frontend."
+          "type": "STATE-DRIVEN",
+          "text": "While the actor is changing another member's role (actor_user_id != target user_id), neither SelfStripError nor OwnerProtectedError shall fire (unless the target is the last owner being demoted); while the workspace has more than 1 owner, demoting one of them shall succeed because _count_role('owner') > 1 (the guard short-circuits at <= 1)."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where actor_user_id is None (e.g. system / migration script), the self-strip guard shall be skipped (since 'self' is undefined) but the owner-protection guard shall still apply (last owner is invariant regardless of caller identity); where role parameter is None (custom_permissions-only update), self-strip on role change shall not apply (role unchanged means no privilege escalation)."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If actor_user_id == target user_id and role is changed, the service shall raise SelfStripError('cannot change your own role (self-strip blocked)') without touching the DB; if actor_user_id == target user_id and remove_member is called, the service shall raise SelfStripError without touching the DB; the module shall not import langgraph / langchain / litellm (ADR-010) and shall not contain hardcoded Supabase / Anthropic credentials."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/workspace/S-014-workspace-members.html",
