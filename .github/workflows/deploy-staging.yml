@@ -1,0 +1,167 @@
+# =============================================================================
+# T-S0-04: deploy-staging.yml — Phase 1 staging deploy (Vercel + Oracle Cloud)
+# =============================================================================
+#
+# 用途: staging 環境への手動 / tag-triggered デプロイ.
+#
+#   - workflow_dispatch (手動 trigger) でいつでも実行可能.
+#   - push tag `staging-v*` で自動 trigger (例: `git tag staging-v0.1.0 && git push --tags`).
+#   - main への push では deploy しない (CLAUDE.md §11: 重大変更は確認後).
+#
+# Phase 1 hosting (CLAUDE.md §3 Hosting / ¥0/月):
+#   - Frontend: Vercel Hobby (vercel CLI)
+#   - Backend:  Oracle Cloud Free Tier VM (ssh + docker compose pull/up)
+#   - Smoke:    GET /api/health 60 秒以内に 200
+#
+# ADR-010 (AI スタック 3-layer):
+#   - main runner path (backend) は anthropic-python + claude-agent-sdk.
+#   - LiteLLM (Layer 2b) は docker-compose の `litellm` profile (opt-in).
+#   - deploy 時に余計な provider container は up しない.
+#
+# AC マッピング (T-S0-04):
+#   AC-1 UBIQUITOUS    : 2 jobs (deploy-frontend / deploy-backend) +
+#                        workflow_dispatch + tag trigger.
+#   AC-2 EVENT-DRIVEN  : 30 分以内 / summary 出力 / smoke GET /api/health.
+#   AC-3 STATE-DRIVEN  : secrets は ${{ secrets.* }} のみ / environment=staging /
+#                        ci.yml / license-check.yml 無改変.
+#   AC-4 UNWANTED      : hardcoded secret / main 自動 trigger / smoke skip 禁止.
+# =============================================================================
+
+name: deploy-staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for staging deploy (audit trail)'
+        required: false
+        default: 'manual deploy'
+  push:
+    tags:
+      # 自動 trigger は `staging-v*` tag に限定 (main push では走らない).
+      - 'staging-v*'
+
+# 同時実行 1 つに制限 (deploy が重複しないように).
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  TARGET_ENVIRONMENT: staging
+
+jobs:
+  # ──────────────────────────────────────────────────────────────────────
+  # deploy-frontend: Vercel Hobby (vercel CLI)
+  # ──────────────────────────────────────────────────────────────────────
+  deploy-frontend:
+    name: Deploy Frontend (Vercel)
+    runs-on: ubuntu-latest
+    environment: staging
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel environment (staging)
+        working-directory: ./frontend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
+
+      - name: Build (Vercel)
+        working-directory: ./frontend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          vercel build --token="$VERCEL_TOKEN"
+
+      - name: Deploy (preview = staging)
+        id: deploy
+        working-directory: ./frontend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          url=$(vercel deploy --prebuilt --token="$VERCEL_TOKEN")
+          echo "deployment_url=$url" >> "$GITHUB_OUTPUT"
+          echo "## Frontend deployed" >> "$GITHUB_STEP_SUMMARY"
+          echo "- env: staging" >> "$GITHUB_STEP_SUMMARY"
+          echo "- sha: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "- url: $url" >> "$GITHUB_STEP_SUMMARY"
+
+  # ──────────────────────────────────────────────────────────────────────
+  # deploy-backend: Oracle Cloud Free Tier VM (ssh + docker compose)
+  # ──────────────────────────────────────────────────────────────────────
+  deploy-backend:
+    name: Deploy Backend (Oracle Cloud)
+    runs-on: ubuntu-latest
+    environment: staging
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.STAGING_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.STAGING_SSH_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Remote docker compose pull + up
+        env:
+          STAGING_HOST: ${{ secrets.STAGING_HOST }}
+          STAGING_USER: ${{ secrets.STAGING_USER }}
+          STAGING_DEPLOY_DIR: ${{ secrets.STAGING_DEPLOY_DIR }}
+        run: |
+          ssh -i ~/.ssh/id_ed25519 "$STAGING_USER@$STAGING_HOST" bash -se <<EOF
+          set -euo pipefail
+          cd "$STAGING_DEPLOY_DIR"
+          git fetch --tags origin
+          git checkout "$GITHUB_SHA"
+          docker compose pull backend
+          docker compose up -d backend
+          docker compose ps backend
+          EOF
+
+      - name: Smoke test (GET /api/health)
+        id: smoke
+        env:
+          STAGING_HEALTH_URL: ${{ secrets.STAGING_HEALTH_URL }}
+        run: |
+          # 60 秒 = retry 12 回 (5s interval) until 200 / fail otherwise
+          set +e
+          for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
+            status=$(curl -s -o /dev/null -w '%{http_code}' "$STAGING_HEALTH_URL" || echo "000")
+            if [ "$status" = "200" ]; then
+              echo "smoke_status=pass" >> "$GITHUB_OUTPUT"
+              echo "## Backend deployed (smoke PASS)" >> "$GITHUB_STEP_SUMMARY"
+              echo "- env: staging" >> "$GITHUB_STEP_SUMMARY"
+              echo "- sha: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+              echo "- /api/health: 200 (attempt $i)" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "smoke_status=fail" >> "$GITHUB_OUTPUT"
+          echo "## Backend deploy FAILED (smoke timeout)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- /api/health: $status after 60s" >> "$GITHUB_STEP_SUMMARY"
+          exit 1
