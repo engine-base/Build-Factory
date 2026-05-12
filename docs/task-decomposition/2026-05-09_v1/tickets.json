@@ -747,7 +747,7 @@
     },
     {
       "id": "T-S0-12",
-      "title": "Better Stack uptime monitor",
+      "title": "Better Stack uptime monitor (pull /health + push heartbeat / graceful degradation)",
       "sprint": 0,
       "feature": "META",
       "layer": "OPS",
@@ -755,23 +755,27 @@
       "human_days": 0.2,
       "claude_code_hours": 1,
       "deps": [],
+      "existing_files": [
+        "backend/main.py"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-S0-12 (Better Stack uptime monitor) as specified by feature META."
+          "text": "The backend shall provide `backend/uptime_heartbeat.py` exposing `send_heartbeat() / is_configured() / get_heartbeat_url() / APSCHEDULER_INTEGRATION_GUIDE`. The existing `/health` endpoint (backend/main.py L248) shall be reused unmodified for the pull-mode (Better Stack → backend) check. The push-mode (backend → Better Stack heartbeat URL) shall be opt-in via BETTER_STACK_HEARTBEAT_URL env var."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-S0-12 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When send_heartbeat() is invoked, the system shall (a) validate URL form (scheme https/http, non-empty netloc), (b) POST or GET to the URL via httpx within `timeout_sec` seconds (default 10), and (c) return True on 2xx/3xx, False on 4xx/5xx/network failure. The function shall NOT raise on network errors (silent degradation, log warning only)."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-S0-12 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While BETTER_STACK_HEARTBEAT_URL is unset, send_heartbeat() shall return False without any HTTP call (no-op). While set, the module shall NOT modify repository state or audit_logs DB (uptime monitor is a separate observability concern from audit trail). APScheduler integration shall be a guide (docstring), not auto-wired."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-S0-12, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If url scheme is not https/http, or netloc is empty, or timeout_sec is outside (0, 60], or extra_payload is not a dict/None, the system shall raise ValueError. If network call fails (timeout / DNS / 5xx), the system shall log a warning and return False (NOT raise). The module source SHALL NOT contain hardcoded heartbeat URLs / API tokens (URL comes from env only)."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
