@@ -55,6 +55,9 @@ EMOJI_EXEMPT_FILES = {
     "backend/integrations/slack_client.py",
     "backend/integrations/slack_llm_session.py",
     "backend/integrations/chatwork_client.py",
+    # ADR-005 適用範囲外 (negative test): 絵文字禁止を pytest で機械検証する
+    # テストファイル自体は forbidden char 列を保持する必要がある.
+    "backend/tests/test_t_010b_04_play_session_button.py",
 }
 
 found = []
