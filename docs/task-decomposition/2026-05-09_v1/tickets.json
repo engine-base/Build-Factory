@@ -6851,7 +6851,7 @@
     },
     {
       "id": "T-AI-02",
-      "title": "Mem0 ベクトル検索 + Anthropic Memory API ブリッジ",
+      "title": "Mem0 ベクトル検索 + Anthropic Memory API ブリッジ (mem0_bridge.mirror_fact_to_mem0 + search_with_rerank + preload_secretary_facts + detect_divergence + ScoredFact MRR re-rank 0.6*vector + 0.4*confidence)",
       "sprint": "S2",
       "feature": "F-AI",
       "layer": "L2",
@@ -6865,8 +6865,12 @@
         "T-020-02"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-32",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "mock_link": "../../mocks/2026-05-09_v1/index.html",
-      "existing_files": [],
+      "existing_files": [
+        "backend/services/mem0_bridge.py",
+        "backend/services/long_term_memory.py"
+      ],
       "entities": [
         "memory_facts",
         "mem0_collections"
@@ -6874,19 +6878,23 @@
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The bridge shall mirror every Memory API write to Mem0 (pgvector) for similarity search."
+          "text": "backend/services/mem0_bridge.py shall expose async mirror_fact_to_mem0(fact: FactRecord) -> Optional[str] / search_with_rerank(user_id, query, *, top_k=5) -> list[ScoredFact] / preload_secretary_facts(user_id, *, top_n=50) -> list[FactRecord] / detect_divergence(user_id, *, sample=100) -> dict; ScoredFact dataclass shall hold (fact: FactRecord, vector_score: float, confidence: float, final_score: float); FactRecord and _row_to_fact shall be reused from services.memory_facts (no schema drift); ADR-010 compliance — no langgraph / langchain / litellm IMPORT in this module."
         },
         {
-          "type": "EVENT",
-          "text": "When a session asks 'recall similar past decisions to X', the system shall query Mem0 vector top-5 within 300ms and re-rank against Memory API results."
+          "type": "EVENT-DRIVEN",
+          "text": "When mirror_fact_to_mem0(fact) is called, the system shall call services.long_term_memory.add_conversation(user_id=fact.user_id, conversation=[{'role': 'system', 'content': fact.fact_text}], metadata={kind, fingerprint, source_session_id, confidence_score}) and on success UPDATE memory_facts SET mem0_id = f'mem0:{fact.fingerprint}' WHERE id = fact.id, returning the new mem0_id; when search_with_rerank(user_id, query, top_k=5) is called the system shall (a) call services.long_term_memory.search_relevant_memories(user_id, query, limit=top_k), (b) compute fingerprint() per returned text, (c) DB-join with memory_facts on fingerprint IN (...), (d) compute vector_score = 1.0/(rank+1) MRR, (e) final_score = 0.6 * vector_score + 0.4 * confidence_score, (f) sort by final_score DESC and return scored[:top_k]."
         },
         {
-          "type": "STATE",
-          "text": "While the user is the secretary AI, the bridge shall preload top-50 most-relevant facts into the system prompt at session start."
+          "type": "STATE-DRIVEN",
+          "text": "While invoked for the secretary AI session start, preload_secretary_facts shall execute SELECT * FROM memory_facts WHERE user_id = ? AND deleted_at IS NULL AND status = 'synced' ORDER BY confidence_score DESC, created_at DESC LIMIT top_n (default 50), returning FactRecord rows for system prompt injection; while a fact is found in Mem0 but missing from the DB (deleted / not yet synced), search_with_rerank shall construct a synthetic FactRecord(id=None, fact_text=text, kind='durable', confidence_score=0.5, fingerprint=fp, status='pending') so the caller still gets a hit (graceful degradation, not silent drop)."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where Mem0 search returns an empty list, search_with_rerank shall short-circuit and return [] without attempting the DB join (cost-saving); where services.long_term_memory is unavailable or raises (ImportError / runtime), mirror_fact_to_mem0 shall logger.warning and return None and search_with_rerank shall treat mem0_texts as [] so the caller still receives a deterministic empty result (no exception propagation to HTTP)."
         },
         {
           "type": "UNWANTED",
-          "text": "If Mem0 and Memory API diverge (e.g., a fact exists in one but not the other), the bridge shall surface the discrepancy in audit_logs and shall not silently pick one."
+          "text": "If detect_divergence(user_id, sample=100) finds memory_facts rows with status='synced' AND deleted_at IS NULL AND mem0_id IS NULL (sample size SELECT ORDER BY id DESC LIMIT sample), the function shall emit a 'memory_divergence_detected' audit via services.memory_service.emit_event with detail={'missing_in_mem0': len(missing), 'sample_ids': missing[:20]} and return a dict {checked, missing_in_mem0, missing_ids: missing[:50]} so the divergence cannot be silently hidden; the module shall not import langgraph / langchain / litellm (ADR-010) and shall not contain hardcoded Supabase / Anthropic credentials."
         }
       ]
     },
