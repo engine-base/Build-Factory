@@ -3052,7 +3052,7 @@
     },
     {
       "id": "T-IT-S2",
-      "title": "Sprint 2 統合テスト",
+      "title": "Sprint 2 統合テスト (M-27 chain x M-30 chain x 4 層 observability x Layer 2b cross-feature)",
       "sprint": 2,
       "feature": "META",
       "layer": "TST",
@@ -3062,23 +3062,33 @@
       "deps": [
         "all_sprint_2"
       ],
+      "existing_files": [
+        "backend/services/intent_classifier.py",
+        "backend/services/handoff_service.py",
+        "backend/services/mid_term_layer.py",
+        "backend/services/memory_pipeline.py",
+        "backend/logging_config.py",
+        "backend/sentry_config.py",
+        "backend/uptime_heartbeat.py"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-IT-S2 (Sprint 2 統合テスト) as specified by feature META."
+          "text": "The system shall provide `backend/tests/test_t_it_s2_sprint2_integration.py` verifying cross-feature integration of Sprint 2 deliverables: (a) M-27 chain (intent_classifier → handoff_service), (b) M-30 chain (mid_term_layer ↔ memory_pipeline), (c) 4-layer observability coexistence (logging_config + sentry_config + uptime_heartbeat without conflicts), (d) Layer 2b LiteLLM config integrity. Existing unit tests SHALL NOT be modified (REUSE)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-IT-S2 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When the integration test runs, it shall execute scenarios that span 2+ modules per assertion, simulating real call sequences (classify → handoff / record_summary → latest_summary / configure_structlog while sentry init in same process). Each scenario shall complete within 2 seconds."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-IT-S2 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the integration test runs, the system shall NOT make real network calls (all external IO must be mocked via monkeypatch), shall NOT write to the audit_logs DB (capture via fake_emit), and shall preserve module state via pytest fixtures (reset_for_tests / clear_context after each test)."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-IT-S2, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If any Sprint 2 module's public API breaks (function signature change / removed symbol), the integration test shall fail with a clear error message identifying the broken contract. The test SHALL NOT depend on external services (LiteLLM container / Sentry SaaS / Better Stack) and SHALL NOT contain hardcoded secrets."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/account/S-006-account-dashboard.html"
