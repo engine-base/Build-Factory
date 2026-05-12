@@ -4184,7 +4184,7 @@
     },
     {
       "id": "T-007-04",
-      "title": "仮想スクロール (react-window)",
+      "title": "仮想スクロール VirtualList (react-window FixedSizeList wrapper / generic + null-safe)",
       "sprint": 4,
       "feature": "F-007",
       "layer": "FE",
@@ -4194,23 +4194,27 @@
       "deps": [
         "T-007-02"
       ],
+      "existing_files": [
+        "frontend/package.json"
+      ],
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-7",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-007-04 (仮想スクロール (react-window)) as specified by feature F-007."
+          "text": "The system shall provide `frontend/src/components/common/VirtualList.tsx` exposing a generic `<VirtualList<T> items renderItem itemSize? height? overscanCount? />` component using react-window FixedSizeList. Pure validation helpers (`normalizeItemSize / normalizeHeight / normalizeOverscan`) and constants (`DEFAULT_ITEM_SIZE=48 / DEFAULT_HEIGHT=480 / DEFAULT_OVERSCAN_COUNT=5 / MAX_REASONABLE_ITEM_SIZE=1000`) are exported via `__testing__`. New dependency: `react-window` ^1.8.10 (MIT) + `@types/react-window` (devDep)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the user interacts with the UI for T-007-04, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+          "text": "When `items` props changes, the component shall recompute via React.useMemo. When the user scrolls, `onScroll(scrollOffset)` callback fires. Each row is rendered via `renderItem(item, index)` callback inside a `[data-testid='vlist-row-{index}']` wrapper."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-007-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the list is rendered, only items in the viewport (+ overscanCount buffer) are mounted (react-window built-in virtualization). All borders shall use eb-* palette (border-eb-200), text colors text-eb-500, and icons Lucide (Inbox for empty state). The component is controlled (items owned by caller)."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-007-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If `items` is null / undefined / non-array, the component shall render the empty fallback (`data-testid='vlist-empty'`) without crashing. If `itemSize / height` is <= 0 / NaN / Infinity / non-number, the normalizer shall fall back to DEFAULT values silently. If `itemSize` exceeds MAX_REASONABLE_ITEM_SIZE (1000px), it shall be clamped to DEFAULT_ITEM_SIZE. Hardcoded color literals outside eb-* palette SHALL NOT appear in source."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/workspace/S-012-workspace-dashboard.html"
