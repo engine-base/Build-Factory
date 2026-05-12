@@ -6801,7 +6801,7 @@
     },
     {
       "id": "T-AI-01",
-      "title": "Anthropic Memory API 統合 (永続記憶の主たる保存先)",
+      "title": "Anthropic Memory API 統合 (memory_facts.write_fact + extract_facts_from_session + recall_facts + request_deletion + process_retry_queue + process_pending_deletions + _memory_api_write_with_retry + FactRecord + fingerprint SHA-256)",
       "sprint": "S2",
       "feature": "F-AI",
       "layer": "L2",
@@ -6816,8 +6816,11 @@
         "T-020-02"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-32",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "mock_link": "../../mocks/2026-05-09_v1/index.html",
-      "existing_files": [],
+      "existing_files": [
+        "backend/services/memory_facts.py"
+      ],
       "entities": [
         "memory_facts",
         "users",
@@ -6826,27 +6829,23 @@
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall integrate Anthropic Memory API as the primary store for cross-session durable facts (decisions, preferences, context)."
+          "text": "backend/services/memory_facts.py shall expose write_fact(*, user_id, fact_text, source_session_id=None, workspace_id=None, confidence_score=0.7, kind='durable') / extract_facts_from_session(session_id, user_id, *, workspace_id=None, confidence_score=0.7) / recall_facts(user_id, query, *, top_k=5) / request_deletion(fact_id, user_id) / process_retry_queue(*, max_items=50) / process_pending_deletions(*, dry_run=False) / FactRecord dataclass (14 fields including memory_api_id / mem0_id / fingerprint / status / retry_count / last_error / synced_at / deleted_at) / fingerprint(text) SHA-256 head 16-hex helper (ADR-010: Anthropic-native, no langgraph / langchain / litellm in this module)."
         },
         {
-          "type": "EVENT",
-          "text": "When a session ends with status=completed, the system shall extract durable facts (D-XXX style) and write them to Memory API scoped by user/workspace."
+          "type": "EVENT-DRIVEN",
+          "text": "When extract_facts_from_session is called, the system shall read chat_messages WHERE thread_id = ?, scan each row.content with _FACT_RE = `^[ \\t]*(?:#+|\\*+|-)?[ \\t]*\\*{0,2}([DPC]-\\d{2,4})\\*{0,2}[ \\t]*[:：．。\\-—]?[ \\t]*(.+?)[ \\t]*$` (MULTILINE) capturing D-XXX / P-XXX / C-XXX prefixes, and pass each (prefix, body) tuple to write_fact(); when write_fact is called the system shall (a) INSERT OR IGNORE into memory_facts with status='pending' using fingerprint(fact_text), (b) wrap _memory_api_write_with_retry via services.anthropic_retry.with_retry(idempotency_key=fp, label='memory_api.append'), (c) on success call _mark_synced + set memory_api_id + synced_at, (d) on RetryExhaustedError call _mark_failed + emit 'memory_api_write_failed' audit, (e) on non-retryable Exception emit 'memory_api_write_error' audit."
         },
         {
-          "type": "EVENT",
-          "text": "When a new session starts, the system shall recall relevant Memory API entries and inject them into the system prompt within 200ms."
-        },
-        {
-          "type": "STATE",
-          "text": "While storing facts, the system shall tag each entry with source_session_id and confidence_score (0.0–1.0)."
+          "type": "STATE-DRIVEN",
+          "text": "While storing a fact, write_fact shall persist source_session_id + confidence_score (float 0.0–1.0) on every row (DB column NOT NULL after migration); while ANTHROPIC_API_KEY env is unset, _memory_api_write_with_retry shall raise RuntimeError('ANTHROPIC_API_KEY not set') so callers know to skip the network call gracefully; while the SDK lacks client.beta.memory_stores (older anthropic versions), the call shall raise RuntimeError('anthropic Memory API not available in this SDK') instead of returning silently; while memory_stores exposes neither append nor create, the call shall raise RuntimeError('memory_stores has neither append nor create')."
         },
         {
           "type": "OPTIONAL",
-          "text": "Where the user requests memory deletion, the system shall remove the fact from Memory API + Mem0 + Obsidian within 24 hours and emit an audit event."
+          "text": "Where the user invokes request_deletion(fact_id, user_id), memory_facts.status shall be UPDATEd to 'deleted' + deleted_at = datetime('now','localtime') and emit 'memory_fact_deletion_requested' audit; where process_pending_deletions(dry_run=False) runs (cron hourly), _physical_delete_fact shall call client.beta.memory_stores.delete(store_id=f'bf_user_{user_id}', id=memory_api_id) best-effort + services.long_term_memory.delete_user_memories(user_id, ids=[mem0_id]) best-effort + DELETE FROM memory_facts WHERE id=?, emitting 'memory_facts_deleted_batch' audit with the deleted ids."
         },
         {
           "type": "UNWANTED",
-          "text": "If Memory API write fails, the system shall queue the fact for retry and shall not lose the data."
+          "text": "If Memory API write fails with RetryExhaustedError, the system shall keep the DB row (status='failed', retry_count=retry_count+1, last_error=str(e.last_exc)[:300]) so process_retry_queue(max_items=50) can resend it (LIMIT max_items, retry_count < 5, ORDER BY created_at ASC) — no data loss; if fact_text is empty or whitespace-only, write_fact shall return None without touching the DB; if the DB INSERT raises, write_fact shall logger.warning + return None; the module shall not import langgraph / langchain / litellm (ADR-010) and shall not contain hardcoded Supabase / Anthropic credentials."
         }
       ]
     },
