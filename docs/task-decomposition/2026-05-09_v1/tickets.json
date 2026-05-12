@@ -6213,7 +6213,7 @@
     },
     {
       "id": "T-018-03",
-      "title": "nightly-backup workflow (DB + Storage + 検証)",
+      "title": "nightly-backup workflow (DB + Storage + 検証 / GitHub Actions cron 17:00 UTC = JST 02:00 / pg_dump + storage list / sha256 verify / 7-day retention)",
       "sprint": 7,
       "feature": "F-018",
       "layer": "OPS",
@@ -6223,23 +6223,31 @@
       "deps": [
         "T-S0-04"
       ],
+      "existing_files": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/deploy-staging.yml",
+        ".github/workflows/license-check.yml",
+        "supabase/migrations/",
+        "supabase/config.toml"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-18",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-018-03 (nightly-backup workflow (DB + Storage + 検証)) as specified by feature F-018."
+          "text": ".github/workflows/nightly-backup.yml shall declare on.schedule.cron='0 17 * * *' (= UTC 17:00 / JST 02:00 nightly), on.workflow_dispatch (manual trigger with reason input), and 3 jobs: backup-database (pg_dump → gzip → sha256), backup-storage (supabase storage list → tarball → sha256), verify-backup (re-compute sha256 + assert size > 0); concurrency.group='nightly-backup' with cancel-in-progress=false (concurrent run 防止 + 履歴保持) and permissions defaulting to read-only (contents: read) — write は不要."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-018-03 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When the nightly cron fires (or workflow_dispatch is invoked), the workflow shall run backup-database then backup-storage in parallel (needs: []) and then verify-backup (needs: [backup-database, backup-storage]); each backup step shall produce an artifact named with date suffix (db-{YYYYMMDD}.sql.gz / storage-{YYYYMMDD}.tar.gz) uploaded via actions/upload-artifact@v4 with retention-days=7; verify-backup shall download both artifacts and assert sha256 hashes match the pre-computed values stored in step output (no silent corruption)."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-018-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the workflow is operational, secrets shall be referenced as ${{ secrets.SUPABASE_DB_URL }} / ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} / ${{ secrets.SUPABASE_STORAGE_URL }} (never hard-coded); the workflow shall NOT touch production data (read-only pg_dump + read-only storage list); the workflow file shall be pure YAML with no shell injection vulnerability (all user inputs / secrets shall be passed via env: section, NOT inlined into `run:` strings via string interpolation)."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-018-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If pg_dump exits non-zero or the resulting gzip file is empty (< 100 bytes), backup-database shall fail the workflow with explicit error message; if the sha256 verification in verify-backup mismatches, the workflow shall fail and (in a follow-up Sprint) post a Slack alert; the workflow shall NOT use actions versions newer than ubuntu-latest official images, and shall pin every action to a specific version (actions/checkout@v4 / actions/upload-artifact@v4 / actions/download-artifact@v4) — no @main / @master / floating refs."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
