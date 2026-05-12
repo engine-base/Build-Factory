@@ -102,6 +102,7 @@ from routers.reviewer_persona import router as reviewer_persona_router
 from routers.reviewer_turn_counter import router as reviewer_turn_counter_router
 from routers.integration_test_conductor import router as integration_test_conductor_router
 from routers.sandbox_landlock import router as sandbox_landlock_router
+from routers.cost_dashboard import router as cost_dashboard_router
 from routers.memory_pipeline import router as memory_pipeline_router
 from routers.handoff import router as handoff_router
 from routers.ears_classifier import router as ears_classifier_router
@@ -261,6 +262,7 @@ app.include_router(reviewer_persona_router)
 app.include_router(reviewer_turn_counter_router)
 app.include_router(integration_test_conductor_router)
 app.include_router(sandbox_landlock_router)
+app.include_router(cost_dashboard_router)
 app.include_router(memory_pipeline_router)
 app.include_router(handoff_router)
 app.include_router(ears_classifier_router)
