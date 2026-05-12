@@ -3181,7 +3181,7 @@
     },
     {
       "id": "T-015-01",
-      "title": "共通テンプレ (existing artifact_export 拡張)",
+      "title": "共通テンプレ registry (existing artifact_export REFACTOR / format × template validation)",
       "sprint": 3,
       "feature": "F-015",
       "layer": "FE",
@@ -3197,23 +3197,24 @@
         "backend/services/template_builder_service.py",
         "backend/services/template_render_service.py"
       ],
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-15",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-015-01 (共通テンプレ (existing artifact_export 拡張)) as specified by feature F-015."
+          "text": "The system shall provide `backend/services/shared_templates.py` with `list_templates / get_template_info / validate_format_template / render_with_template / get_default_template / is_format_supported_by_any`. The module defines TEMPLATE_REGISTRY (minimal/corporate/branded with display_name, description, supported_formats, tier, available) and VALID_FORMATS (excel/pptx/pdf/md/html). Existing `backend/services/artifact_export.py` SHALL NOT be modified (REUSE delegation)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the user interacts with the UI for T-015-01, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+          "text": "When `list_templates(only_available=True/False)` is called, the system shall return list[dict] within 100ms with name/display_name/description/supported_formats/tier/available. When `render_with_template(artifact, format, template_name)` is called, the system shall validate format×template compatibility then delegate to artifact_export.export_artifact, returning Path."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While refactoring for T-015-01 is in progress, the system shall maintain backwards compatibility with current API contracts and shall preserve coverage at >= baseline."
+          "text": "While the registry is in use, the module shall remain read-only (registry is module-level constant, no DB writes). Existing artifact_export.export_to_excel/pptx/pdf APIs continue to work unchanged. Only 'minimal' template is currently available=True; corporate/branded are placeholders for future implementation."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-015-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If `format` is not in VALID_FORMATS (excel/pptx/pdf/md/html), the system shall raise ValueError. If `template_name` is not in TEMPLATE_REGISTRY, the system shall raise ValueError. If format×template combination is unsupported (e.g., corporate doesn't support md), validate_format_template shall raise ValueError with a clear reason. If template is not available (future placeholder), the system shall raise ValueError mentioning the tier."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/spec/S-022-spec-viewer.html"
