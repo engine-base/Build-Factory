@@ -6114,7 +6114,7 @@
     },
     {
       "id": "T-017-03",
-      "title": "cost dashboard (8 タブ・Recharts)",
+      "title": "cost dashboard (8 タブ・Recharts / GET /api/observability/cost-summary?dimension=DIM / cost_logs REUSE / eb-500 palette / Lucide tabs)",
       "sprint": 7,
       "feature": "F-017",
       "layer": "FE",
@@ -6124,23 +6124,31 @@
       "deps": [
         "T-S0-05"
       ],
+      "existing_files": [
+        "backend/services/cost_service.py",
+        "backend/routers/observability.py",
+        "supabase/migrations/20260510000003_runner_session_tables.sql",
+        "frontend/src/components/dashboard/Charts.tsx",
+        "frontend/package.json"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-17",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-017-03 (cost dashboard (8 タブ・Recharts)) as specified by feature F-017."
+          "text": "backend/routers/cost_dashboard.py shall expose GET /api/observability/cost-summary?dimension=DIM&from=ISO&to=ISO returning {dimension, from, to, total_usd, total_input_tokens, total_output_tokens, total_cache_read_tokens, items:[{label,cost_usd,input_tokens,output_tokens,share}]} where DIM is one of 8 dimensions (VALID_DIMENSIONS = ('overview','provider','model','workspace','persona','skill','period_daily','session')); frontend/src/app/dashboard/costs/page.tsx shall render a 8-tab dashboard via @/components/dashboard/CostDashboard.tsx using Recharts (BarChart / LineChart / PieChart) with the ENGINE BASE eb-500 palette (CLAUDE.md §5.2); the existing backend/services/cost_service.py shall be REUSED without modification."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the user interacts with the UI for T-017-03, the system shall reflect the action in the corresponding backend state and refresh the view on success."
+          "text": "When the user clicks one of 8 tabs (Overview / Provider / Model / Workspace / Persona / Skill / Period / Session), the page shall call fetchCostSummary(dimension, range) which issues GET /api/observability/cost-summary; when from/to date inputs change, the request shall be re-issued with new query params; the backend SQL shall use a single SELECT against cost_logs GROUP BY the dimension column (no N+1 query) and shall complete within 2 seconds for ≤ 10k rows."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-017-03 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the dashboard is mounted, the URL search params shall reflect the active tab (?dim=DIM) and date range (?from=ISO&to=ISO) so deep links work; Recharts components shall apply eb-500 / eb-700 / amber-500 / rose-500 colors only (no hard-coded hex outside Tailwind palette); the component shall NOT call backend endpoints from inside the React render phase (only inside event handlers and useEffect); the file shall NOT import langgraph / langchain / litellm / reactflow (ADR-010 main path)."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-017-03, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If dimension is not in VALID_DIMENSIONS the backend shall return 400 {detail:{code:'cost_dashboard.invalid_dimension', message}} without scanning cost_logs; if from/to is not ISO-8601 the backend shall return 400 {detail:{code:'cost_dashboard.invalid_date_range', message}}; if cost_logs has no rows in the requested range the response shall return total_usd=0 with items=[] (graceful empty); the dashboard component shall render an empty-state ('データがありません') instead of crashing; concurrent fetch requests for the same dimension shall be deduplicated via AbortController."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/ops/S-040-cost-dashboard.html"
