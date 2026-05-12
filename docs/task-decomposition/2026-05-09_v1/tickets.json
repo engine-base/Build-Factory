@@ -1890,7 +1890,7 @@
     },
     {
       "id": "T-021-04",
-      "title": "permission matrix UI grid",
+      "title": "permission matrix UI grid (frontend/src/app/workspaces/[id]/members/page.tsx + workspace-api.fetchPermissionMatrix / updateMemberRole / addMember / removeMember + 6 ROLE_KEYS x SUMMARY_COLUMNS 7-column grid + Lucide ShieldCheck/Eye/Hammer/UserCog/Briefcase/Activity)",
       "sprint": 1,
       "feature": "F-021",
       "layer": "FE",
@@ -1901,31 +1901,33 @@
         "T-S0-06"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-21",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The /workspaces/{id}/members page shall display all members with their role rendered as a 6-option <select> bound to the 6 canonical roles."
-        },
-        {
-          "type": "UBIQUITOUS",
-          "text": "The page shall display a representative permission grid (>= 7 columns) sourced from GET /api/workspaces/permissions/matrix, one row per role."
+          "text": "frontend/src/app/workspaces/[id]/members/page.tsx shall render the workspace members list with each member's role bound to a 6-option <select> over ROLE_KEYS = ['owner', 'ws_admin', 'contributor', 'viewer', 'client', 'monitor'] and a representative SUMMARY_COLUMNS permission grid (>= 7 columns) sourced from workspace-api.fetchPermissionMatrix() (GET /api/workspaces/permissions/matrix); icons shall come from lucide-react (ShieldCheck / Eye / Hammer / UserCog / Briefcase / Activity / UserPlus / Trash2 / Loader2 / Mail) and the ENGINE BASE green (bg-eb-500) shall be used as the primary CTA color (no emoji per CLAUDE.md §5.1)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When a user changes a member's role via the select, the system shall send PATCH /api/workspaces/{id}/members/{user_id} with actor_user_id and re-fetch the member list on success."
+          "text": "When a user changes a member's role via the <select>, the system shall call workspace-api.updateMemberRole() (PATCH /api/workspaces/{id}/members/{user_id}) with actor_user_id and invalidate the React Query key ['ws-members', id] on success; when the add-member form is submitted, the system shall call workspace-api.addMember() (POST /api/workspaces/{id}/members) and invalidate the same query key; both mutations shall complete within 2 seconds (no blocking I/O outside the mutation handler)."
         },
         {
-          "type": "EVENT-DRIVEN",
-          "text": "When a user submits the add-member form, the system shall send POST /api/workspaces/{id}/members and append the new member to the list on success."
+          "type": "STATE-DRIVEN",
+          "text": "While membersQ.isLoading is true, the page shall render a Loader2 spinner row instead of an empty table; while membersQ.data is empty, the page shall render a localized empty-state message ('メンバーがいません') so users are not left with a blank grid; while roleMut.isPending matches a specific user_id, only that row's <select> shall be disabled (per-row isolation, no global lock)."
+        },
+        {
+          "type": "OPTIONAL",
+          "text": "Where the matrix cell value is the string 'configurable' or starts with 'limited_', the renderCell() helper shall render a small amber pill (uppercase, underscores replaced with spaces) instead of a check / cross so reviewers can see context-aware permissions; where matrix data has not yet loaded, the cell shall fall back to the slate-300 'x' character (safe-by-default false rendering, consistent with services/roles.py safe-by-default invariant)."
         },
         {
           "type": "UNWANTED",
-          "text": "If backend returns HTTP 409 with code in {self_strip_blocked, owner_protected}, the system shall display a user-friendly Japanese message instead of the raw error body."
+          "text": "If backend returns HTTP 409 with code in {self_strip_blocked, owner_protected, unknown permission}, formatBackendError() shall render a user-friendly Japanese message instead of the raw error body; the module shall not import langgraph / langchain / litellm (ADR-010), shall not use dangerouslySetInnerHTML (XSS), and shall not contain hardcoded Supabase / Anthropic credentials."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/workspace/S-014-workspace-members.html",
       "existing_files": [
-        "frontend/src/app/workspaces/[id]/members/page.tsx"
+        "frontend/src/app/workspaces/[id]/members/page.tsx",
+        "frontend/src/lib/workspace-api.ts"
       ],
       "entities": [
         "workspaces",
