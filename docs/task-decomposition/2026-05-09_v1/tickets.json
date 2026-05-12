@@ -407,7 +407,7 @@
     },
     {
       "id": "T-S0-04",
-      "title": "deploy-staging.yml",
+      "title": "deploy-staging.yml (Vercel + Oracle Cloud / Phase 1 ¥0 hosting / workflow_dispatch + tag trigger)",
       "sprint": 0,
       "feature": "META",
       "layer": "OPS",
@@ -417,23 +417,29 @@
       "deps": [
         "T-S0-02"
       ],
+      "existing_files": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/license-check.yml",
+        "docker-compose.yml"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-S0-04 (deploy-staging.yml) as specified by feature META."
+          "text": "The system shall provide .github/workflows/deploy-staging.yml that defines two jobs (deploy-frontend, deploy-backend) triggered on workflow_dispatch and push of tags matching staging-v*. The frontend job shall use vercel/vercel CLI to deploy frontend/ to Vercel; the backend job shall ssh into the Oracle Cloud Free Tier VM and docker compose pull/up the backend service from docker-compose.yml, then smoke-test GET /api/health."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-S0-04 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When workflow_dispatch is invoked or a staging-v* tag is pushed, the system shall complete both deploy jobs within 30 minutes, emit a GitHub Actions summary line containing the deployed git SHA + target environment ('staging') + post-deploy smoke result, and shall fail the workflow if the post-deploy GET /api/health does not return 200 within 60 seconds."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-S0-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While deploy-staging.yml is in use, the system shall reference secrets only via ${{ secrets.* }} (never hardcoded), shall target environment 'staging' (no production branch), and shall NOT modify .github/workflows/ci.yml or license-check.yml (independent additive workflow). The pytest module test_t_s0_04_deploy_staging.py shall mechanically assert these invariants."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-S0-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If deploy-staging.yml contains hardcoded secrets (sk-ant-*, AIza*, JWT-pattern eyJ*), references a production branch (main without protection), targets pushes other than tag pattern staging-v* (no auto-deploy on every main push), or skips the post-deploy smoke step, the pytest module shall fail with a specific assertion message identifying the violation (silent skip 禁止), so CI shall mechanically reject the regression."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
