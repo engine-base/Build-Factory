@@ -310,3 +310,95 @@ def test_compose_uses_read_only_migration_mount() -> None:
     """migration mount は :ro で書き込み禁止."""
     text = COMPOSE.read_text(encoding="utf-8")
     assert "/docker-entrypoint-initdb.d:ro" in text
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# tickets.json AC 具体化 (spec rigor)
+# ──────────────────────────────────────────────────────────────────────────
+
+
+def test_tickets_t_s0_01_ac_concretized() -> None:
+    import json
+    path = ROOT / "docs" / "task-decomposition" / "2026-05-09_v1" / "tickets.json"
+    d = json.load(open(path))
+    t = next((x for x in d["tickets"] if x["id"] == "T-S0-01"), None)
+    assert t is not None
+    generic = [
+        "as specified by feature META",
+        "When the implementation step for T-S0-01 is triggered",
+        "While the new feature for T-S0-01 is enabled",
+        "If invalid input or unauthorized actor is detected during T-S0-01",
+    ]
+    for ac in t["acceptance_criteria"]:
+        for phrase in generic:
+            assert phrase not in ac["text"], (
+                f"T-S0-01 still generic: {phrase!r}"
+            )
+    full = " ".join(ac["text"] for ac in t["acceptance_criteria"])
+    assert "docker-compose.yml" in full
+    assert "postgres" in full and "redis" in full and "litellm" in full
+    assert "depends_on" in full and "healthcheck" in full
+
+
+def test_tickets_t_s0_01_has_adr_link_and_files() -> None:
+    import json
+    path = ROOT / "docs" / "task-decomposition" / "2026-05-09_v1" / "tickets.json"
+    d = json.load(open(path))
+    t = next((x for x in d["tickets"] if x["id"] == "T-S0-01"), None)
+    assert t.get("adr_link") is not None
+    files = t.get("existing_files", [])
+    assert "TBD" not in str(files)
+    assert "docker-compose.yml" in files
+    assert "backend/Dockerfile" in files
+    assert "frontend/Dockerfile" in files
+
+
+def test_compose_litellm_is_opt_in_profile() -> None:
+    """T-S0-01 AC-3 / ADR-010: litellm は profile opt-in (常時起動しない)."""
+    text = COMPOSE.read_text(encoding="utf-8")
+    # litellm block 内に profiles: + - litellm
+    m = re.search(r"\n  litellm:\s*\n((?:    .+\n)+)", text)
+    assert m, "litellm service block not found"
+    block = m.group(1)
+    assert "profiles:" in block
+    assert "- litellm" in block
+
+
+def test_compose_litellm_uses_health_liveliness() -> None:
+    """T-S0-01 AC-2: litellm healthcheck = /health/liveliness."""
+    text = COMPOSE.read_text(encoding="utf-8")
+    assert "/health/liveliness" in text
+
+
+def test_compose_no_latest_image_tag() -> None:
+    """T-S0-01 AC-4: :latest tag は禁止 (pinned tag のみ)."""
+    text = COMPOSE.read_text(encoding="utf-8")
+    latest_hits = re.findall(r"image:\s*\S+:latest\b", text)
+    assert not latest_hits, f":latest image tag detected: {latest_hits}"
+
+
+def test_compose_secrets_are_env_interpolation_only() -> None:
+    """T-S0-01 AC-3: env block の secret keys は ${VAR:-...} 経由のみ.
+
+    matching scope: 行頭 indent (6 spaces 以上) + KEY: で env block の declaration
+    のみ拾う. 接続文字列 (DATABASE_URL: postgresql://...PASSWORD...) 内の
+    substring は対象外.
+    """
+    text = COMPOSE.read_text(encoding="utf-8")
+    for key in (
+        "ANTHROPIC_API_KEY",
+        "OPENAI_API_KEY",
+        "GEMINI_API_KEY",
+        "SUPABASE_SERVICE_KEY",
+        "POSTGRES_PASSWORD",
+        "LITELLM_MASTER_KEY",
+    ):
+        # ^      KEY: value (env block declaration)
+        for m in re.finditer(
+            rf"^      {key}:\s*(\S+)", text, re.MULTILINE,
+        ):
+            val = m.group(1).strip()
+            assert val.startswith("$") or val == "", (
+                f"{key} env declaration must be ${{VAR}} interpolation, "
+                f"got {val!r}"
+            )

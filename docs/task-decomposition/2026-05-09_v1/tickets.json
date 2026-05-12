@@ -303,7 +303,7 @@
     },
     {
       "id": "T-S0-01",
-      "title": "docker-compose.yml 全サービス",
+      "title": "docker-compose.yml 全サービス (postgres + redis + backend + litellm[profile] + frontend / healthcheck + depends_on)",
       "sprint": 0,
       "feature": "META",
       "layer": "OPS",
@@ -311,23 +311,31 @@
       "human_days": 0.5,
       "claude_code_hours": 2,
       "deps": [],
+      "existing_files": [
+        "docker-compose.yml",
+        "backend/Dockerfile",
+        "frontend/Dockerfile",
+        "monitoring/litellm-config.yaml",
+        "supabase/migrations"
+      ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-1",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-S0-01 (docker-compose.yml 全サービス) as specified by feature META."
+          "text": "The system shall provide docker-compose.yml at the repo root with services postgres (supabase/postgres image; pgvector/pg_trgm/pgsodium), redis (redis:7.4-alpine), backend (FastAPI on port 8001 from backend/Dockerfile), frontend (Next.js on port 3000 from frontend/Dockerfile), and litellm under the 'litellm' profile (Layer 2b per ADR-010), connected via a single bridge network bf-net with named volumes postgres_data / redis_data / backend_data."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the implementation step for T-S0-01 is triggered, the system shall record an audit entry capturing the action and timestamp."
+          "text": "When `docker compose up -d` is invoked, the system shall start services in dependency order (postgres + redis → backend → frontend) using depends_on with service_healthy condition, and each of postgres/redis/backend/litellm shall declare a healthcheck (pg_isready / redis-cli ping / GET /api/health / GET /health/liveliness) that becomes healthy within 30s start_period."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-S0-01 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While the docker compose project is running, the system shall expose configuration only via ${VAR:-default} interpolation from .env (no hardcoded secrets in docker-compose.yml), shall mount ./supabase/migrations into /docker-entrypoint-initdb.d for RLS bootstrap, and shall keep the litellm service opt-in via the 'litellm' profile so the main runner path (anthropic-python; ADR-010) is not coupled to LiteLLM at startup."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-S0-01, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If docker-compose.yml hardcodes any secret (sk-ant-* / AIza* / JWT-pattern eyJ*), drops a service from the list, removes a healthcheck, removes the litellm profile (so litellm always starts), or references a deprecated image tag (postgres:latest / redis:latest), the pytest module test_t_s0_01_docker_compose.py shall fail with a specific assertion identifying the regression."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/index.html"
