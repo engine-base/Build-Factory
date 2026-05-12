@@ -954,7 +954,7 @@
     },
     {
       "id": "T-001-02",
-      "title": "認証 6 テーブル DDL + RLS (existing initial_schema.sql 拡張)",
+      "title": "認証 6 テーブル DDL + RLS (supabase/migrations/20260510000000_auth_tables.sql / users + auth_sessions + user_2fa_secrets + user_2fa_recovery_codes + oauth_connections + auth_audit_log / RLS auth.uid() owner)",
       "sprint": "S0",
       "feature": "F-001",
       "layer": "DB",
@@ -966,10 +966,13 @@
       ],
       "critical": true,
       "existing_files": [
+        "supabase/migrations/20260510000000_auth_tables.sql",
         "supabase/migrations/20260501220000_initial_schema.sql",
-        "supabase/migrations/20260501220300_rls_skeleton.sql"
+        "supabase/migrations/20260501220300_rls_skeleton.sql",
+        "supabase/migrations/20260510000002_rls_full_enforcement.sql"
       ],
       "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-2",
+      "adr_link": "../../decisions/ADR-010-ai-stack-anthropic-native.md",
       "mock_link": "../../mocks/2026-05-09_v1/auth/S-001-login.html",
       "entities": [
         "users",
@@ -982,23 +985,23 @@
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The migration shall create 6 auth tables (users, auth_sessions, user_2fa_secrets, user_2fa_recovery_codes, oauth_connections, auth_audit_log) with explicit FK constraints to auth.users and TIMESTAMPTZ DEFAULT NOW() for created_at columns."
+          "text": "supabase/migrations/20260510000000_auth_tables.sql shall declare exactly 6 auth tables via CREATE TABLE IF NOT EXISTS (users / auth_sessions / user_2fa_secrets / user_2fa_recovery_codes / oauth_connections / auth_audit_log) with explicit FK constraints referencing auth.users(id) and TIMESTAMPTZ DEFAULT NOW() for created_at columns; the file shall be idempotent (re-application produces no error)."
         },
         {
-          "type": "EVENT",
-          "text": "When the migration is applied a second time (CREATE TABLE IF NOT EXISTS), the system shall not error out and shall be idempotent."
+          "type": "EVENT-DRIVEN",
+          "text": "When the migration is applied a second time, every CREATE statement shall use IF NOT EXISTS (tables) or DROP POLICY IF EXISTS + CREATE POLICY (RLS policies) so the migration is fully idempotent; no CREATE TABLE without IF NOT EXISTS shall appear for any of the 6 auth tables."
         },
         {
-          "type": "STATE",
-          "text": "While RLS is enabled on auth_sessions / user_2fa_secrets / user_2fa_recovery_codes / oauth_connections, only the row's owner (auth.uid() = user_id) and service_role shall read or write rows."
+          "type": "STATE-DRIVEN",
+          "text": "While RLS is enabled on auth_sessions / user_2fa_secrets / user_2fa_recovery_codes / oauth_connections, only the row's owner (auth.uid() = user_id) and service_role shall read or write rows; the migration shall declare ENABLE ROW LEVEL SECURITY for each of those 4 tables and shall NOT grant blanket FOR ALL TO public access (public access禁止 invariant)."
         },
         {
           "type": "OPTIONAL",
-          "text": "Where 2FA is enabled (user_2fa_secrets row exists with enabled=true), the auth_audit_log shall record every TOTP challenge with success=true|false and user_id."
+          "text": "Where 2FA is enabled (user_2fa_secrets.enabled=true), the auth_audit_log shall record every TOTP challenge with success column (boolean) and user_id FK; the user_2fa_secrets table shall have an `enabled` BOOLEAN column with sensible default (DEFAULT false) so opt-in is explicit."
         },
         {
           "type": "UNWANTED",
-          "text": "If a duplicate (user_id, provider) is inserted into oauth_connections, the UNIQUE constraint shall reject it; if a 2FA secret is stored without encryption (plaintext), the schema shall not allow it (encrypted_secret column NOT NULL)."
+          "text": "If a duplicate (user_id, provider) is inserted into oauth_connections, a UNIQUE constraint (user_id, provider) shall reject it at the DB level; if a 2FA secret is stored without encryption, the schema shall not allow it (encrypted_secret TEXT NOT NULL); the migration shall NOT contain any hardcoded JWT (eyJ...) / sb_publishable_* / sb_secret_* literal."
         }
       ],
       "output_file": "supabase/migrations/20260510000000_auth_tables.sql"
