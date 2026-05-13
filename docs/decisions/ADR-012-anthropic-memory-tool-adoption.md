@@ -59,6 +59,26 @@ Build-Factory ではこれまで `services/context_builder.py` (Mem0 + Obsidian 
 - Build-Factory 固有要件 (audit_logs テーブル / RLS / cost tracking / 構造化 summary 9-section) は wrapper 側に残す.
 - ADR-010 自前実装必須 8 項目 (T-AI-01〜08) の T-AI-04 (Constitution 注入) は **Memory Tool で `/memories/constitution/` 配下に注入する形** で再構成する (新規実装は不要 / Memory Tool の標準動作で達成).
 
+### Decision 5: マルチプロバイダ fallback (Gemini / GPT-4o) の provider-adapter
+
+ADR-010 + T-AI-08 (Anthropic 障害時 LiteLLM フォールバック) と整合させるため, **Memory Tool / Context Editing / Subagent Memory は Anthropic 障害時に degrade 動作する provider-adapter** を用意する.
+
+| 機能 | Anthropic 経路 | Gemini / GPT-4o fallback (T-AI-08) |
+|---|---|---|
+| Memory Tool (file CRUD) | `memory_20250818` server tool | `/api/anthropic-memory/*` HTTP endpoint を **provider-agnostic function calling tool** として再定義. GPT-4o / Gemini からは function calling 経由で同 HTTP API を呼ぶ. filesystem 実装が client-side なので Build-Factory 側 Obsidian Vault は共有可能. |
+| Context Editing (clear/compact) | `clear_tool_uses_20250919` + `compact_20260112` | GPT-4o: `truncation_strategy=auto` / Gemini: `system_instruction` + 自前 summarizer (既存 conversation_summarizer.generate_summary 経路 = G9 backwards-compat ハッチを活用). |
+| Subagent Memory | `/memories/subagent/<persona>/...` (Anthropic SDK) | provider 非依存 (filesystem 永続化 + HTTP API 経路). GPT-4o / Gemini も同じ Vault に書ける. |
+
+**実装範囲 (T-AI-MEM-04 で別途タスク化)**:
+- backend/services/provider_adapter_memory.py : function calling spec → MemoryToolHandler.dispatch() の adapter.
+- OpenAI tools (`type: "function"`) / Gemini tools (`function_declarations`) の両 spec を export する factory.
+- LiteLLM 経由で fallback された時に自動で adapter を差し替える経路 (既存 `routers/provider_adapter.py` 拡張).
+
+**degradation の正確な挙動**:
+- `clear_thinking_20251015` (extended thinking) は GPT/Gemini に該当機能なし → degradation 時は skip (warning log).
+- `compact_20260112` (server-side summarization) は GPT/Gemini で client-side 自前 summarizer に切替 (T-AI-08 + 既存 conversation_summarizer).
+- `memory_20250818` の "automatic memory check on session start" prompting は **provider 非依存の system prompt 注入** で代替.
+
 ---
 
 ## 結果 (Consequences)
@@ -72,7 +92,8 @@ Build-Factory ではこれまで `services/context_builder.py` (Mem0 + Obsidian 
 
 ### Negative
 
-- **Vendor lock-in 増**: Anthropic 公式機能依存度が上がる. Phase 2 の他プロバイダ fallback (LiteLLM 経由) で Memory Tool 相当は別途実装必要.
+- **Vendor lock-in 増 (限定的)**: Memory Tool / Context Editing / Compaction の **server tool spec は Anthropic 専用** (OpenAI / Gemini に同等機能なし). Decision 5 の provider-adapter で degradation を保証するが, server-side compaction は失われ自前 summarizer に切替が必要.
+- **Provider parity gap**: GPT-4o / Gemini fallback 時は context window 管理を自前で行う必要があり, Anthropic 経路と比べてコスト効率 / 精度が劣化する可能性.
 - **Beta header 管理**: `context-management-2025-06-27` / `compact-2026-01-12` の GA 移行に追随する運用負荷.
 - **Memory file の sensitive data 漏洩リスク**: Vault に PII / 鍵が書かれないよう memory handler 側で validation 必須.
 

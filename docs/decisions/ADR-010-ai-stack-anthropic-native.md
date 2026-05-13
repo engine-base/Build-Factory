@@ -1,8 +1,14 @@
 # ADR-010: AI スタック再設計 (5 層 → 3 層 / Anthropic 純正中心 + マルチプロバイダ柔軟性)
 
-- **Status**: Accepted (supersedes ADR-002)
+- **Status**: Accepted (supersedes ADR-002) — **Amended by ADR-012 (2026-05-13)**
 - **Date**: 2026-05-10
 - **Deciders**: 高本まさと
+
+> **ADR-012 amendment (2026-05-13)**: 本 ADR の「Anthropic 純正中心」方針を維持しつつ,
+> **Anthropic 公式 Memory Tool / Context Editing / Subagent Memory を一級市民として採用**.
+> 自前実装必須 8 項目 (T-AI-01〜08) のうち T-AI-04 (Constitution 注入) は Memory Tool に
+> delegate. T-AI-08 (Anthropic 障害時 fallback) には provider-adapter (Decision 5) を追加.
+> 詳細: docs/decisions/ADR-012-anthropic-memory-tool-adoption.md
 
 ## Context
 

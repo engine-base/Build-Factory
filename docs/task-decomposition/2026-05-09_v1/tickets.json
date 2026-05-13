@@ -10,7 +10,9 @@
       "refactor": "🟡",
       "new": "🔴",
       "archive": "⚫"
-    }
+    },
+    "total_tickets": 183,
+    "last_updated": "2026-05-13"
   },
   "summary": {
     "total_tickets": 113,
@@ -7177,6 +7179,156 @@
         {
           "type": "UNWANTED",
           "text": "If both Anthropic AND OpenAI fail simultaneously, the system shall pause new sessions, allow only emergency read-only access, and alert masato + Slack — it shall not silently route to an untested provider."
+        }
+      ]
+    },
+    {
+      "id": "T-AI-MEM-01",
+      "title": "Anthropic Memory Tool client-side handler (memory_20250818 6 commands; BetaAbstractMemoryTool 相当の file-backed 実装)",
+      "label": "NEW",
+      "sprint": "S2",
+      "deps": [
+        "T-S0-08"
+      ],
+      "feature": "F-AI",
+      "layer": "BE",
+      "claude_code_hours": 2,
+      "human_days": 0.3,
+      "existing_files": [
+        "backend/services/anthropic_memory_tool.py",
+        "backend/routers/anthropic_memory.py"
+      ],
+      "spec_link": "../../decisions/ADR-012-anthropic-memory-tool-adoption.md",
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
+      "adr_link": "../../decisions/ADR-012-anthropic-memory-tool-adoption.md",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall implement the Anthropic Memory Tool (memory_20250818) client-side handler with all 6 official commands (view / create / str_replace / insert / delete / rename) backed by the filesystem under OBSIDIAN_VAULT_DIR / MEMORY_TOOL_DIR."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the SDK or REST endpoint invokes a memory command, the system shall return a structured response within 2 seconds and shall emit the official return-string for that command (e.g. 'File created successfully at: {path}')."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the handler is active, the system shall confine all path operations to the `/memories` virtual root and shall reject any path resolving outside the physical root (path traversal blocked via pathlib.Path.resolve + relative_to)."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If application code re-implements the 6 commands outside services/anthropic_memory_tool.py, the lint script shall fail. If invalid input (unknown command / duplicate create / nonexistent path) is detected, the system shall reject with 4xx {detail:{code,message}} and shall NOT mutate persistent state."
+        }
+      ]
+    },
+    {
+      "id": "T-AI-MEM-02",
+      "title": "Anthropic Context Editing config (clear_tool_uses_20250919 + compact_20260112 + clear_thinking_20251015; default factory + validator)",
+      "label": "NEW",
+      "sprint": "S2",
+      "deps": [
+        "T-S0-08",
+        "T-AI-MEM-01"
+      ],
+      "feature": "F-AI",
+      "layer": "BE",
+      "claude_code_hours": 1,
+      "human_days": 0.2,
+      "existing_files": [
+        "backend/services/anthropic_context_editing.py"
+      ],
+      "spec_link": "../../decisions/ADR-012-anthropic-memory-tool-adoption.md",
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
+      "adr_link": "../../decisions/ADR-012-anthropic-memory-tool-adoption.md",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall expose default_context_management_config() producing a dict compatible with anthropic-python client.beta.messages.create(..., context_management=...), with Memory tool protected via exclude_tools=['memory']."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the config is requested, the system shall return within 2 seconds and shall include the recommended beta headers ('context-management-2025-06-27' + 'compact-2026-01-12')."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the config is active, the compact_20260112 trigger shall be >= 50,000 input_tokens (official constraint) and clear_thinking_20251015 (when enabled) shall be placed first in edits[]."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If application code re-implements server-side compaction or tool result clearing, the lint script shall fail. If invalid config (compact trigger < 50K, misordered clear_thinking, unknown strategy type) is detected, the system shall raise ContextEditingError and shall NOT mutate persistent state."
+        }
+      ]
+    },
+    {
+      "id": "T-AI-MEM-03",
+      "title": "Subagent Memory store (handoff 引継ぎ知識保管; /memories/subagent/<persona>/handoff/<ts>-from-<source>.md; user / workspace 2 scope)",
+      "label": "NEW",
+      "sprint": "S2",
+      "deps": [
+        "T-AI-MEM-01",
+        "T-M27-03"
+      ],
+      "feature": "F-AI",
+      "layer": "BE",
+      "claude_code_hours": 2,
+      "human_days": 0.3,
+      "existing_files": [
+        "backend/services/subagent_memory.py"
+      ],
+      "spec_link": "../../decisions/ADR-012-anthropic-memory-tool-adoption.md",
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
+      "adr_link": "../../decisions/ADR-012-anthropic-memory-tool-adoption.md",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall provide SubagentMemoryStore with record_handoff / preload_for / list_persona_files / clear_persona, backed by anthropic_memory_tool.MemoryToolHandler, supporting both user and workspace_id scopes."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When record_handoff is invoked, the system shall persist the handoff snippet to /memories/subagent/<persona>/handoff/<ts>-from-<source>.md within 2 seconds and shall be retrievable via preload_for in newest-first order."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While both scopes (user-level and workspace_id-scoped) coexist, the system shall isolate persona memory by scope key and shall not leak memory across workspaces. existing handoff_service.py shall remain unchanged (no import cycle)."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If invalid persona key (non-alnum / empty / > 100 chars), invalid workspace_id (<= 0, non-int) or empty message is provided, the system shall reject with SubagentMemoryError mapped to 4xx {detail:{code,message}} and shall NOT mutate persistent state."
+        }
+      ]
+    },
+    {
+      "id": "T-AI-MEM-04",
+      "title": "Provider-adapter Memory Tool (Gemini / GPT-4o function calling spec → MemoryToolHandler.dispatch adapter; T-AI-08 fallback 経路)",
+      "label": "NEW",
+      "sprint": "S4",
+      "deps": [
+        "T-AI-MEM-01",
+        "T-AI-08"
+      ],
+      "feature": "F-AI",
+      "layer": "BE",
+      "claude_code_hours": 3,
+      "human_days": 0.5,
+      "existing_files": [],
+      "spec_link": "../../decisions/ADR-012-anthropic-memory-tool-adoption.md",
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
+      "adr_link": "../../decisions/ADR-012-anthropic-memory-tool-adoption.md",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall provide provider_adapter_memory module exposing OpenAI tools (type='function') and Gemini tools (function_declarations) specs for the 6 Memory Tool commands, all routed to MemoryToolHandler.dispatch via the same /api/anthropic-memory/* HTTP endpoints."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When LiteLLM falls back from Anthropic to GPT-4o / Gemini (T-AI-08), the system shall swap the tool spec automatically and shall remain functional within 2 seconds; the underlying Vault remains the same physical filesystem (read/write parity)."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While running on non-Anthropic providers, the system shall use client-side summarization (conversation_summarizer.generate_summary, G9 backwards-compat) instead of compact_20260112 and shall skip clear_thinking_20251015 (no equivalent feature). All Memory Tool file operations remain provider-agnostic via the HTTP API."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If the adapter is called with an unsupported provider name, the system shall reject with 4xx {detail:{code,message}}. If a provider-specific tool input violates the official command schema, the system shall reject before file I/O so that state mutate does not occur."
         }
       ]
     }
