@@ -292,7 +292,7 @@ check_domain_boundaries() {
 #    (provider_adapter / provider_adapter_memory 経由を強制).
 # ----------------------------------------------------------------
 check_no_self_provider_routing() {
-  echo "[9/11] provider 切替 routing 自前実装検知 (T-AI-MEM-04 / ADR-012 Decision 5)..."
+  echo "[9/12] provider 切替 routing 自前実装検知 (T-AI-MEM-04 / ADR-012 Decision 5)..."
   # 禁止語: provider 切替の自前 routing 関数 / private resolver / route hack
   local forbidden_re='\bdef[[:space:]]+(_resolve_provider_locally|_route_to_provider|_custom_provider_switch|_pick_provider_inline|_byok_then_anthropic)\b'
   local hits
@@ -318,7 +318,7 @@ check_no_self_provider_routing() {
 #     dedup / truncate / window eviction の自前実装を行わない.
 # ----------------------------------------------------------------
 check_no_self_tool_trim() {
-  echo "[10/11] tool result trim 自前実装検知 (T-M28-02 AC-4)..."
+  echo "[10/12] tool result trim 自前実装検知 (T-M28-02 AC-4)..."
   local forbidden_re='\b(trim_tool_result|_apply_size_cap|_apply_age_cap|_dedup_tool_results|truncate_tool_result|_compute_trimmed_payload|_run_trim_policy|_apply_window_eviction)\b'
   local hits
   hits=$(grep -rnE "$forbidden_re" \
@@ -340,7 +340,7 @@ check_no_self_tool_trim() {
 #     関連: ADR-009 / M-31 / T-BTSTRAP-02 (WorkspaceService.bootstrap で参照).
 # ----------------------------------------------------------------
 check_template_skeleton_complete() {
-  echo "[11/11] templates/project-bootstrap/ 必須スケルトン完整性検査 (T-BTSTRAP-01 AC-4)..."
+  echo "[11/12] templates/project-bootstrap/ 必須スケルトン完整性検査 (T-BTSTRAP-01 AC-4)..."
   local required=(
     "templates/project-bootstrap/CLAUDE.md.j2"
     "templates/project-bootstrap/docs/HANDOVER.md.j2"
@@ -368,6 +368,30 @@ check_template_skeleton_complete() {
   fi
 }
 
+# ----------------------------------------------------------------
+# 12. T-AI-04 AC-1/4: Constitution 自前 system prompt 組み立て禁止
+#     constitution_engine.inject_for_session() 以外で system prompt に
+#     "Section 4 red lines" 等の Constitution テキストを直接組み立てる経路は禁止.
+# ----------------------------------------------------------------
+check_no_self_constitution_inject() {
+  echo "[12/12] Constitution 自前 inject 検知 (T-AI-04 AC-1/4)..."
+  # 禁止語: constitution を自前で system prompt に組み込む関数 / 文字列
+  local forbidden_re='\bdef[[:space:]]+(_build_constitution_prompt|_inject_constitution_manually|_compose_red_lines_inline|_manual_constitution_inject)\b'
+  local hits
+  hits=$(grep -rnE "$forbidden_re" \
+    --include="*.py" \
+    --exclude="constitution_engine.py" \
+    backend/services backend/routers backend/ai_agents backend/integrations 2>/dev/null || true)
+  if [ -n "$hits" ]; then
+    echo -e "${RED}NG: Constitution 自前 inject の禁止語 (T-AI-04 AC-1/4 / ADR-012)${NC}"
+    echo "$hits"
+    echo "→ Constitution は services/constitution_engine.inject_for_session() 経由のみ"
+    EXIT_CODE=1
+  else
+    echo -e "${GREEN}OK: Constitution 自前 inject なし${NC}"
+  fi
+}
+
 case "$MODE" in
   --emoji)        check_emoji ;;
   --agpl)         check_agpl ;;
@@ -380,6 +404,7 @@ case "$MODE" in
   --no-self-provider-routing) check_no_self_provider_routing ;;
   --no-self-tool-trim) check_no_self_tool_trim ;;
   --template-skeleton) check_template_skeleton_complete ;;
+  --no-self-constitution) check_no_self_constitution_inject ;;
   all|"")
     check_emoji
     check_agpl
@@ -392,9 +417,10 @@ case "$MODE" in
     check_no_self_provider_routing
     check_no_self_tool_trim
     check_template_skeleton_complete
+    check_no_self_constitution_inject
     ;;
   *)
-    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|--no-self-provider-routing|--no-self-tool-trim|--template-skeleton|all]"
+    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|--no-self-provider-routing|--no-self-tool-trim|--template-skeleton|--no-self-constitution|all]"
     exit 2
     ;;
 esac
