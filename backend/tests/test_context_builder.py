@@ -430,14 +430,18 @@ def test_build_endpoint_with_d_ref_lookup(client, tmp_path, monkeypatch) -> None
 
 
 def test_build_endpoint_validation_rejects_empty_message(client) -> None:
+    """T-M28-01 G4: 全 4xx は {detail:{code,message}} 形式 (400)."""
     r = client.post("/api/context/build", json={
         "user_message": "", "session_id": 1, "user_id": "masato",
     })
-    assert r.status_code == 422
+    assert r.status_code == 400
+    assert r.json()["detail"]["code"] == "context.invalid"
 
 
 def test_build_endpoint_validation_rejects_too_large_top_k(client) -> None:
+    """T-M28-01 G4: 全 4xx は {detail:{code,message}} 形式 (400)."""
     r = client.post("/api/context/build", json={
         "user_message": "hi", "session_id": 1, "top_k": 99,
     })
-    assert r.status_code == 422
+    assert r.status_code == 400
+    assert r.json()["detail"]["code"] == "context.invalid"
