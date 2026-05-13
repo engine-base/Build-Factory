@@ -599,6 +599,90 @@ def test_g7_backend_invalid_output_falls_back_to_provided(stub_legacy_persist):
     assert res["summary"] == provided
 
 
+def test_ac4_backend_exception_emits_warning_log(stub_legacy_persist, caplog):
+    """AC-4 spec 文 "emit a warning log (silent failure 防止)" の検証.
+
+    backend が例外を投げた場合 fallback するだけでなく WARNING level の log を
+    必ず emit すること. 将来 logger.warning を pass に変えたら fail させる.
+    """
+    tid = _make_thread()
+
+    def boom(msgs):
+        raise RuntimeError("backend kaboom for caplog assert")
+
+    mtl.register_summarizer_backend(boom)
+    provided = _full_summary("provided")
+    with caplog.at_level("WARNING", logger="services.mid_term_layer"):
+        res = asyncio.run(mtl.record_summary(tid, provided))
+    assert res["backend_used"] is False
+    assert res["summary"] == provided
+    warns = [
+        r for r in caplog.records
+        if r.levelname == "WARNING"
+        and "summarizer backend raised" in r.getMessage()
+    ]
+    assert len(warns) >= 1, (
+        f"AC-4 spec 'emit a warning log' violated: expected WARNING log "
+        f"about backend raise, got records={[(r.levelname, r.getMessage()) for r in caplog.records]}"
+    )
+    # silent failure 防止: backend kaboom メッセージが log に含まれる
+    assert "backend kaboom for caplog assert" in warns[0].getMessage()
+
+
+def test_ac4_backend_invalid_output_missing_keys_emits_warning_log(
+    stub_legacy_persist, caplog,
+):
+    """AC-4 spec 文 "missing SECTION_KEYS" → fallback + WARNING log.
+
+    backend が known SECTION_KEYS を 1 つも含まない dict を返したとき,
+    fallback するだけでなく WARNING level log を emit すること.
+    """
+    tid = _make_thread()
+    mtl.register_summarizer_backend(lambda msgs: {"invalid_only": ["x"]})
+    provided = _full_summary("provided")
+    with caplog.at_level("WARNING", logger="services.mid_term_layer"):
+        res = asyncio.run(mtl.record_summary(tid, provided))
+    assert res["backend_used"] is False
+    assert res["summary"] == provided
+    warns = [
+        r for r in caplog.records
+        if r.levelname == "WARNING"
+        and "summarizer backend returned invalid output" in r.getMessage()
+    ]
+    assert len(warns) >= 1, (
+        f"AC-4 spec 'missing SECTION_KEYS → emit warning log' violated: "
+        f"got records={[(r.levelname, r.getMessage()) for r in caplog.records]}"
+    )
+
+
+def test_ac4_backend_invalid_output_wrong_type_emits_warning_log(
+    stub_legacy_persist, caplog,
+):
+    """AC-4 spec 文 "wrong types" → fallback + WARNING log.
+
+    backend が dict 以外 (list / None / str / int) を返したとき,
+    _normalize_summary が None を返し fallback + WARNING log.
+    """
+    tid = _make_thread()
+    for bad_output in [None, [], "not a dict", 42, ()]:
+        caplog.clear()
+        mtl.register_summarizer_backend(lambda msgs, _b=bad_output: _b)
+        provided = _full_summary("provided")
+        with caplog.at_level("WARNING", logger="services.mid_term_layer"):
+            res = asyncio.run(mtl.record_summary(tid, provided))
+        assert res["backend_used"] is False, f"bad_output={bad_output!r} not fallback"
+        assert res["summary"] == provided
+        warns = [
+            r for r in caplog.records
+            if r.levelname == "WARNING"
+            and "summarizer backend returned invalid output" in r.getMessage()
+        ]
+        assert len(warns) >= 1, (
+            f"AC-4 spec 'wrong types ({type(bad_output).__name__}) → "
+            f"emit warning log' violated"
+        )
+
+
 def test_g7_backend_disabled_via_use_backend_false(stub_legacy_persist):
     tid = _make_thread()
     mtl.register_summarizer_backend(lambda msgs: _full_summary("backend"))
