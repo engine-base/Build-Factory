@@ -94,6 +94,29 @@ MAX_ACTOR_USER_ID_LEN = 200
 SUMMARY_ROLE_SYSTEM_SUMMARY = "system_summary"  # memory_service.persist_compaction
 SUMMARY_ROLE_SYSTEM = "system"  # tier3_structured_summary.run_compaction
 
+# AC-2 spec: audit detail の source は永続化先 module 名で表現する
+# ('chat_thread_store' | 'memory_service'). 内部の source ラベル
+# ('compressed_summary' | 'system_summary') は経路 A/B の判別用なので
+# 公開 audit には _AUDIT_SOURCE_MAP で変換した値を渡す.
+_AUDIT_SOURCE_MAP: dict[str, str] = {
+    "compressed_summary": "chat_thread_store",
+    "system_summary": "memory_service",
+}
+
+AUDIT_EVENT_READ = "mid_term.read"
+AUDIT_EVENT_RECORDED = "mid_term.recorded"
+VALID_AUDIT_SOURCES = ("chat_thread_store", "memory_service")
+
+
+def to_audit_source(internal_source: Optional[str]) -> Optional[str]:
+    """internal source ('compressed_summary'|'system_summary') を
+    AC-2 仕様の audit source ('chat_thread_store'|'memory_service') に変換.
+    None は None.
+    """
+    if internal_source is None:
+        return None
+    return _AUDIT_SOURCE_MAP.get(internal_source)
+
 
 # ──────────────────────────────────────────────────────────────────────
 # Validation helpers (UNWANTED AC-4)
@@ -237,6 +260,26 @@ def _fetch_all_messages(thread_id: int) -> list[cts.ChatMessage]:
 # ──────────────────────────────────────────────────────────────────────
 
 
+async def _emit_audit_safe(
+    event_type: str,
+    *,
+    thread_id: int,
+    user_id: Optional[str],
+    detail: dict,
+) -> None:
+    """memory_service.emit_event 経由 audit. 失敗は warning, raise しない."""
+    try:
+        from services.memory_service import emit_event
+        await emit_event(
+            event_type, session_id=str(thread_id), user_id=user_id, detail=detail,
+        )
+    except Exception as e:  # pragma: no cover (sqlite 未配備環境向け)
+        logger.warning(
+            "mid_term audit emit failed event=%s thread=%s: %s",
+            event_type, thread_id, e,
+        )
+
+
 def latest_summary(
     thread_id: int,
     *,
@@ -298,6 +341,44 @@ def latest_summary(
 
 
 # ──────────────────────────────────────────────────────────────────────
+# Public API: latest_summary_audited (G2 service-level emit)
+# ──────────────────────────────────────────────────────────────────────
+
+
+async def latest_summary_audited(
+    thread_id: int,
+    *,
+    prefer_source: str = DEFAULT_PREFER_SOURCE,
+    actor_user_id: Optional[str] = None,
+    emit_audit: bool = True,
+) -> dict[str, Any]:
+    """AC-2 'mid_term.read' audit emit 付き latest_summary 呼出 (service 層).
+
+    HTTP GET endpoint は emit_audit=False で呼ぶ (AC-2 "Read endpoints shall not
+    emit audit events"). memory_pipeline 等の Python 直接呼出経路は emit_audit=True
+    で audit を残す.
+    """
+    result = latest_summary(
+        thread_id,
+        prefer_source=prefer_source,
+        actor_user_id=actor_user_id,
+    )
+    if emit_audit:
+        await _emit_audit_safe(
+            AUDIT_EVENT_READ,
+            thread_id=result["thread_id"],
+            user_id=actor_user_id,
+            detail={
+                "thread_id": result["thread_id"],
+                "source": to_audit_source(result["source"]),
+                "found": result["found"],
+                "prefer_source": result["prefer_source"],
+            },
+        )
+    return result
+
+
+# ──────────────────────────────────────────────────────────────────────
 # Public API: compressed_history (read-only)
 # ──────────────────────────────────────────────────────────────────────
 
@@ -349,6 +430,27 @@ def compressed_history(
         "count": len(entries),
         "entries": entries,
     }
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Public API: list_summaries (G1 spec-name alias for compressed_history)
+# ──────────────────────────────────────────────────────────────────────
+
+
+def list_summaries(
+    thread_id: int,
+    *,
+    limit: int = DEFAULT_HISTORY_LIMIT,
+    actor_user_id: Optional[str] = None,
+) -> dict[str, Any]:
+    """AC-1 spec で名指しされている read view (compressed_history のエイリアス).
+
+    仕様文 "unified read view (latest_summary / list_summaries)" に対応.
+    本体は compressed_history. 名前の整合性のためのエイリアス.
+    """
+    return compressed_history(
+        thread_id, limit=limit, actor_user_id=actor_user_id,
+    )
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -477,6 +579,7 @@ async def record_summary(
     persist_legacy: bool = True,
     use_backend: bool = True,
     actor_user_id: Optional[str] = None,
+    emit_audit: bool = False,
 ) -> dict[str, Any]:
     """G8 dual-write: chat_thread_store + memory_service の両経路に書く.
 
@@ -548,11 +651,40 @@ async def record_summary(
     if persist_legacy:
         legacy_result = await _legacy_persist_best_effort(thread_id, final_summary)
 
-    return {
+    # AC-2 spec: audit source は永続化先 module 名 ('chat_thread_store' /
+    # 'memory_service'). 経路 A (chat_thread_store) が主, B (memory_service)
+    # が legacy_result の status=='ok' のときに同時記録された旨を併記.
+    legacy_ok = bool(
+        legacy_result and legacy_result.get("status") == "ok"
+    )
+    audit_sources: list[str] = ["chat_thread_store"]
+    if legacy_ok:
+        audit_sources.append("memory_service")
+    primary_audit_source = "chat_thread_store"
+
+    result = {
         "thread_id": thread_id,
         "message_id": persisted.id,
         "source": "compressed_summary",
+        "audit_source": primary_audit_source,
+        "audit_sources": audit_sources,
         "summary": final_summary,
         "legacy_result": legacy_result,
         "backend_used": backend_used,
     }
+    if emit_audit:
+        await _emit_audit_safe(
+            AUDIT_EVENT_RECORDED,
+            thread_id=thread_id,
+            user_id=actor_user_id,
+            detail={
+                "thread_id": thread_id,
+                "message_id": persisted.id,
+                "source": primary_audit_source,
+                "audit_sources": audit_sources,
+                "backend_used": backend_used,
+                "persist_legacy": persist_legacy,
+                "legacy_status": (legacy_result or {}).get("status"),
+            },
+        )
+    return result

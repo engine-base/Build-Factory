@@ -266,12 +266,44 @@ check_tickets() {
 # Dispatch
 # ----------------------------------------------------------------
 check_domain_boundaries() {
-  echo "[8/8] backend bounded-context domain barrel + 循環依存検出..."
+  echo "[8/9] backend bounded-context domain barrel + 循環依存検出..."
   if python3 scripts/check-domain-boundaries.py > /tmp/lint_domains.log 2>&1; then
     echo -e "${GREEN}OK: backend/domains/ 13 barrel 健全 (no bypass / no cycle)${NC}"
   else
     cat /tmp/lint_domains.log
     EXIT_CODE=1
+  fi
+}
+
+# ----------------------------------------------------------------
+# 9. T-M30-03 / T-M28-04 cross-ref UNWANTED:
+#    9-section summary generation 自前実装の禁止語検知.
+#    ADR-010: 9-section structured summary は claude-agent-sdk auto-compaction
+#    の出力をそのまま採用. app code (backend/services / backend/routers) で
+#    SDK auto-compaction path の外で 9-section summary を生成し直す関数を
+#    定義してはならない.
+#    例外:
+#      - backend/services/mid_term_layer.py / backend/routers/mid_term_layer.py
+#        : 統一 read view + persistence wrapper (record_summary). 自前生成は
+#          しない (SDK backend / 受信 summary を normalize するだけ).
+#      - backend/services/tier3_structured_summary.py
+#        : T-M28-04 SDK wrapper. 存在する場合のみ exempt.
+# ----------------------------------------------------------------
+check_no_self_9section_summary() {
+  echo "[9/9] 9-section summary 自前実装検知 (T-M30-03 AC-4 / T-M28-04 cross-ref)..."
+  # 禁止語: 新規に 9-section summary を生成する関数定義シンボル.
+  local forbidden_re='\bdef[[:space:]]+(generate_9_section_summary|build_9_section_summary|synthesize_9_section_summary|compose_9_section_summary|build_structured_9_section|make_9_section_summary)\b'
+  local hits
+  hits=$(grep -rnE "$forbidden_re" \
+    --include="*.py" \
+    backend/services backend/routers 2>/dev/null || true)
+  if [ -n "$hits" ]; then
+    echo -e "${RED}NG: app code に 9-section summary 自前生成の禁止語 (T-M30-03 AC-4 / ADR-010)${NC}"
+    echo "$hits"
+    echo "→ 9-section summary は claude-agent-sdk auto-compaction の出力を採用. 自前生成禁止"
+    EXIT_CODE=1
+  else
+    echo -e "${GREEN}OK: app code に 9-section summary 自前生成なし${NC}"
   fi
 }
 
@@ -284,6 +316,7 @@ case "$MODE" in
   --no-langgraph) check_no_langgraph ;;
   --no-litellm-in-runner) check_no_litellm_in_runner ;;
   --domains)      check_domain_boundaries ;;
+  --no-self-9section) check_no_self_9section_summary ;;
   all|"")
     check_emoji
     check_agpl
@@ -293,9 +326,10 @@ case "$MODE" in
     check_no_langgraph
     check_no_litellm_in_runner
     check_domain_boundaries
+    check_no_self_9section_summary
     ;;
   *)
-    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|all]"
+    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|--no-self-9section|all]"
     exit 2
     ;;
 esac

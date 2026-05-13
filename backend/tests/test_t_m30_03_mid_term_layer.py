@@ -902,7 +902,8 @@ def test_ac3_record_emits_audit(client, _capture_audit, stub_legacy_persist):
     assert len(events) == 1
     detail = events[0]["detail"]
     assert detail["thread_id"] == tid
-    assert detail["source"] == "compressed_summary"
+    # G3 仕様: audit source は 'chat_thread_store' / 'memory_service'
+    assert detail["source"] == "chat_thread_store"
     assert detail["legacy_status"] == "ok"
     assert events[0]["user_id"] == "alice"
 
@@ -924,9 +925,26 @@ def test_ac3_existing_modules_api_surface_unchanged(client):
 # ══════════════════════════════════════════════════════════════════════
 
 
-def test_ac4_summary_thread_id_pydantic_422(client):
+def test_ac4_summary_thread_id_invalid_400_not_422(client):
+    """AC-4: 全 4xx は {detail:{code,message}} に統一. 422 は返さない."""
     r = client.get("/api/mid-term/summary", params={"thread_id": 0})
-    assert r.status_code == 422
+    assert r.status_code == 400, f"{r.status_code}: {r.text}"
+    detail = r.json()["detail"]
+    assert isinstance(detail, dict)
+    assert detail["code"] == "mid_term.invalid"
+    assert "message" in detail
+
+
+def test_ac4_summary_thread_id_non_numeric_400(client):
+    r = client.get("/api/mid-term/summary", params={"thread_id": "abc"})
+    assert r.status_code == 400
+    assert r.json()["detail"]["code"] == "mid_term.invalid"
+
+
+def test_ac4_summary_thread_id_missing_400(client):
+    r = client.get("/api/mid-term/summary")
+    assert r.status_code == 400
+    assert r.json()["detail"]["code"] == "mid_term.invalid"
 
 
 def test_ac4_summary_unknown_thread_404(client):
@@ -955,14 +973,18 @@ def test_ac4_summary_empty_actor_401(client):
     assert r.json()["detail"]["code"] == "mid_term.unauthorized"
 
 
-def test_ac4_compressed_invalid_limit_pydantic_422(client):
+def test_ac4_compressed_invalid_limit_400_not_422(client):
+    """AC-4: limit range 違反は 400 + tier1.invalid 形式."""
     tid = _make_thread()
     for bad in (0, MAX_HISTORY_LIMIT + 1):
         r = client.get(
             "/api/mid-term/compressed",
             params={"thread_id": tid, "limit": bad},
         )
-        assert r.status_code == 422, f"limit={bad}: {r.status_code}"
+        assert r.status_code == 400, f"limit={bad}: {r.status_code}: {r.text}"
+        detail = r.json()["detail"]
+        assert isinstance(detail, dict)
+        assert detail["code"] == "mid_term.invalid"
 
 
 def test_ac4_stats_unknown_thread_404(client):
@@ -971,11 +993,14 @@ def test_ac4_stats_unknown_thread_404(client):
     assert r.json()["detail"]["code"] == "mid_term.not_found"
 
 
-def test_ac4_record_invalid_thread_id_422(client):
+def test_ac4_record_invalid_thread_id_400_not_422(client):
     r = client.post("/api/mid-term/record", json={
         "thread_id": 0, "summary": _full_summary("x"),
     })
-    assert r.status_code == 422
+    assert r.status_code == 400
+    detail = r.json()["detail"]
+    assert isinstance(detail, dict)
+    assert detail["code"] == "mid_term.invalid"
 
 
 def test_ac4_record_unknown_thread_does_not_mutate(
@@ -1005,12 +1030,70 @@ def test_ac4_record_invalid_summary_does_not_mutate(
     assert not [e for e in _capture_audit if e["event_type"] == "mid_term.recorded"]
 
 
-def test_ac4_record_summary_must_be_dict_pydantic_422(client):
+def test_ac4_record_summary_must_be_dict_400_not_422(client):
     tid = _make_thread()
     r = client.post("/api/mid-term/record", json={
         "thread_id": tid, "summary": "not dict",
     })
-    assert r.status_code == 422
+    assert r.status_code == 400
+    assert r.json()["detail"]["code"] == "mid_term.invalid"
+
+
+def test_ac4_record_missing_thread_id_400(client):
+    r = client.post("/api/mid-term/record", json={"summary": _full_summary("x")})
+    assert r.status_code == 400
+    assert r.json()["detail"]["code"] == "mid_term.invalid"
+
+
+def test_ac4_record_missing_summary_400(client):
+    tid = _make_thread()
+    r = client.post("/api/mid-term/record", json={"thread_id": tid})
+    assert r.status_code == 400
+    assert r.json()["detail"]["code"] == "mid_term.invalid"
+
+
+def test_ac4_record_persist_legacy_must_be_bool_400(client):
+    tid = _make_thread()
+    r = client.post("/api/mid-term/record", json={
+        "thread_id": tid, "summary": _full_summary("x"),
+        "persist_legacy": "yes",
+    })
+    assert r.status_code == 400
+    assert r.json()["detail"]["code"] == "mid_term.invalid"
+
+
+def test_ac4_record_non_dict_body_400(client):
+    r = client.post("/api/mid-term/record", json=["not", "dict"])
+    assert r.status_code == 400
+    assert r.json()["detail"]["code"] == "mid_term.invalid"
+
+
+def test_ac4_all_4xx_detail_shape(client):
+    """AC-4: 全 endpoint の 4xx response が {detail:{code,message}} 形式."""
+    cases = [
+        # (method, path, json_or_params, expected_status)
+        ("GET", "/api/mid-term/summary", {}, 400),
+        ("GET", "/api/mid-term/summary", {"thread_id": 0}, 400),
+        ("GET", "/api/mid-term/summary",
+         {"thread_id": "x"}, 400),
+        ("GET", "/api/mid-term/summary",
+         {"thread_id": 88888}, 404),
+        ("GET", "/api/mid-term/compressed",
+         {"thread_id": 0}, 400),
+        ("GET", "/api/mid-term/compressed",
+         {"thread_id": 88888}, 404),
+        ("GET", "/api/mid-term/stats", {"thread_id": 0}, 400),
+        ("GET", "/api/mid-term/stats", {"thread_id": 88888}, 404),
+    ]
+    for method, path, params, expected in cases:
+        r = client.get(path, params=params)
+        assert r.status_code == expected, (
+            f"{path} {params}: {r.status_code}: {r.text}"
+        )
+        detail = r.json()["detail"]
+        assert isinstance(detail, dict), f"{path}: detail must be dict"
+        assert detail.get("code", "").startswith("mid_term."), f"{path}: bad code"
+        assert isinstance(detail.get("message", ""), str) and detail["message"]
 
 
 def test_ac4_endpoint_does_not_mutate_state_on_summary_error(client):
@@ -1091,3 +1174,234 @@ def test_module_docstring_documents_path_a_and_b():
     doc = mtl.__doc__ or ""
     assert "経路 A" in doc
     assert "経路 B" in doc
+
+
+# ══════════════════════════════════════════════════════════════════════
+# Spec gap closure: G1 list_summaries (spec-name alias)
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_g1_list_summaries_function_exists():
+    """AC-1 仕様文 'latest_summary / list_summaries' の名前要件."""
+    assert hasattr(mtl, "list_summaries")
+    assert callable(mtl.list_summaries)
+
+
+def test_g1_list_summaries_matches_compressed_history():
+    tid = _make_thread()
+    s = _full_summary("v")
+    cts.get_store().add_message(tid, "system", "[t]", compressed_summary=s)
+    a = mtl.list_summaries(tid)
+    b = mtl.compressed_history(tid)
+    assert a == b
+
+
+def test_g1_list_endpoint_alias(client):
+    tid = _make_thread()
+    s = _full_summary("v")
+    cts.get_store().add_message(tid, "system", "[t]", compressed_summary=s)
+    r_compressed = client.get(
+        "/api/mid-term/compressed", params={"thread_id": tid},
+    )
+    r_list = client.get(
+        "/api/mid-term/list", params={"thread_id": tid},
+    )
+    assert r_compressed.status_code == 200
+    assert r_list.status_code == 200
+    assert r_compressed.json() == r_list.json()
+
+
+# ══════════════════════════════════════════════════════════════════════
+# Spec gap closure: G2 service-level audit emit
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_g2_latest_summary_audited_emits_mid_term_read(_capture_audit):
+    tid = _make_thread()
+    s = _full_summary("v")
+    cts.get_store().add_message(tid, "system", "[t]", compressed_summary=s)
+    asyncio.run(mtl.latest_summary_audited(tid, emit_audit=True))
+    events = [e for e in _capture_audit if e["event_type"] == "mid_term.read"]
+    assert len(events) == 1
+    detail = events[0]["detail"]
+    assert detail["thread_id"] == tid
+    assert detail["source"] == "chat_thread_store"   # G3 正規化済み
+    assert detail["found"] is True
+
+
+def test_g2_latest_summary_audited_emit_audit_false_skips(_capture_audit):
+    tid = _make_thread()
+    asyncio.run(mtl.latest_summary_audited(tid, emit_audit=False))
+    assert not [e for e in _capture_audit if e["event_type"] == "mid_term.read"]
+
+
+def test_g2_latest_summary_audited_default_emits(_capture_audit):
+    """default emit_audit=True (service 経由直接呼出は emit)."""
+    tid = _make_thread()
+    asyncio.run(mtl.latest_summary_audited(tid))
+    assert [e for e in _capture_audit if e["event_type"] == "mid_term.read"]
+
+
+def test_g2_http_read_endpoints_do_not_emit_audit(client, _capture_audit):
+    """AC-2: 'Read endpoints shall not emit audit events'.
+    HTTP GET 経由は service の latest_summary_audited を使わず emit しない."""
+    tid = _make_thread()
+    s = _full_summary("v")
+    cts.get_store().add_message(tid, "system", "[t]", compressed_summary=s)
+    client.get("/api/mid-term/summary", params={"thread_id": tid})
+    client.get("/api/mid-term/compressed", params={"thread_id": tid})
+    client.get("/api/mid-term/list", params={"thread_id": tid})
+    client.get("/api/mid-term/stats", params={"thread_id": tid})
+    assert not [e for e in _capture_audit if e["event_type"] == "mid_term.read"]
+
+
+# ══════════════════════════════════════════════════════════════════════
+# Spec gap closure: G3 audit source normalization
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_g3_to_audit_source_mapping():
+    assert mtl.to_audit_source("compressed_summary") == "chat_thread_store"
+    assert mtl.to_audit_source("system_summary") == "memory_service"
+    assert mtl.to_audit_source(None) is None
+    assert mtl.to_audit_source("unknown") is None
+
+
+def test_g3_record_summary_audit_source_field_is_chat_thread_store(
+    stub_legacy_persist,
+):
+    tid = _make_thread()
+    result = asyncio.run(mtl.record_summary(
+        tid, _full_summary("v"), persist_legacy=False,
+    ))
+    assert result["audit_source"] == "chat_thread_store"
+    assert result["audit_sources"] == ["chat_thread_store"]
+
+
+def test_g3_record_summary_audit_sources_includes_memory_service_when_legacy_ok(
+    stub_legacy_persist,
+):
+    tid = _make_thread()
+    result = asyncio.run(mtl.record_summary(
+        tid, _full_summary("v"), persist_legacy=True,
+    ))
+    # stub_legacy_persist は ok 戻し
+    assert result["audit_source"] == "chat_thread_store"
+    assert set(result["audit_sources"]) == {"chat_thread_store", "memory_service"}
+
+
+def test_g3_record_endpoint_audit_uses_chat_thread_store_source(
+    client, _capture_audit, stub_legacy_persist,
+):
+    tid = _make_thread()
+    r = client.post("/api/mid-term/record", json={
+        "thread_id": tid, "summary": _full_summary("v"),
+        "persist_legacy": True,
+    })
+    assert r.status_code == 200
+    events = [e for e in _capture_audit if e["event_type"] == "mid_term.recorded"]
+    assert len(events) == 1
+    detail = events[0]["detail"]
+    assert detail["source"] == "chat_thread_store"
+    assert "compressed_summary" not in (detail.get("source") or "")
+    assert set(detail["audit_sources"]) >= {"chat_thread_store"}
+
+
+# ══════════════════════════════════════════════════════════════════════
+# Spec gap closure: G5 lint cross-ref (T-M28-04 UNWANTED)
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_g5_lint_script_has_no_self_9section_check():
+    from pathlib import Path
+    script = (
+        Path(__file__).resolve().parents[2] / "scripts" / "lint-mock.sh"
+    ).read_text(encoding="utf-8")
+    assert "check_no_self_9section_summary()" in script
+    assert "--no-self-9section" in script
+
+
+def test_g5_lint_check_passes_when_app_code_clean():
+    import subprocess
+    from pathlib import Path
+    repo = Path(__file__).resolve().parents[2]
+    r = subprocess.run(
+        ["bash", "scripts/lint-mock.sh", "--no-self-9section"],
+        capture_output=True, text=True, timeout=30, cwd=str(repo),
+    )
+    assert r.returncode == 0, (
+        f"lint --no-self-9section failed: stdout={r.stdout[:400]} "
+        f"stderr={r.stderr[:400]}"
+    )
+    assert "OK" in r.stdout
+
+
+def test_g5_module_does_not_define_self_9section_function():
+    import inspect
+    src = inspect.getsource(mtl)
+    forbidden = (
+        "generate_9_section_summary",
+        "build_9_section_summary",
+        "synthesize_9_section_summary",
+        "compose_9_section_summary",
+        "build_structured_9_section",
+        "make_9_section_summary",
+    )
+    for token in forbidden:
+        for line in src.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("#"):
+                continue
+            assert f"def {token}" not in line, (
+                f"mid_term_layer must not define {token!r} "
+                "(T-M30-03 AC-4 / T-M28-04 cross-ref)"
+            )
+
+
+# ══════════════════════════════════════════════════════════════════════
+# Spec gap closure: G6 cross-module SECTION_KEYS invariant
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_g6_section_keys_is_canonical_source():
+    """mid_term_layer.SECTION_KEYS が 9 件 + 全要素 str + 重複なし."""
+    assert len(mtl.SECTION_KEYS) == 9
+    assert all(isinstance(k, str) and k for k in mtl.SECTION_KEYS)
+    assert len(set(mtl.SECTION_KEYS)) == 9
+
+
+def test_g6_section_keys_match_tier3_when_available():
+    """tier3_structured_summary が import 可能なら SECTION_KEYS 一致."""
+    try:
+        from services import tier3_structured_summary as t3
+    except ImportError:
+        pytest.skip("tier3_structured_summary not available")
+    if not hasattr(t3, "SECTION_KEYS"):
+        pytest.skip("tier3 module has no SECTION_KEYS")
+    assert tuple(t3.SECTION_KEYS) == tuple(mtl.SECTION_KEYS), (
+        "9-section invariant violated cross-module (mid_term_layer vs tier3)"
+    )
+
+
+def test_g6_section_keys_match_tier2_cache_when_available():
+    """tier2_cache が SECTION_KEYS を持つなら 一致."""
+    try:
+        from services import tier2_cache as t2
+    except ImportError:
+        pytest.skip("tier2_cache not available")
+    if not hasattr(t2, "SECTION_KEYS"):
+        pytest.skip("tier2_cache has no SECTION_KEYS (Phase 1 acceptable)")
+    assert tuple(t2.SECTION_KEYS) == tuple(mtl.SECTION_KEYS), (
+        "9-section invariant violated cross-module (mid_term_layer vs tier2)"
+    )
+
+
+# ══════════════════════════════════════════════════════════════════════
+# Constants / public API surface
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_audit_event_constants_match_spec():
+    assert mtl.AUDIT_EVENT_READ == "mid_term.read"
+    assert mtl.AUDIT_EVENT_RECORDED == "mid_term.recorded"
+    assert mtl.VALID_AUDIT_SOURCES == ("chat_thread_store", "memory_service")
