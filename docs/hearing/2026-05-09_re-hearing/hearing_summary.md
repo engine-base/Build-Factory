@@ -450,3 +450,20 @@ user_interaction_log
 - **v2.1**（2026-05-09）: requirements-definition STEP 1〜2 の確定事項を反映（D-21〜D-31 / Must M-20〜M-26 / Should S-11〜S-12 / Could C-10〜C-11 / 6 ロール / AI 3 階層 / ターゲット拡張 / KPI 品質ベース）
 - **v2.0**（2026-05-09）: v1 を白紙化、コンセプトから再設計（hearing 4STEP 完了）
 - v1.0（2026-05-01）: 初版 PROJECT_BRIEF（参考・廃版）
+
+---
+
+## 2026-05-13 Addendum — ADR-012 関連 follow-up
+
+本 hearing 完了後 (2026-05-13), masato から以下の追加方針が口頭で確認された:
+
+- **Obsidian Vault は Claude / LLM が自動で read/write してよい** (人間の手動編集は必須でない / チャット経由の自動更新 OK).
+- **provider 切替は障害時 fallback だけでなく任意切替も基本要件** (BYOK / workspace 設定 / per-session header / A/B test).
+- **OSS / Claude SDK 公式機能が存在するなら自前実装より優先** (NIH 削減方針 = ADR-012 採用).
+
+これらは hearing v2.1 の Must / Should リスト本文を改訂するのではなく, **ADR-012 でカバーされる方針**として記録する.
+
+### 影響 ticket / spec
+- T-AI-MEM-01〜04 (tickets.json 参照)
+- T-024-04 (workspaces.preferred_provider migration)
+- requirements-v1.md 2026-05-13 Addendum / architecture-v1.md / tech-stack-v1.md 同

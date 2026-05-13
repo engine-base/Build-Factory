@@ -11,7 +11,7 @@
       "new": "🔴",
       "archive": "⚫"
     },
-    "total_tickets": 183,
+    "total_tickets": 184,
     "last_updated": "2026-05-13"
   },
   "summary": {
@@ -7330,6 +7330,44 @@
         {
           "type": "UNWANTED",
           "text": "If the adapter is called with an unsupported provider name, or if per-session override conflicts with workspace policy (e.g. workspace forbids non-Anthropic), or if a provider-specific tool input violates the official command schema, the system shall reject with 4xx {detail:{code,message}} BEFORE any file I/O so that state mutate does not occur. If BYOK key is missing for the requested provider, the system shall fall back to the next-priority provider in 5.2 precedence and emit an audit ('provider.fallback' reason='byok_missing') instead of silently picking."
+        }
+      ]
+    },
+    {
+      "id": "T-024-04",
+      "title": "workspaces.preferred_provider column 追加 migration (ADR-012 Decision 5; enum anthropic/openai/gemini/auto, default 'auto', NOT NULL; 既存 workspaces row は default 値で backfill)",
+      "label": "REFACTOR",
+      "sprint": "S2",
+      "feature": "F-024",
+      "layer": "DB",
+      "claude_code_hours": 1,
+      "human_days": 0.2,
+      "deps": [
+        "T-024-03"
+      ],
+      "existing_files": [
+        "data/migrations/ (新規 sql)",
+        "backend/services/workspace_service.py (既存 / 後続 PR で参照更新)"
+      ],
+      "spec_link": "../../decisions/ADR-012-anthropic-memory-tool-adoption.md",
+      "mock_link": "../../mocks/2026-05-09_v1/index.html",
+      "adr_link": "../../decisions/ADR-012-anthropic-memory-tool-adoption.md",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall add a workspaces.preferred_provider column with enum values ('anthropic', 'openai', 'gemini', 'auto'), default 'auto', NOT NULL. The migration shall be idempotent (re-runnable) and shall backfill all existing rows with the default value before adding the NOT NULL constraint."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When the migration is applied, the system shall complete within 2 seconds for tables of <= 100,000 rows and shall emit an audit_logs entry ('schema.migration_applied' with migration_id, rows_backfilled, duration_ms)."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the migration is in progress, the system shall preserve Row Level Security on workspaces (T-024-03 RLS policy 不変) and shall not block concurrent reads. After the migration, provider_adapter.resolve_active_provider() shall be able to read the new column without code changes other than the SELECT list update."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If the migration is run twice, the system shall detect the existing column and shall NOT raise an error (idempotent guard). If a value outside the enum is inserted/updated via the application layer, the system shall reject with 4xx {detail:{code,message}} and shall NOT mutate the row."
         }
       ]
     }
