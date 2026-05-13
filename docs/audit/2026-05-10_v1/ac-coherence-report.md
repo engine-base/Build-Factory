@@ -1,6 +1,6 @@
 # T-S0-13c: tickets.json AC 整合検査結果
 
-- Total tickets: 178
+- Total tickets: 184
 - 既修正 (PREVIOUSLY_FIXED): 12
 - Verbatim 重複 AC text: 0 件
 - title↔AC キーワード乖離: 57 件
