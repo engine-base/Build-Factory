@@ -12,6 +12,14 @@ CLAUDE.md §3 必須 8 項目 #5。 T-S0-08 で実装済みの cost_logs INSERT 
 - STATE:     prompt cache hit → cache_read_tokens > 0 / displayed cost に 90% 引き反映
 - UNWANTED:  cost 記録失敗 → session 継続 + cost_recording_failed audit
 
+## ADR-012 / T-AI-MEM-04 cross-ref (provider 切替時の cost tracking)
+
+provider_adapter_memory.resolve_active_provider() が任意切替 / 障害時 fallback で
+Anthropic 以外 (OpenAI / Gemini via LiteLLM) を選択した場合, **その call も
+1 row として cost_logs に記録** する (AC-UBIQUITOUS). T-M12-01 LiteLLM Router
+の emergency_chat / generate_image / batch_complete 経路は内部で record_cost
+を呼ぶ責任を負う.
+
 ## price table (USD per 1M tokens, 2025-2026 公開価格)
 
   claude-opus-4-7  :  input $15.0  output $75.0  cache_read $1.5  cache_write $18.75
@@ -19,7 +27,7 @@ CLAUDE.md §3 必須 8 項目 #5。 T-S0-08 で実装済みの cost_logs INSERT 
   claude-haiku-4-5 :  input $0.80  output $4.00  cache_read $0.08 cache_write $1.00
   (cache_read = input × 0.10 / cache_write = input × 1.25)
 
-## 公開 API
+## 公開 API + audit event 定数
 
 - record_cost(...) -> int      # cost_logs INSERT + 失敗時 audit
 - monthly_cost(workspace_id) -> float
@@ -27,6 +35,11 @@ CLAUDE.md §3 必須 8 項目 #5。 T-S0-08 で実装済みの cost_logs INSERT 
 - reconcile_session(session_id, anthropic_usage_total_usd) -> dict
 - compute_display_cost(model, in_tok, out_tok, cache_read, cache_write) -> float
 - cached_discount_ratio(in_tok, cache_read) -> float
+
+- EVENT_COST_BUDGET_EXCEEDED       : 'cost.budget_exceeded' (spec 文に整合)
+- EVENT_WORKSPACE_BUDGET_EXCEEDED  : 'workspace_budget_exceeded' (既存 alias 後方互換)
+- EVENT_COST_RECORDING_FAILED      : 'cost_recording_failed' (既存)
+- EVENT_RECONCILE_DISCREPANCY      : 'cost.reconcile_discrepancy' (既存)
 """
 from __future__ import annotations
 
@@ -61,6 +74,13 @@ PRICE_TABLE: dict[str, dict[str, float]] = {
 
 # AC-EVENT: discrepancy > 5% で flag
 RECONCILE_THRESHOLD = 0.05
+
+
+# T-AI-05 audit event 公開定数 (spec 文に整合 / 既存 alias 維持)
+EVENT_COST_BUDGET_EXCEEDED = "cost.budget_exceeded"
+EVENT_WORKSPACE_BUDGET_EXCEEDED = "workspace_budget_exceeded"  # 既存 alias (後方互換)
+EVENT_COST_RECORDING_FAILED = "cost_recording_failed"
+EVENT_RECONCILE_DISCREPANCY = "cost_reconcile_discrepancy"
 
 
 def _db():
@@ -279,14 +299,16 @@ async def check_budget_pause(workspace_id: int) -> dict:
             out["pause_triggered"] = True
         except Exception as e:
             logger.warning("budget pause failed: %s", e)
-        await _emit_audit(
-            "workspace_budget_exceeded",
-            detail={
-                "workspace_id": workspace_id,
-                "monthly_usd": out["monthly_usd"],
-                "budget_jpy": budget_jpy,
-            },
-        )
+        # G2: spec 文 'cost.budget_exceeded' を canonical event として emit.
+        # 既存 'workspace_budget_exceeded' は alias として併発し後方互換維持.
+        detail = {
+            "workspace_id": workspace_id,
+            "monthly_usd": out["monthly_usd"],
+            "budget_jpy": budget_jpy,
+            "exceeded_by_usd": round(out["monthly_usd"] - budget_usd, 4),
+        }
+        await _emit_audit(EVENT_COST_BUDGET_EXCEEDED, detail=detail)
+        await _emit_audit(EVENT_WORKSPACE_BUDGET_EXCEEDED, detail=detail)
     return out
 
 
