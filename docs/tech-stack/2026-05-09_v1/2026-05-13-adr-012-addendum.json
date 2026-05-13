@@ -1,0 +1,79 @@
+{
+  "_meta": {
+    "title": "Tech Stack 2026-05-13 ADR-012 Addendum",
+    "purpose": "selected-stack.json への ADR-012 cascade. 既存 selected-stack.json を再整形せず別ファイルで保持.",
+    "applies_to": ["selected-stack.json"],
+    "date": "2026-05-13",
+    "adr": "ADR-012",
+    "merge_strategy": "deep-merge into ai_stack on next selected-stack.json revision"
+  },
+
+  "ai_stack_additions": {
+    "anthropic_native_features": {
+      "memory_tool": {
+        "type": "memory_20250818",
+        "name": "memory",
+        "license": "Anthropic API (proprietary, 利用契約)",
+        "beta_header": null,
+        "commands": ["view", "create", "str_replace", "insert", "delete", "rename"],
+        "storage": "client-side (Obsidian Vault filesystem; provider 非依存)"
+      },
+      "context_editing": {
+        "beta_header": "context-management-2025-06-27",
+        "strategies": ["clear_tool_uses_20250919", "clear_thinking_20251015"],
+        "memory_exempt": true
+      },
+      "compaction": {
+        "beta_header": "compact-2026-01-12",
+        "strategy": "compact_20260112",
+        "minimum_trigger_tokens": 50000
+      },
+      "subagent_memory": {
+        "scope": ["user", "workspace"],
+        "path_pattern": "/memories/subagent/<persona>/handoff/<ts>-from-<source>.md"
+      },
+      "dreaming": {
+        "status": "research_preview",
+        "phase": "Phase 2 で評価"
+      }
+    },
+
+    "provider_switch": {
+      "modes": ["manual", "auto-fallback"],
+      "precedence": [
+        "per-request header (X-LLM-Provider)",
+        "per-session active_route",
+        "per-workspace preferred_provider",
+        "per-user BYOK key availability",
+        "ADR-010 default (Anthropic main)",
+        "T-AI-08 circuit-breaker fallback"
+      ],
+      "supported_providers": ["anthropic", "openai", "gemini"],
+      "vault_shared": true,
+      "related_tickets": [
+        "T-AI-MEM-01",
+        "T-AI-MEM-02",
+        "T-AI-MEM-03",
+        "T-AI-MEM-04",
+        "T-AI-08",
+        "T-024-04"
+      ]
+    }
+  },
+
+  "license_check": {
+    "anthropic_sdk": "MIT",
+    "mem0ai": "Apache-2.0",
+    "python_frontmatter": "MIT",
+    "anthropic_memory_tool_api": "proprietary (Anthropic API 利用契約)",
+    "agpl_dependencies": []
+  },
+
+  "cost_impact_phase_1": {
+    "memory_tool": "追加課金なし (Anthropic API 内蔵)",
+    "context_editing": "追加課金なし (prompt cache 効果でコスト減)",
+    "subagent_memory": "追加課金なし (filesystem)",
+    "byok_usage": "ユーザ側 API キー課金 (Build-Factory に課金発生せず)",
+    "litellm_fallback": "切替先 provider の従量課金 (T-AI-05 cost tracking で監視)"
+  }
+}
