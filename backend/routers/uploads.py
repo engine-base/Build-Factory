@@ -52,9 +52,14 @@ async def upload(
             share_ttl_seconds=share_ttl_seconds,
         )
     except ValueError as e:
-        # AC-4 UNWANTED: invalid input (size / mime) → 400 + machine-readable
+        # AC-4 UNWANTED: invalid input (size / mime / ttl) → 400 + machine-readable
         msg = str(e)
-        code = "file_too_large" if "too large" in msg else "unsupported_content_type"
+        if "too large" in msg:
+            code = "file_too_large"
+        elif "share_ttl_seconds" in msg:
+            code = "invalid_ttl"
+        else:
+            code = "unsupported_content_type"
         raise HTTPException(
             status_code=400,
             detail={"code": code, "message": msg},
