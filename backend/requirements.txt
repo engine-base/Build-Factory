@@ -70,3 +70,10 @@ pytest-asyncio>=0.23
 pytest-cov>=5.0
 httpx>=0.27        # FastAPI TestClient backend
 tenacity>=9.0      # T-AI-06: Anthropic 429/529/5xx 自動 retry (exponential backoff)
+
+# === Logging (T-S0-11: structlog + pino 中央集約) ===
+structlog>=24.1    # T-S0-11: backend 構造化ログ (JSON / console 切替, contextvars 統合)
+PyYAML>=6.0        # T-S0-02 / T-S0-03: workflow yaml の自動テスト用
+
+# === Observability (T-S0-10: Sentry error reporting) ===
+sentry-sdk[fastapi]>=2.18  # T-S0-10: backend error / perf / breadcrumbs to Sentry

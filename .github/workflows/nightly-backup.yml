@@ -1,0 +1,257 @@
+# =============================================================================
+# T-018-03: nightly-backup workflow (Phase 1 観測層 / Sprint 7)
+# =============================================================================
+#
+# DB (Supabase Postgres) + Storage (Supabase Storage) を毎日深夜にバックアップ
+# し、 sha256 で整合性検証する.
+#
+# スケジュール:
+#   - cron '0 17 * * *' = UTC 17:00 = JST 02:00 (毎日深夜)
+#   - workflow_dispatch (手動 trigger / reason input 必須 / audit trail)
+#
+# Phase 1 hosting:
+#   - DB:       Supabase managed Postgres (pg_dump 経由)
+#   - Storage:  Supabase Storage (REST API 経由で list + tarball)
+#   - Artifact: GitHub Actions artifact (7-day retention)
+#
+# secrets (GitHub repo settings で設定):
+#   SUPABASE_DB_URL              postgresql://... pg_dump 用 (read-only role 推奨)
+#   SUPABASE_SERVICE_ROLE_KEY    storage list 用 (service role / 公開禁止)
+#   SUPABASE_STORAGE_URL         https://<project>.supabase.co/storage/v1
+#
+# 設計:
+#   - 全 step で secret は env: 経由 (shell injection 防止 / AC-3)
+#   - 全 action を specific version で pin (@v4 / 無 @main・@master / AC-4)
+#   - concurrency で同時実行禁止 (artifact 重複防止)
+#   - permissions: contents: read のみ (write 不要 / 最小権限)
+#   - silent corruption 防止: file size check + sha256 mismatch で fail
+
+name: nightly-backup
+
+on:
+  schedule:
+    - cron: "0 17 * * *"  # UTC 17:00 = JST 02:00 nightly
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Reason for manual backup (audit trail)"
+        required: true
+        type: string
+
+concurrency:
+  group: nightly-backup
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  # ──────────────────────────────────────────────────────────────────────
+  # backup-database: pg_dump → gzip → sha256 → artifact upload
+  # ──────────────────────────────────────────────────────────────────────
+  backup-database:
+    name: Backup Supabase Postgres (pg_dump)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      sha256: ${{ steps.hash.outputs.sha256 }}
+      filename: ${{ steps.dump.outputs.filename }}
+    steps:
+      - name: Checkout (no checkout needed; placeholder for tooling)
+        uses: actions/checkout@v4
+
+      - name: Install pg_dump 16 (matches Supabase Postgres major)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-16
+
+      - name: Run pg_dump and gzip
+        id: dump
+        env:
+          PGURL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "${PGURL}" ]; then
+            echo "ERROR: SUPABASE_DB_URL secret is empty" >&2
+            exit 1
+          fi
+          DATE=$(date -u +%Y%m%d)
+          FILE="db-${DATE}.sql.gz"
+          pg_dump --no-owner --no-acl --format=plain "${PGURL}" | gzip -9 > "${FILE}"
+          SIZE=$(stat -c%s "${FILE}")
+          echo "pg_dump output size: ${SIZE} bytes"
+          if [ "${SIZE}" -lt 100 ]; then
+            echo "ERROR: pg_dump output suspiciously small (< 100 bytes)" >&2
+            exit 1
+          fi
+          echo "filename=${FILE}" >> "${GITHUB_OUTPUT}"
+
+      - name: Compute SHA-256
+        id: hash
+        env:
+          FILENAME: ${{ steps.dump.outputs.filename }}
+        run: |
+          HASH=$(sha256sum "${FILENAME}" | awk '{print $1}')
+          echo "sha256=${HASH}" >> "${GITHUB_OUTPUT}"
+          echo "${HASH}  ${FILENAME}" > "${FILENAME}.sha256"
+
+      - name: Upload DB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup
+          path: |
+            db-*.sql.gz
+            db-*.sql.gz.sha256
+          retention-days: 7
+          if-no-files-found: error
+
+  # ──────────────────────────────────────────────────────────────────────
+  # backup-storage: list buckets + tarball + sha256 → artifact upload
+  # ──────────────────────────────────────────────────────────────────────
+  backup-storage:
+    name: Backup Supabase Storage (REST API)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      sha256: ${{ steps.hash.outputs.sha256 }}
+      filename: ${{ steps.tar.outputs.filename }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: List Supabase Storage buckets and pack tarball
+        id: tar
+        env:
+          STORAGE_URL: ${{ secrets.SUPABASE_STORAGE_URL }}
+          SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ -z "${STORAGE_URL}" ] || [ -z "${SERVICE_KEY}" ]; then
+            echo "ERROR: SUPABASE_STORAGE_URL / SUPABASE_SERVICE_ROLE_KEY secret is empty" >&2
+            exit 1
+          fi
+          DATE=$(date -u +%Y%m%d)
+          FILE="storage-${DATE}.tar.gz"
+          WORKDIR=$(mktemp -d)
+          # bucket 一覧を取得 (read-only / production data には触れない)
+          curl --fail --silent --show-error \
+            -H "apikey: ${SERVICE_KEY}" \
+            -H "Authorization: Bearer ${SERVICE_KEY}" \
+            "${STORAGE_URL}/bucket" \
+            -o "${WORKDIR}/buckets.json"
+          # 各 bucket の object list を取得 (metadata のみ / object 中身は別途)
+          BUCKETS=$(jq -r '.[].name' "${WORKDIR}/buckets.json" || echo "")
+          for B in ${BUCKETS}; do
+            mkdir -p "${WORKDIR}/${B}"
+            curl --fail --silent --show-error \
+              -X POST \
+              -H "apikey: ${SERVICE_KEY}" \
+              -H "Authorization: Bearer ${SERVICE_KEY}" \
+              -H "Content-Type: application/json" \
+              -d '{"limit":1000,"offset":0}' \
+              "${STORAGE_URL}/object/list/${B}" \
+              -o "${WORKDIR}/${B}/list.json" || echo "warn: bucket ${B} list failed"
+          done
+          tar -czf "${FILE}" -C "${WORKDIR}" .
+          SIZE=$(stat -c%s "${FILE}")
+          echo "storage tarball size: ${SIZE} bytes"
+          if [ "${SIZE}" -lt 100 ]; then
+            echo "ERROR: storage tarball suspiciously small (< 100 bytes)" >&2
+            exit 1
+          fi
+          echo "filename=${FILE}" >> "${GITHUB_OUTPUT}"
+
+      - name: Compute SHA-256
+        id: hash
+        env:
+          FILENAME: ${{ steps.tar.outputs.filename }}
+        run: |
+          HASH=$(sha256sum "${FILENAME}" | awk '{print $1}')
+          echo "sha256=${HASH}" >> "${GITHUB_OUTPUT}"
+          echo "${HASH}  ${FILENAME}" > "${FILENAME}.sha256"
+
+      - name: Upload Storage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: storage-backup
+          path: |
+            storage-*.tar.gz
+            storage-*.tar.gz.sha256
+          retention-days: 7
+          if-no-files-found: error
+
+  # ──────────────────────────────────────────────────────────────────────
+  # verify-backup: download artifacts + sha256 verify + size check
+  # ──────────────────────────────────────────────────────────────────────
+  verify-backup:
+    name: Verify backup integrity (sha256)
+    runs-on: ubuntu-latest
+    needs: [backup-database, backup-storage]
+    timeout-minutes: 10
+    steps:
+      - name: Download DB artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: db-backup
+          path: verify-db
+
+      - name: Download Storage artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: storage-backup
+          path: verify-storage
+
+      - name: Verify DB sha256
+        env:
+          EXPECTED: ${{ needs.backup-database.outputs.sha256 }}
+          FILENAME: ${{ needs.backup-database.outputs.filename }}
+        run: |
+          if [ -z "${EXPECTED}" ] || [ -z "${FILENAME}" ]; then
+            echo "ERROR: missing expected hash or filename from backup-database job" >&2
+            exit 1
+          fi
+          cd verify-db
+          ACTUAL=$(sha256sum "${FILENAME}" | awk '{print $1}')
+          SIZE=$(stat -c%s "${FILENAME}")
+          echo "DB backup ${FILENAME}: ${SIZE} bytes / sha256=${ACTUAL}"
+          if [ "${SIZE}" -lt 100 ]; then
+            echo "ERROR: DB backup file empty / too small" >&2
+            exit 1
+          fi
+          if [ "${ACTUAL}" != "${EXPECTED}" ]; then
+            echo "ERROR: DB backup sha256 mismatch" >&2
+            echo "  expected: ${EXPECTED}" >&2
+            echo "  actual:   ${ACTUAL}" >&2
+            exit 1
+          fi
+          echo "OK: DB backup integrity verified"
+
+      - name: Verify Storage sha256
+        env:
+          EXPECTED: ${{ needs.backup-storage.outputs.sha256 }}
+          FILENAME: ${{ needs.backup-storage.outputs.filename }}
+        run: |
+          if [ -z "${EXPECTED}" ] || [ -z "${FILENAME}" ]; then
+            echo "ERROR: missing expected hash or filename from backup-storage job" >&2
+            exit 1
+          fi
+          cd verify-storage
+          ACTUAL=$(sha256sum "${FILENAME}" | awk '{print $1}')
+          SIZE=$(stat -c%s "${FILENAME}")
+          echo "Storage backup ${FILENAME}: ${SIZE} bytes / sha256=${ACTUAL}"
+          if [ "${SIZE}" -lt 100 ]; then
+            echo "ERROR: Storage backup file empty / too small" >&2
+            exit 1
+          fi
+          if [ "${ACTUAL}" != "${EXPECTED}" ]; then
+            echo "ERROR: Storage backup sha256 mismatch" >&2
+            echo "  expected: ${EXPECTED}" >&2
+            echo "  actual:   ${ACTUAL}" >&2
+            exit 1
+          fi
+          echo "OK: Storage backup integrity verified"
+
+      - name: Summary
+        run: |
+          echo "===== Nightly Backup Summary ====="
+          echo "DB:      ${{ needs.backup-database.outputs.filename }}"
+          echo "Storage: ${{ needs.backup-storage.outputs.filename }}"
+          echo "Retention: 7 days (GitHub Actions artifact)"

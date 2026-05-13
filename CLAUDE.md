@@ -14,7 +14,7 @@
 
 ---
 
-## 2. 現在のフェーズ進捗 (2026-05-10)
+## 2. 現在のフェーズ進捗 (2026-05-13)
 
 | # | フェーズ | 状態 | 成果物 |
 |---|---|---|---|
@@ -24,10 +24,12 @@
 | 4 | 機能分解 | ✅ 完了 | `docs/functional-breakdown/2026-05-09_v1/` (43 screens / 30 features / 6 roles) |
 | 5 | 技術選定 | ✅ 完了 | `docs/tech-stack/2026-05-09_v1/` (OSS license verified) |
 | 6 | 機能依存分解 | ✅ 完了 | `docs/feature-decomposition/2026-05-09_v1/` (Sprint 0-7) |
-| 7 | タスク分解 | ✅ 完了 | `docs/task-decomposition/2026-05-09_v1/` (113 tasks) |
+| 7 | タスク分解 | ✅ 完了 | `docs/task-decomposition/2026-05-09_v1/` (184 tasks; T-AI-MEM-01〜04 + T-024-04 追加) |
 | 8 | 画面モック | ✅ 完了 | `docs/mocks/2026-05-09_v1/` (43/43 HTML) |
-| 9 | **実装** | ⏳ **次フェーズ** | - |
+| 9 | **実装** | 🚧 **進行中** (クリティカルパス 12/12 ✅ 完走 / Sprint 2 大半 + Sprint 3 一部 merged) | `git log main` |
 | 10 | レビュー / 納品 | 未着手 | - |
+
+**クリティカルパス完走 (2026-05-13)**: T-019-01 → T-S0-13 → T-001-01 → T-001-02 → T-001-04 → T-001-06 → T-S0-08 → T-S0-09 → T-021-03 → T-020-02 → T-003-02 → T-M28-01 (12/12 ✅).
 
 **「最初に読むファイル」** → [`docs/HANDOVER.md`](docs/HANDOVER.md) (全フェーズ成果物の統合インデックス)
 **「実装着手手順」** → [`docs/task-decomposition/IMPLEMENTATION_PROTOCOL.md`](docs/task-decomposition/IMPLEMENTATION_PROTOCOL.md) (タスクごとの 7 ステップ SOP・必須遵守)
@@ -52,7 +54,10 @@
 - **pg_cron** + **pg_partman** (Phase 2)
 - **Supabase Auth** (GoTrue) + 2FA (TOTP) + OAuth (Anthropic / Slack / GitHub)
 
-### AI Stack (3 層 — ADR-010 で 5層 → 3層に再設計、2026-05-10)
+### AI Stack (3 層 — ADR-010 / 2026-05-10. **ADR-012 で公式 Memory 機能採用、2026-05-13**)
+
+> **ADR-012 amendment**: Anthropic 公式の **Memory Tool (`memory_20250818`) / Context Editing (`clear_tool_uses_20250919` + `compact_20260112`) / Subagent Memory** を一級市民として採用. 自前実装必須 8 項目 (T-AI-01〜08) の T-AI-04 (Constitution 注入) は Memory Tool に delegate.
+> **provider-adapter (T-AI-MEM-04)** は **任意切替 (BYOK / workspace 設定 / per-session header / A/B test) + 障害時 fallback (T-AI-08 circuit-breaker)** の両方を覆う. precedence 順: per-request header → per-session active_route → per-workspace preferred_provider → BYOK key 有無 → ADR-010 既定 → 障害時 fallback. Obsidian Vault filesystem は全 provider 共有 (read/write parity). 詳細: `docs/decisions/ADR-012-anthropic-memory-tool-adoption.md`
 
 ```
 Layer 3: claude-agent-sdk + Subagent (Anthropic 公式) ← 中核
@@ -77,7 +82,8 @@ Layer 1: PostgreSQL + Mem0 + Obsidian + Constitution
 ```
 
 **禁則**: メイン経路 (claude-runner) で LangGraph / LangChain / LiteLLM を使ってはならない (lint で fail)。
-**自前実装必須 8 項目**: T-AI-01 (Memory API) / T-AI-02 (Mem0 ブリッジ) / T-AI-03 (chat 全文検索) / T-AI-04 (Constitution 注入) / T-AI-05 (Cost tracking) / T-AI-06 (Rate limit retry) / T-AI-07 (Streaming WS) / T-AI-08 (障害時 fallback)。
+**自前実装必須 8 項目**: T-AI-01 (Memory API) / T-AI-02 (Mem0 ブリッジ) / T-AI-03 (chat 全文検索) / T-AI-04 (Constitution 注入 — ADR-012 で Memory Tool に delegate 化) / T-AI-05 (Cost tracking) / T-AI-06 (Rate limit retry) / T-AI-07 (Streaming WS) / T-AI-08 (障害時 fallback)。
+**ADR-012 採用 (2026-05-13)**: T-AI-MEM-01 (Memory Tool client-side handler) / T-AI-MEM-02 (Context Editing config) / T-AI-MEM-03 (Subagent Memory) / T-AI-MEM-04 (provider-adapter, T-AI-08 fallback)。
 
 ### Memory (3 tier — Claude API 流 compaction)
 - **Short**: `chat_threads` / `chat_messages` (生ログ)
@@ -180,9 +186,11 @@ Layer 1: PostgreSQL + Mem0 + Obsidian + Constitution
 | 05-10 | **M-31 / ADR-009 / templates/project-bootstrap/ 追加**: Build-Factory が回す各案件にも強制レイヤーを自動展開する仕組み (T-BTSTRAP-01〜06、6 タスク) |
 | 05-10 | **M-32 / ADR-010 (ADR-002 supersede)**: AI スタック 5層→3層 (Anthropic 純正中心 + LiteLLM サブ復活)、自前実装 8 項目 (T-AI-01〜08) を追加 |
 | 05-10 | **ADR-011 (完了判定ゲート)**: `pre-commit-check.sh` を完了報告の単一ゲートに、N/A 記入禁止を IMPLEMENTATION_PROTOCOL Step 6 に明記。当初 ADR-010 として作成したが ADR-010 (AI スタック) と衝突したため改番 |
+| 05-13 | **ADR-012 (Anthropic 公式 Memory 機能採用 / ADR-010 amend)**: Memory Tool (`memory_20250818`) + Context Editing (`clear_tool_uses_20250919` + `compact_20260112`) + Subagent Memory を一級市民として採用。NIH 削減方針。T-AI-MEM-01〜04 を新規追加。**T-AI-MEM-04 (provider-adapter) は「任意切替 (BYOK / workspace 設定 / per-session header / A/B test) + 障害時 fallback (T-AI-08)」両対応**。Obsidian Vault は Claude が自動 read/write 可能 (人間編集不要 / 全 provider 共有) |
+| 05-13 | **9 PR 連続 squash-merge / クリティカルパス 12/12 完走**: PR #233 (ADR-012 + T-AI-MEM-01〜04 + T-024-04) / #234 (T-M12-01 LiteLLM Router gap) / #235 (T-M28-02 Tier 1 trim) / #236 (T-BTSTRAP-01 templates 完整性) / #237 (T-BTSTRAP-03 Jinja2 engine) / #238 (T-M28-01 Context Builder gap) / #239 (T-003-02 Workspace Dashboard 5 KPI critical) / #240 (T-AI-04 Constitution 注入 gap) / #241 (T-AI-05 Cost tracking gap). 累計 346 新規 test / 6335 backend pytest passed / lint 12/12 OK. |
 
-ADR は `docs/decisions/` に 11 件 (ADR-002 は superseded、ADR-010 が AI スタック新方針、ADR-011 が完了判定ゲート)。
-**強制レイヤー**: `scripts/lint-mock.sh` + `scripts/validate-tickets.py` + `.claude/settings.json` (PostToolUse hook + permissions deny)
+ADR は `docs/decisions/` に 12 件 (ADR-002 は superseded、ADR-010 が AI スタック新方針 [ADR-012 で amend]、ADR-011 が完了判定ゲート、ADR-012 が Anthropic 公式 Memory 機能採用)。
+**強制レイヤー**: `scripts/lint-mock.sh` (12 check / 1 絵文字 + 2 AGPL + 3 ARCHIVE + 4 tickets + 5 secrets + 6 langgraph + 7 litellm-in-runner + 8 domain-boundaries + 9 self-provider-routing + 10 self-tool-trim + 11 template-skeleton + 12 self-constitution-inject) + `scripts/validate-tickets.py` + `.claude/settings.json` (PostToolUse hook + permissions deny)
 
 ---
 
@@ -287,5 +295,5 @@ python3 scripts/validate-tickets.py      # クリティカルパス 12 件のメ
 
 ---
 
-**最終更新: 2026-05-10**
+**最終更新: 2026-05-13** (ADR-012 cascade + 9 PR 連続 merge + クリティカルパス 12/12 完走)
 **責任者: 高本まさと (masato@engine-base.com) / 株式会社 ENGINE BASE**

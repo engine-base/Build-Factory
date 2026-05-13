@@ -165,3 +165,185 @@ async def validate(req: ValidateRequest) -> dict[str, Any]:
     except pa.ProviderAdapterError as e:
         raise _error("provider.invalid", str(e))
     return {"valid": True, "provider": req.provider, "model": req.model}
+
+
+# ──────────────────────────────────────────────────────────────────────
+# T-AI-MEM-04 (ADR-012 Decision 5): provider 任意切替 + 障害時 fallback
+# ──────────────────────────────────────────────────────────────────────
+
+
+from fastapi import Header, Request  # noqa: E402
+
+from services import provider_adapter_memory as pam  # noqa: E402
+
+
+def _map_pam_error(e: pam.ProviderAdapterMemoryError) -> HTTPException:
+    msg = str(e)
+    if "no provider available" in msg:
+        return _error("provider.unavailable", msg, status_code=503)
+    return _error("provider.invalid", msg, status_code=400)
+
+
+@router.get("/active")
+async def get_active_provider(
+    request: Request,
+    x_llm_provider: Optional[str] = Header(None, alias="X-LLM-Provider"),
+) -> dict[str, Any]:
+    """resolve_active_provider の現在値を返す.
+
+    Query / Header:
+      X-LLM-Provider           per-request override
+      session_active_route     per-session (query string)
+      workspace_preferred      per-workspace (query string)
+      user_id                  byok lookup key (query string)
+    """
+    q = request.query_params
+    user_id = q.get("user_id")
+    # policy_allow は明示的に query で渡された時のみ tuple 化. 未指定なら None
+    # (= 全 provider 許可) を渡して全 provider blocked を避ける.
+    policy_keys = (
+        q.getlist("policy_allow")
+        if hasattr(q, "getlist") and "policy_allow" in q
+        else None
+    )
+    try:
+        result = pam.resolve_active_provider(
+            header_provider=x_llm_provider,
+            session_active_route=q.get("session_active_route"),
+            workspace_preferred=q.get("workspace_preferred"),
+            user_id=user_id,
+            anthropic_healthy=q.get("anthropic_healthy", "true").lower() != "false",
+            policy_allow=policy_keys,
+        )
+    except pam.ProviderAdapterMemoryError as e:
+        raise _map_pam_error(e)
+    # GET = read endpoint なので audit emit しない (ADR-012 Decision 2 等の精神)
+    return result
+
+
+@router.get("/active/tool-spec")
+async def get_tool_spec_for_active(
+    request: Request,
+    x_llm_provider: Optional[str] = Header(None, alias="X-LLM-Provider"),
+) -> dict[str, Any]:
+    """active provider の Memory Tool tool_spec を返す (provider 非依存 caller 向け)."""
+    q = request.query_params
+    try:
+        resolved = pam.resolve_active_provider(
+            header_provider=x_llm_provider,
+            session_active_route=q.get("session_active_route"),
+            workspace_preferred=q.get("workspace_preferred"),
+            user_id=q.get("user_id"),
+        )
+        spec = pam.tool_spec_for(resolved["provider"])
+        cm = pam.context_editing_for(resolved["provider"])
+    except pam.ProviderAdapterMemoryError as e:
+        raise _map_pam_error(e)
+    return {
+        "provider": resolved["provider"],
+        "reason": resolved["reason"],
+        "tool_spec": spec,
+        "context_editing": cm,
+    }
+
+
+class SwitchProviderRequest(BaseModel):
+    to_provider: str
+    from_provider: Optional[str] = None
+    scope: str = "per-session"  # per-session / per-workspace / per-request
+    reason: str = "manual"
+    actor_user_id: Optional[str] = None
+    detail: Optional[dict] = None
+
+
+@router.post("/active")
+async def switch_active_provider(req: SwitchProviderRequest) -> dict[str, Any]:
+    """AC-2: 任意切替 (manual). audit 'provider.switched' emit.
+
+    AC-4: unsupported provider / unknown reason は 4xx state mutate なし.
+    """
+    if req.scope not in ("per-session", "per-workspace", "per-request"):
+        raise _error("provider.invalid", f"scope must be per-session / per-workspace / per-request, got {req.scope!r}")
+    if req.reason not in pam.VALID_SWITCH_REASONS:
+        raise _error(
+            "provider.invalid",
+            f"reason must be one of {pam.VALID_SWITCH_REASONS}, got {req.reason!r}",
+        )
+    try:
+        pam._validate_provider(req.to_provider, field="to_provider")
+        if req.from_provider:
+            pam._validate_provider(req.from_provider, field="from_provider")
+    except pam.ProviderAdapterMemoryError as e:
+        raise _map_pam_error(e)
+    audit_id = await pam.emit_switch_audit(
+        from_provider=req.from_provider,
+        to_provider=req.to_provider,
+        reason=req.reason,
+        scope=req.scope,
+        actor_user_id=req.actor_user_id,
+        extra_detail=req.detail,
+    )
+    return {
+        "to_provider": req.to_provider,
+        "from_provider": req.from_provider,
+        "scope": req.scope,
+        "reason": req.reason,
+        "audit_event_id": audit_id,
+        "audit_event_type": pam.audit_event_for_switch(req.reason),
+    }
+
+
+class FallbackTriggerRequest(BaseModel):
+    from_provider: str = "anthropic"
+    to_provider: str
+    reason: str = "circuit_breaker"
+    actor_user_id: Optional[str] = "system"
+    detail: Optional[dict] = None
+
+
+@router.post("/fallback/trigger")
+async def trigger_provider_fallback(req: FallbackTriggerRequest) -> dict[str, Any]:
+    """T-AI-08 circuit-breaker / policy_blocked / byok_missing 発火時の自動 fallback.
+
+    audit 'provider.fallback' emit (silent pick 禁止 = AC-4).
+    """
+    if req.reason not in pam.VALID_FALLBACK_REASONS:
+        raise _error(
+            "provider.invalid",
+            f"reason must be one of {pam.VALID_FALLBACK_REASONS}, got {req.reason!r}",
+        )
+    try:
+        pam._validate_provider(req.from_provider, field="from_provider")
+        pam._validate_provider(req.to_provider, field="to_provider")
+    except pam.ProviderAdapterMemoryError as e:
+        raise _map_pam_error(e)
+    audit_id = await pam.emit_switch_audit(
+        from_provider=req.from_provider,
+        to_provider=req.to_provider,
+        reason=req.reason,
+        scope="per-request",
+        actor_user_id=req.actor_user_id,
+        extra_detail=req.detail,
+    )
+    return {
+        "from_provider": req.from_provider,
+        "to_provider": req.to_provider,
+        "reason": req.reason,
+        "audit_event_id": audit_id,
+        "audit_event_type": pam.audit_event_for_switch(req.reason),
+    }
+
+
+@router.get("/capabilities/{provider}")
+async def get_provider_capabilities(provider: str) -> dict[str, Any]:
+    """provider ごとの capability matrix (memory tool native / native compaction
+    等). degrade 経路の判定用."""
+    try:
+        pam._validate_provider(provider)
+    except pam.ProviderAdapterMemoryError as e:
+        raise _map_pam_error(e)
+    return {
+        "provider": provider,
+        "capabilities": pam.CAPABILITIES.get(provider, {}),
+        "context_editing": pam.context_editing_for(provider),
+    }

@@ -5,14 +5,46 @@ upload_service.py — 画像アップロード (Supabase Storage)
 公開 URL を返す。account_settings.template_config から URL で参照する想定。
 
 開発時は Supabase Storage が無い場合は backend/static/uploads/ にフォールバック保存。
+
+## T-015-03 audit event 定数 (gap closure G1)
+
+  EVENT_UPLOAD_SUCCEEDED : 'uploads.upload_succeeded'
+  EVENT_UPLOAD_REJECTED  : 'uploads.upload_rejected' (invalid input)
 """
 from __future__ import annotations
 
 import hashlib
+import logging
 import os
 import time
 from pathlib import Path
 from typing import Optional
+
+logger = logging.getLogger(__name__)
+
+
+# T-015-03 G3: share_url TTL range (60 sec - 30 day)
+MIN_SHARE_TTL_SECONDS = 60
+MAX_SHARE_TTL_SECONDS = 60 * 60 * 24 * 30  # 30 日
+
+# T-015-03 G1: audit event 公開定数
+EVENT_UPLOAD_SUCCEEDED = "uploads.upload_succeeded"
+EVENT_UPLOAD_REJECTED = "uploads.upload_rejected"
+
+
+async def _emit_upload_audit(
+    event_type: str, *,
+    account_id: Optional[int],
+    kind: Optional[str],
+    detail: dict,
+) -> None:
+    """audit emit (best-effort). DB 不在環境では silent skip."""
+    payload = {"account_id": account_id, "kind": kind, **detail}
+    try:
+        from services.memory_service import emit_event
+        await emit_event(event_type, user_id=None, detail=payload)
+    except Exception as e:  # pragma: no cover
+        logger.warning("upload audit emit failed event=%s: %s", event_type, e)
 
 
 # ──────────────────────────────────────────
@@ -69,10 +101,38 @@ async def upload_image(
         bucket / path / size / storage
       }
     """
+    # T-015-03 G3: share_ttl_seconds range validation
+    if not isinstance(share_ttl_seconds, int) or isinstance(share_ttl_seconds, bool):
+        await _emit_upload_audit(
+            EVENT_UPLOAD_REJECTED,
+            account_id=account_id, kind=kind,
+            detail={"reason": "invalid_ttl_type", "ttl": str(share_ttl_seconds)},
+        )
+        raise ValueError("share_ttl_seconds must be int")
+    if share_ttl_seconds < MIN_SHARE_TTL_SECONDS or share_ttl_seconds > MAX_SHARE_TTL_SECONDS:
+        await _emit_upload_audit(
+            EVENT_UPLOAD_REJECTED,
+            account_id=account_id, kind=kind,
+            detail={"reason": "ttl_out_of_range", "ttl": share_ttl_seconds},
+        )
+        raise ValueError(
+            f"share_ttl_seconds must be in {MIN_SHARE_TTL_SECONDS}..{MAX_SHARE_TTL_SECONDS}"
+        )
+
     if len(content) > MAX_BYTES:
+        await _emit_upload_audit(
+            EVENT_UPLOAD_REJECTED,
+            account_id=account_id, kind=kind,
+            detail={"reason": "file_too_large", "size": len(content)},
+        )
         raise ValueError(f"file too large: {len(content)} bytes (max {MAX_BYTES})")
 
     if content_type not in ALLOWED_MIME:
+        await _emit_upload_audit(
+            EVENT_UPLOAD_REJECTED,
+            account_id=account_id, kind=kind,
+            detail={"reason": "unsupported_content_type", "content_type": content_type},
+        )
         raise ValueError(f"unsupported content type: {content_type}")
 
     object_path = _build_object_path(account_id, kind, filename)
@@ -91,6 +151,18 @@ async def upload_image(
         alt = f"{kind}_{filename}"
         result["markdown"] = build_markdown_snippet(result["url"], alt=alt)
     result["share_ttl_seconds"] = share_ttl_seconds
+
+    # T-015-03 G1: 成功時 audit emit
+    await _emit_upload_audit(
+        EVENT_UPLOAD_SUCCEEDED,
+        account_id=account_id, kind=kind,
+        detail={
+            "path": result.get("path"),
+            "size": result.get("size"),
+            "storage": result.get("storage"),
+            "share_ttl_seconds": share_ttl_seconds,
+        },
+    )
     return result
 
 

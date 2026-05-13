@@ -46,9 +46,11 @@
 [Phase 7] タスク分解           ✅ → docs/task-decomposition/2026-05-09_v1/
 [Phase 8] 画面モック (43 件)   ✅ → docs/mocks/2026-05-09_v1/
 ─────────────────────────────────────
-[Phase 9] 実装 (113 タスク)    ⏳ NEXT
+[Phase 9] 実装 (113 タスク)    🚧 進行中 (クリティカルパス 12/12 ✅ 完走 / 2026-05-13)
 [Phase 10] レビュー / 納品     ⏸ 未着手
 ```
+
+**クリティカルパス完走 (2026-05-13)**: T-019-01 → T-S0-13 → T-001-01 → T-001-02 → T-001-04 → T-001-06 → T-S0-08 → T-S0-09 → T-021-03 → T-020-02 → T-003-02 → T-M28-01 (12/12 ✅).
 
 ---
 
@@ -131,8 +133,9 @@
 | ADR-007 | EARS notation 必須 | `decisions/ADR-007-ears-notation.md` |
 | ADR-008 | Kanban 機能別アコーディオン | `decisions/ADR-008-kanban-by-feature.md` |
 | ADR-009 | 各案件への強制レイヤー自動展開 | `decisions/ADR-009-project-bootstrap-enforcement.md` |
-| ADR-010 | **AI スタック再設計 (3層 / Anthropic 純正中心 + LiteLLM サブ)** | `decisions/ADR-010-ai-stack-anthropic-native.md` |
+| ADR-010 | **AI スタック再設計 (3層 / Anthropic 純正中心 + LiteLLM サブ)** ⚠️ Amended by ADR-012 | `decisions/ADR-010-ai-stack-anthropic-native.md` |
 | ADR-011 | 完了判定ゲート (`pre-commit-check.sh`) と N/A 禁止原則 | `decisions/ADR-011-completion-gate.md` |
+| ADR-012 | **Anthropic 公式 Memory Tool / Context Editing / Subagent Memory 採用** (ADR-010 amend; T-AI-MEM-01〜04 新規; provider-adapter は **任意切替 + 障害時 fallback** 両対応 / BYOK / workspace 設定 / per-session header) | `decisions/ADR-012-anthropic-memory-tool-adoption.md` |
 
 ---
 

@@ -1,0 +1,122 @@
+# T-S0-03: license-check.yml (AGPL 防御 + ADR-010 機械的ガード CI 実効化)
+#
+# 本 PR + main push 時に AGPL/LGPL 依存検出 + ADR-010 機械的ガード
+# (LangGraph/LangChain in main runner path / emoji baseline drift / tickets baseline drift /
+#  ARCHIVE 残留 / secrets leak) を自動実行し、違反時はビルドを fail させる.
+#
+# 検出ロジックは既存 scripts/lint-mock.sh + scripts/validate-tickets.py に委譲.
+# このワークフロー自体は detection ロジックを **再実装しない** (REUSE).
+#
+# AC マッピング (1:1):
+#   AC-1 UBIQUITOUS    : 6 ステップ (--agpl/--no-langgraph/--emoji/--secrets/--archive
+#                        + validate-tickets) を毎 PR/push で実行, fail で exit_code != 0
+#   AC-2 EVENT-DRIVEN  : 各ステップが GitHub Actions log に exit code を残す
+#   AC-3 STATE-DRIVEN  : workflow は repo state を mutate しない (read-only)
+#   AC-4 UNWANTED      : AGPL/LGPL dep / LangGraph import / tickets issues > 0 で fail
+#
+# ADR-010 整合 (本セッションで仕様に散りばめた lint UNWANTED の実効化):
+#   - T-M28-02 §UNWANTED "If application code re-implements tool result trimming ...
+#                         the lint script shall fail"
+#   - T-M28-03 §UNWANTED "If application code re-implements prompt caching ...
+#                         the lint script shall fail"
+#   - T-M28-04 §UNWANTED "If application code generates the 9-section summary itself ...
+#                         the lint script shall fail"
+#   - T-M27-01 §UNWANTED "If LangGraph or LangChain imports appear in the main runner
+#                         code path, the lint script shall fail"
+#   - T-M27-01b/03 §UNWANTED 同上 (SDK Task tool の自前実装禁止)
+#   - T-003-02 §UNWANTED "If LangGraph or LangChain imports are introduced in the
+#                         handoff path of secretary_chat / delegation_service, the lint
+#                         script shall fail"
+#
+# 本 workflow は上記すべての lint UNWANTED を「lint script」として実体化する.
+
+name: license-check
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: license-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  license-and-mechanical-guards:
+    name: AGPL / ADR-010 / baseline mechanical guards
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # ──────────────────────────────────────────────────────────────
+      # AC-2: 既存 scripts/lint-mock.sh を 5 invocation で実行
+      # ──────────────────────────────────────────────────────────────
+
+      - name: AGPL/LGPL dependency detection (lint-mock --agpl)
+        run: bash scripts/lint-mock.sh --agpl
+
+      - name: ADR-010 LangGraph/LangChain mechanical guard (lint-mock --no-langgraph)
+        run: bash scripts/lint-mock.sh --no-langgraph
+
+      - name: Emoji baseline (lint-mock --emoji)
+        # baseline: 0. Lucide Icons 以外の絵文字混入は ADR-005 違反.
+        run: bash scripts/lint-mock.sh --emoji
+
+      - name: Secrets leak detection (lint-mock --secrets)
+        # T-001-01 AC-5: ハードコード鍵 (SUPABASE / generic) の検出.
+        run: bash scripts/lint-mock.sh --secrets
+
+      - name: ARCHIVE residual detection (lint-mock --archive)
+        # T-019-01: onlook/penpot 完全削除確認.
+        run: bash scripts/lint-mock.sh --archive
+
+      # ──────────────────────────────────────────────────────────────
+      # AC-2: validate-tickets.py (EARS AC ベースライン baseline=0)
+      # ──────────────────────────────────────────────────────────────
+
+      - name: Tickets baseline (validate-tickets.py)
+        run: python3 scripts/validate-tickets.py
+
+      # ──────────────────────────────────────────────────────────────
+      # T-S0-03 follow-up (T-025-01 #145 / T-025-02 #146 後追加):
+      # EARS AC JSON Schema validation (Draft-07)
+      # 全 tickets が 5 EARS forms (UBIQUITOUS/EVENT-DRIVEN/STATE-DRIVEN/OPTIONAL/UNWANTED)
+      # の pattern (When/While/Where/If/shall) を満たすことを enforce.
+      # ──────────────────────────────────────────────────────────────
+
+      - name: Install jsonschema for EARS validation
+        run: pip install "jsonschema>=4.0"
+
+      - name: EARS AC JSON Schema validation (validate-ears-ac.py)
+        run: python3 scripts/validate-ears-ac.py
+
+      # ──────────────────────────────────────────────────────────────
+      # AC-2: Summary (常に実行 / log 残し用)
+      # ──────────────────────────────────────────────────────────────
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "==================== T-S0-03 License & Mechanical Guard ===================="
+          echo "AGPL/LGPL:        ${{ steps.agpl.outcome || 'see above' }}"
+          echo "ADR-010:          ${{ steps.no-langgraph.outcome || 'see above' }}"
+          echo "Emoji baseline:   ${{ steps.emoji.outcome || 'see above' }}"
+          echo "Secrets:          ${{ steps.secrets.outcome || 'see above' }}"
+          echo "ARCHIVE residual: ${{ steps.archive.outcome || 'see above' }}"
+          echo "Tickets baseline: ${{ steps.tickets.outcome || 'see above' }}"
+          echo "EARS AC schema:   ${{ steps.ears-schema.outcome || 'see above' }}"
+          echo ""
+          echo "詳細は ADR-010 / requirements §11.6 / CLAUDE.md §5 参照."

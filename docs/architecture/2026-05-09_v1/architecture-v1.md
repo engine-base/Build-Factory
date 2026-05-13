@@ -251,3 +251,45 @@ constitutions（不変原則）
 tech-stack → functional-breakdown → feature-decomposition
   → task-decomposition → distributed-dev (Claude Code 実装開始)
 ```
+
+---
+
+## 2026-05-13 Addendum — ADR-012 反映 (Anthropic 公式 Memory 機能採用 / ADR-010 amend)
+
+### 影響を受けるレイヤ (7 層モデルへのマッピング)
+
+| 7 層 | 既存設計 (2026-05-09 v1) | ADR-012 後の差分 (2026-05-13) |
+|---|---|---|
+| **Layer 1 (永続記憶)** | PostgreSQL + Mem0 + Obsidian + Constitution | **+ Memory Tool `/memories` 仮想 root を Obsidian Vault dir にマップ**. filesystem は全 provider 共有. Constitution は `/memories/constitution/` 配下に注入 (T-AI-04 delegate). |
+| **Layer 2a (Claude 専用)** | anthropic-python + extended thinking + prompt cache + Memory + Files + Citations + Batch + Computer Use | **+ Memory Tool (`memory_20250818`) + Context Editing (`clear_tool_uses_20250919` + `compact_20260112`) + Subagent Memory + Dreaming (research preview)** を一級市民として採用. `client.beta.messages.create(..., context_management=...)` 経由. |
+| **Layer 2b (LiteLLM サブ)** | 画像生成 / 音声 / 安価バッチ / 緊急代替 | **+ Provider-adapter (任意切替 + 障害時 fallback 両対応)**. 任意切替経路 = BYOK / workspace 設定 / per-session header / A/B test. precedence 順: header → session → workspace → BYOK → ADR-010 既定 → T-AI-08 circuit-breaker. |
+| **Layer 3 (claude-agent-sdk + Subagent)** | handoff (mary→devon→quinn) + 3-tier compaction + Memory API + MCP server | **+ Subagent Memory** が persona 別 `/memories/subagent/<persona>/handoff/` で引継ぎ知識を保管. |
+
+### Entity への影響 (43 entities への追加候補)
+
+| 既存 entity | ADR-012 追加属性 |
+|---|---|
+| `workspaces` | `preferred_provider` (anthropic / openai / gemini / auto) カラム追加 (T-024-04 で migration) |
+| `byok_keys` | 既存. 任意切替の precedence source として活用 (新規追加なし) |
+| `chat_sessions` | `active_route` (per-session provider override) を追加 (provider_adapter 既存) |
+| (新規概念) `subagent_memory_files` | Obsidian Vault 上の filesystem entity. Mock の DB entity ではなく filesystem 直接管理 (DB migration 不要). |
+
+### Audit / Logging 追加 event_type
+
+- `provider.switched` (manual / auto-fallback / byok)
+- `provider.fallback` (byok_missing / circuit-breaker / policy_blocked)
+- `memory_tool.command` (view/create/str_replace/insert/delete/rename)
+- `subagent.memory.handoff_recorded` / `subagent.memory.preloaded` / `subagent.memory.cleared`
+- `tier1.tool_result_trimmed` (既存 T-M28-02 / ADR-012 整合)
+- `mid_term.read` / `mid_term.recorded` (既存 T-M30-03)
+
+### 関連 ticket
+
+- T-AI-MEM-01〜04 (Sprint S2 / S4, ADR-012 採用; tickets.json 参照)
+- T-024-04 (workspaces.preferred_provider column 追加 migration, 新規追加予定)
+
+### 関連 ADR
+
+- ADR-010 (AI Stack Anthropic native) — Amended by ADR-012
+- ADR-012 (Anthropic Memory Tool / Context Editing / Subagent Memory 採用)
+- ADR-003 (Memory 3-tier) — 概念モデルは保持. 実装は ADR-012 Decision 4 で SDK delegation に置換.

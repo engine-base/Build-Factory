@@ -210,16 +210,25 @@ def test_no_onlook_imports_in_frontend() -> None:
 
 
 def test_backend_no_onlook_modules() -> None:
-    """AC STATE: backend に onlook モジュール参照なし (テストファイル自身は除外)"""
+    """AC STATE: backend に onlook モジュール参照なし (テスト・自分自身は除外)
+
+    AST で実 import 文だけを検査する (文字列リテラル内の "onlook" を誤検出しない)。
+    """
+    import ast
     backend = ROOT / "backend"
     for f in backend.rglob("*.py"):
-        # self-exclusion: テストファイル自身は "onlook" を関数名・コメントで参照する
-        if f.name.startswith("test_supabase_migrations"):
+        if f.name.startswith("test_"):
             continue
-        text = f.read_text(errors="ignore")
-        for line in text.split("\n"):
-            stripped = line.strip()
-            if stripped.startswith("#"):
-                continue
-            if ("import" in stripped or "from " in stripped) and "onlook" in stripped.lower():
-                pytest.fail(f"{f}: onlook import remains: {stripped}")
+        try:
+            tree = ast.parse(f.read_text(errors="ignore"), filename=str(f))
+        except SyntaxError:
+            continue
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    if "onlook" in alias.name.lower():
+                        pytest.fail(f"{f}: onlook import remains: import {alias.name}")
+            elif isinstance(node, ast.ImportFrom):
+                mod = (node.module or "").lower()
+                if "onlook" in mod:
+                    pytest.fail(f"{f}: onlook import remains: from {node.module}")

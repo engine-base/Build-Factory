@@ -132,7 +132,12 @@ async def _vector_score_for(query: str, content: str) -> float:
     try:
         q_emb = await embed(query)
         c_emb = await embed(content)
-        return float(cosine_similarity(q_emb, c_emb))
+        if not q_emb or not c_emb:
+            return 0.0
+        score = float(cosine_similarity(q_emb, c_emb))
+        if score != score:  # NaN guard
+            return 0.0
+        return score
     except Exception:
         return 0.0
 

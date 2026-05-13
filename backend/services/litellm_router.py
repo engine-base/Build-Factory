@@ -297,6 +297,42 @@ def memory_api_writes_allowed_in_fallback(response: dict) -> bool:
 
 
 # ──────────────────────────────────────────────────────────────────────────
+# T-M12-01 + T-AI-MEM-04 cross-ref: emergency_chat 発火時の audit emit
+# ──────────────────────────────────────────────────────────────────────────
+
+
+async def emit_emergency_fallback_audit(
+    *,
+    from_provider: str = "anthropic",
+    to_provider: str,
+    actor_user_id: Optional[str] = "system",
+    extra_detail: Optional[dict] = None,
+) -> Optional[int]:
+    """emergency_chat の fallback 発火を T-AI-MEM-04 と同じ event_type
+    ('provider.fallback') で audit_logs に emit. silent pick 禁止 (AC-4 / ADR-012 5.5).
+
+    provider_adapter_memory.emit_switch_audit に委譲し circuit_breaker 由来の
+    fallback として記録する. emit 自体は失敗しても raise しない (best-effort).
+    """
+    try:
+        from services.provider_adapter_memory import emit_switch_audit
+        return await emit_switch_audit(
+            from_provider=from_provider,
+            to_provider=to_provider,
+            reason="circuit_breaker",
+            scope="per-request",
+            actor_user_id=actor_user_id,
+            extra_detail=extra_detail,
+        )
+    except Exception as e:  # pragma: no cover
+        import logging
+        logging.getLogger(__name__).warning(
+            "emergency fallback audit emit failed to=%s: %s", to_provider, e,
+        )
+        return None
+
+
+# ──────────────────────────────────────────────────────────────────────────
 # Sentinel comment (AC-5 lint で claude-runner が litellm を import しないこと)
 # ──────────────────────────────────────────────────────────────────────────
 

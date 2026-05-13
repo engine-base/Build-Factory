@@ -57,6 +57,7 @@ from routers.oauth import router as oauth_router
 from routers.user_lifecycle import router as user_lifecycle_router
 from routers.memory_facts import router as memory_facts_router
 from routers.mem0_bridge import router as mem0_bridge_router
+from routers.anthropic_memory import router as anthropic_memory_router
 from routers.chat_search import router as chat_search_router
 from routers.bf_profile import router as bf_profile_router
 from routers.ws import router as ws_router
@@ -69,6 +70,7 @@ from routers.admin_seed import router as admin_seed_router
 from routers.personas_guideline import router as personas_guideline_router
 from routers.spec_mock_links import router as spec_mock_links_router
 from routers.feature_decomposer import router as feature_decomposer_router
+from routers.task_decomposition import router as task_decomposition_router
 from routers.impact_analyzer import router as impact_analyzer_router
 from routers.task_list_view import router as task_list_view_router
 from routers.impact_highlight import router as impact_highlight_router
@@ -89,13 +91,27 @@ from routers.export_trigger import router as export_trigger_router
 from routers.provider_adapter import router as provider_adapter_router
 from routers.byok import router as byok_router
 from routers.tier2_cache import router as tier2_cache_router
+from routers.tier1_tool_trim import router as tier1_tool_trim_router
+from routers.project_bootstrap import router as project_bootstrap_router
 from routers.semantic_retrieval import router as semantic_retrieval_router
 from routers.chat_threads import router as chat_threads_router
 from routers.ai_employees import employees_router as ai_employees_router, personas_router as ai_personas_router
 from routers.hierarchy import router as hierarchy_router
 from routers.long_term_layer import router as long_term_layer_router
 from routers.mid_term_layer import router as mid_term_layer_router
+from routers.short_term_layer import router as short_term_layer_router
+from routers.component_catalog import router as component_catalog_router
+from routers.reviewer_persona import router as reviewer_persona_router
+from routers.reviewer_turn_counter import router as reviewer_turn_counter_router
+from routers.integration_test_conductor import router as integration_test_conductor_router
+from routers.sandbox_landlock import router as sandbox_landlock_router
+from routers.cost_dashboard import router as cost_dashboard_router
 from routers.memory_pipeline import router as memory_pipeline_router
+from routers.handoff import router as handoff_router
+from routers.ears_classifier import router as ears_classifier_router
+from routers.screens_components import router as screens_components_router
+from routers.unified_search import router as unified_search_router
+from routers.intent_classifier import router as intent_classifier_router
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 
@@ -203,6 +219,7 @@ app.include_router(oauth_router)
 app.include_router(user_lifecycle_router)
 app.include_router(memory_facts_router)
 app.include_router(mem0_bridge_router)
+app.include_router(anthropic_memory_router)
 app.include_router(chat_search_router)
 app.include_router(bf_profile_router)
 app.include_router(ws_router)
@@ -215,6 +232,7 @@ app.include_router(admin_seed_router)
 app.include_router(personas_guideline_router)
 app.include_router(spec_mock_links_router)
 app.include_router(feature_decomposer_router)
+app.include_router(task_decomposition_router)
 app.include_router(impact_analyzer_router)
 app.include_router(task_list_view_router)
 app.include_router(impact_highlight_router)
@@ -235,6 +253,8 @@ app.include_router(export_trigger_router)
 app.include_router(provider_adapter_router)
 app.include_router(byok_router)
 app.include_router(tier2_cache_router)
+app.include_router(tier1_tool_trim_router)
+app.include_router(project_bootstrap_router)
 app.include_router(semantic_retrieval_router)
 app.include_router(chat_threads_router)
 app.include_router(ai_employees_router)
@@ -242,7 +262,19 @@ app.include_router(ai_personas_router)
 app.include_router(hierarchy_router)
 app.include_router(long_term_layer_router)
 app.include_router(mid_term_layer_router)
+app.include_router(short_term_layer_router)
+app.include_router(component_catalog_router)
+app.include_router(reviewer_persona_router)
+app.include_router(reviewer_turn_counter_router)
+app.include_router(integration_test_conductor_router)
+app.include_router(sandbox_landlock_router)
+app.include_router(cost_dashboard_router)
 app.include_router(memory_pipeline_router)
+app.include_router(handoff_router)
+app.include_router(ears_classifier_router)
+app.include_router(screens_components_router)
+app.include_router(unified_search_router)
+app.include_router(intent_classifier_router)
 
 
 @app.get("/health")

@@ -200,5 +200,32 @@ crash 時は S-032 セッション詳細 UI で 4 択 resume:
 
 ---
 
-**最終更新: 2026-05-10**
+**最終更新: 2026-05-13**
 **参照: CLAUDE.md / docs/HANDOVER.md / docs/decisions/**
+
+---
+
+## 2026-05-13 Addendum — ADR-012 反映
+
+### Step 4 (REUSE / REFACTOR 宣言) のガイダンス追加
+
+**Memory / Context / Subagent Memory 系の実装は ADR-012 の方針で公式機能 delegation を優先する**:
+
+1. tool result trim / age cap / dedup / window eviction 自前実装 ⛔
+   → claude-agent-sdk の `clear_tool_uses_20250919` (Context Editing) を REUSE
+2. 9-section structured summary の自前 generation ⛔
+   → claude-agent-sdk の `compact_20260112` (Compaction) 出力を採用
+3. Obsidian Vault に対する独自 file CRUD layer ⛔
+   → `services/anthropic_memory_tool.MemoryToolHandler` を REUSE (Memory Tool `memory_20250818`)
+4. handoff 引継ぎ用の独自 memory store ⛔
+   → `services/subagent_memory.SubagentMemoryStore` を REUSE
+5. provider 切替の独自実装 ⛔
+   → `services/provider_adapter.py` + `services/byok_store.py` + 新規 `services/provider_adapter_memory.py` (T-AI-MEM-04) を REUSE. precedence: header → session → workspace → BYOK → 既定 → 障害時 fallback
+
+`scripts/lint-mock.sh` に以下の禁止語検査が機械的に効いている (T-M28-02 / T-M30-03 で追加済):
+- tool result trim 禁止語 (`trim_tool_result`, `_apply_size_cap`, `_apply_age_cap`, ...)
+- 9-section 自前 generation 禁止語 (`generate_9_section_summary`, `build_9_section_summary`, ...)
+
+### Step 6 (完了判定ゲート) への影響なし
+
+`bash scripts/pre-commit-check.sh` の挙動は不変. ADR-012 関連の lint も同 script 経由で検査される.

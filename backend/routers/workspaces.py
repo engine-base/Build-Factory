@@ -69,6 +69,8 @@ class WorkspaceCreate(BaseModel):
     description: Optional[str] = None
     project_meta: Optional[dict] = None
     creator_user_id: str = "masato"
+    # T-024-04 (ADR-012 Decision 5): provider 任意切替
+    preferred_provider: Optional[str] = None
 
 
 class WorkspaceUpdate(BaseModel):
@@ -86,6 +88,8 @@ class WorkspaceUpdate(BaseModel):
     slack_channel: Optional[str] = None
     phase_gate_mode: Optional[str] = None  # strict/guide/free
     redlines: Optional[list] = None  # JSON 配列
+    # T-024-04 (ADR-012 Decision 5): workspace 単位の provider 任意切替
+    preferred_provider: Optional[str] = None
 
 
 class MemberAdd(BaseModel):
@@ -145,12 +149,21 @@ async def create_workspace(body: WorkspaceCreate):
     _validate_actor(body.creator_user_id)
     if body.description is not None and len(body.description) > 2000:
         raise _error("workspaces.description_too_long", "description must be <= 2000 chars")
+    # T-024-04 AC-4: preferred_provider enum 外値は state mutate 前に reject.
+    if body.preferred_provider is not None:
+        try:
+            ws.validate_preferred_provider(body.preferred_provider)
+        except ws.InvalidPreferredProviderError as e:
+            raise _error("workspaces.invalid_preferred_provider", str(e))
     try:
         result = await ws.create_workspace(
             account_id=body.account_id, name=name,
             description=body.description, project_meta=body.project_meta,
             creator_user_id=body.creator_user_id,
+            preferred_provider=body.preferred_provider,
         )
+    except ws.InvalidPreferredProviderError as e:
+        raise _error("workspaces.invalid_preferred_provider", str(e))
     except ValueError as e:
         raise _error("workspaces.create_failed", str(e))
     await _audit_ws(
@@ -172,14 +185,67 @@ async def update_workspace(
     actor_user_id: Optional[str] = None,
 ):
     fields = body.model_dump(exclude_unset=True)
+    # T-024-04 AC-4: preferred_provider enum 外値は state mutate 前に reject.
+    if "preferred_provider" in fields:
+        try:
+            ws.validate_preferred_provider(fields["preferred_provider"])
+        except ws.InvalidPreferredProviderError as e:
+            raise _error(
+                "workspaces.invalid_preferred_provider", str(e),
+                status_code=400,
+            )
     if actor_user_id is not None:
         fields["actor_user_id"] = actor_user_id
-    return await ws.update_workspace(workspace_id, **fields)
+    try:
+        return await ws.update_workspace(workspace_id, **fields)
+    except ws.InvalidPreferredProviderError as e:
+        raise _error("workspaces.invalid_preferred_provider", str(e))
 
 
 @router.delete("/{workspace_id}")
 async def archive_workspace(workspace_id: int, actor_user_id: Optional[str] = None):
     return await ws.archive_workspace(workspace_id, actor_user_id=actor_user_id)
+
+
+# ──────────────────────────────────────────────────────────────────────
+# T-003-02: Workspace Dashboard 5 KPI (AC-1 / AC-2 / AC-5)
+# ──────────────────────────────────────────────────────────────────────
+
+
+@router.get("/{workspace_id}/dashboard")
+async def get_workspace_dashboard(
+    workspace_id: int,
+    user_id: Optional[str] = None,
+):
+    """5 KPI (progress / completed / running / cost / pending approvals).
+
+    AC-2: 800ms 以内 / AC-5 (#1): permission チェックで 403 / AC-1: 5 KPI 必須.
+    """
+    if workspace_id <= 0:
+        raise _error("workspaces.invalid_id", "workspace_id must be > 0")
+    # AC-5 (#1) permission check: workspace 存在 + (user_id 指定なら member 確認)
+    w = await ws.get_workspace(workspace_id)
+    if not w:
+        raise _error(
+            "workspaces.not_found", f"workspace not found: {workspace_id}",
+            status_code=404,
+        )
+    if user_id is not None:
+        if not isinstance(user_id, str) or not user_id.strip():
+            raise _error("workspaces.invalid_user_id", "user_id must not be empty")
+        member = await ws.get_member(workspace_id, user_id.strip())
+        if not member:
+            raise _error(
+                "workspaces.forbidden",
+                f"user {user_id} is not a member of workspace {workspace_id}",
+                status_code=403,
+            )
+    # KPI 集計
+    from services import workspace_dashboard as wd
+    try:
+        return await wd.get_dashboard_stats(workspace_id)
+    except wd.DashboardStatsError as e:
+        raise _error("workspaces.invalid", str(e))
 
 
 # ── members ────────────────────────────────

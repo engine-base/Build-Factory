@@ -1,0 +1,65 @@
+{
+  "_meta": {
+    "title": "Functional Breakdown 2026-05-13 ADR-012 Addendum",
+    "purpose": "ADR-012 (Anthropic Memory Tool / Context Editing / Subagent Memory / Provider-adapter) の cascade として screens / features / entities / roles に追加される差分を、既存 JSON を再整形せず別ファイルで保持する.",
+    "applies_to": [
+      "screens.json",
+      "features.json",
+      "entities.json",
+      "roles.json"
+    ],
+    "date": "2026-05-13",
+    "adr": "ADR-012",
+    "related_tickets": ["T-AI-MEM-01", "T-AI-MEM-02", "T-AI-MEM-03", "T-AI-MEM-04", "T-024-04"]
+  },
+
+  "screens_addendum": {
+    "affected_screens": [
+      "S-workspace-settings",
+      "S-chat (per-session provider drop-down)"
+    ],
+    "new_ui_elements": [
+      "workspace.preferred_provider drop-down (anthropic / openai / gemini / auto)",
+      "chat.session.provider_override drop-down (per-session 一時切替)",
+      "byok keys management UI (既存活用)"
+    ],
+    "note": "詳細: ADR-012 Decision 5.5 / docs/architecture/2026-05-09_v1/architecture-v1.md 2026-05-13 Addendum"
+  },
+
+  "features_addendum": {
+    "affected_features": ["M-28", "M-30", "F-AI"],
+    "note": "M-28 (Memory Context Builder) / M-30 (Memory 3-tier) / F-AI (AI 社員) の実装方式が「自前」→「Anthropic 公式 Memory Tool / Context Editing / Subagent Memory + 薄い wrapper」に変更. 要件文の意味は不変. provider 任意切替 + 障害時 fallback の両方を T-AI-MEM-04 でサポート."
+  },
+
+  "entities_addendum": {
+    "new_columns": [
+      {
+        "entity": "workspaces",
+        "column": "preferred_provider",
+        "type": "enum(anthropic, openai, gemini, auto)",
+        "default": "auto",
+        "nullable": false,
+        "migration_ticket": "T-024-04"
+      }
+    ],
+    "new_concepts": [
+      {
+        "name": "subagent_memory_files",
+        "storage": "filesystem (Obsidian Vault)",
+        "pattern": "/memories/subagent/<persona>/handoff/<ts>-from-<source>.md",
+        "db_migration_needed": false,
+        "note": "DB entity ではなく filesystem 直接管理. RLS は filesystem permission で代替."
+      }
+    ]
+  },
+
+  "roles_addendum": {
+    "permission_additions": [
+      {"role": "admin / owner", "permission": "workspace.preferred_provider:write"},
+      {"role": "member", "permission": "session.active_route:write (per-session override)"},
+      {"role": "admin / owner", "permission": "byok.keys:write"},
+      {"role": "all (auth required)", "permission": "memory_tool:read+write (within own workspace /memories)"}
+    ],
+    "note": "workspace 全体の provider 切替は admin / owner のみ. per-session 一時切替は member 可."
+  }
+}
