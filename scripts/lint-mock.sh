@@ -433,21 +433,39 @@ check_no_self_constitution_inject() {
 # ----------------------------------------------------------------
 check_no_self_9section_summary() {
   echo "[14/14] 9-section summary 自前実装検知 (T-M30-03 AC-4 / T-M28-04 cross-ref)..."
-  # 禁止語: 新規に 9-section summary を生成する関数定義シンボル.
-  local forbidden_re='\bdef[[:space:]]+(generate_9_section_summary|build_9_section_summary|synthesize_9_section_summary|compose_9_section_summary|build_structured_9_section|make_9_section_summary)\b'
+  # 通用語 pattern (hard-coded list ではない):
+  #   verb 語: generate / build / make / compose / synthesize / create /
+  #            produce / assemble / construct / render / emit / write
+  #   数字語: 9 / nine
+  # variation:
+  #   v1: def <verb>..._<9|nine>[_.]?section[s]?[_.]?summary
+  #   v2: def <verb>..._summary_<9|nine>[_.]?section[s]?
+  #   v3: def <verb>...<9|nine>[_.]?sections?[_.]?for_  (例: 9_sections_for_thread)
+  # 例外:
+  #   - mid_term_layer.py / tier3_structured_summary.py / tier2_cache.py
+  #     (cross-module invariant participant)
+  #   - backend/tests/** (テストコードは検査対象外)
+  local verb='(generate|build|make|compose|synthesize|create|produce|assemble|construct|render|emit|write)'
+  local nine='(9|nine)'
+  local re1="\\bdef[[:space:]]+[a-zA-Z_]*${verb}[a-zA-Z_]*_${nine}[._]?sections?[._]?summary\\b"
+  local re2="\\bdef[[:space:]]+[a-zA-Z_]*${verb}[a-zA-Z_]*_summary_${nine}[._]?sections?\\b"
+  local re3="\\bdef[[:space:]]+[a-zA-Z_]*${verb}[a-zA-Z_]*_${nine}[._]?sections?[._]?for[._]"
   local hits
-  hits=$(grep -rnE "$forbidden_re" \
+  hits=$(grep -rnEi "${re1}|${re2}|${re3}" \
     --include="*.py" \
     --exclude="mid_term_layer.py" \
     --exclude="tier3_structured_summary.py" \
+    --exclude="tier2_cache.py" \
+    --exclude-dir="tests" \
     backend/services backend/routers 2>/dev/null || true)
   if [ -n "$hits" ]; then
     echo -e "${RED}NG: app code に 9-section summary 自前生成の禁止語 (T-M30-03 AC-4 / ADR-010)${NC}"
     echo "$hits"
     echo "→ 9-section summary は claude-agent-sdk auto-compaction の出力を採用. 自前生成禁止"
+    echo "→ 例外: mid_term_layer.py / tier3_structured_summary.py / tier2_cache.py のみ"
     EXIT_CODE=1
   else
-    echo -e "${GREEN}OK: app code に 9-section summary 自前生成なし${NC}"
+    echo -e "${GREEN}OK: app code に 9-section summary 自前生成なし (通用語 pattern PASS)${NC}"
   fi
 }
 

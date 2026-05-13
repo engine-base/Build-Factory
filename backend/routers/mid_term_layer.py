@@ -14,8 +14,21 @@ Endpoint:
 AC マッピング (1:1):
   AC-1 UBIQUITOUS    : M-30 中期 layer 統一 API (latest_summary / list_summaries
                        / record_summary).
+                       9-section SECTION_KEYS invariant は mid_term_layer /
+                       tier2_cache / tier3_structured_summary の 3 module で
+                       完全一致 (cross-module 整合は test_g6_section_keys_
+                       match_tier2_cache_mandatory / *_tier3_* で fail-on-drift).
   AC-2 EVENT-DRIVEN  : 2 秒以内 + record で 'mid_term.recorded' audit emit.
-                       Read endpoints は emit しない (spec 明文).
+                       Read endpoints は HTTP 層では emit しない (spec 明文
+                       "Read endpoints shall not emit audit events").
+                       spec 第 1 文 "When latest_summary or record_summary is
+                       invoked ... emit 'mid_term.read' / 'mid_term.recorded'"
+                       との見かけの矛盾は次のように resolve:
+                         - HTTP GET 経路 → emit_audit=False (本 router)
+                         - Python service 直接呼出 (memory_pipeline 等)
+                           → mtl.latest_summary_audited(emit_audit=True)
+                           で 'mid_term.read' を emit.
+                       これにより spec 両文を同時充足する.
                        audit detail の source は 'chat_thread_store' /
                        'memory_service' (G3 normalization).
   AC-3 STATE-DRIVEN  : 既存 conversation_summarizer / conversation_memory /
@@ -24,7 +37,8 @@ AC マッピング (1:1):
   AC-4 UNWANTED      : 全 4xx は {detail:{code,message}} 形式統一 (pydantic 422
                        排除). invalid input -> 400 / unknown thread -> 404 /
                        unauthorized actor -> 401. 失敗時 persistent state
-                       mutate なし.
+                       mutate なし. 9-section 自前生成は scripts/lint-mock.sh
+                       check #14 で 通用語 pattern 検知 (hard-coded ではない).
 """
 from __future__ import annotations
 

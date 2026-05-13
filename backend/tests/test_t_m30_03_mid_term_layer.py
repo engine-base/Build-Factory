@@ -1358,6 +1358,91 @@ def test_g5_module_does_not_define_self_9section_function():
             )
 
 
+# ──────────────────────────────────────────────────────────────────────
+# Gap closure (post-PR #247 audit): lint #14 通用語 pattern 強化検証
+# ──────────────────────────────────────────────────────────────────────
+
+
+def _run_lint_with_temp_file(tmp_path, file_content: str) -> tuple[int, str]:
+    """app code 階層に一時 file を置いて lint --no-self-9section を回す.
+
+    Returns: (returncode, combined stdout+stderr)
+    """
+    import shutil
+    import subprocess
+    from pathlib import Path
+    repo = Path(__file__).resolve().parents[2]
+    target_dir = repo / "backend" / "services"
+    # 一時 file を services 配下に書き込み (lint の検索対象に入る)
+    target_file = target_dir / "_lint_probe_temp.py"
+    try:
+        target_file.write_text(file_content, encoding="utf-8")
+        r = subprocess.run(
+            ["bash", "scripts/lint-mock.sh", "--no-self-9section"],
+            capture_output=True, text=True, timeout=30, cwd=str(repo),
+        )
+        return r.returncode, (r.stdout + r.stderr)
+    finally:
+        if target_file.exists():
+            target_file.unlink()
+        # __pycache__ の cleanup
+        pycache = target_dir / "__pycache__"
+        if pycache.exists():
+            for f in pycache.glob("_lint_probe_temp*"):
+                f.unlink()
+            # remove dir only if empty
+            try:
+                shutil.rmtree(pycache, ignore_errors=True)
+            except OSError:
+                pass
+
+
+@pytest.mark.parametrize("probe_def", [
+    # variation 1: <verb>_<9|nine>[_.]section[s][_.]summary
+    "def build_9_section_summary(msgs): pass",
+    "def build_9section_summary(msgs): pass",        # アンダースコアなし
+    "def make_nine_section_summary(msgs): pass",      # nine 英単語
+    "def generate_9_sections_summary(msgs): pass",    # 複数形
+    "def synthesize_9_section_summary(msgs): pass",
+    # variation 2: <verb>_summary_<9|nine>[_.]section[s]
+    "def compose_summary_9_sections(msgs): pass",
+    "def create_summary_nine_sections(msgs): pass",
+    # variation 3: <verb>_<9|nine>[_.]sections?[_.]for_
+    "def assemble_9_sections_for_thread(msgs): pass",
+    "def construct_nine_section_for_session(msgs): pass",
+])
+def test_lint_14_catches_self_9section_variations(tmp_path, probe_def):
+    """lint #14 が通用語 variation を全部 fail させること."""
+    code, output = _run_lint_with_temp_file(
+        tmp_path, f"# probe\n{probe_def}\n",
+    )
+    assert code != 0, (
+        f"lint #14 must REJECT variation: {probe_def!r}\n"
+        f"output[:600]={output[:600]}"
+    )
+    assert "NG" in output, (
+        f"expected NG in output for {probe_def!r}, got: {output[:400]}"
+    )
+
+
+@pytest.mark.parametrize("benign_def", [
+    # benign: 9-section ではない普通の名前
+    "def build_summary(msgs): pass",
+    "def generate_response(msgs): pass",
+    "def compose_payload(msgs): pass",
+    "def section_count(): return 9",
+])
+def test_lint_14_allows_benign_function_names(tmp_path, benign_def):
+    """lint #14 が無関係な関数名で false-positive しないこと."""
+    code, output = _run_lint_with_temp_file(
+        tmp_path, f"# benign probe\n{benign_def}\n",
+    )
+    assert code == 0, (
+        f"lint #14 must NOT reject benign name: {benign_def!r}\n"
+        f"output[:600]={output[:600]}"
+    )
+
+
 # ══════════════════════════════════════════════════════════════════════
 # Spec gap closure: G6 cross-module SECTION_KEYS invariant
 # ══════════════════════════════════════════════════════════════════════
@@ -1383,16 +1468,66 @@ def test_g6_section_keys_match_tier3_when_available():
     )
 
 
-def test_g6_section_keys_match_tier2_cache_when_available():
-    """tier2_cache が SECTION_KEYS を持つなら 一致."""
-    try:
-        from services import tier2_cache as t2
-    except ImportError:
-        pytest.skip("tier2_cache not available")
-    if not hasattr(t2, "SECTION_KEYS"):
-        pytest.skip("tier2_cache has no SECTION_KEYS (Phase 1 acceptable)")
+def test_g6_section_keys_match_tier2_cache_mandatory():
+    """tier2_cache.SECTION_KEYS が必ず存在し mid_term_layer と完全一致.
+
+    AC-1 spec 文 "shall hold cross-module (mid_term_layer / tier2_cache /
+    tier3_structured_summary)" は tier2_cache を名指ししているため
+    skip 不可 (skip すると AC-1 invariant が満たされない).
+    KNOWN_SUMMARY_SECTIONS は deprecated alias として SECTION_KEYS と同値.
+    """
+    from services import tier2_cache as t2
+    assert hasattr(t2, "SECTION_KEYS"), (
+        "tier2_cache must define SECTION_KEYS (AC-1 cross-module invariant)"
+    )
     assert tuple(t2.SECTION_KEYS) == tuple(mtl.SECTION_KEYS), (
         "9-section invariant violated cross-module (mid_term_layer vs tier2)"
+    )
+    assert tuple(t2.KNOWN_SUMMARY_SECTIONS) == tuple(t2.SECTION_KEYS), (
+        "tier2_cache.KNOWN_SUMMARY_SECTIONS must be a same-value alias"
+    )
+
+
+def test_g6_section_keys_match_tier3_mandatory_when_module_present():
+    """tier3_structured_summary が存在する場合は SECTION_KEYS 必須 + 一致.
+
+    Phase 1 では tier3 module は optional だが, 存在するときに SECTION_KEYS
+    が無い / 不一致は invariant 違反として fail させる.
+    """
+    try:
+        from services import tier3_structured_summary as t3
+    except ImportError:
+        pytest.skip("tier3_structured_summary not yet merged (PR #128 pending)")
+    assert hasattr(t3, "SECTION_KEYS"), (
+        "tier3_structured_summary must define SECTION_KEYS (AC-1 invariant)"
+    )
+    assert tuple(t3.SECTION_KEYS) == tuple(mtl.SECTION_KEYS), (
+        "9-section invariant violated cross-module (mid_term_layer vs tier3)"
+    )
+
+
+def test_g6_format_summary_text_uses_section_keys_order():
+    """tier2_cache.format_summary_text が SECTION_KEYS 順で出力する.
+
+    入力 dict の挿入順に依存せず, SECTION_KEYS 固定順で markdown 化される
+    invariant. これにより cross-module で順序まで安定する.
+    """
+    from services import tier2_cache as t2
+    shuffled = {
+        "next_steps": ["s1"],
+        "context": ["c1"],
+        "decisions": ["d1"],
+    }
+    rendered = t2.format_summary_text(shuffled)
+    idx_context = rendered.find("## context")
+    idx_decisions = rendered.find("## decisions")
+    idx_next_steps = rendered.find("## next_steps")
+    assert idx_context >= 0
+    assert idx_decisions >= 0
+    assert idx_next_steps >= 0
+    assert idx_context < idx_decisions < idx_next_steps, (
+        f"format_summary_text must follow SECTION_KEYS order, got "
+        f"context@{idx_context} decisions@{idx_decisions} next_steps@{idx_next_steps}"
     )
 
 

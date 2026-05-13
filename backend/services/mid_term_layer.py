@@ -180,10 +180,22 @@ def _require_thread_exists(thread_id: int) -> None:
 def _normalize_summary(raw: Any) -> Optional[dict[str, list[str]]]:
     """raw dict から 9-section dict を作る (不足 key は空 list で補う).
 
-    9 section 不変条件:
+    9 section 不変条件 (戻り値):
       - 全 SECTION_KEYS が必ず存在
       - 各値は list[str]
       - raw が dict でない / 全 key 不在 → None (無効扱い)
+
+    AC-4 spec 文 "If the SDK summarizer backend returns invalid output (missing
+    SECTION_KEYS / wrong types) ... fall back to input summary unchanged" の
+    "missing SECTION_KEYS" 解釈 (permissive):
+      - "全 key 不在" を invalid (None) として fallback トリガ
+      - "一部 key 不在" は空 list 補完 (extension 耐性 + 経路 A/B の段階更新を許容)
+      - "wrong types" (list でない値) は best-effort 文字列化で吸収
+    厳格解釈 (= 一部 key 不在も invalid) との差分は意図的:
+      - 経路 A (chat_thread_store) と 経路 B (memory_service) が SECTION_KEYS の
+        追加に同期せず drift する Phase 2 移行期があり得るため
+      - cross-module invariant は test (G6) で別途強制しているので, 単一
+        record の partial section は dual-write の温存に寄与する
 
     extra key は無視する (将来拡張への耐性). list 内の非 str は str() 化.
     """
@@ -354,9 +366,22 @@ async def latest_summary_audited(
 ) -> dict[str, Any]:
     """AC-2 'mid_term.read' audit emit 付き latest_summary 呼出 (service 層).
 
-    HTTP GET endpoint は emit_audit=False で呼ぶ (AC-2 "Read endpoints shall not
-    emit audit events"). memory_pipeline 等の Python 直接呼出経路は emit_audit=True
-    で audit を残す.
+    AC-2 spec 文面の見かけの矛盾の resolution:
+      第 1 文: "When latest_summary or record_summary is invoked, the system
+              shall ... emit an audit_logs entry ('mid_term.read' /
+              'mid_term.recorded') carrying thread_id and source"
+      第 2 文: "Read endpoints shall not emit audit events"
+
+    実装の resolve:
+      - HTTP read endpoint (GET /api/mid-term/summary 等) → emit_audit=False
+        (第 2 文 "Read endpoints" は HTTP endpoint を指す解釈)
+      - Python service 層直接呼出 (memory_pipeline.build_context 等) →
+        emit_audit=True で 'mid_term.read' を emit
+        (第 1 文 "When latest_summary ... is invoked" は service 呼出を含む)
+    両文を同時充足する唯一の整合 interpretation.
+
+    record_summary は第 1 文に対応し HTTP/service 共に emit_audit=True 既定
+    (record は read ではないため "Read endpoints shall not emit" の対象外).
     """
     result = latest_summary(
         thread_id,
