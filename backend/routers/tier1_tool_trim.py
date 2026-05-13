@@ -18,8 +18,8 @@ from __future__ import annotations
 import logging
 from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel
 
 from services import tier1_tool_trim as t1
 
@@ -42,25 +42,44 @@ def _map_service_error(e: t1.Tier1ToolTrimError) -> HTTPException:
 
 
 class TrimEventRequest(BaseModel):
-    session_id: str = Field(..., min_length=1, max_length=t1.MAX_SESSION_ID_LEN)
-    original_size: int = Field(..., ge=0, le=t1.MAX_ORIGINAL_SIZE)
-    trimmed_size: int = Field(..., ge=0, le=t1.MAX_ORIGINAL_SIZE)
+    """型検査のみ. range/長さ validation は service 層へ委譲 (AC-4 4xx 形式統一)."""
+    session_id: Optional[str] = None
+    original_size: Optional[int] = None
+    trimmed_size: Optional[int] = None
     actor_user_id: Optional[str] = None
     tool_name: Optional[str] = None
     reason: Optional[str] = None
 
 
 @router.post("/tool-result-trim")
-async def tool_result_trim(req: TrimEventRequest) -> dict[str, Any]:
-    """SDK が tool result trim を実行した時に呼ぶ audit endpoint."""
+async def tool_result_trim(request: Request) -> dict[str, Any]:
+    """SDK が tool result trim を実行した時に呼ぶ audit endpoint.
+
+    AC-4: 全 4xx は {detail:{code,message}} 形式で統一.
+    pydantic 標準 422 ({detail:[...]}) は本 endpoint では返さず, 全 validation
+    を service 層 (Tier1ToolTrimError) に委譲して 400/401 + structured error
+    に正規化する.
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        raise _error("tier1.invalid", "request body must be valid JSON")
+    if not isinstance(body, dict):
+        raise _error("tier1.invalid", "request body must be a JSON object")
+
+    # 型 / 必須 check (range は service 層)
+    for required in ("session_id", "original_size", "trimmed_size"):
+        if required not in body:
+            raise _error("tier1.invalid", f"{required} is required")
+
     try:
         return await t1.record_trim_event(
-            req.session_id,
-            req.original_size,
-            req.trimmed_size,
-            actor_user_id=req.actor_user_id,
-            tool_name=req.tool_name,
-            reason=req.reason,
+            body.get("session_id"),
+            body.get("original_size"),
+            body.get("trimmed_size"),
+            actor_user_id=body.get("actor_user_id"),
+            tool_name=body.get("tool_name"),
+            reason=body.get("reason"),
         )
     except t1.Tier1ToolTrimError as e:
         raise _map_service_error(e)

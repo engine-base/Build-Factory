@@ -285,29 +285,29 @@ check_domain_boundaries() {
 # ----------------------------------------------------------------
 # 9. T-M28-02 AC-4 UNWANTED: tool result trimming 自前実装の禁止語検知
 #    ADR-010: trim 本体は claude-agent-sdk の内蔵機能.
-#    application code は size cap / age cap / dedup / truncate / window
-#    の自前実装を行わない. backend/services/tier1_tool_trim.py は
-#    audit wrapper のみ (本 lint の対象).
-#    backend/services/chat_thread_store.py 等 既存 storage layer の汎用
-#    truncate は対象外.
+#    application code (backend/services + backend/routers 全般) で size cap /
+#    age cap / dedup / truncate / window eviction の自前実装を行わない.
+#    例外:
+#      - backend/services/tier1_tool_trim.py : audit wrapper. ただし禁止語の
+#        定義自体は持たないので, 結果的に他の app code と同じ検査でよい.
+#      - backend/tests/                       : 検査対象外 (lint で除外).
 # ----------------------------------------------------------------
 check_no_self_tool_trim() {
   echo "[9/9] tool result trim 自前実装検知 (T-M28-02 AC-4)..."
-  local target="backend/services/tier1_tool_trim.py"
-  if [ ! -f "$target" ]; then
-    echo -e "${GREEN}OK: tier1_tool_trim.py が存在しない (skip)${NC}"
-    return 0
-  fi
-  # 禁止語: 自前の trim/cap/window/dedup 実装を示すシンボル.
-  # record_trim_event (audit wrapper) は許可語に含めない (=禁止語に含まない).
-  local forbidden_re='(trim_tool_result|_apply_size_cap|_apply_age_cap|_dedup_tool_results|truncate_tool_result|_compute_trimmed_payload|_run_trim_policy|_apply_window_eviction)'
-  if grep -nE "$forbidden_re" "$target" > /dev/null 2>&1; then
-    echo -e "${RED}NG: $target に tool trim 自前実装の禁止語 (T-M28-02 AC-4 / ADR-010)${NC}"
-    grep -nE "$forbidden_re" "$target"
-    echo "→ trim 本体は claude-agent-sdk 内蔵機能を使う. 本 module は audit wrapper のみ"
+  # 禁止語: 自前 trim 実装を示すシンボル. record_trim_event (audit wrapper)
+  # は許可語に含めない (=禁止語に含まない).
+  local forbidden_re='\b(trim_tool_result|_apply_size_cap|_apply_age_cap|_dedup_tool_results|truncate_tool_result|_compute_trimmed_payload|_run_trim_policy|_apply_window_eviction)\b'
+  local hits
+  hits=$(grep -rnE "$forbidden_re" \
+    --include="*.py" \
+    backend/services backend/routers 2>/dev/null || true)
+  if [ -n "$hits" ]; then
+    echo -e "${RED}NG: app code に tool trim 自前実装の禁止語 (T-M28-02 AC-4 / ADR-010)${NC}"
+    echo "$hits"
+    echo "→ trim 本体は claude-agent-sdk 内蔵機能を使う. app 側は record_trim_event audit wrapper のみ"
     EXIT_CODE=1
   else
-    echo -e "${GREEN}OK: tool trim 自前実装の禁止語なし${NC}"
+    echo -e "${GREEN}OK: app code (services/routers) に tool trim 自前実装なし${NC}"
   fi
 }
 

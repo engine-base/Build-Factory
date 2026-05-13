@@ -226,6 +226,7 @@ async def record_trim_event(
         from services.memory_service import emit_event
         audit_event_id = await emit_event(
             TRIM_AUDIT_EVENT,
+            session_id=sid,
             user_id=actor,
             detail=detail,
         )

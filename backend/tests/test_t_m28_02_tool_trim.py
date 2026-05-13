@@ -304,11 +304,130 @@ def test_endpoint_trim_invalid_reason_400(client, _capture_audit):
     assert r.json()["detail"]["code"] == "tier1.invalid"
 
 
-def test_endpoint_trim_session_id_blank_pydantic_422(client):
+def test_endpoint_trim_session_id_blank_400_not_422(client):
+    """AC-4: 全 4xx は {detail:{code,message}} に統一. 422 は返さない."""
     r = client.post("/api/tier1/tool-result-trim", json={
         "session_id": "", "original_size": 100, "trimmed_size": 50,
     })
-    assert r.status_code == 422
+    assert r.status_code == 400, f"expected 400, got {r.status_code}: {r.text}"
+    detail = r.json()["detail"]
+    assert isinstance(detail, dict)
+    assert detail["code"] == "tier1.invalid"
+    assert "message" in detail
+
+
+def test_endpoint_trim_missing_required_400(client):
+    r = client.post("/api/tier1/tool-result-trim", json={
+        "original_size": 100, "trimmed_size": 50,
+    })
+    assert r.status_code == 400
+    assert r.json()["detail"]["code"] == "tier1.invalid"
+    assert "session_id" in r.json()["detail"]["message"]
+
+
+def test_endpoint_trim_oversize_400_not_422(client):
+    """range 違反 (>= 0 / <= MAX_ORIGINAL_SIZE) も 422 でなく 400."""
+    r = client.post("/api/tier1/tool-result-trim", json={
+        "session_id": "s", "original_size": -1, "trimmed_size": 0,
+    })
+    assert r.status_code == 400
+    assert r.json()["detail"]["code"] == "tier1.invalid"
+
+
+def test_endpoint_trim_non_dict_body_400(client):
+    r = client.post("/api/tier1/tool-result-trim", json=["not", "a", "dict"])
+    assert r.status_code == 400
+    assert r.json()["detail"]["code"] == "tier1.invalid"
+
+
+def test_endpoint_4xx_detail_shape_all_paths(client):
+    """AC-4: 全 4xx response が {detail:{code,message}} 形式 (再帰検証)."""
+    cases = [
+        # (json, expected_status)
+        ({}, 400),
+        ({"session_id": "s"}, 400),
+        ({"session_id": "", "original_size": 1, "trimmed_size": 0}, 400),
+        ({"session_id": "s", "original_size": -1, "trimmed_size": 0}, 400),
+        ({"session_id": "s", "original_size": 1, "trimmed_size": 2}, 400),
+        ({"session_id": "s", "original_size": 1, "trimmed_size": 0,
+          "reason": "magic"}, 400),
+        ({"session_id": "s", "original_size": 1, "trimmed_size": 0,
+          "actor_user_id": "   "}, 401),
+    ]
+    for body, expected in cases:
+        r = client.post("/api/tier1/tool-result-trim", json=body)
+        assert r.status_code == expected, f"{body} -> {r.status_code}: {r.text}"
+        detail = r.json()["detail"]
+        assert isinstance(detail, dict), f"{body}: detail must be dict"
+        assert detail.get("code", "").startswith("tier1."), f"{body}: bad code"
+        assert isinstance(detail.get("message", ""), str) and detail["message"]
+
+
+# ══════════════════════════════════════════════════════════════════════
+# AC-2 EVENT-DRIVEN: session_id kwarg (audit_logs.session_id column)
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_ac2_audit_session_id_kwarg_passed(_capture_audit):
+    """audit_logs.session_id column へマップされる kwarg として渡されること."""
+    asyncio.run(record_trim_event("sess-C", 100, 25))
+    ev = next(e for e in _capture_audit if e["event_type"] == TRIM_AUDIT_EVENT)
+    # detail にも session_id (記録要件) / kwarg にも session_id (column マップ)
+    assert ev["session_id"] == "sess-C"
+    assert ev["detail"]["session_id"] == "sess-C"
+
+
+# ══════════════════════════════════════════════════════════════════════
+# AC-3 STATE-DRIVEN: chat_messages の destructive mutation なし
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_ac3_module_does_not_import_chat_messages_writer():
+    """tier1_tool_trim module は chat_messages を書換しない.
+
+    chat_thread_store / chat_messages writer の import が無いことを保証.
+    """
+    import inspect
+    src = inspect.getsource(t1)
+    forbidden_imports = [
+        "from services.chat_thread_store",
+        "import services.chat_thread_store",
+        "from domains.chat",
+        "delete_message",
+        "update_message",
+        "DELETE FROM chat_messages",
+        "UPDATE chat_messages",
+    ]
+    for token in forbidden_imports:
+        assert token not in src, (
+            f"tier1_tool_trim must not touch chat_messages: {token!r} "
+            "(T-M28-02 AC-3)"
+        )
+
+
+def test_ac3_router_does_not_mutate_chat_messages():
+    """router も chat_messages を書換しない."""
+    from routers import tier1_tool_trim as r
+    import inspect
+    src = inspect.getsource(r)
+    for token in (
+        "delete_message", "update_message", "DELETE FROM chat_messages",
+        "UPDATE chat_messages",
+    ):
+        assert token not in src, (
+            f"router must not mutate chat_messages: {token!r}"
+        )
+
+
+def test_ac3_audit_emit_uses_memory_service():
+    """AC-3 RLS: 直接 audit_logs SQL でなく memory_service.emit_event 経由."""
+    import inspect
+    src = inspect.getsource(t1)
+    assert "from services.memory_service import emit_event" in src
+    for token in ("INSERT INTO audit_logs", "audit_logs (", "audit_logs("):
+        assert token not in src, (
+            f"audit_logs への直接 SQL は禁止 (RLS bypass 危険): {token!r}"
+        )
 
 
 def test_endpoint_reasons_list(client):
