@@ -207,6 +207,47 @@ async def archive_workspace(workspace_id: int, actor_user_id: Optional[str] = No
     return await ws.archive_workspace(workspace_id, actor_user_id=actor_user_id)
 
 
+# ──────────────────────────────────────────────────────────────────────
+# T-003-02: Workspace Dashboard 5 KPI (AC-1 / AC-2 / AC-5)
+# ──────────────────────────────────────────────────────────────────────
+
+
+@router.get("/{workspace_id}/dashboard")
+async def get_workspace_dashboard(
+    workspace_id: int,
+    user_id: Optional[str] = None,
+):
+    """5 KPI (progress / completed / running / cost / pending approvals).
+
+    AC-2: 800ms 以内 / AC-5 (#1): permission チェックで 403 / AC-1: 5 KPI 必須.
+    """
+    if workspace_id <= 0:
+        raise _error("workspaces.invalid_id", "workspace_id must be > 0")
+    # AC-5 (#1) permission check: workspace 存在 + (user_id 指定なら member 確認)
+    w = await ws.get_workspace(workspace_id)
+    if not w:
+        raise _error(
+            "workspaces.not_found", f"workspace not found: {workspace_id}",
+            status_code=404,
+        )
+    if user_id is not None:
+        if not isinstance(user_id, str) or not user_id.strip():
+            raise _error("workspaces.invalid_user_id", "user_id must not be empty")
+        member = await ws.get_member(workspace_id, user_id.strip())
+        if not member:
+            raise _error(
+                "workspaces.forbidden",
+                f"user {user_id} is not a member of workspace {workspace_id}",
+                status_code=403,
+            )
+    # KPI 集計
+    from services import workspace_dashboard as wd
+    try:
+        return await wd.get_dashboard_stats(workspace_id)
+    except wd.DashboardStatsError as e:
+        raise _error("workspaces.invalid", str(e))
+
+
 # ── members ────────────────────────────────
 
 @router.get("/{workspace_id}/members")
