@@ -54,7 +54,8 @@
 
 ### AI Stack (3 層 — ADR-010 / 2026-05-10. **ADR-012 で公式 Memory 機能採用、2026-05-13**)
 
-> **ADR-012 amendment**: Anthropic 公式の **Memory Tool (`memory_20250818`) / Context Editing (`clear_tool_uses_20250919` + `compact_20260112`) / Subagent Memory** を一級市民として採用. 自前実装必須 8 項目 (T-AI-01〜08) の T-AI-04 (Constitution 注入) は Memory Tool に delegate. Anthropic 障害時 (T-AI-08) は **provider-adapter (T-AI-MEM-04)** で GPT-4o / Gemini への function calling 経由 fallback. 詳細: `docs/decisions/ADR-012-anthropic-memory-tool-adoption.md`
+> **ADR-012 amendment**: Anthropic 公式の **Memory Tool (`memory_20250818`) / Context Editing (`clear_tool_uses_20250919` + `compact_20260112`) / Subagent Memory** を一級市民として採用. 自前実装必須 8 項目 (T-AI-01〜08) の T-AI-04 (Constitution 注入) は Memory Tool に delegate.
+> **provider-adapter (T-AI-MEM-04)** は **任意切替 (BYOK / workspace 設定 / per-session header / A/B test) + 障害時 fallback (T-AI-08 circuit-breaker)** の両方を覆う. precedence 順: per-request header → per-session active_route → per-workspace preferred_provider → BYOK key 有無 → ADR-010 既定 → 障害時 fallback. Obsidian Vault filesystem は全 provider 共有 (read/write parity). 詳細: `docs/decisions/ADR-012-anthropic-memory-tool-adoption.md`
 
 ```
 Layer 3: claude-agent-sdk + Subagent (Anthropic 公式) ← 中核
@@ -183,7 +184,7 @@ Layer 1: PostgreSQL + Mem0 + Obsidian + Constitution
 | 05-10 | **M-31 / ADR-009 / templates/project-bootstrap/ 追加**: Build-Factory が回す各案件にも強制レイヤーを自動展開する仕組み (T-BTSTRAP-01〜06、6 タスク) |
 | 05-10 | **M-32 / ADR-010 (ADR-002 supersede)**: AI スタック 5層→3層 (Anthropic 純正中心 + LiteLLM サブ復活)、自前実装 8 項目 (T-AI-01〜08) を追加 |
 | 05-10 | **ADR-011 (完了判定ゲート)**: `pre-commit-check.sh` を完了報告の単一ゲートに、N/A 記入禁止を IMPLEMENTATION_PROTOCOL Step 6 に明記。当初 ADR-010 として作成したが ADR-010 (AI スタック) と衝突したため改番 |
-| 05-13 | **ADR-012 (Anthropic 公式 Memory 機能採用 / ADR-010 amend)**: Memory Tool (`memory_20250818`) + Context Editing (`clear_tool_uses_20250919` + `compact_20260112`) + Subagent Memory を一級市民として採用。NIH 削減方針。T-AI-MEM-01〜04 を新規追加 (T-AI-MEM-04 が GPT-4o / Gemini fallback adapter)。Obsidian Vault は Claude が自動 read/write 可能 (人間編集不要) |
+| 05-13 | **ADR-012 (Anthropic 公式 Memory 機能採用 / ADR-010 amend)**: Memory Tool (`memory_20250818`) + Context Editing (`clear_tool_uses_20250919` + `compact_20260112`) + Subagent Memory を一級市民として採用。NIH 削減方針。T-AI-MEM-01〜04 を新規追加。**T-AI-MEM-04 (provider-adapter) は「任意切替 (BYOK / workspace 設定 / per-session header / A/B test) + 障害時 fallback (T-AI-08)」両対応**。Obsidian Vault は Claude が自動 read/write 可能 (人間編集不要 / 全 provider 共有) |
 
 ADR は `docs/decisions/` に 12 件 (ADR-002 は superseded、ADR-010 が AI スタック新方針 [ADR-012 で amend]、ADR-011 が完了判定ゲート、ADR-012 が Anthropic 公式 Memory 機能採用)。
 **強制レイヤー**: `scripts/lint-mock.sh` + `scripts/validate-tickets.py` + `.claude/settings.json` (PostToolUse hook + permissions deny)

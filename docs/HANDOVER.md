@@ -133,7 +133,7 @@
 | ADR-009 | 各案件への強制レイヤー自動展開 | `decisions/ADR-009-project-bootstrap-enforcement.md` |
 | ADR-010 | **AI スタック再設計 (3層 / Anthropic 純正中心 + LiteLLM サブ)** ⚠️ Amended by ADR-012 | `decisions/ADR-010-ai-stack-anthropic-native.md` |
 | ADR-011 | 完了判定ゲート (`pre-commit-check.sh`) と N/A 禁止原則 | `decisions/ADR-011-completion-gate.md` |
-| ADR-012 | **Anthropic 公式 Memory Tool / Context Editing / Subagent Memory 採用** (ADR-010 amend; T-AI-MEM-01〜04 新規; GPT-4o/Gemini fallback provider-adapter 含む) | `decisions/ADR-012-anthropic-memory-tool-adoption.md` |
+| ADR-012 | **Anthropic 公式 Memory Tool / Context Editing / Subagent Memory 採用** (ADR-010 amend; T-AI-MEM-01〜04 新規; provider-adapter は **任意切替 + 障害時 fallback** 両対応 / BYOK / workspace 設定 / per-session header) | `decisions/ADR-012-anthropic-memory-tool-adoption.md` |
 
 ---
 

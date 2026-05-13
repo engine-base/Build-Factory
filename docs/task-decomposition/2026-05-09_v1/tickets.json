@@ -7298,17 +7298,18 @@
     },
     {
       "id": "T-AI-MEM-04",
-      "title": "Provider-adapter Memory Tool (Gemini / GPT-4o function calling spec → MemoryToolHandler.dispatch adapter; T-AI-08 fallback 経路)",
+      "title": "Provider-adapter Memory Tool (任意切替 + 障害時 fallback 両対応; Anthropic / OpenAI / Gemini function calling spec + precedence header/session/workspace/byok/default/circuit-breaker; filesystem は全 provider 共有)",
       "label": "NEW",
       "sprint": "S4",
       "deps": [
         "T-AI-MEM-01",
-        "T-AI-08"
+        "T-AI-08",
+        "T-024-03"
       ],
       "feature": "F-AI",
       "layer": "BE",
-      "claude_code_hours": 3,
-      "human_days": 0.5,
+      "claude_code_hours": 4,
+      "human_days": 0.8,
       "existing_files": [],
       "spec_link": "../../decisions/ADR-012-anthropic-memory-tool-adoption.md",
       "mock_link": "../../mocks/2026-05-09_v1/index.html",
@@ -7316,19 +7317,19 @@
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall provide provider_adapter_memory module exposing OpenAI tools (type='function') and Gemini tools (function_declarations) specs for the 6 Memory Tool commands, all routed to MemoryToolHandler.dispatch via the same /api/anthropic-memory/* HTTP endpoints."
+          "text": "The system shall provide provider_adapter_memory module exposing tool_spec_for(provider) for anthropic / openai / gemini (memory_20250818 / OpenAI function spec / Gemini function_declarations respectively), all 6 Memory Tool commands routed to MemoryToolHandler.dispatch via the same /api/anthropic-memory/* HTTP endpoints, and shall expose resolve_active_provider(request_ctx) implementing the precedence order: per-request header (X-LLM-Provider) -> per-session active_route -> per-workspace preferred_provider -> per-user BYOK key availability -> ADR-010 default -> T-AI-08 circuit-breaker fallback. The underlying Obsidian Vault filesystem shall be shared across all providers (provider-agnostic read/write parity)."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When LiteLLM falls back from Anthropic to GPT-4o / Gemini (T-AI-08), the system shall swap the tool spec automatically and shall remain functional within 2 seconds; the underlying Vault remains the same physical filesystem (read/write parity)."
+          "text": "When a user / operator changes the active provider via POST /api/provider/active (per-session or per-workspace), the system shall apply the change within 2 seconds, emit an audit_logs entry ('provider.switched' with from / to / scope / reason='manual'), and route subsequent Memory Tool / Context Editing / Subagent Memory calls through the new provider's adapter. When T-AI-08 circuit-breaker fires due to Anthropic outage, the system shall auto-fallback to the highest-priority alternative provider with audit ('provider.switched' reason='auto-fallback') without losing in-flight Memory Tool state."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While running on non-Anthropic providers, the system shall use client-side summarization (conversation_summarizer.generate_summary, G9 backwards-compat) instead of compact_20260112 and shall skip clear_thinking_20251015 (no equivalent feature). All Memory Tool file operations remain provider-agnostic via the HTTP API."
+          "text": "While running on non-Anthropic providers, the system shall use client-side summarization (conversation_summarizer.generate_summary, G9 backwards-compat hatch) in place of compact_20260112, shall skip clear_thinking_20251015 (no equivalent feature) with a warning log, and shall use OpenAI truncation_strategy=auto / Gemini self-managed keep-N for clear_tool_uses_20250919 equivalent. All Memory Tool file operations remain provider-agnostic via the HTTP API and shall yield byte-identical results across providers (read parity)."
         },
         {
           "type": "UNWANTED",
-          "text": "If the adapter is called with an unsupported provider name, the system shall reject with 4xx {detail:{code,message}}. If a provider-specific tool input violates the official command schema, the system shall reject before file I/O so that state mutate does not occur."
+          "text": "If the adapter is called with an unsupported provider name, or if per-session override conflicts with workspace policy (e.g. workspace forbids non-Anthropic), or if a provider-specific tool input violates the official command schema, the system shall reject with 4xx {detail:{code,message}} BEFORE any file I/O so that state mutate does not occur. If BYOK key is missing for the requested provider, the system shall fall back to the next-priority provider in 5.2 precedence and emit an audit ('provider.fallback' reason='byok_missing') instead of silently picking."
         }
       ]
     }

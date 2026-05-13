@@ -59,25 +59,68 @@ Build-Factory ではこれまで `services/context_builder.py` (Mem0 + Obsidian 
 - Build-Factory 固有要件 (audit_logs テーブル / RLS / cost tracking / 構造化 summary 9-section) は wrapper 側に残す.
 - ADR-010 自前実装必須 8 項目 (T-AI-01〜08) の T-AI-04 (Constitution 注入) は **Memory Tool で `/memories/constitution/` 配下に注入する形** で再構成する (新規実装は不要 / Memory Tool の標準動作で達成).
 
-### Decision 5: マルチプロバイダ fallback (Gemini / GPT-4o) の provider-adapter
+### Decision 5: マルチプロバイダ provider-adapter (任意切替 + 障害時 fallback の両対応)
 
-ADR-010 + T-AI-08 (Anthropic 障害時 LiteLLM フォールバック) と整合させるため, **Memory Tool / Context Editing / Subagent Memory は Anthropic 障害時に degrade 動作する provider-adapter** を用意する.
+ADR-010 (LiteLLM サブ) + T-AI-08 (Anthropic 障害時 fallback) + 既存 `provider_adapter.select_provider` / `byok_store` (BYOK 持ち込みキー) と整合させるため, **Memory Tool / Context Editing / Subagent Memory に provider-adapter を被せる**. これにより以下の **2 つの切替経路** を同一インターフェースで提供する.
 
-| 機能 | Anthropic 経路 | Gemini / GPT-4o fallback (T-AI-08) |
+#### 5.1 切替経路 (両方サポート必須)
+
+| 経路 | トリガ | ユースケース |
 |---|---|---|
-| Memory Tool (file CRUD) | `memory_20250818` server tool | `/api/anthropic-memory/*` HTTP endpoint を **provider-agnostic function calling tool** として再定義. GPT-4o / Gemini からは function calling 経由で同 HTTP API を呼ぶ. filesystem 実装が client-side なので Build-Factory 側 Obsidian Vault は共有可能. |
-| Context Editing (clear/compact) | `clear_tool_uses_20250919` + `compact_20260112` | GPT-4o: `truncation_strategy=auto` / Gemini: `system_instruction` + 自前 summarizer (既存 conversation_summarizer.generate_summary 経路 = G9 backwards-compat ハッチを活用). |
-| Subagent Memory | `/memories/subagent/<persona>/...` (Anthropic SDK) | provider 非依存 (filesystem 永続化 + HTTP API 経路). GPT-4o / Gemini も同じ Vault に書ける. |
+| **(A) 任意切替** | ユーザ / 運用者 / workspace 設定 / per-session header / per-task config | コスト最適化 (Gemini Flash 安価バッチ) / モデル選好 (画像生成は Gemini Image) / A/B test (同 task を 2 provider で比較) / BYOK (ユーザ持ち込みキー) |
+| **(B) 障害時 fallback** | Anthropic 障害検知 (T-AI-08 / circuit_breaker) で自動 | 緊急代替 (Claude → GPT-4o / Gemini 2.5 Pro 自動切替) |
 
-**実装範囲 (T-AI-MEM-04 で別途タスク化)**:
-- backend/services/provider_adapter_memory.py : function calling spec → MemoryToolHandler.dispatch() の adapter.
-- OpenAI tools (`type: "function"`) / Gemini tools (`function_declarations`) の両 spec を export する factory.
-- LiteLLM 経由で fallback された時に自動で adapter を差し替える経路 (既存 `routers/provider_adapter.py` 拡張).
+#### 5.2 切替決定のレイヤ (precedence)
 
-**degradation の正確な挙動**:
-- `clear_thinking_20251015` (extended thinking) は GPT/Gemini に該当機能なし → degradation 時は skip (warning log).
-- `compact_20260112` (server-side summarization) は GPT/Gemini で client-side 自前 summarizer に切替 (T-AI-08 + 既存 conversation_summarizer).
-- `memory_20250818` の "automatic memory check on session start" prompting は **provider 非依存の system prompt 注入** で代替.
+```
+per-request override (header X-LLM-Provider)
+  ↓
+per-session active_route (chat session 内で固定)
+  ↓
+per-workspace preference (workspaces.preferred_provider)
+  ↓
+per-user BYOK key 有無 (byok_store, ユーザが持ち込んだキー優先)
+  ↓
+ADR-010 既定 (Anthropic main / LiteLLM サブ)
+  ↓
+障害時 fallback (T-AI-08 circuit_breaker 発火時)
+```
+
+最終的に解決された provider に対して **同一の MemoryToolHandler / Subagent Memory / Context Editing 設定** が適用される (filesystem は provider 非依存 = Obsidian Vault は全 provider 共有).
+
+#### 5.3 機能ごとの adapter 挙動
+
+| 機能 | Anthropic 経路 | OpenAI (GPT-4o 等) | Gemini (2.5 Pro / Flash 等) |
+|---|---|---|---|
+| Memory Tool (file CRUD) | `memory_20250818` server tool | OpenAI tools `type: "function"` × 6 commands → 同 HTTP API | Gemini `function_declarations` × 6 commands → 同 HTTP API |
+| Context Editing (clear) | `clear_tool_uses_20250919` (beta header) | `truncation_strategy=auto` + 自前 keep N | 自前 keep N (Gemini に該当 server 機能なし) |
+| Compaction | `compact_20260112` (server-side) | client-side 自前 summarizer (conversation_summarizer.generate_summary, G9 ハッチ) | client-side 自前 summarizer (同上) |
+| Subagent Memory | `/memories/subagent/<persona>/...` | provider 非依存 (filesystem + HTTP API) | provider 非依存 (同上) |
+| Extended Thinking clearing | `clear_thinking_20251015` (beta header) | skip (該当機能なし, warning log) | skip (同上) |
+
+#### 5.4 実装範囲 (T-AI-MEM-04 で別途タスク化)
+
+- backend/services/provider_adapter_memory.py 新規:
+  - `tool_spec_for(provider: Literal["anthropic","openai","gemini"]) -> dict | list[dict]`
+    - anthropic → `{"type": "memory_20250818", "name": "memory"}`
+    - openai    → 6 commands を OpenAI function spec で expose
+    - gemini    → 6 commands を Gemini function_declarations で expose
+  - `resolve_active_provider(request_ctx) -> str` (precedence 5.2 を実装)
+  - `context_editing_for(provider: str) -> dict` (Anthropic native config / OpenAI fallback / Gemini fallback の 3 経路)
+- 既存 `routers/provider_adapter.py` 拡張:
+  - GET  /api/provider/active                ← 現在のアクティブ provider 取得
+  - POST /api/provider/active                ← per-session / per-workspace 任意切替
+  - POST /api/provider/fallback/trigger      ← 障害検知時の自動 fallback 発火 (circuit_breaker 連携)
+- 既存 `byok_store` / `byok.py` 経路を **任意切替経路の優先 source** として活用 (ユーザ持ち込みキーがある provider はその provider を使うのが既定).
+- 既存 `litellm_router.py` を OpenAI / Gemini 呼出 transport として活用 (新規追加なし).
+
+#### 5.5 BYOK + workspace 切替の UX
+
+- workspace 設定画面で `preferred_provider` を選択 (anthropic / openai / gemini / auto).
+- `auto` は ADR-010 既定 (Anthropic main).
+- ユーザが BYOK で OpenAI / Gemini キーを登録すると, 自動で provider 候補に加わる.
+- chat UI 上で per-session の override (drop-down で provider 一時切替) も可能.
+- API caller は `X-LLM-Provider: openai` header で per-request override.
 
 ---
 
