@@ -273,12 +273,39 @@ check_tickets() {
 # Dispatch
 # ----------------------------------------------------------------
 check_domain_boundaries() {
-  echo "[8/8] backend bounded-context domain barrel + 循環依存検出..."
+  echo "[8/9] backend bounded-context domain barrel + 循環依存検出..."
   if python3 scripts/check-domain-boundaries.py > /tmp/lint_domains.log 2>&1; then
     echo -e "${GREEN}OK: backend/domains/ 13 barrel 健全 (no bypass / no cycle)${NC}"
   else
     cat /tmp/lint_domains.log
     EXIT_CODE=1
+  fi
+}
+
+# ----------------------------------------------------------------
+# 9. T-AI-MEM-04 (ADR-012 Decision 5): provider 切替 routing 自前実装の禁止語検知
+#    任意切替 + 障害時 fallback は backend/services/provider_adapter_memory.py
+#    の resolve_active_provider() に集約する. 各 router / service が個別に
+#    if-elif で provider 文字列分岐する routing を行うのは禁止
+#    (provider_adapter / provider_adapter_memory 経由を強制).
+# ----------------------------------------------------------------
+check_no_self_provider_routing() {
+  echo "[9/9] provider 切替 routing 自前実装検知 (T-AI-MEM-04 / ADR-012 Decision 5)..."
+  # 禁止語: provider 切替の自前 routing 関数 / private resolver / route hack
+  local forbidden_re='\bdef[[:space:]]+(_resolve_provider_locally|_route_to_provider|_custom_provider_switch|_pick_provider_inline|_byok_then_anthropic)\b'
+  local hits
+  hits=$(grep -rnE "$forbidden_re" \
+    --include="*.py" \
+    --exclude="provider_adapter_memory.py" \
+    --exclude="provider_adapter.py" \
+    backend/services backend/routers 2>/dev/null || true)
+  if [ -n "$hits" ]; then
+    echo -e "${RED}NG: provider 切替 routing 自前実装の禁止語 (T-AI-MEM-04 / ADR-012)${NC}"
+    echo "$hits"
+    echo "→ provider 切替は services/provider_adapter_memory.resolve_active_provider() を経由"
+    EXIT_CODE=1
+  else
+    echo -e "${GREEN}OK: provider 切替 routing 自前実装なし${NC}"
   fi
 }
 
@@ -291,6 +318,7 @@ case "$MODE" in
   --no-langgraph) check_no_langgraph ;;
   --no-litellm-in-runner) check_no_litellm_in_runner ;;
   --domains)      check_domain_boundaries ;;
+  --no-self-provider-routing) check_no_self_provider_routing ;;
   all|"")
     check_emoji
     check_agpl
@@ -300,9 +328,10 @@ case "$MODE" in
     check_no_langgraph
     check_no_litellm_in_runner
     check_domain_boundaries
+    check_no_self_provider_routing
     ;;
   *)
-    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|all]"
+    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|--no-self-provider-routing|all]"
     exit 2
     ;;
 esac

@@ -95,3 +95,36 @@
 
 ## 改訂履歴
 - v1.0（2026-05-09）：34 機能 + Sprint 配分 + 依存層 9 + 疎結合化提案 6 件
+- v1.1 addendum（2026-05-13）：ADR-012 反映. T-AI-MEM-01〜04 を Sprint S2 / S4 に追加.
+
+---
+
+## 2026-05-13 Addendum — ADR-012 cascade
+
+### Sprint S2 への追加 (Memory Tool / Context Editing / Subagent Memory)
+
+| Ticket | Sprint | deps | 工数 (claude_code_hours) |
+|---|---|---|---|
+| T-AI-MEM-01 (Memory Tool client handler) | S2 | T-S0-08 | 2 |
+| T-AI-MEM-02 (Context Editing config) | S2 | T-S0-08, T-AI-MEM-01 | 1 |
+| T-AI-MEM-03 (Subagent Memory store) | S2 | T-AI-MEM-01, T-M27-03 | 2 |
+
+### Sprint S4 への追加 (Provider-adapter fallback + 任意切替)
+
+| Ticket | Sprint | deps | 工数 |
+|---|---|---|---|
+| T-AI-MEM-04 (Provider-adapter; 任意切替 + 障害時 fallback) | S4 | T-AI-MEM-01, T-AI-08, T-024-03 | 4 |
+| T-024-04 (workspaces.preferred_provider migration) | S2 | T-024-03 | 1 (予定) |
+
+### F-AI 依存層への影響
+
+- 既存 F-AI 依存層 (T-AI-01 → 02 → 03 → 04 → 05 → 06 → 07 → 08) は不変.
+- T-AI-04 (Constitution 注入) の実装方式が「自前」→「Memory Tool delegate」に変更 (依存関係は不変).
+- 新規依存: T-AI-MEM-04 が T-AI-08 (障害時 fallback) と T-024-03 (RLS / workspace) に依存.
+
+### 関連 ADR / spec
+
+- ADR-012 (`docs/decisions/ADR-012-anthropic-memory-tool-adoption.md`)
+- requirements-v1.md 2026-05-13 Addendum
+- architecture-v1.md 2026-05-13 Addendum
+- tech-stack-v1.md 2026-05-13 Addendum

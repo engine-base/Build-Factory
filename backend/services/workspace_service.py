@@ -24,6 +24,48 @@ from db import async_db as aiosqlite
 from db.queries import DB_PATH
 
 
+# T-024-04 (ADR-012 Decision 5): workspace 単位の provider 切替.
+# precedence の workspace 層 source として参照される.
+# precedence: per-request header > per-session active_route >
+#             per-workspace preferred_provider > BYOK > ADR-010 default >
+#             T-AI-08 circuit-breaker fallback
+VALID_PREFERRED_PROVIDERS: tuple[str, ...] = ("anthropic", "openai", "gemini", "auto")
+DEFAULT_PREFERRED_PROVIDER: str = "auto"
+
+
+class InvalidPreferredProviderError(ValueError):
+    """T-024-04 AC-4: enum 外の値で reject (router 層で 4xx 変換)."""
+
+
+def validate_preferred_provider(value) -> str:
+    """preferred_provider の enum check. None / 空文字列は default で埋める."""
+    if value is None:
+        return DEFAULT_PREFERRED_PROVIDER
+    if not isinstance(value, str):
+        raise InvalidPreferredProviderError(
+            f"preferred_provider must be string, got {type(value).__name__}"
+        )
+    s = value.strip()
+    if not s:
+        return DEFAULT_PREFERRED_PROVIDER
+    if s not in VALID_PREFERRED_PROVIDERS:
+        raise InvalidPreferredProviderError(
+            f"preferred_provider must be one of {VALID_PREFERRED_PROVIDERS}, got {s!r}"
+        )
+    return s
+
+
+async def _has_column(db, table: str, column: str) -> bool:
+    """T-024-04: workspaces.preferred_provider 等の後方互換性 shim.
+
+    既存 build.db に migration h5c6d7e8f9a1 が未適用な環境でも legacy 動作
+    できるよう, column 存在を runtime チェックする.
+    """
+    cur = await db.execute(f"PRAGMA table_info({table})")
+    rows = await cur.fetchall()
+    return any(r[1] == column for r in rows)
+
+
 def _row(r) -> dict:
     return dict(r) if r else {}
 
@@ -78,9 +120,17 @@ async def create_workspace(
     description: Optional[str] = None,
     project_meta: Optional[dict] = None,
     creator_user_id: str,
+    preferred_provider: Optional[str] = None,
 ) -> dict:
-    """workspace 新規作成。creator は自動で admin role で member に追加。"""
+    """workspace 新規作成。creator は自動で admin role で member に追加。
+
+    T-024-04: preferred_provider を optional で受ける. enum 外値は
+    InvalidPreferredProviderError (router で 4xx 変換).
+    """
+    pref = validate_preferred_provider(preferred_provider)
     async with aiosqlite.connect(DB_PATH) as db:
+        # base INSERT (既存 column のみ. preferred_provider は migration 適用後
+        # にのみ UPDATE で設定 = T-024-04 後方互換 shim)
         cur = await db.execute(
             """INSERT INTO workspaces
                (account_id, name, description, project_meta)
@@ -90,6 +140,13 @@ async def create_workspace(
         )
         _row = await cur.fetchone()
         workspace_id = _row["id"]
+        # T-024-04: preferred_provider column 存在時のみ UPDATE で値を確定
+        # (column 未存在 = migration 未適用なら default 'auto' 相当で legacy 動作)
+        if await _has_column(db, "workspaces", "preferred_provider"):
+            await db.execute(
+                "UPDATE workspaces SET preferred_provider = ? WHERE id = ?",
+                (pref, workspace_id),
+            )
         await db.execute(
             """INSERT INTO workspace_members
                (workspace_id, user_id, role, invited_by)
@@ -116,6 +173,12 @@ async def update_workspace(workspace_id: int, **fields) -> dict:
     if "budget_jpy_monthly" in fields:
         cols.append("budget_jpy_monthly = ?")
         vals.append(fields["budget_jpy_monthly"])
+    # T-024-04 (ADR-012 Decision 5): provider 任意切替の workspace 層 source.
+    # column 未存在環境では UPDATE 文に含めず legacy 動作 (後方互換 shim).
+    preferred_to_apply: Optional[str] = None
+    if "preferred_provider" in fields:
+        # validation: 不正値は InvalidPreferredProviderError を raise (router 層 4xx).
+        preferred_to_apply = validate_preferred_provider(fields["preferred_provider"])
     for k in ("project_meta", "client_visibility", "redlines"):
         if k in fields:
             cols.append(f"{k} = ?"); vals.append(json.dumps(fields[k], ensure_ascii=False))
@@ -125,6 +188,15 @@ async def update_workspace(workspace_id: int, **fields) -> dict:
             f"UPDATE workspaces SET {', '.join(cols)} WHERE id = ?",
             [*vals, workspace_id],
         )
+        # T-024-04 shim: preferred_provider column 存在時のみ別 UPDATE で適用
+        # (column 未存在 = migration 未適用なら silent skip で legacy 動作)
+        if preferred_to_apply is not None and await _has_column(
+            db, "workspaces", "preferred_provider"
+        ):
+            await db.execute(
+                "UPDATE workspaces SET preferred_provider = ? WHERE id = ?",
+                (preferred_to_apply, workspace_id),
+            )
         await db.commit()
     await _emit_audit(
         "workspace.updated",

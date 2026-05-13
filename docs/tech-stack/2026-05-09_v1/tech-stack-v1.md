@@ -128,3 +128,53 @@ Anthropic Agent Teams (Claude Code 内部のみ)
 - `selected-stack.json` — 後続スキル入力用
 - `cost-projection.md` — Phase 別詳細試算
 - `tech-stack-v1.html` — クライアント提示用
+
+---
+
+## 2026-05-13 Addendum — ADR-012 反映 (Anthropic 公式 Memory / Provider-adapter)
+
+### Anthropic 公式 Memory / Context 機能を一級市民として採用
+
+| 公式機能 | 公式名 | Beta header | 採用方針 |
+|---|---|---|---|
+| Memory Tool | `memory_20250818` | (不要) | client-side handler 自前実装 (`anthropic_memory_tool.py`). Obsidian Vault 共有 |
+| Context Editing (tool clearing) | `clear_tool_uses_20250919` | `context-management-2025-06-27` | `client.beta.messages.create(..., context_management=...)` |
+| Compaction | `compact_20260112` | `compact-2026-01-12` | server-side summarization (50K 以上) |
+| Extended Thinking clearing | `clear_thinking_20251015` | (上記 beta) | opt-in, 必ず先頭配置 |
+| Subagent Memory | `/memories/subagent/*` | (Memory Tool 経由) | persona 別 working memory |
+| Dreaming | (research preview) | (未確定) | Phase 2 で評価 |
+
+### Provider 切替経路 (任意 + 障害時 両対応)
+
+| 経路 | 既存 stack 要素 | 追加実装 (T-AI-MEM-04) |
+|---|---|---|
+| 任意切替 (BYOK) | `services/byok_store.py` + `routers/byok.py` | precedence source として REUSE |
+| 任意切替 (workspace 設定) | `entities/workspaces` (新規 column `preferred_provider`) | T-024-04 migration |
+| 任意切替 (per-session) | `entities/chat_sessions.active_route` (既存) | provider_adapter 拡張 |
+| 任意切替 (per-request header) | (新規 `X-LLM-Provider` 受領) | provider_adapter 拡張 |
+| 障害時 fallback | `services/circuit_breaker.py` (既存) + T-AI-08 | provider_adapter 拡張 |
+| LiteLLM transport | `services/litellm_router.py` (既存) | REUSE |
+
+### License 確認 (ADR-012 採用機能)
+
+- `anthropic` (Python SDK): MIT ✅
+- `mem0ai` (>= 0.1.50, 既存): Apache-2.0 ✅
+- `python-frontmatter` (既存): MIT ✅
+- Anthropic Memory Tool / Context Editing: Anthropic API (proprietary, 利用契約に従う)
+- AGPL なし (`scripts/lint-mock.sh --agpl` で機械検知, ADR-004)
+
+### Cost 影響 (Phase 1 ¥0/月 構成)
+
+- Memory Tool / Context Editing / Subagent Memory: **追加課金なし** (Anthropic API 内蔵 / prompt cache 効果)
+- BYOK 使用時: ユーザ側 API キー課金 (Build-Factory に課金発生せず)
+- LiteLLM fallback 時: 切替先 provider の従量課金 (T-AI-05 cost tracking で監視)
+
+### selected-stack.json 同期
+
+`ai_stack.anthropic_native_features` / `ai_stack.provider_switch` に追加 (別 commit で json 同期).
+
+### 関連 ADR
+
+- ADR-010 (AI Stack Anthropic native) — Amended by ADR-012
+- ADR-012 (Anthropic Memory Tool / Context Editing / Subagent Memory 採用 / Provider-adapter)
+- ADR-004 (Phase 1 ¥0 hosting) — 影響なし
