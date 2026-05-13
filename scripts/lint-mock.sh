@@ -273,7 +273,7 @@ check_tickets() {
 # Dispatch
 # ----------------------------------------------------------------
 check_domain_boundaries() {
-  echo "[8/10] backend bounded-context domain barrel + 循環依存検出..."
+  echo "[8/11] backend bounded-context domain barrel + 循環依存検出..."
   if python3 scripts/check-domain-boundaries.py > /tmp/lint_domains.log 2>&1; then
     echo -e "${GREEN}OK: backend/domains/ 13 barrel 健全 (no bypass / no cycle)${NC}"
   else
@@ -290,7 +290,7 @@ check_domain_boundaries() {
 #    (provider_adapter / provider_adapter_memory 経由を強制).
 # ----------------------------------------------------------------
 check_no_self_provider_routing() {
-  echo "[9/10] provider 切替 routing 自前実装検知 (T-AI-MEM-04 / ADR-012 Decision 5)..."
+  echo "[9/11] provider 切替 routing 自前実装検知 (T-AI-MEM-04 / ADR-012 Decision 5)..."
   # 禁止語: provider 切替の自前 routing 関数 / private resolver / route hack
   local forbidden_re='\bdef[[:space:]]+(_resolve_provider_locally|_route_to_provider|_custom_provider_switch|_pick_provider_inline|_byok_then_anthropic)\b'
   local hits
@@ -316,7 +316,7 @@ check_no_self_provider_routing() {
 #     dedup / truncate / window eviction の自前実装を行わない.
 # ----------------------------------------------------------------
 check_no_self_tool_trim() {
-  echo "[10/10] tool result trim 自前実装検知 (T-M28-02 AC-4)..."
+  echo "[10/11] tool result trim 自前実装検知 (T-M28-02 AC-4)..."
   local forbidden_re='\b(trim_tool_result|_apply_size_cap|_apply_age_cap|_dedup_tool_results|truncate_tool_result|_compute_trimmed_payload|_run_trim_policy|_apply_window_eviction)\b'
   local hits
   hits=$(grep -rnE "$forbidden_re" \
@@ -332,6 +332,40 @@ check_no_self_tool_trim() {
   fi
 }
 
+# ----------------------------------------------------------------
+# 11. T-BTSTRAP-01 AC-4 UNWANTED: templates/project-bootstrap/ 必須ファイル不在検知
+#     新規案件作成時に bootstrap で展開される必須スケルトンが欠けていたら lint fail.
+#     関連: ADR-009 / M-31 / T-BTSTRAP-02 (WorkspaceService.bootstrap で参照).
+# ----------------------------------------------------------------
+check_template_skeleton_complete() {
+  echo "[11/11] templates/project-bootstrap/ 必須スケルトン完整性検査 (T-BTSTRAP-01 AC-4)..."
+  local required=(
+    "templates/project-bootstrap/CLAUDE.md.j2"
+    "templates/project-bootstrap/docs/HANDOVER.md.j2"
+    "templates/project-bootstrap/docs/task-decomposition/IMPLEMENTATION_PROTOCOL.md"
+    "templates/project-bootstrap/scripts/lint-mock.sh"
+    "templates/project-bootstrap/scripts/validate-tickets.py"
+    "templates/project-bootstrap/.claude/settings.json"
+    "templates/CHANGELOG.md"
+  )
+  local missing=()
+  for f in "${required[@]}"; do
+    if [ ! -f "$f" ]; then
+      missing+=("$f")
+    fi
+  done
+  if [ ${#missing[@]} -gt 0 ]; then
+    echo -e "${RED}NG: templates/project-bootstrap/ に必須スケルトン欠落 (T-BTSTRAP-01 AC-4)${NC}"
+    for f in "${missing[@]}"; do
+      echo "  - $f"
+    done
+    echo "→ T-BTSTRAP-02 の自動展開が失敗する. 全案件への伝播 (T-BTSTRAP-05) も不可能."
+    EXIT_CODE=1
+  else
+    echo -e "${GREEN}OK: templates/project-bootstrap/ 必須スケルトン全 ${#required[@]} 件あり${NC}"
+  fi
+}
+
 case "$MODE" in
   --emoji)        check_emoji ;;
   --agpl)         check_agpl ;;
@@ -343,6 +377,7 @@ case "$MODE" in
   --domains)      check_domain_boundaries ;;
   --no-self-provider-routing) check_no_self_provider_routing ;;
   --no-self-tool-trim) check_no_self_tool_trim ;;
+  --template-skeleton) check_template_skeleton_complete ;;
   all|"")
     check_emoji
     check_agpl
@@ -354,9 +389,10 @@ case "$MODE" in
     check_domain_boundaries
     check_no_self_provider_routing
     check_no_self_tool_trim
+    check_template_skeleton_complete
     ;;
   *)
-    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|--no-self-provider-routing|--no-self-tool-trim|all]"
+    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|--no-self-provider-routing|--no-self-tool-trim|--template-skeleton|all]"
     exit 2
     ;;
 esac

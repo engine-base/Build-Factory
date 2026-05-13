@@ -1,5 +1,28 @@
 # project-bootstrap テンプレート 変更履歴
 
+## v1.2.0 (2026-05-13)
+
+T-BTSTRAP-01 仕様徹底: スケルトン必須ファイル不在を機械検知 (AC-4 UNWANTED).
+
+### 追加
+- `scripts/lint-mock.sh` に `check_template_skeleton_complete` を追加 (11/11):
+  6 必須ファイル不在で lint fail.
+- `backend/tests/test_t_btstrap_01_template_structure.py` (12 件) で
+  全 4 AC + CHANGELOG 完整性を 1:1 検証.
+
+### 必須ファイル (AC-1 UBIQUITOUS)
+- `templates/project-bootstrap/CLAUDE.md.j2`
+- `templates/project-bootstrap/docs/HANDOVER.md.j2`
+- `templates/project-bootstrap/docs/task-decomposition/IMPLEMENTATION_PROTOCOL.md`
+- `templates/project-bootstrap/scripts/lint-mock.sh`
+- `templates/project-bootstrap/scripts/validate-tickets.py`
+- `templates/project-bootstrap/.claude/settings.json`
+- `templates/CHANGELOG.md` (本ファイル)
+
+### 影響
+- 新規案件展開時に必須ファイル欠落で本リポの lint が fail し,
+  全案件への伝播 (T-BTSTRAP-05) を防止.
+
 ## v1.1.0 (2026-05-10)
 
 完了判定ゲートの統合 (ADR-011 連動)。
