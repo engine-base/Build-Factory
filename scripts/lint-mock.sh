@@ -292,7 +292,7 @@ check_domain_boundaries() {
 #    (provider_adapter / provider_adapter_memory 経由を強制).
 # ----------------------------------------------------------------
 check_no_self_provider_routing() {
-  echo "[9/12] provider 切替 routing 自前実装検知 (T-AI-MEM-04 / ADR-012 Decision 5)..."
+  echo "[9/13] provider 切替 routing 自前実装検知 (T-AI-MEM-04 / ADR-012 Decision 5)..."
   # 禁止語: provider 切替の自前 routing 関数 / private resolver / route hack
   local forbidden_re='\bdef[[:space:]]+(_resolve_provider_locally|_route_to_provider|_custom_provider_switch|_pick_provider_inline|_byok_then_anthropic)\b'
   local hits
@@ -318,7 +318,7 @@ check_no_self_provider_routing() {
 #     dedup / truncate / window eviction の自前実装を行わない.
 # ----------------------------------------------------------------
 check_no_self_tool_trim() {
-  echo "[10/12] tool result trim 自前実装検知 (T-M28-02 AC-4)..."
+  echo "[10/13] tool result trim 自前実装検知 (T-M28-02 AC-4)..."
   local forbidden_re='\b(trim_tool_result|_apply_size_cap|_apply_age_cap|_dedup_tool_results|truncate_tool_result|_compute_trimmed_payload|_run_trim_policy|_apply_window_eviction)\b'
   local hits
   hits=$(grep -rnE "$forbidden_re" \
@@ -340,7 +340,7 @@ check_no_self_tool_trim() {
 #     関連: ADR-009 / M-31 / T-BTSTRAP-02 (WorkspaceService.bootstrap で参照).
 # ----------------------------------------------------------------
 check_template_skeleton_complete() {
-  echo "[11/12] templates/project-bootstrap/ 必須スケルトン完整性検査 (T-BTSTRAP-01 AC-4)..."
+  echo "[11/13] templates/project-bootstrap/ 必須スケルトン完整性検査 (T-BTSTRAP-01 AC-4)..."
   local required=(
     "templates/project-bootstrap/CLAUDE.md.j2"
     "templates/project-bootstrap/docs/HANDOVER.md.j2"
@@ -373,8 +373,33 @@ check_template_skeleton_complete() {
 #     constitution_engine.inject_for_session() 以外で system prompt に
 #     "Section 4 red lines" 等の Constitution テキストを直接組み立てる経路は禁止.
 # ----------------------------------------------------------------
+# ----------------------------------------------------------------
+# 13. T-AI-08 AC-UNWANTED: fallback / circuit-breaker 自前実装の禁止語検知
+#     services/fallback_router.py + services/circuit_breaker.py 以外で
+#     独自の health-check loop / circuit-breaker / failover routing を実装
+#     してはならない (ADR-010 + T-AI-08 spec).
+# ----------------------------------------------------------------
+check_no_self_fallback_circuit() {
+  echo "[13/13] fallback / circuit-breaker 自前実装検知 (T-AI-08 AC-UNWANTED)..."
+  local forbidden_re='\bdef[[:space:]]+(_custom_health_circuit|_self_failover_loop|_inline_3_strike_fallback|_manual_recovery_streak|_route_to_untested_provider)\b'
+  local hits
+  hits=$(grep -rnE "$forbidden_re" \
+    --include="*.py" \
+    --exclude="fallback_router.py" \
+    --exclude="circuit_breaker.py" \
+    backend/services backend/routers 2>/dev/null || true)
+  if [ -n "$hits" ]; then
+    echo -e "${RED}NG: fallback / circuit-breaker 自前実装の禁止語 (T-AI-08 AC-UNWANTED)${NC}"
+    echo "$hits"
+    echo "→ fallback は services/fallback_router.record_health_check() 経由のみ. 未テスト provider への routing 禁止"
+    EXIT_CODE=1
+  else
+    echo -e "${GREEN}OK: fallback / circuit-breaker 自前実装なし${NC}"
+  fi
+}
+
 check_no_self_constitution_inject() {
-  echo "[12/12] Constitution 自前 inject 検知 (T-AI-04 AC-1/4)..."
+  echo "[12/13] Constitution 自前 inject 検知 (T-AI-04 AC-1/4)..."
   # 禁止語: constitution を自前で system prompt に組み込む関数 / 文字列
   local forbidden_re='\bdef[[:space:]]+(_build_constitution_prompt|_inject_constitution_manually|_compose_red_lines_inline|_manual_constitution_inject)\b'
   local hits
@@ -405,6 +430,7 @@ case "$MODE" in
   --no-self-tool-trim) check_no_self_tool_trim ;;
   --template-skeleton) check_template_skeleton_complete ;;
   --no-self-constitution) check_no_self_constitution_inject ;;
+  --no-self-fallback-circuit) check_no_self_fallback_circuit ;;
   all|"")
     check_emoji
     check_agpl
@@ -418,9 +444,10 @@ case "$MODE" in
     check_no_self_tool_trim
     check_template_skeleton_complete
     check_no_self_constitution_inject
+    check_no_self_fallback_circuit
     ;;
   *)
-    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|--no-self-provider-routing|--no-self-tool-trim|--template-skeleton|--no-self-constitution|all]"
+    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|--no-self-provider-routing|--no-self-tool-trim|--template-skeleton|--no-self-constitution|--no-self-fallback-circuit|all]"
     exit 2
     ;;
 esac
