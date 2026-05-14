@@ -44,15 +44,23 @@ permissions:
 
 concurrency:
   group: license-check-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   license-and-mechanical-guards:
     name: AGPL / ADR-010 / baseline mechanical guards
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 5
 
     steps:
+      - name: Diagnose runner pre-checkout
+        run: |
+          echo "::group::pre-checkout env"
+          uname -a
+          cat /etc/os-release
+          df -h /
+          echo "::endgroup::"
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -61,10 +69,9 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Diagnose runner env
+      - name: Diagnose runner post-setup
         run: |
-          echo "::group::runner env"
-          uname -a
+          echo "::group::post-setup env"
           python3 --version
           bash --version | head -1
           which bash grep python3
