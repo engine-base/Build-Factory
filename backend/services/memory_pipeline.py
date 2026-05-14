@@ -515,6 +515,12 @@ async def build_full_context(
     return payload
 
 
+# AC-2 命名 alias: tickets.json T-M30-05 EVENT-DRIVEN は
+# "build_context(thread_id, query)" を pipeline entry とする.
+# build_full_context は同義 (より明示的な命名). 両者は完全等価.
+build_context = build_full_context
+
+
 # ──────────────────────────────────────────────────────────────────────
 # Public API: tier_health (read-only diagnostic)
 # ──────────────────────────────────────────────────────────────────────
