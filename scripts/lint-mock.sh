@@ -188,7 +188,9 @@ check_no_langgraph() {
   echo "[6/11] backend メイン経路の LangGraph/LangChain 混入検出..."
   # T-003-02 AC-5 (#2): handoff path (secretary_chat / delegation_service)
   # に LangGraph / LangChain が紛れ込まないことも機械検知 (ADR-010 §UNWANTED).
-  local targets="backend/integrations/claude_agent_runner.py backend/services/orchestrator_graph.py backend/ai_agents/secretary_agent.py backend/services/secretary_chat.py backend/services/delegation_service.py"
+  # T-M27-01b: Intent Router entry node (intent_router_entry.py / routers/intent_router.py)
+  # も LangGraph/LangChain 不使用 (ADR-010).
+  local targets="backend/integrations/claude_agent_runner.py backend/services/orchestrator_graph.py backend/ai_agents/secretary_agent.py backend/services/secretary_chat.py backend/services/delegation_service.py backend/services/intent_router_entry.py backend/routers/intent_router.py"
   local found=0
   for f in $targets; do
     if [ ! -f "$f" ]; then continue; fi

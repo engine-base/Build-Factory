@@ -113,6 +113,7 @@ from routers.ears_classifier import router as ears_classifier_router
 from routers.screens_components import router as screens_components_router
 from routers.unified_search import router as unified_search_router
 from routers.intent_classifier import router as intent_classifier_router
+from routers.intent_router import router as intent_router_router
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 
@@ -277,6 +278,7 @@ app.include_router(ears_classifier_router)
 app.include_router(screens_components_router)
 app.include_router(unified_search_router)
 app.include_router(intent_classifier_router)
+app.include_router(intent_router_router)
 
 
 @app.get("/health")
