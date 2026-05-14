@@ -157,7 +157,8 @@ check_archive() {
   # ARCHIVE 検証用 test ファイル (test_supabase_migrations.py /
   # test_t_019_03_bootstrap_health.py / test_t_019_01_archive_invariants.py /
   # test_t_019_01_bootstrap_archive_spec.py (Wave 5 v2 audit) /
-  # test_t_s0_13_inventory_invariants.py) は "onlook" 文字列を含むので除外.
+  # test_t_s0_13_inventory_invariants.py /
+  # test_t_it_s0_sprint0_integration.py) は "onlook" 文字列を含むので除外.
   local refs
   refs=$(grep -rn --include="*.ts" --include="*.tsx" --include="*.py" --include="*.js" \
     --exclude="test_supabase_migrations.py" \
@@ -165,6 +166,7 @@ check_archive() {
     --exclude="test_t_019_01_archive_invariants.py" \
     --exclude="test_t_019_01_bootstrap_archive_spec.py" \
     --exclude="test_t_s0_13_inventory_invariants.py" \
+    --exclude="test_t_it_s0_sprint0_integration.py" \
     "onlook" frontend/src backend 2>/dev/null || true)
   if [ -n "$refs" ]; then
     echo -e "${YELLOW}WARN: 'onlook' の参照が残っている:${NC}"

@@ -58,6 +58,7 @@ ALLOWED_REFERENCE_FILES = {
     "test_t_019_01_archive_invariants.py",
     "test_t_019_01_bootstrap_archive_spec.py",  # Wave 5 v2 audit spec module
     "test_t_s0_13_inventory_invariants.py",  # T-019-01 orphan check
+    "test_t_it_s0_sprint0_integration.py",   # T-IT-S0 Sprint 0 integration smoke
 }
 
 
