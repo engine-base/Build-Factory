@@ -56,6 +56,7 @@ ALLOWED_REFERENCE_FILES = {
     "test_supabase_migrations.py",
     "test_t_019_03_bootstrap_health.py",
     "test_t_019_01_archive_invariants.py",
+    "test_t_019_01_bootstrap_archive_spec.py",  # Wave 5 v2 audit spec module
     "test_t_s0_13_inventory_invariants.py",  # T-019-01 orphan check
 }
 
