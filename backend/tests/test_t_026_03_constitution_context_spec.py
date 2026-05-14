@@ -24,6 +24,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 import os
+import re
 import subprocess
 import time
 from pathlib import Path
@@ -138,7 +139,8 @@ def test_ac1_lint_check_12_constitution_self_inject_runs() -> None:
     assert out.returncode == 0, (
         f"lint check #12 unexpectedly failed: {out.stdout}\n{out.stderr}"
     )
-    assert "[12/13]" in out.stdout
+    # Constitution check は 12 番目 (total はその時の lint check 数なので可変)
+    assert re.search(r"\[12/\d+\]", out.stdout), out.stdout
     assert "Constitution" in out.stdout
 
 
@@ -431,4 +433,5 @@ def test_invariant_constitution_engine_is_canonical_inject_path() -> None:
         encoding="utf-8",
     )
     assert "check_no_self_constitution_inject" in script_text
-    assert "[12/13]" in script_text
+    # Constitution check は 12 番目 (total は可変)
+    assert re.search(r"\[12/\d+\]", script_text), "lint-mock.sh missing [12/N] tag"

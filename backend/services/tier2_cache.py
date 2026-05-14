@@ -36,11 +36,31 @@ MAX_MESSAGE_CHARS = 50_000
 MAX_TOKENS_LIMIT = 200_000
 
 
-# 9-section summary key の典型 (validation は緩い: dict であれば OK)
-KNOWN_SUMMARY_SECTIONS = (
-    "context", "goals", "decisions", "open_questions", "actions",
-    "blockers", "facts", "preferences", "next_steps",
+# ──────────────────────────────────────────────────────────────────────
+# 9-section invariant (cross-module 整合: T-M30-03 AC-1 / ADR-010)
+# ──────────────────────────────────────────────────────────────────────
+# AC-1 spec 文 (T-M30-03):
+#   "The 9-section SECTION_KEYS invariant shall hold cross-module
+#    (mid_term_layer / tier2_cache / tier3_structured_summary)."
+# 本 module は invariant の participant. mid_term_layer.SECTION_KEYS と
+# tuple として完全一致 (順序 + 要素) しなければならず, drift は
+# test_g6_section_keys_match_tier2_cache (must, not skip) で検出する.
+# KNOWN_SUMMARY_SECTIONS は同値の deprecated alias (後方互換のみ).
+
+SECTION_KEYS: tuple[str, ...] = (
+    "context",
+    "goals",
+    "decisions",
+    "open_questions",
+    "actions",
+    "blockers",
+    "facts",
+    "preferences",
+    "next_steps",
 )
+
+# Deprecated alias (T-M28-03 互換用). 新規コードは SECTION_KEYS を使うこと.
+KNOWN_SUMMARY_SECTIONS = SECTION_KEYS
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -93,24 +113,39 @@ async def load_latest_summary(session_id: int) -> Optional[dict]:
 
 
 def format_summary_text(summary: dict) -> str:
-    """9-section summary を ## section\n\nbody 形式の markdown へ."""
+    """9-section summary を ## section\n\nbody 形式の markdown へ.
+
+    順序は SECTION_KEYS (= mid_term_layer.SECTION_KEYS) 固定で出力する.
+    これにより cross-module で順序 invariant も維持される (T-M30-03 AC-1).
+    SECTION_KEYS 外の extra key は末尾に挿入順で残す (後方互換).
+    """
     if not isinstance(summary, dict):
         raise Tier2CacheError("summary must be a dict")
     if not summary:
         raise Tier2CacheError("summary must not be empty")
-    parts: list[str] = []
-    for key, val in summary.items():
+    for key in summary:
         if not isinstance(key, str) or not key.strip():
             raise Tier2CacheError("summary keys must be non-empty strings")
+
+    def _render(val: Any) -> str:
         if isinstance(val, list):
-            body = "\n".join(f"- {v}" for v in val)
-        elif isinstance(val, dict):
-            body = json.dumps(val, ensure_ascii=False, indent=2)
-        elif val is None:
-            body = ""
-        else:
-            body = str(val)
-        parts.append(f"## {key}\n\n{body}")
+            return "\n".join(f"- {v}" for v in val)
+        if isinstance(val, dict):
+            return json.dumps(val, ensure_ascii=False, indent=2)
+        if val is None:
+            return ""
+        return str(val)
+
+    parts: list[str] = []
+    seen: set[str] = set()
+    for key in SECTION_KEYS:
+        if key in summary:
+            parts.append(f"## {key}\n\n{_render(summary[key])}")
+            seen.add(key)
+    for key, val in summary.items():
+        if key in seen:
+            continue
+        parts.append(f"## {key}\n\n{_render(val)}")
     return "\n\n".join(parts)
 
 

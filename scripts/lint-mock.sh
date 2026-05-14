@@ -185,7 +185,7 @@ check_archive() {
 #    対象: claude-agent-sdk runner + 会話オーケストレータ + 秘書エージェント
 # ----------------------------------------------------------------
 check_no_langgraph() {
-  echo "[6/11] backend メイン経路の LangGraph/LangChain 混入検出..."
+  echo "[6/15] backend メイン経路の LangGraph/LangChain 混入検出..."
   # T-003-02 AC-5 (#2): handoff path (secretary_chat / delegation_service)
   # に LangGraph / LangChain が紛れ込まないことも機械検知 (ADR-010 §UNWANTED).
   # T-M27-01b: Intent Router entry node (intent_router_entry.py / routers/intent_router.py)
@@ -213,7 +213,7 @@ check_no_langgraph() {
 #    メイン経路は claude-agent-sdk + anthropic-python のみ。 LiteLLM はサブ用途専用.
 # ----------------------------------------------------------------
 check_no_litellm_in_runner() {
-  echo "[7/7] backend メイン経路の LiteLLM 混入検出..."
+  echo "[7/15] backend メイン経路の LiteLLM 混入検出..."
   local targets="backend/integrations/claude_agent_runner.py backend/services/orchestrator_graph.py backend/ai_agents/secretary_agent.py"
   local found=0
   for f in $targets; do
@@ -279,7 +279,7 @@ check_tickets() {
 # Dispatch
 # ----------------------------------------------------------------
 check_domain_boundaries() {
-  echo "[8/14] backend bounded-context domain barrel + 循環依存検出..."
+  echo "[8/15] backend bounded-context domain barrel + 循環依存検出..."
   if python3 scripts/check-domain-boundaries.py > /tmp/lint_domains.log 2>&1; then
     echo -e "${GREEN}OK: backend/domains/ 13 barrel 健全 (no bypass / no cycle)${NC}"
   else
@@ -296,7 +296,7 @@ check_domain_boundaries() {
 #    (provider_adapter / provider_adapter_memory 経由を強制).
 # ----------------------------------------------------------------
 check_no_self_provider_routing() {
-  echo "[9/13] provider 切替 routing 自前実装検知 (T-AI-MEM-04 / ADR-012 Decision 5)..."
+  echo "[9/15] provider 切替 routing 自前実装検知 (T-AI-MEM-04 / ADR-012 Decision 5)..."
   # 禁止語: provider 切替の自前 routing 関数 / private resolver / route hack
   local forbidden_re='\bdef[[:space:]]+(_resolve_provider_locally|_route_to_provider|_custom_provider_switch|_pick_provider_inline|_byok_then_anthropic)\b'
   local hits
@@ -322,7 +322,7 @@ check_no_self_provider_routing() {
 #     dedup / truncate / window eviction の自前実装を行わない.
 # ----------------------------------------------------------------
 check_no_self_tool_trim() {
-  echo "[10/13] tool result trim 自前実装検知 (T-M28-02 AC-4)..."
+  echo "[10/15] tool result trim 自前実装検知 (T-M28-02 AC-4)..."
   local forbidden_re='\b(trim_tool_result|_apply_size_cap|_apply_age_cap|_dedup_tool_results|truncate_tool_result|_compute_trimmed_payload|_run_trim_policy|_apply_window_eviction)\b'
   local hits
   hits=$(grep -rnE "$forbidden_re" \
@@ -344,7 +344,7 @@ check_no_self_tool_trim() {
 #     関連: ADR-009 / M-31 / T-BTSTRAP-02 (WorkspaceService.bootstrap で参照).
 # ----------------------------------------------------------------
 check_template_skeleton_complete() {
-  echo "[11/13] templates/project-bootstrap/ 必須スケルトン完整性検査 (T-BTSTRAP-01 AC-4)..."
+  echo "[11/15] templates/project-bootstrap/ 必須スケルトン完整性検査 (T-BTSTRAP-01 AC-4)..."
   local required=(
     "templates/project-bootstrap/CLAUDE.md.j2"
     "templates/project-bootstrap/docs/HANDOVER.md.j2"
@@ -384,7 +384,7 @@ check_template_skeleton_complete() {
 #     してはならない (ADR-010 + T-AI-08 spec).
 # ----------------------------------------------------------------
 check_no_self_fallback_circuit() {
-  echo "[13/13] fallback / circuit-breaker 自前実装検知 (T-AI-08 AC-UNWANTED)..."
+  echo "[13/15] fallback / circuit-breaker 自前実装検知 (T-AI-08 AC-UNWANTED)..."
   local forbidden_re='\bdef[[:space:]]+(_custom_health_circuit|_self_failover_loop|_inline_3_strike_fallback|_manual_recovery_streak|_route_to_untested_provider)\b'
   local hits
   hits=$(grep -rnE "$forbidden_re" \
@@ -403,7 +403,7 @@ check_no_self_fallback_circuit() {
 }
 
 check_no_self_constitution_inject() {
-  echo "[12/13] Constitution 自前 inject 検知 (T-AI-04 AC-1/4)..."
+  echo "[12/15] Constitution 自前 inject 検知 (T-AI-04 AC-1/4)..."
   # 禁止語: constitution を自前で system prompt に組み込む関数 / 文字列
   local forbidden_re='\bdef[[:space:]]+(_build_constitution_prompt|_inject_constitution_manually|_compose_red_lines_inline|_manual_constitution_inject)\b'
   local hits
@@ -431,7 +431,7 @@ check_no_self_constitution_inject() {
 #     G22 register_handoff_backend (SDK 差替点) は許可.
 # ----------------------------------------------------------------
 check_no_self_handoff() {
-  echo "[14/14] handoff 自前実装検知 (T-M27-03 AC-4)..."
+  echo "[14/15] handoff 自前実装検知 (T-M27-03 AC-4)..."
   local target="backend/services/handoff_service.py"
   if [ ! -f "$target" ]; then
     echo -e "${GREEN}OK: handoff_service.py が存在しない (skip)${NC}"
@@ -445,6 +445,58 @@ check_no_self_handoff() {
     EXIT_CODE=1
   else
     echo -e "${GREEN}OK: handoff 自前実装の禁止語なし${NC}"
+  fi
+}
+
+# ----------------------------------------------------------------
+# 15. T-M30-03 / T-M28-04 cross-ref UNWANTED:
+#     9-section summary generation 自前実装の禁止語検知.
+#     ADR-010: 9-section structured summary は claude-agent-sdk auto-compaction
+#     の出力をそのまま採用. app code (backend/services / backend/routers) で
+#     SDK auto-compaction path の外で 9-section summary を生成し直す関数を
+#     定義してはならない.
+#     例外:
+#       - backend/services/mid_term_layer.py / backend/routers/mid_term_layer.py
+#         : 統一 read view + persistence wrapper (record_summary). 自前生成は
+#           しない (SDK backend / 受信 summary を normalize するだけ).
+#       - backend/services/tier3_structured_summary.py
+#         : T-M28-04 SDK wrapper. 存在する場合のみ exempt.
+# ----------------------------------------------------------------
+check_no_self_9section_summary() {
+  echo "[15/15] 9-section summary 自前実装検知 (T-M30-03 AC-4 / T-M28-04 cross-ref)..."
+  # 通用語 pattern (hard-coded list ではない):
+  #   verb 語: generate / build / make / compose / synthesize / create /
+  #            produce / assemble / construct / render / emit / write
+  #   数字語: 9 / nine
+  # variation:
+  #   v1: def <verb>..._<9|nine>[_.]?section[s]?[_.]?summary
+  #   v2: def <verb>..._summary_<9|nine>[_.]?section[s]?
+  #   v3: def <verb>...<9|nine>[_.]?sections?[_.]?for_  (例: 9_sections_for_thread)
+  # 例外:
+  #   - mid_term_layer.py / tier3_structured_summary.py / tier2_cache.py
+  #     (cross-module invariant participant)
+  #   - backend/tests/** (テストコードは検査対象外)
+  local verb='(generate|build|make|compose|synthesize|create|produce|assemble|construct|render|emit|write)'
+  local nine='(9|nine)'
+  local re1="\\bdef[[:space:]]+[a-zA-Z_]*${verb}[a-zA-Z_]*_${nine}[._]?sections?[._]?summary\\b"
+  local re2="\\bdef[[:space:]]+[a-zA-Z_]*${verb}[a-zA-Z_]*_summary_${nine}[._]?sections?\\b"
+  local re3="\\bdef[[:space:]]+[a-zA-Z_]*${verb}[a-zA-Z_]*_${nine}[._]?sections?[._]?for[._]"
+  local hits
+  hits=$(grep -rnEi "${re1}|${re2}|${re3}" \
+    --include="*.py" \
+    --exclude="mid_term_layer.py" \
+    --exclude="tier3_structured_summary.py" \
+    --exclude="tier2_cache.py" \
+    --exclude-dir="tests" \
+    backend/services backend/routers 2>/dev/null || true)
+  if [ -n "$hits" ]; then
+    echo -e "${RED}NG: app code に 9-section summary 自前生成の禁止語 (T-M30-03 AC-4 / ADR-010)${NC}"
+    echo "$hits"
+    echo "→ 9-section summary は claude-agent-sdk auto-compaction の出力を採用. 自前生成禁止"
+    echo "→ 例外: mid_term_layer.py / tier3_structured_summary.py / tier2_cache.py のみ"
+    EXIT_CODE=1
+  else
+    echo -e "${GREEN}OK: app code に 9-section summary 自前生成なし (通用語 pattern PASS)${NC}"
   fi
 }
 
@@ -463,6 +515,7 @@ case "$MODE" in
   --no-self-constitution) check_no_self_constitution_inject ;;
   --no-self-fallback-circuit) check_no_self_fallback_circuit ;;
   --no-self-handoff) check_no_self_handoff ;;
+  --no-self-9section) check_no_self_9section_summary ;;
   all|"")
     check_emoji
     check_agpl
@@ -478,9 +531,10 @@ case "$MODE" in
     check_no_self_constitution_inject
     check_no_self_fallback_circuit
     check_no_self_handoff
+    check_no_self_9section_summary
     ;;
   *)
-    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|--no-self-provider-routing|--no-self-tool-trim|--template-skeleton|--no-self-constitution|--no-self-fallback-circuit|--no-self-handoff|all]"
+    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|--no-self-provider-routing|--no-self-tool-trim|--template-skeleton|--no-self-constitution|--no-self-fallback-circuit|--no-self-handoff|--no-self-9section|all]"
     exit 2
     ;;
 esac
