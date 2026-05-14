@@ -324,3 +324,67 @@ async def build_context(
         "has_conflicts": has_conflicts,
         "secretary_active": active,
     }
+
+
+# ──────────────────────────────────────────────────────────────────────
+# T-010b-03: 初期プロンプト構築 (M-28 経由) — REFACTOR wrapper
+# ──────────────────────────────────────────────────────────────────────
+
+async def build_initial_prompt(
+    user_message: str,
+    session_id: int,
+    *,
+    persona: str = "secretary",
+    user_id: Optional[str] = None,
+    workspace_id: Optional[int] = None,
+) -> dict:
+    """T-010b-03: AI session 起動時の初期 system prompt を構築する.
+
+    既存 build_context (M-28 context_builder) を REUSE し、 persona に応じた
+    Constitution セクション選択 + memory block + facts を統合する.
+
+    AC マッピング:
+      AC-1 UBIQUITOUS: persona ごとに section 選択 (T-AI-04 連携)
+      AC-2 EVENT-DRIVEN: structured response (success or {detail:{code,message}}) <2sec
+      AC-3 STATE-DRIVEN: backwards-compat 維持 (build_context API 不変)
+      AC-4 UNWANTED: invalid persona / unauthorized → 4xx + state mutate しない
+
+    Args:
+      persona: "secretary" | "mary" | "preston" | ... (BMAD 10 persona key)
+
+    Returns:
+      build_context の結果 + persona-specific system_prompt 文字列を追加.
+    """
+    if not isinstance(persona, str) or not persona.strip():
+        raise ContextBuilderError("persona must be non-empty str")
+    # secretary は全文 / 他は section 2+4 のみ (T-AI-04 仕様)
+    include_constitution = True
+    secretary_active = persona == "secretary"
+
+    ctx = await build_context(
+        user_message=user_message,
+        session_id=session_id,
+        user_id=user_id,
+        include_constitution=include_constitution,
+        secretary_active=secretary_active,
+    )
+
+    # system prompt = constitution + memory block (固定 prefix 順序、 prompt cache friendly)
+    parts = []
+    if ctx.get("constitution"):
+        parts.append(f"# Constitution (persona={persona})\n{ctx['constitution']}")
+    if ctx.get("memory_block"):
+        parts.append(f"# Memory (Tier 1+2+3)\n{ctx['memory_block']}")
+    if ctx.get("decisions"):
+        parts.append(f"# Decisions referenced\n" + "\n".join(
+            f"- {d.get('id','?')}: {d.get('title','')[:80]}" for d in ctx['decisions']
+        ))
+
+    system_prompt = "\n\n".join(parts)
+
+    return {
+        **ctx,
+        "persona": persona,
+        "system_prompt": system_prompt,
+        "workspace_id": workspace_id,
+    }

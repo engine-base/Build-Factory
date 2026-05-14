@@ -1,0 +1,93 @@
+# T-BTSTRAP-05: テンプレ更新時に全案件へ PR 自動作成 (CI 統合)
+#
+# templates/CHANGELOG.md が main で変更されたら全 active workspace に対し
+# 1) dry-run migrate (差分プレビュー), 2) approval 待ち, 3) 各 workspace に
+# PR 'chore: migrate to template v{X}' を自動作成する.
+#
+# AC マッピング:
+#   AC-1 EVENT     : templates/CHANGELOG.md 変更 -> dry-run trigger
+#   AC-2 UBIQUITOUS: 各 workspace の差分件数を report (approval 待ち)
+#   AC-3 EVENT     : workflow_dispatch approve -> 各 workspace に PR 作成
+#   AC-4 STATE     : 同 template version の PR 重複しない (idempotent)
+#   AC-5 UNWANTED  : 1 workspace の失敗で abort せず continue + summary 報告
+#
+# 詳細実装は scripts/propagate-template.py に委譲.
+
+name: template-propagation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'templates/CHANGELOG.md'
+      - 'templates/project-bootstrap/**'
+  workflow_dispatch:
+    inputs:
+      approve:
+        description: 'Approve and create PRs in all workspaces (yes/no)'
+        required: true
+        default: 'no'
+      target_workspaces:
+        description: 'Comma-separated workspace IDs (empty=all active)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: template-propagation
+  cancel-in-progress: false
+
+jobs:
+  dry-run:
+    name: Dry-run template diff per workspace
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: pip install jinja2 requests
+
+      - name: Run dry-run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/propagate-template.py --dry-run
+
+      - name: Post summary as commit comment
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/propagate-template.py --post-summary || true
+
+  apply:
+    name: Create PRs in all workspaces (manual approval)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.approve == 'yes'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: pip install jinja2 requests
+
+      - name: Apply template propagation
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET_WORKSPACES: ${{ github.event.inputs.target_workspaces }}
+        run: python3 scripts/propagate-template.py --apply --continue-on-error
