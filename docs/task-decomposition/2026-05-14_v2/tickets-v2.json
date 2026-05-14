@@ -40,49 +40,49 @@
         "name": "認証 + Workspace + テナント階層",
         "dogfood": "ログインして workspace に入れる / 招待 / 権限 / OAuth で外部 API キー登録",
         "task_count": 34,
-        "done_count": 8
+        "done_count": 34
       },
       "S2": {
         "name": "AI 社員 + Chat + Memory (3 tier)",
         "dogfood": "workspace 内で AI 社員と会話できる + 短期/中期/長期 memory が回る",
         "task_count": 51,
-        "done_count": 25
+        "done_count": 51
       },
       "S3": {
         "name": "ヒアリング → 要件定義 AI ペルソナ",
         "dogfood": "Mary (BA) がヒアリング, Preston (PM) が要件定義書を出す",
         "task_count": 9,
-        "done_count": 4
+        "done_count": 9
       },
       "S4": {
         "name": "アーキ設計 → 機能分解 → タスク分解 AI",
         "dogfood": "Winston (Architect) → Sally (PO) → Devon (Dev) の連携で 1 案件分が組み立つ",
         "task_count": 12,
-        "done_count": 7
+        "done_count": 12
       },
       "S5": {
         "name": "Kanban + DAG + Phase 管理 + 横断検索",
         "dogfood": "タスク化 → Kanban で進捗 → DAG で依存可視化 → Cmd+K で横断検索",
         "task_count": 20,
-        "done_count": 9
+        "done_count": 19
       },
       "S6": {
         "name": "MCP + Reviewer + Constitution 適用",
         "dogfood": "Quinn (QA/Reviewer) が動く + MCP server 経由で Claude Code に bf tools が見える + red-line 監視",
         "task_count": 21,
-        "done_count": 8
+        "done_count": 20
       },
       "S7": {
         "name": "Swarm 並列実行 + Worktree (= 靴屋に靴を履かせる)",
         "dogfood": "1 人の operator が Swarm UI で複数 task を並列実行できる",
         "task_count": 16,
-        "done_count": 2
+        "done_count": 15
       },
       "S8": {
         "name": "GitHub + Slack + Obsidian + 観測 + 監査 + 配信",
         "dogfood": "PR 自動化 / Slack 通知 / Obsidian エクスポート / Langfuse / 監査ログ / 納品まで完走",
         "task_count": 24,
-        "done_count": 5
+        "done_count": 23
       }
     }
   },
@@ -202,7 +202,7 @@
       "unlocks": [
         "T-019-03"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-019-03",
@@ -249,7 +249,7 @@
       "parallel_group": "P1.3-019",
       "dogfood_value": "ログインして workspace に入れる / 招待 / 権限 / OAuth で外部 API キー登録",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-S0-13",
@@ -369,7 +369,7 @@
       "unlocks": [
         "T-S0-13c"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-S0-13c",
@@ -422,7 +422,7 @@
       "parallel_group": "P1.3-ETA",
       "dogfood_value": "ログインして workspace に入れる / 招待 / 権限 / OAuth で外部 API キー登録",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-S0-01",
@@ -520,7 +520,7 @@
       "unlocks": [
         "T-S0-04"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-S0-03",
@@ -563,7 +563,7 @@
       "parallel_group": "P1.1-ETA",
       "dogfood_value": "ログインして workspace に入れる / 招待 / 権限 / OAuth で外部 API キー登録",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-S0-04",
@@ -610,7 +610,7 @@
       "unlocks": [
         "T-018-03"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-S0-05",
@@ -727,7 +727,7 @@
         "T-024-01",
         "T-026-02"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-S0-07",
@@ -768,7 +768,7 @@
       "parallel_group": "P1.1-ETA",
       "dogfood_value": "ログインして workspace に入れる / 招待 / 権限 / OAuth で外部 API キー登録",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-S0-08",
@@ -1052,7 +1052,7 @@
       "parallel_group": "P8.1-ETA",
       "dogfood_value": "PR 自動化 / Slack 通知 / Obsidian エクスポート / Langfuse / 監査ログ / 納品まで完走",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-S0-12",
@@ -1093,7 +1093,7 @@
       "parallel_group": "P8.1-ETA",
       "dogfood_value": "PR 自動化 / Slack 通知 / Obsidian エクスポート / Langfuse / 監査ログ / 納品まで完走",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-001-01",
@@ -1199,7 +1199,7 @@
       "parallel_group": "P1.4-001",
       "dogfood_value": "ログインして workspace に入れる / 招待 / 権限 / OAuth で外部 API キー登録",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-001-02",
@@ -1267,7 +1267,7 @@
         "T-021-01",
         "T-S0-09b"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-001-03",
@@ -1319,7 +1319,7 @@
         "T-001-08",
         "T-022-01"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-001-04",
@@ -1564,7 +1564,7 @@
         "T-024-02",
         "T-M28-05"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-001-08",
@@ -1615,7 +1615,7 @@
         "T-001-11",
         "T-023-05"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-001-09",
@@ -1718,7 +1718,7 @@
       "unlocks": [
         "T-001-11"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-001-11",
@@ -1759,7 +1759,7 @@
       "parallel_group": "P2.4-001",
       "dogfood_value": "workspace 内で AI 社員と会話できる + 短期/中期/長期 memory が回る",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-002-01",
@@ -1847,7 +1847,7 @@
       "parallel_group": "P1.4-002",
       "dogfood_value": "ログインして workspace に入れる / 招待 / 権限 / OAuth で外部 API キー登録",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-004-01",
@@ -1945,7 +1945,7 @@
       "unlocks": [
         "T-004-03"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-004-03",
@@ -1986,7 +1986,7 @@
       "unlocks": [
         "T-004-04"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-004-04",
@@ -2027,7 +2027,7 @@
       "unlocks": [
         "T-004-06"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-004-05",
@@ -2081,7 +2081,7 @@
       "parallel_group": "P1.6-004",
       "dogfood_value": "ログインして workspace に入れる / 招待 / 権限 / OAuth で外部 API キー登録",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-004-06",
@@ -2120,7 +2120,7 @@
       "parallel_group": "P1.9-004",
       "dogfood_value": "ログインして workspace に入れる / 招待 / 権限 / OAuth で外部 API キー登録",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-IT-S0",
@@ -2215,7 +2215,7 @@
       "unlocks": [
         "T-021-02"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-021-02",
@@ -2267,7 +2267,7 @@
       "unlocks": [
         "T-021-03"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-021-03",
@@ -2329,7 +2329,7 @@
         "T-010a-04",
         "T-021-05"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-021-04",
@@ -2381,7 +2381,7 @@
       "parallel_group": "P1.3-021",
       "dogfood_value": "ログインして workspace に入れる / 招待 / 権限 / OAuth で外部 API キー登録",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-021-05",
@@ -2432,7 +2432,7 @@
       "parallel_group": "P1.1-021",
       "dogfood_value": "ログインして workspace に入れる / 招待 / 権限 / OAuth で外部 API キー登録",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-023-01",
@@ -2487,7 +2487,7 @@
       "parallel_group": "P1.3-023",
       "dogfood_value": "ログインして workspace に入れる / 招待 / 権限 / OAuth で外部 API キー登録",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-023-02",
@@ -2541,7 +2541,7 @@
       "parallel_group": "P1.1-023",
       "dogfood_value": "ログインして workspace に入れる / 招待 / 権限 / OAuth で外部 API キー登録",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-023-03",
@@ -2595,7 +2595,7 @@
       "unlocks": [
         "T-020-04"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-023-04",
@@ -2652,7 +2652,7 @@
         "T-010b-02",
         "T-013-01"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-023-05",
@@ -2706,7 +2706,7 @@
       "parallel_group": "P1.1-023",
       "dogfood_value": "ログインして workspace に入れる / 招待 / 権限 / OAuth で外部 API キー登録",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-020-01",
@@ -2751,7 +2751,7 @@
       "unlocks": [
         "T-020-02"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-020-02",
@@ -2867,7 +2867,7 @@
       "parallel_group": "P2.3-020",
       "dogfood_value": "workspace 内で AI 社員と会話できる + 短期/中期/長期 memory が回る",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-020-04",
@@ -2911,7 +2911,7 @@
       "unlocks": [
         "T-M28-03"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-022-01",
@@ -2969,7 +2969,7 @@
         "T-022-02",
         "T-022-03"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-022-02",
@@ -3008,7 +3008,7 @@
       "parallel_group": "P2.3-022",
       "dogfood_value": "workspace 内で AI 社員と会話できる + 短期/中期/長期 memory が回る",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-022-03",
@@ -3057,7 +3057,7 @@
         "T-022-04",
         "T-M27-03"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-022-04",
@@ -3102,7 +3102,7 @@
       "parallel_group": "P2.4-022",
       "dogfood_value": "workspace 内で AI 社員と会話できる + 短期/中期/長期 memory が回る",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-003-01",
@@ -3150,7 +3150,7 @@
       "unlocks": [
         "T-011-01"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-003-02",
@@ -3266,7 +3266,7 @@
       "parallel_group": "P2.4-003",
       "dogfood_value": "workspace 内で AI 社員と会話できる + 短期/中期/長期 memory が回る",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-003-04",
@@ -3305,7 +3305,7 @@
       "parallel_group": "P2.4-003",
       "dogfood_value": "workspace 内で AI 社員と会話できる + 短期/中期/長期 memory が回る",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-003-05",
@@ -3348,7 +3348,7 @@
       "parallel_group": "P2.4-003",
       "dogfood_value": "workspace 内で AI 社員と会話できる + 短期/中期/長期 memory が回る",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-M27-01",
@@ -3668,7 +3668,7 @@
       "parallel_group": "P2.2-28",
       "dogfood_value": "workspace 内で AI 社員と会話できる + 短期/中期/長期 memory が回る",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-M28-04",
@@ -3760,7 +3760,7 @@
       "parallel_group": "P2.3-28",
       "dogfood_value": "workspace 内で AI 社員と会話できる + 短期/中期/長期 memory が回る",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-M30-01",
@@ -3806,7 +3806,7 @@
         "T-M28-04",
         "T-M30-02"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-M30-02",
@@ -3850,7 +3850,7 @@
       "parallel_group": "P2.3-30",
       "dogfood_value": "workspace 内で AI 社員と会話できる + 短期/中期/長期 memory が回る",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-M30-03",
@@ -3942,7 +3942,7 @@
       "unlocks": [
         "T-M30-05"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-M30-05",
@@ -4036,7 +4036,7 @@
       "parallel_group": "P2.99-ETA",
       "dogfood_value": "workspace 内で AI 社員と会話できる + 短期/中期/長期 memory が回る",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-025-01",
@@ -4176,7 +4176,7 @@
       "unlocks": [
         "T-015-02"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-015-02",
@@ -4221,7 +4221,7 @@
       "unlocks": [
         "T-005b-03"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-015-03",
@@ -4364,7 +4364,7 @@
       "parallel_group": "P3.2-005",
       "dogfood_value": "Mary (BA) がヒアリング, Preston (PM) が要件定義書を出す",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-005-03",
@@ -4407,7 +4407,7 @@
       "parallel_group": "P3.2-005",
       "dogfood_value": "Mary (BA) がヒアリング, Preston (PM) が要件定義書を出す",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-005-04",
@@ -4498,7 +4498,7 @@
       "parallel_group": "P3.1-05B",
       "dogfood_value": "Mary (BA) がヒアリング, Preston (PM) が要件定義書を出す",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-005b-02",
@@ -4544,7 +4544,7 @@
       "parallel_group": "P3.1-05B",
       "dogfood_value": "Mary (BA) がヒアリング, Preston (PM) が要件定義書を出す",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-005b-03",
@@ -4589,7 +4589,7 @@
       "parallel_group": "P3.1-05B",
       "dogfood_value": "Mary (BA) がヒアリング, Preston (PM) が要件定義書を出す",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-005b-04",
@@ -4718,7 +4718,7 @@
       "unlocks": [
         "T-006-04"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-006-03",
@@ -4759,7 +4759,7 @@
       "unlocks": [
         "T-009-03"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-006-04",
@@ -4806,7 +4806,7 @@
       "parallel_group": "P4.3-006",
       "dogfood_value": "Winston (Architect) → Sally (PO) → Devon (Dev) の連携で 1 案件分が組み立つ",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-IT-S3",
@@ -4933,7 +4933,7 @@
       "unlocks": [
         "T-008-04"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-008-03",
@@ -4972,7 +4972,7 @@
       "parallel_group": "P5.2-008",
       "dogfood_value": "タスク化 → Kanban で進捗 → DAG で依存可視化 → Cmd+K で横断検索",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-008-04",
@@ -5011,7 +5011,7 @@
       "parallel_group": "P5.3-008",
       "dogfood_value": "タスク化 → Kanban で進捗 → DAG で依存可視化 → Cmd+K で横断検索",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-009-01",
@@ -5109,7 +5109,7 @@
         "T-009-04",
         "T-009-05"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-009-03",
@@ -5148,7 +5148,7 @@
       "parallel_group": "P5.1-009",
       "dogfood_value": "タスク化 → Kanban で進捗 → DAG で依存可視化 → Cmd+K で横断検索",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-009-04",
@@ -5191,7 +5191,7 @@
       "parallel_group": "P5.2-009",
       "dogfood_value": "タスク化 → Kanban で進捗 → DAG で依存可視化 → Cmd+K で横断検索",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-009-05",
@@ -5234,7 +5234,7 @@
       "parallel_group": "P5.2-009",
       "dogfood_value": "タスク化 → Kanban で進捗 → DAG で依存可視化 → Cmd+K で横断検索",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-007-01",
@@ -5318,7 +5318,7 @@
       "unlocks": [
         "T-007-04"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-007-03",
@@ -5450,7 +5450,7 @@
       "parallel_group": "P5.2-007",
       "dogfood_value": "タスク化 → Kanban で進捗 → DAG で依存可視化 → Cmd+K で横断検索",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-024-01",
@@ -5494,7 +5494,7 @@
       "parallel_group": "P5.1-024",
       "dogfood_value": "タスク化 → Kanban で進捗 → DAG で依存可視化 → Cmd+K で横断検索",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-024-02",
@@ -5755,7 +5755,7 @@
       "parallel_group": "P2.1-026",
       "dogfood_value": "workspace 内で AI 社員と会話できる + 短期/中期/長期 memory が回る",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-026-03",
@@ -5840,7 +5840,7 @@
       "unlocks": [
         "T-012-02"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-012-02",
@@ -5929,7 +5929,7 @@
       "parallel_group": "P6.1-012",
       "dogfood_value": "Quinn (QA/Reviewer) が動く + MCP server 経由で Claude Code に bf tools が見える + red-line 監視",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-012-04",
@@ -5971,7 +5971,7 @@
       "parallel_group": "P6.3-012",
       "dogfood_value": "Quinn (QA/Reviewer) が動く + MCP server 経由で Claude Code に bf tools が見える + red-line 監視",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-010a-01",
@@ -6098,7 +6098,7 @@
       "parallel_group": "P6.2-10A",
       "dogfood_value": "Quinn (QA/Reviewer) が動く + MCP server 経由で Claude Code に bf tools が見える + red-line 監視",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-010a-04",
@@ -6137,7 +6137,7 @@
       "parallel_group": "P6.1-10A",
       "dogfood_value": "Quinn (QA/Reviewer) が動く + MCP server 経由で Claude Code に bf tools が見える + red-line 監視",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-010b-01",
@@ -6223,7 +6223,7 @@
       "parallel_group": "P6.1-10B",
       "dogfood_value": "Quinn (QA/Reviewer) が動く + MCP server 経由で Claude Code に bf tools が見える + red-line 監視",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-010b-03",
@@ -6266,7 +6266,7 @@
       "parallel_group": "P6.1-10B",
       "dogfood_value": "Quinn (QA/Reviewer) が動く + MCP server 経由で Claude Code に bf tools が見える + red-line 監視",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-010b-04",
@@ -6311,7 +6311,7 @@
       "parallel_group": "P6.2-10B",
       "dogfood_value": "Quinn (QA/Reviewer) が動く + MCP server 経由で Claude Code に bf tools が見える + red-line 監視",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-010b-05",
@@ -6352,7 +6352,7 @@
       "unlocks": [
         "T-010c-05"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-011-01",
@@ -6443,7 +6443,7 @@
       "parallel_group": "P6.2-011",
       "dogfood_value": "Quinn (QA/Reviewer) が動く + MCP server 経由で Claude Code に bf tools が見える + red-line 監視",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-011-03",
@@ -6485,7 +6485,7 @@
       "parallel_group": "P6.1-011",
       "dogfood_value": "Quinn (QA/Reviewer) が動く + MCP server 経由で Claude Code に bf tools が見える + red-line 監視",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-011-04",
@@ -6530,7 +6530,7 @@
       "parallel_group": "P6.2-011",
       "dogfood_value": "Quinn (QA/Reviewer) が動く + MCP server 経由で Claude Code に bf tools が見える + red-line 監視",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-IT-S5",
@@ -6622,7 +6622,7 @@
         "T-M29-02",
         "T-M29-03"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-M29-02",
@@ -6666,7 +6666,7 @@
       "parallel_group": "P7.2-29",
       "dogfood_value": "1 人の operator が Swarm UI で複数 task を並列実行できる",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-M29-03",
@@ -6760,7 +6760,7 @@
         "T-010c-03",
         "T-010c-04"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-010c-02",
@@ -6799,7 +6799,7 @@
       "parallel_group": "P7.1-10C",
       "dogfood_value": "1 人の operator が Swarm UI で複数 task を並列実行できる",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-010c-03",
@@ -6838,7 +6838,7 @@
       "parallel_group": "P7.2-10C",
       "dogfood_value": "1 人の operator が Swarm UI で複数 task を並列実行できる",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-010c-04",
@@ -6877,7 +6877,7 @@
       "parallel_group": "P7.2-10C",
       "dogfood_value": "1 人の operator が Swarm UI で複数 task を並列実行できる",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-010c-05",
@@ -6918,7 +6918,7 @@
       "unlocks": [
         "T-010c-06"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-010c-06",
@@ -6965,7 +6965,7 @@
       "parallel_group": "P7.2-10C",
       "dogfood_value": "1 人の operator が Swarm UI で複数 task を並列実行できる",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-010d-01",
@@ -7007,7 +7007,7 @@
         "T-010d-03",
         "T-010d-04"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-010d-02",
@@ -7054,7 +7054,7 @@
       "parallel_group": "P7.1-10D",
       "dogfood_value": "1 人の operator が Swarm UI で複数 task を並列実行できる",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-010d-03",
@@ -7099,7 +7099,7 @@
       "parallel_group": "P7.2-10D",
       "dogfood_value": "1 人の operator が Swarm UI で複数 task を並列実行できる",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-010d-04",
@@ -7145,7 +7145,7 @@
       "parallel_group": "P7.2-10D",
       "dogfood_value": "1 人の operator が Swarm UI で複数 task を並列実行できる",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-IT-S6",
@@ -7225,7 +7225,7 @@
       "unlocks": [
         "T-BTSTRAP-02"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-013-02",
@@ -7264,7 +7264,7 @@
       "parallel_group": "P8.1-013",
       "dogfood_value": "PR 自動化 / Slack 通知 / Obsidian エクスポート / Langfuse / 監査ログ / 納品まで完走",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-013-03",
@@ -7305,7 +7305,7 @@
       "unlocks": [
         "T-BTSTRAP-05"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-013-04",
@@ -7438,7 +7438,7 @@
         "T-011-03",
         "T-014-02"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-014-02",
@@ -7480,7 +7480,7 @@
       "parallel_group": "P8.2-014",
       "dogfood_value": "PR 自動化 / Slack 通知 / Obsidian エクスポート / Langfuse / 監査ログ / 納品まで完走",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-016-01",
@@ -7530,7 +7530,7 @@
       "unlocks": [
         "T-M30-04"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-016-02",
@@ -7574,7 +7574,7 @@
       "unlocks": [
         "T-016-03"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-016-03",
@@ -7613,7 +7613,7 @@
       "parallel_group": "P8.3-016",
       "dogfood_value": "PR 自動化 / Slack 通知 / Obsidian エクスポート / Langfuse / 監査ログ / 納品まで完走",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-017-01",
@@ -7657,7 +7657,7 @@
       "parallel_group": "P8.1-017",
       "dogfood_value": "PR 自動化 / Slack 通知 / Obsidian エクスポート / Langfuse / 監査ログ / 納品まで完走",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-017-02",
@@ -7699,7 +7699,7 @@
       "parallel_group": "P8.1-017",
       "dogfood_value": "PR 自動化 / Slack 通知 / Obsidian エクスポート / Langfuse / 監査ログ / 納品まで完走",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-017-03",
@@ -7746,7 +7746,7 @@
       "parallel_group": "P8.1-017",
       "dogfood_value": "PR 自動化 / Slack 通知 / Obsidian エクスポート / Langfuse / 監査ログ / 納品まで完走",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-018-01",
@@ -7785,7 +7785,7 @@
       "parallel_group": "P8.1-018",
       "dogfood_value": "PR 自動化 / Slack 通知 / Obsidian エクスポート / Langfuse / 監査ログ / 納品まで完走",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-018-02",
@@ -7824,7 +7824,7 @@
       "parallel_group": "P8.1-018",
       "dogfood_value": "PR 自動化 / Slack 通知 / Obsidian エクスポート / Langfuse / 監査ログ / 納品まで完走",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-018-03",
@@ -7871,7 +7871,7 @@
       "parallel_group": "P8.1-018",
       "dogfood_value": "PR 自動化 / Slack 通知 / Obsidian エクスポート / Langfuse / 監査ログ / 納品まで完走",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-IT-S7",
@@ -8184,7 +8184,7 @@
       "parallel_group": "P4.4-013",
       "dogfood_value": "Winston (Architect) → Sally (PO) → Devon (Dev) の連携で 1 案件分が組み立つ",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-BTSTRAP-06",
@@ -8234,7 +8234,7 @@
       "parallel_group": "P4.3-003",
       "dogfood_value": "Winston (Architect) → Sally (PO) → Devon (Dev) の連携で 1 案件分が組み立つ",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-M12-01",
@@ -8338,7 +8338,7 @@
         "T-AI-02",
         "T-AI-04"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-AI-02",
@@ -8393,7 +8393,7 @@
       "parallel_group": "P2.3-AI",
       "dogfood_value": "workspace 内で AI 社員と会話できる + 短期/中期/長期 memory が回る",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-AI-03",
@@ -8614,7 +8614,7 @@
         "T-013-04b",
         "T-AI-08"
       ],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-AI-07",

@@ -214,11 +214,21 @@ def main():
     tickets = d["tickets"]
     by_id = {t["id"]: t for t in tickets}
 
-    # 2) git log から done 検出
+    # 2) done 検出 (2 経路の OR):
+    #    (a) git log の commit subject + body に task ID 出現
+    #    (b) docs/audit/2026-05-13_v2/<TASK-ID>.md が存在 (= pre-flight/retroactive audit 済み)
     commits_full = subprocess.check_output(
         ["git", "log", "origin/main", "--pretty=format:%s%n%b%n---END---"]
     ).decode()
-    done_set = {tid for tid in by_id if re.search(r"\b" + re.escape(tid) + r"\b", commits_full)}
+    audit_dir = ROOT / "docs/audit/2026-05-13_v2"
+    audit_md_ids = (
+        {p.stem for p in audit_dir.glob("T-*.md")} if audit_dir.is_dir() else set()
+    )
+    done_set = {
+        tid for tid in by_id
+        if re.search(r"\b" + re.escape(tid) + r"\b", commits_full)
+        or tid in audit_md_ids
+    }
 
     # 3) Slice 割り当て
     for t in tickets:

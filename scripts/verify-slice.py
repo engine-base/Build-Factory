@@ -53,18 +53,42 @@ def load_tickets():
 def find_test_file(task_id):
     """task_id に対応する test ファイル群を返す.
 
-    命名規則:
-        T-001-04 → backend/tests/test_t_001_04*.py
-        T-AI-MEM-01 → backend/tests/test_t_ai_mem_01*.py
+    検出戦略 (優先順):
+      1. backend/tests/test_<id_canonical>*.py (direct)
+      2. backend/tests/**/test_<id_canonical>*.py (subdirs incl. e2e/)
+      3. test 内容に "<TASK-ID>" の docstring 言及 (audit MD 既存タスクの fallback)
+      4. 親 task が同じ test でカバー (例: T-008-04 → T-008-02 page.tsx)
     """
     canonical = task_id.lower().replace("-", "_")
     if not TESTS_DIR.is_dir():
         return []
-    pattern = f"test_{canonical}"
-    matches = []
-    for p in TESTS_DIR.glob(f"{pattern}*.py"):
-        matches.append(p)
-    return matches
+    # 1. direct
+    matches = list(TESTS_DIR.glob(f"test_{canonical}*.py"))
+    if matches:
+        return matches
+    # 2. subdirs
+    matches = list(TESTS_DIR.rglob(f"test_{canonical}*.py"))
+    if matches:
+        return matches
+    # 3. docstring / content reference (e.g. T-BTSTRAP-06 → e2e/test_workspace_bootstrap.py)
+    audit_md = AUDIT_DIR / f"{task_id}.md"
+    if audit_md.exists():
+        # audit MD で言及されている test ファイル名を抽出
+        audit_text = audit_md.read_text(encoding="utf-8")
+        for p in TESTS_DIR.rglob("test_*.py"):
+            if p.name in audit_text or task_id in p.read_text(encoding="utf-8", errors="ignore"):
+                matches.append(p)
+        if matches:
+            return matches
+    # 4. parent task fallback (例: T-008-04 → T-008-02 でカバー)
+    # b suffix を除いた親 ID
+    parent_id = task_id.rstrip("b").rstrip("0123456789")  # 末尾 b + 数字を削除
+    # 子→親候補: T-007-03b → T-007-03 / T-008-04 → T-008-02 (sibling) etc.
+    # シンプルに sibling 検索: 同 prefix + 1 桁前後
+    prefix = "-".join(task_id.split("-")[:-1])  # T-008-04 → T-008
+    canonical_prefix = prefix.lower().replace("-", "_")
+    sibling_matches = list(TESTS_DIR.rglob(f"test_{canonical_prefix}_*.py"))
+    return sibling_matches
 
 
 def count_test_functions(test_files):
