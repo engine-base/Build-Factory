@@ -47,7 +47,9 @@ def _fake_ws_service(monkeypatch):
     next_id = {"v": 100}
 
     async def fake_create(*, account_id, name, description=None,
-                           project_meta=None, creator_user_id="masato"):
+                           project_meta=None, creator_user_id="masato",
+                           preferred_provider=None):
+        # T-024-04 cascade: preferred_provider を受け取れるように後方互換 update.
         if name == "_FORCE_ERR_":
             raise ValueError("name conflict simulated")
         wid = next_id["v"]
@@ -56,6 +58,7 @@ def _fake_ws_service(monkeypatch):
             "id": wid, "account_id": account_id, "name": name,
             "description": description, "creator_user_id": creator_user_id,
             "status": "active",
+            "preferred_provider": preferred_provider or "auto",
         }
         store[wid] = row
         return row

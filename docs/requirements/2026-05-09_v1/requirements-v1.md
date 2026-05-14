@@ -467,3 +467,42 @@ architecture-design  ← 次着手
   → task-decomposition
   → distributed-dev（Claude Code 実装パッケージ化）
 ```
+
+---
+
+## 2026-05-13 Addendum — ADR-012 反映 (Anthropic 公式 Memory 機能採用)
+
+### M-28 (Memory Context Builder) 要件への追補
+
+- AC-1 (UBIQUITOUS) の "Mem0 vector search + Obsidian markdown **read/write** + Constitution decision lookup unified API" は **Anthropic 公式 Memory Tool (`memory_20250818`) を一級市民として採用**して実現する (T-AI-MEM-01 で実装).
+- AC-3 (STATE) の "secretary AI active 時の Constitution 注入" は Memory Tool の `/memories/constitution/` 配下に注入する形で達成 (自前実装必須 8 項目 T-AI-04 から Memory Tool delegate に再構成).
+- AC-4 (UNWANTED) の "Mem0 conflicts surface" は `has_conflicts: bool` フラグで明示 (silent pick 禁止).
+
+### M-30 (Memory 3-tier) 要件への追補
+
+- Tier 1 (short) = SDK の `clear_tool_uses_20250919` で auto-trim (T-AI-MEM-02 で activation).
+- Tier 2 (mid)   = SDK の `compact_20260112` で server-side summarization (50K 以上で発火).
+- Tier 3 (long)  = Mem0 + Obsidian Vault (Memory Tool で Claude が自動 read/write 可能).
+- 自前 trim / compaction logic は禁止 (`scripts/lint-mock.sh` で機械検知).
+
+### F-AI 全体への追補 (新規要件)
+
+| 新規要件 | 内容 | 対応 ticket |
+|---|---|---|
+| **provider 任意切替** | ユーザ / 運用者 / workspace が provider を任意で切替可能 (BYOK / per-workspace / per-session / per-request) | T-AI-MEM-04 |
+| **provider 障害時 fallback** | Anthropic 障害検知 (T-AI-08 circuit-breaker) で自動 fallback (GPT-4o / Gemini) | T-AI-MEM-04 + T-AI-08 |
+| **provider 切替 audit** | 切替経路 (manual / auto-fallback / byok) を audit_logs に記録 | T-AI-MEM-04 |
+| **Vault filesystem 共有** | 全 provider で同一 Obsidian Vault filesystem を共有 (read/write parity) | T-AI-MEM-04 |
+
+### Must 34 項目への影響
+
+- M-28 / M-30 / F-AI 既存 Must 項目は **要件文の意味は不変**, 実装方式が「自前」から「公式機能 + 薄い wrapper」に変更.
+- 新規 Must 項目追加: なし (provider 切替は ADR-010 / T-AI-08 既存方針の具体化).
+
+### 関連 ADR / ticket
+
+- ADR-010 → ADR-012 で amend
+- T-AI-MEM-01 〜 04 (tickets.json 参照, 全 4 AC EARS 形式)
+- T-024-04 (workspaces.preferred_provider column 追加 migration)
+
+詳細: `docs/decisions/ADR-012-anthropic-memory-tool-adoption.md`

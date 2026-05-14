@@ -183,8 +183,10 @@ check_archive() {
 #    対象: claude-agent-sdk runner + 会話オーケストレータ + 秘書エージェント
 # ----------------------------------------------------------------
 check_no_langgraph() {
-  echo "[6/6] backend メイン経路の LangGraph/LangChain 混入検出..."
-  local targets="backend/integrations/claude_agent_runner.py backend/services/orchestrator_graph.py backend/ai_agents/secretary_agent.py"
+  echo "[6/11] backend メイン経路の LangGraph/LangChain 混入検出..."
+  # T-003-02 AC-5 (#2): handoff path (secretary_chat / delegation_service)
+  # に LangGraph / LangChain が紛れ込まないことも機械検知 (ADR-010 §UNWANTED).
+  local targets="backend/integrations/claude_agent_runner.py backend/services/orchestrator_graph.py backend/ai_agents/secretary_agent.py backend/services/secretary_chat.py backend/services/delegation_service.py"
   local found=0
   for f in $targets; do
     if [ ! -f "$f" ]; then continue; fi
@@ -273,12 +275,145 @@ check_tickets() {
 # Dispatch
 # ----------------------------------------------------------------
 check_domain_boundaries() {
-  echo "[8/8] backend bounded-context domain barrel + 循環依存検出..."
+  echo "[8/11] backend bounded-context domain barrel + 循環依存検出..."
   if python3 scripts/check-domain-boundaries.py > /tmp/lint_domains.log 2>&1; then
     echo -e "${GREEN}OK: backend/domains/ 13 barrel 健全 (no bypass / no cycle)${NC}"
   else
     cat /tmp/lint_domains.log
     EXIT_CODE=1
+  fi
+}
+
+# ----------------------------------------------------------------
+# 9. T-AI-MEM-04 (ADR-012 Decision 5): provider 切替 routing 自前実装の禁止語検知
+#    任意切替 + 障害時 fallback は backend/services/provider_adapter_memory.py
+#    の resolve_active_provider() に集約する. 各 router / service が個別に
+#    if-elif で provider 文字列分岐する routing を行うのは禁止
+#    (provider_adapter / provider_adapter_memory 経由を強制).
+# ----------------------------------------------------------------
+check_no_self_provider_routing() {
+  echo "[9/13] provider 切替 routing 自前実装検知 (T-AI-MEM-04 / ADR-012 Decision 5)..."
+  # 禁止語: provider 切替の自前 routing 関数 / private resolver / route hack
+  local forbidden_re='\bdef[[:space:]]+(_resolve_provider_locally|_route_to_provider|_custom_provider_switch|_pick_provider_inline|_byok_then_anthropic)\b'
+  local hits
+  hits=$(grep -rnE "$forbidden_re" \
+    --include="*.py" \
+    --exclude="provider_adapter_memory.py" \
+    --exclude="provider_adapter.py" \
+    backend/services backend/routers 2>/dev/null || true)
+  if [ -n "$hits" ]; then
+    echo -e "${RED}NG: provider 切替 routing 自前実装の禁止語 (T-AI-MEM-04 / ADR-012)${NC}"
+    echo "$hits"
+    echo "→ provider 切替は services/provider_adapter_memory.resolve_active_provider() を経由"
+    EXIT_CODE=1
+  else
+    echo -e "${GREEN}OK: provider 切替 routing 自前実装なし${NC}"
+  fi
+}
+
+# ----------------------------------------------------------------
+# 10. T-M28-02 AC-4 UNWANTED: tool result trimming 自前実装の禁止語検知
+#     ADR-010: trim 本体は claude-agent-sdk の内蔵機能.
+#     app code (backend/services + backend/routers 全般) で size cap / age cap /
+#     dedup / truncate / window eviction の自前実装を行わない.
+# ----------------------------------------------------------------
+check_no_self_tool_trim() {
+  echo "[10/13] tool result trim 自前実装検知 (T-M28-02 AC-4)..."
+  local forbidden_re='\b(trim_tool_result|_apply_size_cap|_apply_age_cap|_dedup_tool_results|truncate_tool_result|_compute_trimmed_payload|_run_trim_policy|_apply_window_eviction)\b'
+  local hits
+  hits=$(grep -rnE "$forbidden_re" \
+    --include="*.py" \
+    backend/services backend/routers 2>/dev/null || true)
+  if [ -n "$hits" ]; then
+    echo -e "${RED}NG: app code に tool trim 自前実装の禁止語 (T-M28-02 AC-4 / ADR-010)${NC}"
+    echo "$hits"
+    echo "→ trim 本体は claude-agent-sdk 内蔵機能を使う. app 側は record_trim_event audit wrapper のみ"
+    EXIT_CODE=1
+  else
+    echo -e "${GREEN}OK: app code (services/routers) に tool trim 自前実装なし${NC}"
+  fi
+}
+
+# ----------------------------------------------------------------
+# 11. T-BTSTRAP-01 AC-4 UNWANTED: templates/project-bootstrap/ 必須ファイル不在検知
+#     新規案件作成時に bootstrap で展開される必須スケルトンが欠けていたら lint fail.
+#     関連: ADR-009 / M-31 / T-BTSTRAP-02 (WorkspaceService.bootstrap で参照).
+# ----------------------------------------------------------------
+check_template_skeleton_complete() {
+  echo "[11/13] templates/project-bootstrap/ 必須スケルトン完整性検査 (T-BTSTRAP-01 AC-4)..."
+  local required=(
+    "templates/project-bootstrap/CLAUDE.md.j2"
+    "templates/project-bootstrap/docs/HANDOVER.md.j2"
+    "templates/project-bootstrap/docs/task-decomposition/IMPLEMENTATION_PROTOCOL.md"
+    "templates/project-bootstrap/scripts/lint-mock.sh"
+    "templates/project-bootstrap/scripts/validate-tickets.py"
+    "templates/project-bootstrap/.claude/settings.json"
+    "templates/CHANGELOG.md"
+  )
+  local missing=()
+  for f in "${required[@]}"; do
+    if [ ! -f "$f" ]; then
+      missing+=("$f")
+    fi
+  done
+  if [ ${#missing[@]} -gt 0 ]; then
+    echo -e "${RED}NG: templates/project-bootstrap/ に必須スケルトン欠落 (T-BTSTRAP-01 AC-4)${NC}"
+    for f in "${missing[@]}"; do
+      echo "  - $f"
+    done
+    echo "→ T-BTSTRAP-02 の自動展開が失敗する. 全案件への伝播 (T-BTSTRAP-05) も不可能."
+    EXIT_CODE=1
+  else
+    echo -e "${GREEN}OK: templates/project-bootstrap/ 必須スケルトン全 ${#required[@]} 件あり${NC}"
+  fi
+}
+
+# ----------------------------------------------------------------
+# 12. T-AI-04 AC-1/4: Constitution 自前 system prompt 組み立て禁止
+#     constitution_engine.inject_for_session() 以外で system prompt に
+#     "Section 4 red lines" 等の Constitution テキストを直接組み立てる経路は禁止.
+# ----------------------------------------------------------------
+# ----------------------------------------------------------------
+# 13. T-AI-08 AC-UNWANTED: fallback / circuit-breaker 自前実装の禁止語検知
+#     services/fallback_router.py + services/circuit_breaker.py 以外で
+#     独自の health-check loop / circuit-breaker / failover routing を実装
+#     してはならない (ADR-010 + T-AI-08 spec).
+# ----------------------------------------------------------------
+check_no_self_fallback_circuit() {
+  echo "[13/13] fallback / circuit-breaker 自前実装検知 (T-AI-08 AC-UNWANTED)..."
+  local forbidden_re='\bdef[[:space:]]+(_custom_health_circuit|_self_failover_loop|_inline_3_strike_fallback|_manual_recovery_streak|_route_to_untested_provider)\b'
+  local hits
+  hits=$(grep -rnE "$forbidden_re" \
+    --include="*.py" \
+    --exclude="fallback_router.py" \
+    --exclude="circuit_breaker.py" \
+    backend/services backend/routers 2>/dev/null || true)
+  if [ -n "$hits" ]; then
+    echo -e "${RED}NG: fallback / circuit-breaker 自前実装の禁止語 (T-AI-08 AC-UNWANTED)${NC}"
+    echo "$hits"
+    echo "→ fallback は services/fallback_router.record_health_check() 経由のみ. 未テスト provider への routing 禁止"
+    EXIT_CODE=1
+  else
+    echo -e "${GREEN}OK: fallback / circuit-breaker 自前実装なし${NC}"
+  fi
+}
+
+check_no_self_constitution_inject() {
+  echo "[12/13] Constitution 自前 inject 検知 (T-AI-04 AC-1/4)..."
+  # 禁止語: constitution を自前で system prompt に組み込む関数 / 文字列
+  local forbidden_re='\bdef[[:space:]]+(_build_constitution_prompt|_inject_constitution_manually|_compose_red_lines_inline|_manual_constitution_inject)\b'
+  local hits
+  hits=$(grep -rnE "$forbidden_re" \
+    --include="*.py" \
+    --exclude="constitution_engine.py" \
+    backend/services backend/routers backend/ai_agents backend/integrations 2>/dev/null || true)
+  if [ -n "$hits" ]; then
+    echo -e "${RED}NG: Constitution 自前 inject の禁止語 (T-AI-04 AC-1/4 / ADR-012)${NC}"
+    echo "$hits"
+    echo "→ Constitution は services/constitution_engine.inject_for_session() 経由のみ"
+    EXIT_CODE=1
+  else
+    echo -e "${GREEN}OK: Constitution 自前 inject なし${NC}"
   fi
 }
 
@@ -291,6 +426,11 @@ case "$MODE" in
   --no-langgraph) check_no_langgraph ;;
   --no-litellm-in-runner) check_no_litellm_in_runner ;;
   --domains)      check_domain_boundaries ;;
+  --no-self-provider-routing) check_no_self_provider_routing ;;
+  --no-self-tool-trim) check_no_self_tool_trim ;;
+  --template-skeleton) check_template_skeleton_complete ;;
+  --no-self-constitution) check_no_self_constitution_inject ;;
+  --no-self-fallback-circuit) check_no_self_fallback_circuit ;;
   all|"")
     check_emoji
     check_agpl
@@ -300,9 +440,14 @@ case "$MODE" in
     check_no_langgraph
     check_no_litellm_in_runner
     check_domain_boundaries
+    check_no_self_provider_routing
+    check_no_self_tool_trim
+    check_template_skeleton_complete
+    check_no_self_constitution_inject
+    check_no_self_fallback_circuit
     ;;
   *)
-    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|all]"
+    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|--no-self-provider-routing|--no-self-tool-trim|--template-skeleton|--no-self-constitution|--no-self-fallback-circuit|all]"
     exit 2
     ;;
 esac

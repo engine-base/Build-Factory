@@ -8,10 +8,17 @@ hearing_service.py — Phase 1 (ヒアリング) 対話駆動フロー
 
 中央エリア (center) は構造化された JSON (sections + items) で管理し、
 フロントエンドは Markdown にレンダリングして表示する。
+
+## T-005-01 audit event 定数 (gap closure G1)
+
+  EVENT_HEARING_STEP_STARTED   : 'hearing.step_started'
+  EVENT_HEARING_REPLIED        : 'hearing.replied'
+  EVENT_HEARING_STEP_COMPLETED : 'hearing.step_completed'
 """
 from __future__ import annotations
 
 import json
+import logging
 import os
 from typing import Any, Optional
 from pathlib import Path
@@ -19,6 +26,28 @@ from pathlib import Path
 from db import async_db as adb
 from db.queries import DB_PATH
 from llm.config import LLMProvider, get_openai_client
+
+logger = logging.getLogger(__name__)
+
+
+# T-005-01 audit event 公開定数 (gap closure G1)
+EVENT_HEARING_STEP_STARTED = "hearing.step_started"
+EVENT_HEARING_REPLIED = "hearing.replied"
+EVENT_HEARING_STEP_COMPLETED = "hearing.step_completed"
+
+
+async def _emit_hearing_audit(
+    event_type: str, *, workspace_id: int, step: int, detail: Optional[dict] = None,
+) -> None:
+    """audit emit (best-effort). DB 未配備環境では silent skip."""
+    payload = {"workspace_id": workspace_id, "step": step}
+    if detail:
+        payload.update(detail)
+    try:
+        from services.memory_service import emit_event
+        await emit_event(event_type, user_id=None, detail=payload)
+    except Exception as e:  # pragma: no cover
+        logger.warning("hearing audit emit failed event=%s: %s", event_type, e)
 
 
 HEARING_SKILL_PATH = Path.home() / ".claude" / "skills" / "hearing" / "SKILL.md"
@@ -434,6 +463,13 @@ async def start_step(workspace_id: int, step: int) -> dict:
     msg_id = await _save_message(workspace_id, "hearing", step, "ai", chat_msg, {"step_started": True})
     art = await update_center_artifact(art["id"], center)
 
+    # T-005-01 G1: audit emit
+    await _emit_hearing_audit(
+        EVENT_HEARING_STEP_STARTED,
+        workspace_id=workspace_id, step=step,
+        detail={"artifact_id": art.get("id"), "ai_message_id": msg_id},
+    )
+
     return {
         "artifact": art,
         "center": center,
@@ -480,6 +516,18 @@ async def reply(workspace_id: int, step: int, user_message: str) -> dict:
     )
     art = await update_center_artifact(art["id"], new_center)
 
+    # T-005-01 G1: audit emit
+    await _emit_hearing_audit(
+        EVENT_HEARING_REPLIED,
+        workspace_id=workspace_id, step=step,
+        detail={
+            "artifact_id": art.get("id"),
+            "ai_message_id": msg_id,
+            "patch_count": len(patch),
+            "ready_to_complete": ready,
+        },
+    )
+
     return {
         "artifact": art,
         "center": new_center,
@@ -507,6 +555,17 @@ async def complete_step(workspace_id: int, step: int) -> dict:
     next_art = None
     if get_step_meta(next_step):
         next_art = await get_or_create_center_artifact(workspace_id, next_step)
+
+    # T-005-01 G1: audit emit
+    await _emit_hearing_audit(
+        EVENT_HEARING_STEP_COMPLETED,
+        workspace_id=workspace_id, step=step,
+        detail={
+            "artifact_id": art.get("id"),
+            "next_step": next_step if next_art else None,
+            "sections_count": len((center or {}).get("sections", [])),
+        },
+    )
 
     return {
         "artifact": art,

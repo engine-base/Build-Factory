@@ -28,6 +28,24 @@ masato の judgment criteria (Constitution) を system prompt の cached prefix
   Section 3: 行動原則 (methods)
   Section 4: レッドライン (red lines) ← 全 role に inject
   Section 5: 具体例 (examples)
+
+## ADR-012 cascade (Memory Tool delegation)
+
+ADR-012 で「T-AI-04 は Anthropic Memory Tool に delegate」と明記.
+本 module は constitution の DB / env 読出 + AC-STATE role 別 inject の本体を
+保持し, Memory Tool (services.anthropic_memory_tool) は constitution snapshot
+を `/memories/constitution/<version>.json` に出力するファイル経路として
+活用する (将来 PR で連携追加予定). 本 PR では cross-ref を docstring 化 +
+audit emit + lint で機械検知強化.
+
+## Gap closure (本 PR)
+
+- G1 (AC-EVENT): invalidate_cache() で audit emit ('constitution.cache_invalidated').
+- G2 (AC-UNWANTED): MissingConstitution / CorruptConstitution raise 時に
+  audit emit ('constitution.session_blocked').
+- G3 (AC-1/4): scripts/lint-mock.sh に check_no_self_constitution_inject を追加し,
+  constitution を自前で system prompt に組み立てる経路を禁止 (本 module の
+  inject_for_session() 以外).
 """
 from __future__ import annotations
 
@@ -202,6 +220,15 @@ async def get_active_constitution(
     # DB に無ければ env fallback
     env_c = _load_from_env()
     if env_c is None:
+        # G2 (AC-UNWANTED): AI session 全 block + alert (audit emit)
+        await _emit_audit(
+            EVENT_SESSION_BLOCKED,
+            detail={
+                "reason": "missing",
+                "workspace_id": workspace_id,
+                "message": "Constitution not found in DB or CONSTITUTION_TEXT env",
+            },
+        )
         raise MissingConstitution(
             "Constitution not found (DB and CONSTITUTION_TEXT env both empty). "
             "AI sessions must be blocked until masato provides Constitution."
@@ -209,10 +236,39 @@ async def get_active_constitution(
     return env_c
 
 
-async def invalidate_cache() -> None:
-    """AC-EVENT: Constitution 更新時に呼ぶ。 全 cache をクリア."""
+async def _emit_audit(event_type: str, *, detail: dict) -> None:
+    """audit_logs に event を emit. 失敗は warning のみ (best-effort)."""
+    try:
+        from services.memory_service import emit_event
+        await emit_event(event_type, user_id="system", detail=detail)
+    except Exception as e:  # pragma: no cover (sqlite 未配備環境向け)
+        logger.warning("constitution audit emit failed %s: %s", event_type, e)
+
+
+# audit event types (T-AI-04 gap closure G1/G2)
+EVENT_CACHE_INVALIDATED = "constitution.cache_invalidated"
+EVENT_SESSION_BLOCKED = "constitution.session_blocked"
+
+
+async def invalidate_cache(*, reason: str = "manual") -> int:
+    """AC-EVENT: Constitution 更新時に呼ぶ。 全 cache をクリア.
+
+    G1 (gap closure): cleared entries count を audit emit する.
+
+    Args:
+      reason: invalidation 理由 (manual / version_bump / corruption_detected 等)
+
+    Returns:
+      クリアしたエントリ数.
+    """
     async with _cache_lock:
+        cleared = len(_cache)
         _cache.clear()
+    await _emit_audit(
+        EVENT_CACHE_INVALIDATED,
+        detail={"cleared_entries": cleared, "reason": reason},
+    )
+    return cleared
 
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -292,11 +348,24 @@ async def assert_constitution_available() -> Constitution:
     """起動時 health check: Constitution が存在し parse 可能であることを保証.
 
     AC-UNWANTED: corrupted/missing なら raise → caller が AI session を block する.
+    G2: corrupted 検知時に audit emit ('constitution.session_blocked' reason='corrupt').
     """
     c = await get_active_constitution()
     if not c.principles:
+        await _emit_audit(
+            EVENT_SESSION_BLOCKED,
+            detail={"reason": "corrupt", "message": "principles is empty"},
+        )
         raise CorruptConstitution("Constitution principles is empty")
     if not c.section_text("section_4_red_lines"):
+        await _emit_audit(
+            EVENT_SESSION_BLOCKED,
+            detail={
+                "reason": "corrupt",
+                "message": "section_4_red_lines missing",
+                "version": c.version,
+            },
+        )
         raise CorruptConstitution(
             "Section 4 (red lines) is missing — AI session cannot start without red lines"
         )

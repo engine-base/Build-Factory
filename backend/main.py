@@ -57,6 +57,7 @@ from routers.oauth import router as oauth_router
 from routers.user_lifecycle import router as user_lifecycle_router
 from routers.memory_facts import router as memory_facts_router
 from routers.mem0_bridge import router as mem0_bridge_router
+from routers.anthropic_memory import router as anthropic_memory_router
 from routers.chat_search import router as chat_search_router
 from routers.bf_profile import router as bf_profile_router
 from routers.ws import router as ws_router
@@ -90,6 +91,8 @@ from routers.export_trigger import router as export_trigger_router
 from routers.provider_adapter import router as provider_adapter_router
 from routers.byok import router as byok_router
 from routers.tier2_cache import router as tier2_cache_router
+from routers.tier1_tool_trim import router as tier1_tool_trim_router
+from routers.project_bootstrap import router as project_bootstrap_router
 from routers.semantic_retrieval import router as semantic_retrieval_router
 from routers.chat_threads import router as chat_threads_router
 from routers.ai_employees import employees_router as ai_employees_router, personas_router as ai_personas_router
@@ -216,6 +219,7 @@ app.include_router(oauth_router)
 app.include_router(user_lifecycle_router)
 app.include_router(memory_facts_router)
 app.include_router(mem0_bridge_router)
+app.include_router(anthropic_memory_router)
 app.include_router(chat_search_router)
 app.include_router(bf_profile_router)
 app.include_router(ws_router)
@@ -249,6 +253,8 @@ app.include_router(export_trigger_router)
 app.include_router(provider_adapter_router)
 app.include_router(byok_router)
 app.include_router(tier2_cache_router)
+app.include_router(tier1_tool_trim_router)
+app.include_router(project_bootstrap_router)
 app.include_router(semantic_retrieval_router)
 app.include_router(chat_threads_router)
 app.include_router(ai_employees_router)
