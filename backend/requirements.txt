@@ -21,6 +21,10 @@ litellm>=1.67.0
 
 # Database
 aiosqlite>=0.20.0
+psycopg[binary]>=3.2.0     # T-001-04 BF DDL: PostgreSQL async driver (db/async_db.py 必須)
+
+# Scheduler
+apscheduler>=3.10.0        # T-S0-08 / T-024-01: AsyncIOScheduler (scheduler/scheduler.py 必須)
 
 # Markdown + YAML frontmatter parsing
 python-frontmatter>=1.1.0
