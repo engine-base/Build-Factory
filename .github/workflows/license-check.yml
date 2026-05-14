@@ -61,6 +61,16 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Diagnose runner env
+        run: |
+          echo "::group::runner env"
+          uname -a
+          python3 --version
+          bash --version | head -1
+          which bash grep python3
+          ls -la scripts/
+          echo "::endgroup::"
+
       # ──────────────────────────────────────────────────────────────
       # AC-2: 既存 scripts/lint-mock.sh を 5 invocation で実行
       # ──────────────────────────────────────────────────────────────

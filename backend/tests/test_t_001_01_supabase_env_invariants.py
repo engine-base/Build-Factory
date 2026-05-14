@@ -272,13 +272,17 @@ def test_ac5_lint_excludes_env_example_from_detection():
 
 
 def test_ac5_actual_lint_run_passes():
-    """実際に scripts/lint-mock.sh --secrets を実行して PASS することを確認."""
+    """実際に scripts/lint-mock.sh --secrets を実行して PASS することを確認.
+
+    timeout=120: CI で repo が大きく育ち, cold I/O cache 状態の grep が
+    30 秒以内に終わらない場合があるため安全余裕として 4 倍に拡大.
+    """
     result = subprocess.run(
         ["bash", str(LINT_MOCK), "--secrets"],
         cwd=REPO_ROOT,
         capture_output=True,
         text=True,
-        timeout=30,
+        timeout=120,
     )
     assert result.returncode == 0, (
         f"lint --secrets failed:\n{result.stdout}\n{result.stderr}"

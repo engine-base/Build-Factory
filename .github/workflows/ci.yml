@@ -55,9 +55,21 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Diagnose runner env
+        run: |
+          echo "::group::runner env"
+          uname -a
+          python3 --version
+          pip --version
+          which python3
+          df -h /
+          echo "::endgroup::"
 
       - name: Install backend deps
         run: |
+          python3 -m pip install --upgrade pip
           if [ -f backend/requirements.txt ]; then
             pip install -r backend/requirements.txt
           else
@@ -72,7 +84,7 @@ jobs:
   backend-pytest:
     name: backend pytest + coverage
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -82,9 +94,12 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
 
       - name: Install backend deps
-        run: pip install -r backend/requirements.txt
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
 
       - name: Run pytest with coverage (既知 numpy compat fail を deselect)
         working-directory: backend
@@ -109,7 +124,7 @@ jobs:
   backend-smoke:
     name: backend main:app import smoke
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -119,9 +134,12 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
 
       - name: Install backend deps
-        run: pip install -r backend/requirements.txt
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
 
       - name: Backend import smoke
         working-directory: backend

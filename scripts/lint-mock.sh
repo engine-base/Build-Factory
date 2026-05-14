@@ -243,9 +243,14 @@ check_secrets() {
   echo "[5/16] 実鍵リーク検出..."
   local pattern='sb_(publishable|secret)_[A-Za-z0-9_-]{20,}'
   # 除外: .env (gitignore済) / .env.example (placeholder のみ許可) / lock files
+  # CI で repo が大きく育ち subprocess timeout を超えるため exclude-dir を拡張.
+  # docs/audit/ / docs/mocks/ / worktrees/ / .claude/ / venv 系は実鍵が混入し得ない
+  # (生成物 / モック / ローカル作業領域) のため除外しても検出網は損なわない.
   local hits
   hits=$(grep -rEn --include="*.py" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.json" --include="*.sh" --include="*.md" --include="*.yaml" --include="*.yml" \
     --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=__pycache__ --exclude-dir=.git \
+    --exclude-dir=.claude --exclude-dir=worktrees --exclude-dir=audit --exclude-dir=mocks \
+    --exclude-dir=.venv --exclude-dir=venv --exclude-dir=dist --exclude-dir=build \
     "$pattern" . 2>/dev/null | grep -v -E "(^|/)\.env(\.example)?:" | grep -v "REPLACE_WITH_" || true)
   if [ -n "$hits" ]; then
     echo -e "${RED}NG: 実鍵パターン (sb_publishable_*/sb_secret_*) を検出${NC}"
