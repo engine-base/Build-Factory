@@ -44,7 +44,7 @@ permissions:
 
 concurrency:
   group: license-check-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   license-and-mechanical-guards:

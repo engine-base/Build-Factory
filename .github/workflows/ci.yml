@@ -38,10 +38,8 @@ permissions:
   contents: read
 
 concurrency:
-  # cancel-in-progress を外す: 並走中の run が誤キャンセルされ "failure" 報告に
-  # 化けて根本原因が判別不能になっていた事例の対策.
   group: ci-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   pre-commit-check:
@@ -69,6 +67,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
 
       - name: Diagnose runner post-setup-python
         run: |
@@ -112,6 +112,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
 
       - name: Install backend deps
         run: |
@@ -158,6 +160,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
 
       - name: Install backend deps
         run: |
