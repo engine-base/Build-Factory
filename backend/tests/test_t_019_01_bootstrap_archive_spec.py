@@ -66,6 +66,7 @@ ALLOWED_REFERENCE_FILES = {
     "test_t_019_01_archive_invariants.py",
     "test_t_019_01_bootstrap_archive_spec.py",  # this file (Wave 5 v2 audit)
     "test_t_s0_13_inventory_invariants.py",
+    "test_t_it_s0_sprint0_integration.py",  # T-IT-S0 integration audit
 }
 
 
