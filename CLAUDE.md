@@ -33,6 +33,7 @@
 
 **「最初に読むファイル」** → [`docs/HANDOVER.md`](docs/HANDOVER.md) (全フェーズ成果物の統合インデックス)
 **「実装着手手順」** → [`docs/task-decomposition/IMPLEMENTATION_PROTOCOL.md`](docs/task-decomposition/IMPLEMENTATION_PROTOCOL.md) (タスクごとの 7 ステップ SOP・必須遵守)
+**「Pre-flight AC audit (v2)」** → [`docs/audit/2026-05-13_v2/README.md`](docs/audit/2026-05-13_v2/README.md) (**2026-05-13 新運用**: 着手前に `docs/audit/2026-05-13_v2/<TASK-ID>.md` を `_template.md` から作って埋めてから実装。事後監査ループを廃止し速度 × 徹底を両立)
 
 ---
 

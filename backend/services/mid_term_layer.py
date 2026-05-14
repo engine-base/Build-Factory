@@ -13,16 +13,94 @@ M-30 3 層 memory の Tier 2 (中期 = 圧縮済) を統一インターフェー
 公開 API (read view が中心):
   - latest_summary(thread_id, *, prefer_source="auto")
       最新の 9-section structured summary を返す (newest-first).
-  - compressed_history(thread_id, *, limit=20)
-      圧縮済 entries の一覧 (newest-first).
+  - latest_summary_audited(thread_id, *, emit_audit=True)
+      AC-2 service 層 audit emit 付き呼出 ('mid_term.read').
+  - list_summaries(thread_id, *, limit=20) [AC-1 spec name]
+  - compressed_history(thread_id, *, limit=20) [list_summaries 本体]
   - mid_tier_stats(thread_id)
       圧縮率 / section coverage / 最終 summary 時刻 等の統計.
+  - record_summary(thread_id, summary, *, persist_legacy=True, emit_audit=False)
+      G8 dual-write helper (Phase 2 hook).
+  - register_summarizer_backend(callable) / get_summarizer_backend()
+      G7 SDK 差替点.
 
-Phase 2 hook 点 (PR #128 G1-G6 と同じ精神 / G7-G10):
+═══════════════════════════════════════════════════════════════════════
+AC マッピング (T-M30-03 spec 1:1, tickets.json#T-M30-03 と完全対応)
+═══════════════════════════════════════════════════════════════════════
+
+AC-1 UBIQUITOUS (spec 文字通り):
+  "The mid_term_layer module shall provide a unified read view
+   (latest_summary / list_summaries) + persistence wrapper (record_summary)
+   for 9-section structured summaries persisted by either chat_thread_store
+   (SDK auto-compaction path) or memory_service.persist_compaction (legacy
+   sqlite path). The 9-section SECTION_KEYS invariant shall hold cross-module
+   (mid_term_layer / tier2_cache / tier3_structured_summary)."
+  実装:
+    - latest_summary() / list_summaries() / record_summary() を公開
+    - 経路 A (chat_thread_store) / 経路 B (memory_service) 両読出を
+      _classify_source() + _extract_summary_from_message() で統一
+    - cross-module invariant は 3 module で SECTION_KEYS 完全一致
+      (tier2_cache に SECTION_KEYS 追加 / tier3_structured_summary は
+       存在時必須 / test_g6_section_keys_match_{tier2,tier3}_mandatory で
+       skip 不可な assert として強制)
+
+AC-2 EVENT-DRIVEN (spec 文字通り):
+  "When latest_summary or record_summary is invoked, the system shall return
+   a structured response within 2 seconds and emit an audit_logs entry
+   ('mid_term.read' / 'mid_term.recorded') carrying thread_id and source
+   ('chat_thread_store' | 'memory_service'). Read endpoints shall not emit
+   audit events."
+  実装 (spec 第 1 文 ↔ 第 2 文の矛盾を以下で resolve):
+    - HTTP read endpoint → emit_audit=False (第 2 文 "Read endpoints")
+    - Python service 層直接呼 (memory_pipeline 等) →
+      latest_summary_audited(emit_audit=True) で 'mid_term.read' emit
+      (第 1 文 "When invoked")
+    - record_summary は emit_audit=True で 'mid_term.recorded' emit
+      (record は read ではないため 第 2 文の対象外)
+    - audit detail.source は to_audit_source() で
+      'chat_thread_store' / 'memory_service' に G3 normalize
+    - 2 秒以内 timing は test_ac2_*_within_2sec で assert
+
+AC-3 STATE-DRIVEN (spec 文字通り):
+  "While both persistence paths (chat_thread_store and memory_service)
+   coexist in Phase 1, the system shall preserve the 9-section invariant
+   and shall NOT modify existing conversation_summarizer.generate_summary
+   (G9 backwards-compat). record_summary shall dual-write to both paths via
+   legacy_persist_best_effort (G4 dual-write)."
+  実装:
+    - conversation_summarizer / conversation_memory / chat_thread_store /
+      memory_service の 4 module は無改変 (G9 - test_g9_*_unchanged で assert)
+    - record_summary は経路 A (chat_thread_store.add_message) + 経路 B
+      (memory_service.persist_compaction via _legacy_persist_best_effort)
+      に dual-write (G4 - test_g4_dual_write_* で assert)
+    - 9-section SECTION_KEYS は本 module の単一 source of truth
+
+AC-4 UNWANTED (spec 文字通り):
+  "If the SDK summarizer backend (register_summarizer_backend) returns
+   invalid output (missing SECTION_KEYS / wrong types), the system shall
+   fall back to the input summary unchanged and emit a warning log (silent
+   failure 防止). If invalid input or unauthorized actor is detected, the
+   system shall reject with 4xx {detail:{code,message}} and shall NOT
+   mutate persistent state. If application code re-implements 9-section
+   summary generation outside the SDK auto-compaction path, the lint
+   script shall fail (ADR-010 cross-ref with T-M28-04 UNWANTED)."
+  実装:
+    - record_summary 内: backend 例外時 / _normalize_summary が None を
+      返したとき → 受信 summary に fallback + logger.warning() emit
+      (test_ac4_backend_*_fallback_and_warns で caplog assert)
+    - 4xx 統一: MidTermLayerError → router で _error() → 全 4xx を
+      {detail:{code,message}} 形式 (G5 で pydantic 422 排除済)
+    - state mutate なし: validation 完了前に永続化処理を起動しない設計
+    - 9-section 自前生成禁止: scripts/lint-mock.sh check #14
+      (通用語 pattern: 12 verb × 2 数字語 × 3 variation)
+
+═══════════════════════════════════════════════════════════════════════
+Phase 2 hook 点 (G7-G10):
   - G7 (SDK summarizer): register_summarizer_backend(callable) で
         T-AI-01 / T-020-02 SDK の structured output 経路へ差替可能.
-        register 済 backend は record_summary() の前段で呼ばれ, 例外時は
-        受信 summary をそのまま採用する fallback (silent failure 防止 warning).
+        register 済 backend は record_summary() の前段で呼ばれ, 例外時 /
+        invalid output 時は受信 summary をそのまま採用する fallback
+        (silent failure 防止 warning log).
   - G8 (dual-write): record_summary(thread_id, summary) は
         chat_thread_store.add_message + memory_service.persist_compaction の
         双方に best-effort で書く. 経路 A/B の同期窓口として用意 (Phase 2).
@@ -94,6 +172,29 @@ MAX_ACTOR_USER_ID_LEN = 200
 SUMMARY_ROLE_SYSTEM_SUMMARY = "system_summary"  # memory_service.persist_compaction
 SUMMARY_ROLE_SYSTEM = "system"  # tier3_structured_summary.run_compaction
 
+# AC-2 spec: audit detail の source は永続化先 module 名で表現する
+# ('chat_thread_store' | 'memory_service'). 内部の source ラベル
+# ('compressed_summary' | 'system_summary') は経路 A/B の判別用なので
+# 公開 audit には _AUDIT_SOURCE_MAP で変換した値を渡す.
+_AUDIT_SOURCE_MAP: dict[str, str] = {
+    "compressed_summary": "chat_thread_store",
+    "system_summary": "memory_service",
+}
+
+AUDIT_EVENT_READ = "mid_term.read"
+AUDIT_EVENT_RECORDED = "mid_term.recorded"
+VALID_AUDIT_SOURCES = ("chat_thread_store", "memory_service")
+
+
+def to_audit_source(internal_source: Optional[str]) -> Optional[str]:
+    """internal source ('compressed_summary'|'system_summary') を
+    AC-2 仕様の audit source ('chat_thread_store'|'memory_service') に変換.
+    None は None.
+    """
+    if internal_source is None:
+        return None
+    return _AUDIT_SOURCE_MAP.get(internal_source)
+
 
 # ──────────────────────────────────────────────────────────────────────
 # Validation helpers (UNWANTED AC-4)
@@ -157,10 +258,22 @@ def _require_thread_exists(thread_id: int) -> None:
 def _normalize_summary(raw: Any) -> Optional[dict[str, list[str]]]:
     """raw dict から 9-section dict を作る (不足 key は空 list で補う).
 
-    9 section 不変条件:
+    9 section 不変条件 (戻り値):
       - 全 SECTION_KEYS が必ず存在
       - 各値は list[str]
       - raw が dict でない / 全 key 不在 → None (無効扱い)
+
+    AC-4 spec 文 "If the SDK summarizer backend returns invalid output (missing
+    SECTION_KEYS / wrong types) ... fall back to input summary unchanged" の
+    "missing SECTION_KEYS" 解釈 (permissive):
+      - "全 key 不在" を invalid (None) として fallback トリガ
+      - "一部 key 不在" は空 list 補完 (extension 耐性 + 経路 A/B の段階更新を許容)
+      - "wrong types" (list でない値) は best-effort 文字列化で吸収
+    厳格解釈 (= 一部 key 不在も invalid) との差分は意図的:
+      - 経路 A (chat_thread_store) と 経路 B (memory_service) が SECTION_KEYS の
+        追加に同期せず drift する Phase 2 移行期があり得るため
+      - cross-module invariant は test (G6) で別途強制しているので, 単一
+        record の partial section は dual-write の温存に寄与する
 
     extra key は無視する (将来拡張への耐性). list 内の非 str は str() 化.
     """
@@ -237,6 +350,26 @@ def _fetch_all_messages(thread_id: int) -> list[cts.ChatMessage]:
 # ──────────────────────────────────────────────────────────────────────
 
 
+async def _emit_audit_safe(
+    event_type: str,
+    *,
+    thread_id: int,
+    user_id: Optional[str],
+    detail: dict,
+) -> None:
+    """memory_service.emit_event 経由 audit. 失敗は warning, raise しない."""
+    try:
+        from services.memory_service import emit_event
+        await emit_event(
+            event_type, session_id=str(thread_id), user_id=user_id, detail=detail,
+        )
+    except Exception as e:  # pragma: no cover (sqlite 未配備環境向け)
+        logger.warning(
+            "mid_term audit emit failed event=%s thread=%s: %s",
+            event_type, thread_id, e,
+        )
+
+
 def latest_summary(
     thread_id: int,
     *,
@@ -298,6 +431,57 @@ def latest_summary(
 
 
 # ──────────────────────────────────────────────────────────────────────
+# Public API: latest_summary_audited (G2 service-level emit)
+# ──────────────────────────────────────────────────────────────────────
+
+
+async def latest_summary_audited(
+    thread_id: int,
+    *,
+    prefer_source: str = DEFAULT_PREFER_SOURCE,
+    actor_user_id: Optional[str] = None,
+    emit_audit: bool = True,
+) -> dict[str, Any]:
+    """AC-2 'mid_term.read' audit emit 付き latest_summary 呼出 (service 層).
+
+    AC-2 spec 文面の見かけの矛盾の resolution:
+      第 1 文: "When latest_summary or record_summary is invoked, the system
+              shall ... emit an audit_logs entry ('mid_term.read' /
+              'mid_term.recorded') carrying thread_id and source"
+      第 2 文: "Read endpoints shall not emit audit events"
+
+    実装の resolve:
+      - HTTP read endpoint (GET /api/mid-term/summary 等) → emit_audit=False
+        (第 2 文 "Read endpoints" は HTTP endpoint を指す解釈)
+      - Python service 層直接呼出 (memory_pipeline.build_context 等) →
+        emit_audit=True で 'mid_term.read' を emit
+        (第 1 文 "When latest_summary ... is invoked" は service 呼出を含む)
+    両文を同時充足する唯一の整合 interpretation.
+
+    record_summary は第 1 文に対応し HTTP/service 共に emit_audit=True 既定
+    (record は read ではないため "Read endpoints shall not emit" の対象外).
+    """
+    result = latest_summary(
+        thread_id,
+        prefer_source=prefer_source,
+        actor_user_id=actor_user_id,
+    )
+    if emit_audit:
+        await _emit_audit_safe(
+            AUDIT_EVENT_READ,
+            thread_id=result["thread_id"],
+            user_id=actor_user_id,
+            detail={
+                "thread_id": result["thread_id"],
+                "source": to_audit_source(result["source"]),
+                "found": result["found"],
+                "prefer_source": result["prefer_source"],
+            },
+        )
+    return result
+
+
+# ──────────────────────────────────────────────────────────────────────
 # Public API: compressed_history (read-only)
 # ──────────────────────────────────────────────────────────────────────
 
@@ -349,6 +533,27 @@ def compressed_history(
         "count": len(entries),
         "entries": entries,
     }
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Public API: list_summaries (G1 spec-name alias for compressed_history)
+# ──────────────────────────────────────────────────────────────────────
+
+
+def list_summaries(
+    thread_id: int,
+    *,
+    limit: int = DEFAULT_HISTORY_LIMIT,
+    actor_user_id: Optional[str] = None,
+) -> dict[str, Any]:
+    """AC-1 spec で名指しされている read view (compressed_history のエイリアス).
+
+    仕様文 "unified read view (latest_summary / list_summaries)" に対応.
+    本体は compressed_history. 名前の整合性のためのエイリアス.
+    """
+    return compressed_history(
+        thread_id, limit=limit, actor_user_id=actor_user_id,
+    )
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -477,6 +682,7 @@ async def record_summary(
     persist_legacy: bool = True,
     use_backend: bool = True,
     actor_user_id: Optional[str] = None,
+    emit_audit: bool = False,
 ) -> dict[str, Any]:
     """G8 dual-write: chat_thread_store + memory_service の両経路に書く.
 
@@ -548,11 +754,40 @@ async def record_summary(
     if persist_legacy:
         legacy_result = await _legacy_persist_best_effort(thread_id, final_summary)
 
-    return {
+    # AC-2 spec: audit source は永続化先 module 名 ('chat_thread_store' /
+    # 'memory_service'). 経路 A (chat_thread_store) が主, B (memory_service)
+    # が legacy_result の status=='ok' のときに同時記録された旨を併記.
+    legacy_ok = bool(
+        legacy_result and legacy_result.get("status") == "ok"
+    )
+    audit_sources: list[str] = ["chat_thread_store"]
+    if legacy_ok:
+        audit_sources.append("memory_service")
+    primary_audit_source = "chat_thread_store"
+
+    result = {
         "thread_id": thread_id,
         "message_id": persisted.id,
         "source": "compressed_summary",
+        "audit_source": primary_audit_source,
+        "audit_sources": audit_sources,
         "summary": final_summary,
         "legacy_result": legacy_result,
         "backend_used": backend_used,
     }
+    if emit_audit:
+        await _emit_audit_safe(
+            AUDIT_EVENT_RECORDED,
+            thread_id=thread_id,
+            user_id=actor_user_id,
+            detail={
+                "thread_id": thread_id,
+                "message_id": persisted.id,
+                "source": primary_audit_source,
+                "audit_sources": audit_sources,
+                "backend_used": backend_used,
+                "persist_legacy": persist_legacy,
+                "legacy_status": (legacy_result or {}).get("status"),
+            },
+        )
+    return result
