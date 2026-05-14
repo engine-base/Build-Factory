@@ -1,0 +1,49 @@
+T-024-02: unified search API REFACTOR audit (32 spec tests + Type C gap findings)
+
+Wave 4 #1 — pre-flight AC audit for T-024-02 (REFACTOR, F-024 unified search).
+Adds 1:1 AC × test spec mapping (32 tests) and detects 3 silent-fail Type C
+gaps in existing handlers.
+
+## Audit deliverables
+
+- backend/tests/test_t_024_02_unified_search_api_spec.py — 32 tests
+  - AC-1 UBIQUITOUS: 8 (service / router / 4 source / REUSE invariant)
+  - AC-2 EVENT-DRIVEN: 7 (dict shape / asyncio.gather / 2s budget / audit emit)
+  - AC-3 STATE-DRIVEN: 5 (return_exceptions=True / no DDL / read-only / thin wrapper)
+  - AC-4 UNWANTED: 7 (query / sources / account_id / limit / hardcoded secret)
+  - Drift guards: 3 (handler signature parity / measurably distinct kind+group /
+    Phase 1.5 API non-exposure)
+  - Audit cross-check: 2 (ticket meta concretized / ADR link)
+
+- docs/audit/2026-05-13_v2/T-024-02.md — REFACTOR audit doc
+  - Spec literal expansion (F-024 from features.json + M-24 from requirements.html
+    + pgvector/pg_trgm from architecture-v1.md)
+  - 25 sub-clause × test mapping (1:1)
+  - REFACTOR 9-項目 check (全 PASS)
+  - Type A / B / C gap classification
+
+## Type C findings (3 silent-fail bugs — fix in follow-up T-024-02b)
+
+Manual repro confirms 3/4 source handlers always return [] due to defensive
+`except Exception` swallowing:
+
+1. `_search_knowledge` calls `embedding_service.search_knowledge(q=..., account_id=...,
+   workspace_id=..., limit=...)` but real signature is `(query, skill_tags=None,
+   top_k=15, min_score=0.4)` → TypeError every call.
+2. `_search_tasks` imports `services.bf_db` but no such module exists →
+   ImportError every call.
+3. `_search_screens` has same bf_db missing-import problem.
+
+Existing test fixture stubs all handlers so spec tests PASS but real I/O fails
+silently. AC-3 isolation is met formally; dataloss is total. Recommend
+follow-up task T-024-02b (cf. T-013-04 → T-013-04b pattern in PR #253).
+
+## Verification
+
+- pytest tests/test_t_024_02_unified_search_api_spec.py → 32 passed
+- pytest tests/ → 6599 passed / 10 skipped (no regression)
+- bash scripts/lint-mock.sh → all 13 checks PASS
+- bash scripts/pre-commit-check.sh → 3/4 PASS + frontend-tsc SKIP (node_modules)
+
+REFACTOR invariant: zero changes to embedding_service.py / knowledge_search.py /
+unified_search.py / unified_search router. Audit-only PR.
