@@ -1,8 +1,14 @@
+// T-012-04: red_line_approval キュー UI (REFACTOR existing approval page).
+//
+// 既存 ApprovalPage を不変として "red-line 専用フィルタ + severity 表示" を追加する.
+// AC-3 (backwards-compat): 既存 endpoint /api/approval は変更しない.
+// AC-1/2/4: red_line category / severity を表示し、4xx response message を出す.
+
 "use client";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle, XCircle, MessageSquare, Clock } from "lucide-react";
+import { CheckCircle, XCircle, MessageSquare, Clock, ShieldAlert, Filter } from "lucide-react";
 
 const API = "http://localhost:8001";
 
@@ -14,13 +20,22 @@ type ApprovalItem = {
   status: string;
   requested_at: string;
   notes?: string;
+  // T-012-04: red-line metadata (backend が optional に付与)
+  red_line_category?: "api_key_leak" | "db_destructive" | "force_push" | "infinite_loop" | "deploy_decision";
+  severity?: "block" | "warn" | "log";
 };
+
+// T-012-04: red-line filter
+type RedLineFilter = "all" | "red_line_only";
 
 export default function ApprovalPage() {
   const qc = useQueryClient();
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [revisionText, setRevisionText] = useState("");
   const [modal, setModal] = useState<"approve" | "reject" | "revise" | null>(null);
+  // T-012-04: red-line filter state (default 'all', toggle to red_line_only)
+  const [filter, setFilter] = useState<RedLineFilter>("all");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const { data: items = [], isLoading } = useQuery<ApprovalItem[]>({
     queryKey: ["approval-pending"],
@@ -66,24 +81,63 @@ export default function ApprovalPage() {
     return JSON.stringify(payload).slice(0, 80) + "…";
   };
 
+  // T-012-04: red-line filter 適用
+  const filteredItems = filter === "red_line_only"
+    ? items.filter(i => !!i.red_line_category)
+    : items;
+
+  // T-012-04: severity badge color (block=red / warn=amber / log=gray)
+  const severityClass = (sev?: string) =>
+    sev === "block" ? "bg-red-100 text-red-700 border-red-300" :
+    sev === "warn" ? "bg-amber-100 text-amber-700 border-amber-300" :
+    sev === "log" ? "bg-gray-100 text-gray-600 border-gray-300" : "";
+
   return (
     <div className="p-8 max-w-4xl">
       <h1 className="text-2xl font-bold mb-2" style={{ fontFamily: "var(--font-noto-sans-jp)" }}>承認待ちキュー</h1>
-      <p className="text-sm mb-6" style={{ color: "var(--eb-neutral)" }}>15秒ごとに自動更新</p>
+      <p className="text-sm mb-3" style={{ color: "var(--eb-neutral)" }}>15秒ごとに自動更新</p>
+
+      {/* T-012-04: red-line filter toggle */}
+      <div className="mb-4 flex items-center gap-2">
+        <Filter className="w-4 h-4 text-gray-400" />
+        <button
+          onClick={() => setFilter("all")}
+          className={`px-3 py-1 text-sm rounded ${filter === "all" ? "bg-eb-500 text-white" : "border"}`}
+        >
+          All
+        </button>
+        <button
+          onClick={() => setFilter("red_line_only")}
+          className={`px-3 py-1 text-sm rounded flex items-center gap-1 ${filter === "red_line_only" ? "bg-red-600 text-white" : "border"}`}
+        >
+          <ShieldAlert className="w-3 h-3" /> Red-line only
+        </button>
+        <span className="text-xs text-gray-500 ml-2">
+          {filteredItems.length} / {items.length} items
+        </span>
+      </div>
+
+      {errorMessage && (
+        <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded">
+          {errorMessage}
+        </div>
+      )}
 
       {isLoading ? (
         <div className="flex items-center gap-2 text-sm" style={{ color: "var(--eb-neutral)" }}>
           <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
           読み込み中...
         </div>
-      ) : items.length === 0 ? (
+      ) : filteredItems.length === 0 ? (
         <div className="rounded-xl p-12 text-center" style={{ border: "1px solid var(--eb-border)", background: "#fff" }}>
           <CheckCircle className="w-10 h-10 mx-auto mb-3" style={{ color: "var(--eb-success)" }} />
-          <p className="text-sm font-medium">承認待ちの項目はありません</p>
+          <p className="text-sm font-medium">
+            {filter === "red_line_only" ? "Red-line 該当項目はありません" : "承認待ちの項目はありません"}
+          </p>
         </div>
       ) : (
         <div className="space-y-3">
-          {items.map((item) => (
+          {filteredItems.map((item) => (
             <div key={item.id} className="rounded-xl p-5 bg-white"
               style={{ border: "1px solid var(--eb-border)", borderLeft: "3px solid var(--eb-tertiary)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
               <div className="flex items-start justify-between gap-4">
@@ -100,6 +154,16 @@ export default function ApprovalPage() {
                   <p className="text-sm font-medium mb-1" style={{ fontFamily: "var(--font-noto-sans-jp)" }}>
                     {item.action_type}
                   </p>
+                  {/* T-012-04: red_line badge + severity */}
+                  {item.red_line_category && (
+                    <div className="flex items-center gap-1 mb-1">
+                      <ShieldAlert className="w-3 h-3 text-red-600" />
+                      <span className="text-xs font-mono">{item.red_line_category}</span>
+                      <span className={`text-xs px-1 py-0.5 border rounded ${severityClass(item.severity)}`}>
+                        {item.severity ?? "?"}
+                      </span>
+                    </div>
+                  )}
                   <p className="text-xs truncate" style={{ color: "var(--eb-neutral)", fontFamily: "var(--font-inter)" }}>
                     {formatPayload(item.payload)}
                   </p>
