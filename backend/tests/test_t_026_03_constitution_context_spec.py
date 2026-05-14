@@ -138,7 +138,7 @@ def test_ac1_lint_check_12_constitution_self_inject_runs() -> None:
     assert out.returncode == 0, (
         f"lint check #12 unexpectedly failed: {out.stdout}\n{out.stderr}"
     )
-    assert "[12/13]" in out.stdout
+    assert "[12/14]" in out.stdout
     assert "Constitution" in out.stdout
 
 
@@ -431,4 +431,4 @@ def test_invariant_constitution_engine_is_canonical_inject_path() -> None:
         encoding="utf-8",
     )
     assert "check_no_self_constitution_inject" in script_text
-    assert "[12/13]" in script_text
+    assert "[12/14]" in script_text
