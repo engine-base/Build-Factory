@@ -109,6 +109,15 @@ async def context(req: ContextRequest) -> dict[str, Any]:
         )
     except mp.MemoryPipelineError as e:
         raise _map_service_error(e)
+    # AC-2 EVENT-DRIVEN: audit detail must include tier_hit_count + total_chars
+    # tier_hit_count = 各 tier が結果を返したか (short>0 + mid_found + long>0)
+    stats = result["stats"] or {}
+    tier_hit_count = (
+        (1 if stats.get("short_count", 0) > 0 else 0)
+        + (1 if stats.get("mid_summary_found") else 0)
+        + (1 if stats.get("long_count", 0) > 0 else 0)
+    )
+    total_chars = int(stats.get("char_count", 0))
     await _audit(
         "memory.context_built",
         user_id=actor or req.user_id,
@@ -116,6 +125,8 @@ async def context(req: ContextRequest) -> dict[str, Any]:
             "thread_id": result["thread_id"],
             "user_id": result["user_id"],
             "tiers_requested": result["tiers_requested"],
+            "tier_hit_count": tier_hit_count,
+            "total_chars": total_chars,
             "degraded_mode": result["degraded_mode"],
             "errors": result["errors"],
             "stats": result["stats"],
