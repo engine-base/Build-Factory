@@ -198,23 +198,16 @@ def main():
     tickets = d["tickets"]
     by_id = {t["id"]: t for t in tickets}
 
-    # IMPL_WITH_TEST フィルタ (もう既に audit MD ある場合は skip)
+    # 対象: pending かつ test ファイルが存在するもの.
+    # existing_files の有無は問わない (test PASS = 機能的に動いているのが本質).
+    # 既に audit MD あれば skip.
     targets = []
     for t in tickets:
         if t["done_status"] == "done":
             continue
-        existing = t.get("existing_files", [])
-        if not existing:
-            continue
-        exists_count = sum(
-            1 for f in existing if (ROOT / f.lstrip("./").rstrip("/")).exists()
-        )
-        if exists_count < len(existing) * 0.5:
-            continue
         test_files = find_test_files(t["id"])
         if not test_files:
             continue
-        # 既に audit MD ある場合 skip
         if (AUDIT_DIR / f"{t['id']}.md").exists():
             continue
         targets.append((t, test_files))
