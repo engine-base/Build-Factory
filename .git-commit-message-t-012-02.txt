@@ -1,0 +1,16 @@
+T-012-02: pattern 検出 middleware (86 tests, REFACTOR-but-NEW gap audit)
+
+F-012 (赤線リスト + 自動停止) の core detector を新規追加.
+REFACTOR ラベルだが既存 approval.py は CRUD のみで pattern 検出不在 →
+GAP として明示し services/red_line_detector.py を新規実装.
+
+- 11 個別 RedLineRule (DROP / TRUNCATE / DELETE* / --force / --no-verify /
+  .env / credentials.json / API key literal / AGPL / while True / deploy prod)
+- F-012 default_categories 5 種を 1:1 でカバー
+- CLAUDE.md §5.4 4 項目を literal 1:1 detect
+- severity (block/warn/log) → action 1:1 mapping
+- False-positive guard: DROP TABLE IF EXISTS / .env.example /
+  DELETE...WHERE / git push origin main / MIT license は hit しない
+- approval.py CRUD invariant 維持 (REFACTOR scope test で検証)
+
+86 tests passing / ruff clean / 6653 regression OK.
