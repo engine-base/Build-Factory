@@ -246,6 +246,8 @@ check_secrets() {
   local hits
   hits=$(grep -rEn --include="*.py" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.json" --include="*.sh" --include="*.md" --include="*.yaml" --include="*.yml" \
     --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=__pycache__ --exclude-dir=.git \
+    --exclude-dir=.claude --exclude-dir=worktrees --exclude-dir=audit --exclude-dir=mocks \
+    --exclude-dir=.venv --exclude-dir=venv --exclude-dir=dist --exclude-dir=build \
     "$pattern" . 2>/dev/null | grep -v -E "(^|/)\.env(\.example)?:" | grep -v "REPLACE_WITH_" || true)
   if [ -n "$hits" ]; then
     echo -e "${RED}NG: 実鍵パターン (sb_publishable_*/sb_secret_*) を検出${NC}"
