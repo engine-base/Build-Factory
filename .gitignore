@@ -44,3 +44,6 @@ backend/.coverage
 backend/.coverage
 .coverage
 backend/.coverage
+
+# Claude Code parallel-agent worktrees (harness 内部 / commit 対象外)
+.claude/worktrees/

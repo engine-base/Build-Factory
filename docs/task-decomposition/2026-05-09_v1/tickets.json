@@ -4459,6 +4459,44 @@
       "mock_link": "../../mocks/2026-05-09_v1/workspace/S-012-workspace-dashboard.html"
     },
     {
+      "id": "T-007-03b",
+      "title": "task_dag_view edge_type/kind semantic drift fix (silent: all edges render as soft)",
+      "sprint": 4,
+      "feature": "F-007",
+      "layer": "FE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-007-03"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-7",
+      "phase": 1,
+      "mock_link": "../../mocks/2026-05-09_v1/workspace/S-017-task-dag.html",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall align `dependenciesToEdges` emission shape with `DependencyGraph.TaskEdge` consumption: rename emitted field from `edge_type` to `kind` (or extend TaskEdge to accept both); PR #259 audit doc Gap-F1 details the silent semantic drift."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When a strict (hard) dependency is rendered, the edge shall appear with the hard visual treatment (solid); soft dependencies shall appear dashed. Currently all edges render as soft regardless of `edge_type`."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the fix is enabled, the conversion helper shall preserve all input fields (no data loss) and add a contract test asserting edge.kind ∈ {'hard','soft'} for every emitted edge."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If the helper emits an edge with an unknown kind value, the consumer shall not crash and the test suite shall fail (drift guard)."
+        }
+      ],
+      "existing_files": [
+        "frontend/src/lib/dependenciesToEdges.ts",
+        "frontend/src/components/DependencyGraph.tsx"
+      ]
+    },
+    {
       "id": "T-007-04",
       "title": "仮想スクロール VirtualList (react-window FixedSizeList wrapper / generic + null-safe)",
       "sprint": 4,
@@ -4574,6 +4612,44 @@
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/account/S-006-account-dashboard.html"
+    },
+    {
+      "id": "T-024-02b",
+      "title": "unified search silent-fail fix (kwarg drift + bf_db ImportError 3 件)",
+      "sprint": 4,
+      "feature": "F-024",
+      "layer": "BE",
+      "label": "REFACTOR",
+      "human_days": 0.5,
+      "claude_code_hours": 2,
+      "deps": [
+        "T-024-02"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-24",
+      "phase": 1,
+      "mock_link": "../../mocks/2026-05-09_v1/workspace/S-029-search.html",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall fix 3 silent-fail bugs in unified_search service: (1) _search_knowledge calls embedding_service.search_knowledge with correct kwargs (query/skill_tags/top_k/min_score), (2) _search_tasks resolves bf_db dependency, (3) _search_screens resolves bf_db dependency; PR #263 audit doc lists the manual repro."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When unified_search is invoked with a non-empty query, each of the 4 sources (knowledge / tasks / screens / chat) shall return results within 2 seconds; an empty list shall only be returned when the source has no matching rows (not due to a swallowed TypeError/ImportError)."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the fix is enabled, the defensive `except Exception` blocks shall log the original exception type and message via audit_logs (no more silent swallow) so future drift is detectable."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If a source raises an unexpected exception, the system shall NOT silently return an empty list; it shall return a partial result with `failed_sources: [<name>]` so the caller can surface a warning."
+        }
+      ],
+      "existing_files": [
+        "backend/services/unified_search.py",
+        "backend/services/embedding_service.py"
+      ]
     },
     {
       "id": "T-024-03",
@@ -6014,7 +6090,7 @@
     },
     {
       "id": "T-013-04",
-      "title": "merge conflict 自動解決試行",
+      "title": "merge conflict 検出 + 人間エスカ (Phase 1; AI 解決試行は Phase 1.5 / T-013-04b へ)",
       "sprint": 7,
       "feature": "F-013",
       "layer": "BE",
@@ -6028,19 +6104,56 @@
       "acceptance_criteria": [
         {
           "type": "UBIQUITOUS",
-          "text": "The system shall implement T-013-04 (merge conflict 自動解決試行) as specified by feature F-013."
+          "text": "The system shall provide `services/merge_auto_resolve.detect_and_escalate(base, target)` (Phase 1) that REUSEs T-M29-03 `detect_conflict_dry_run` and returns status in {'no_conflict','escalate'}; Phase 1.5 (T-013-04b) will add LLM-driven strategy resolution producing the 'resolved' status."
         },
         {
           "type": "EVENT-DRIVEN",
-          "text": "When the relevant API endpoint or service function is invoked for T-013-04, the system shall return a structured response (success or {detail: {code, message}}) within 2 seconds."
+          "text": "When `detect_and_escalate(base, target)` is invoked, the system shall return a dict {status,phase,base,target,conflicts,next_step} within 2 seconds (per-call DEFAULT_TIMEOUT_SEC<=2) or raise AutoResolveError mapped to 4xx {detail:{code,message}}."
         },
         {
           "type": "STATE-DRIVEN",
-          "text": "While the new feature for T-013-04 is enabled, the system shall apply Row Level Security and audit_logs as per CLAUDE.md §5.3."
+          "text": "While Phase 1 is active, the module shall be read-only (no INSERT/UPDATE/DELETE/TRUNCATE SQL, no fs write, no direct subprocess) and shall not import langgraph / langchain / litellm; T-M29-03 `sequential_merge.py` shall remain unchanged."
         },
         {
           "type": "UNWANTED",
-          "text": "If invalid input or unauthorized actor is detected during T-013-04, the system shall reject the request with a 4xx response carrying {detail: {code, message}} and shall not mutate persistent state."
+          "text": "If invalid input (empty / non-string / shell-metachar / over-length branch) is detected, the system shall raise AutoResolveError BEFORE any side effect; the module shall not contain hardcoded secrets and shall not expose Phase 1.5 APIs (`try_auto_resolve`, `STRATEGIES`, or 'resolved' status literal) in Phase 1."
+        }
+      ],
+      "mock_link": "../../mocks/2026-05-09_v1/review/S-033-pr-review.html",
+      "phase": 1
+    },
+    {
+      "id": "T-013-04b",
+      "title": "merge conflict AI 自動解決試行 (Phase 1.5; LLM-driven strategy + git>=2.40 --strategy flag)",
+      "sprint": 7,
+      "feature": "F-013",
+      "layer": "BE",
+      "label": "NEW",
+      "human_days": 1.0,
+      "claude_code_hours": 4,
+      "deps": [
+        "T-013-04",
+        "T-AI-05",
+        "T-AI-06"
+      ],
+      "spec_link": "../../requirements/2026-05-09_v1/requirements-v1.html#m-13",
+      "phase": "1.5",
+      "acceptance_criteria": [
+        {
+          "type": "UBIQUITOUS",
+          "text": "The system shall extend `services/merge_auto_resolve` with `try_auto_resolve(base, target, strategies=['ours','theirs','llm'])` producing status 'resolved' when at least one strategy yields a clean tree; this requires T-M29-03 to expose a `strategy` parameter (REFACTOR; will need its own ADR) and git>=2.40 `merge-tree --strategy=...`."
+        },
+        {
+          "type": "EVENT-DRIVEN",
+          "text": "When `try_auto_resolve(base, target, strategies=[...])` is invoked, the system shall return within (number_of_strategies * 2) seconds, emit an audit event 'mergeauto.resolved' on success with strategy_used + cost, and fall back to escalate when all strategies still conflict."
+        },
+        {
+          "type": "STATE-DRIVEN",
+          "text": "While the LLM strategy is used, the system shall record cost via T-AI-05 cost tracking, rate-limit via T-AI-06 retry, and never push or commit (force_push red-line maintained)."
+        },
+        {
+          "type": "UNWANTED",
+          "text": "If the LLM strategy produces a patch that touches files outside the conflicted set, or that introduces new conflict markers, the system shall reject the patch and fall through to escalate without mutating the working tree."
         }
       ],
       "mock_link": "../../mocks/2026-05-09_v1/review/S-033-pr-review.html"
