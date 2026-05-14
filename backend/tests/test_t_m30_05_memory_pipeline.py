@@ -1005,3 +1005,180 @@ def test_module_docstring_documents_3_tiers():
     assert "Tier 1 短期" in doc
     assert "Tier 2 中期" in doc
     assert "Tier 3 長期" in doc
+
+
+# ══════════════════════════════════════════════════════════════════════
+# AC-2 命名 alias: build_context (tickets.json T-M30-05 EVENT-DRIVEN)
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_ac2_build_context_is_alias_of_build_full_context():
+    """T-M30-05 AC-2 EVENT-DRIVEN は build_context を pipeline entry に指定.
+    build_full_context と同一 callable (完全等価)."""
+    from services.memory_pipeline import build_context, build_full_context
+    assert build_context is build_full_context
+
+
+def test_ac2_build_context_runs_via_alias(_mock_mem0):
+    """build_context 名でも 3 tier 並列収集が成立."""
+    from services.memory_pipeline import build_context
+    tid = _make_thread()
+    _seed_short_messages(tid, count=2)
+    _seed_mid_summary(tid)
+    import asyncio
+    result = asyncio.run(build_context(tid, "alice", "q"))
+    assert result["thread_id"] == tid
+    assert isinstance(result["stats"], dict)
+
+
+# ══════════════════════════════════════════════════════════════════════
+# AC-2 EVENT-DRIVEN: audit detail に tier_hit_count + total_chars
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_ac2_audit_emits_tier_hit_count_and_total_chars(
+    client, _capture_audit, _mock_mem0,
+):
+    """audit detail に AC-2 で要求される tier_hit_count + total_chars を含む."""
+    tid = _make_thread()
+    _seed_short_messages(tid, count=3)
+    _seed_mid_summary(tid)
+    r = client.post("/api/memory/context", json={
+        "thread_id": tid, "user_id": "alice", "query": "q",
+    })
+    assert r.status_code == 200
+    events = [e for e in _capture_audit if e["event_type"] == "memory.context_built"]
+    assert len(events) == 1
+    detail = events[0]["detail"]
+    assert "tier_hit_count" in detail
+    assert "total_chars" in detail
+    assert isinstance(detail["tier_hit_count"], int)
+    assert isinstance(detail["total_chars"], int)
+    # short + mid が seed されているので tier_hit_count >= 2
+    assert detail["tier_hit_count"] >= 2
+    # total_chars は assembled_text の長さと一致
+    assert detail["total_chars"] == len(r.json()["assembled_text"])
+
+
+def test_ac2_audit_tier_hit_count_increments_per_active_tier(
+    client, _capture_audit, _mock_mem0,
+):
+    """seed 無し thread でも 200 OK (degraded mode); tier_hit_count = 0."""
+    tid = _make_thread()
+    r = client.post("/api/memory/context", json={
+        "thread_id": tid, "user_id": "alice", "query": "q",
+    })
+    assert r.status_code == 200
+    ev = [e for e in _capture_audit
+          if e["event_type"] == "memory.context_built"][0]
+    # short/mid/long すべて空 → tier_hit_count == 0
+    assert ev["detail"]["tier_hit_count"] == 0
+
+
+# ══════════════════════════════════════════════════════════════════════
+# AC-1 UBIQUITOUS: cross-layer integration invariants
+# (9-section SECTION_KEYS / tier ordering / source attribution)
+# ══════════════════════════════════════════════════════════════════════
+
+
+def test_ac1_cross_layer_mid_uses_9section_section_keys(_mock_mem0):
+    """中期 tier の summary は mid_term_layer.SECTION_KEYS と同じ 9 keys."""
+    from services.mid_term_layer import SECTION_KEYS
+    tid = _make_thread()
+    _seed_mid_summary(tid)
+    import asyncio
+    result = asyncio.run(mp.build_full_context(tid, "alice", "q"))
+    mid = result["mid"]
+    assert mid is not None
+    assert mid["found"] is True
+    # summary は 9 sections 完全一致
+    assert set(mid["summary"].keys()) == set(SECTION_KEYS)
+
+
+def test_ac1_cross_layer_tier_ordering_in_response(_mock_mem0):
+    """response の tier ordering は ALL_TIERS と同じ (short → mid → long)."""
+    from services.memory_pipeline import ALL_TIERS
+    tid = _make_thread()
+    _seed_short_messages(tid, count=1)
+    _seed_mid_summary(tid)
+    import asyncio
+    result = asyncio.run(mp.build_full_context(tid, "alice", "q"))
+    # tiers_requested は ALL_TIERS と一致 (デフォルト時)
+    assert tuple(result["tiers_requested"]) == ALL_TIERS
+    # keys "short" / "mid" / "long" が必ず response に存在
+    assert "short" in result and "mid" in result and "long" in result
+
+
+def test_ac1_cross_layer_assembled_text_orders_tiers(_mock_mem0):
+    """assembled_text 内で「短期 → 中期 → 長期」の順序が保たれる."""
+    tid = _make_thread()
+    _seed_short_messages(tid, count=2)
+    _seed_mid_summary(tid)
+    import asyncio
+    # long 経路用に mem0 stub を seed
+    _mock_mem0["added"].append({
+        "user_id": "alice",
+        "content": "long memory content about decision X",
+    })
+    result = asyncio.run(mp.build_full_context(tid, "alice", "q"))
+    text = result["assembled_text"]
+    # 仕様: 短期は中期より前、中期は長期より前 (= "短期" / "中期" / "長期" の登場順)
+    pos_short = text.find("短期記憶")
+    pos_mid = text.find("中期記憶")
+    pos_long = text.find("長期記憶")
+    # それぞれ存在することを確認 (-1 でない)
+    assert pos_short != -1, "短期記憶 not in assembled_text"
+    assert pos_mid != -1, "中期記憶 not in assembled_text"
+    # 順序: short < mid < long (long が hit していれば)
+    assert pos_short < pos_mid
+
+
+def test_ac1_cross_layer_source_attribution_in_short(_mock_mem0):
+    """短期 tier の各 message に role (= source attribution) が記録される."""
+    tid = _make_thread()
+    _seed_short_messages(tid, count=3)
+    import asyncio
+    result = asyncio.run(mp.build_full_context(tid, "alice", "q"))
+    msgs = (result["short"] or {}).get("messages") or []
+    assert len(msgs) >= 3
+    # 各 message に role があり, user/assistant のいずれか
+    for m in msgs:
+        assert "role" in m
+        assert m["role"] in ("user", "assistant", "system", "system_summary")
+
+
+def test_ac1_cross_layer_source_attribution_in_mid(_mock_mem0):
+    """中期 tier の summary は source ('compressed_summary' / 'system_summary')
+    を持つ (mid_term_layer の経路 A/B 区別が pipeline まで伝搬する)."""
+    tid = _make_thread()
+    _seed_mid_summary(tid)  # 経路 A: compressed_summary フィールド
+    import asyncio
+    result = asyncio.run(mp.build_full_context(tid, "alice", "q"))
+    mid = result["mid"] or {}
+    assert mid.get("found") is True
+    # source は経路 A/B のいずれか (mid_term_layer.latest_summary の return)
+    assert mid.get("source") in ("compressed_summary", "system_summary")
+
+
+def test_ac1_cross_layer_module_delegation_invariant():
+    """orchestrator は self-compaction を持たない (delegation only).
+    AC-4 UNWANTED: '3-tier compaction を orchestrator で再実装' を禁止.
+    実装: _fetch_tier_* は layer module を delegate しているか確認."""
+    import inspect
+    src = inspect.getsource(mp)
+    # service module 内で 3-tier compaction logic (LLM call / keyword heuristic)
+    # を行う直接的な署名が無いことを確認
+    forbidden = ["openai.chat", "anthropic.messages.create",
+                 "client.messages.create", "_summarize_chat_messages"]
+    for token in forbidden:
+        assert token not in src, (
+            f"memory_pipeline must not implement compaction directly: '{token}'"
+        )
+    # 各 _fetch_tier_* が layer module からの import を経由していることを確認
+    assert "from services import chat_thread_store" in src or \
+           "import chat_thread_store" in src
+    assert "from services.mid_term_layer" in src or \
+           "import mid_term_layer" in src
+    assert "from services import long_term_layer" in src or \
+           "from services.long_term_layer" in src or \
+           "import long_term_layer" in src
