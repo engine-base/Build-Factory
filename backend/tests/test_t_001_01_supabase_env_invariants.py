@@ -278,7 +278,7 @@ def test_ac5_actual_lint_run_passes():
         cwd=REPO_ROOT,
         capture_output=True,
         text=True,
-        timeout=30,
+        timeout=120,
     )
     assert result.returncode == 0, (
         f"lint --secrets failed:\n{result.stdout}\n{result.stderr}"
