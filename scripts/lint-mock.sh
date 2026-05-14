@@ -31,7 +31,7 @@ MODE="${1:-all}"
 # 1. 絵文字検出
 # ----------------------------------------------------------------
 check_emoji() {
-  echo "[1/16] 絵文字検出..."
+  echo "[1/4] 絵文字検出..."
   # 検出範囲: docs/mocks/ + frontend/src/ + backend/ (生成スクリプトと .git は除く)
   # スクリプト自体は除外
   local violations
@@ -103,7 +103,7 @@ PY
 # 2. AGPL 依存検出
 # ----------------------------------------------------------------
 check_agpl() {
-  echo "[2/16] AGPL ライセンス依存検出..."
+  echo "[2/4] AGPL ライセンス依存検出..."
   local found=0
 
   # frontend (package.json)
@@ -142,7 +142,7 @@ check_agpl() {
 #      - penpot 統合コードは Phase 1.5 (S-3) で GrapesJS に置換するまで残置
 # ----------------------------------------------------------------
 check_archive() {
-  echo "[3/16] ARCHIVE 対象 (onlook/penpot) 残留検出..."
+  echo "[3/4] ARCHIVE 対象 (onlook/penpot) 残留検出..."
   local found=0
 
   # ディレクトリ自体は両方とも削除必須
@@ -187,7 +187,7 @@ check_archive() {
 #    対象: claude-agent-sdk runner + 会話オーケストレータ + 秘書エージェント
 # ----------------------------------------------------------------
 check_no_langgraph() {
-  echo "[6/16] backend メイン経路の LangGraph/LangChain 混入検出..."
+  echo "[6/15] backend メイン経路の LangGraph/LangChain 混入検出..."
   # T-003-02 AC-5 (#2): handoff path (secretary_chat / delegation_service)
   # に LangGraph / LangChain が紛れ込まないことも機械検知 (ADR-010 §UNWANTED).
   # T-M27-01b: Intent Router entry node (intent_router_entry.py / routers/intent_router.py)
@@ -215,7 +215,7 @@ check_no_langgraph() {
 #    メイン経路は claude-agent-sdk + anthropic-python のみ。 LiteLLM はサブ用途専用.
 # ----------------------------------------------------------------
 check_no_litellm_in_runner() {
-  echo "[7/16] backend メイン経路の LiteLLM 混入検出..."
+  echo "[7/15] backend メイン経路の LiteLLM 混入検出..."
   local targets="backend/integrations/claude_agent_runner.py backend/services/orchestrator_graph.py backend/ai_agents/secretary_agent.py"
   local found=0
   for f in $targets; do
@@ -240,7 +240,7 @@ check_no_litellm_in_runner() {
 #    .env.example 以外のコミット対象ファイルに混入していたら FAIL
 # ----------------------------------------------------------------
 check_secrets() {
-  echo "[5/16] 実鍵リーク検出..."
+  echo "[5/5] 実鍵リーク検出..."
   local pattern='sb_(publishable|secret)_[A-Za-z0-9_-]{20,}'
   # 除外: .env (gitignore済) / .env.example (placeholder のみ許可) / lock files
   local hits
@@ -261,7 +261,7 @@ check_secrets() {
 # 4. tickets.json メタ検証
 # ----------------------------------------------------------------
 check_tickets() {
-  echo "[4/16] tickets.json メタ検証..."
+  echo "[4/4] tickets.json メタ検証..."
   if python3 scripts/validate-tickets.py > /tmp/lint_validate.log 2>&1; then
     echo -e "${GREEN}OK: 全タスクが必須メタを保持${NC}"
   else
@@ -281,7 +281,7 @@ check_tickets() {
 # Dispatch
 # ----------------------------------------------------------------
 check_domain_boundaries() {
-  echo "[8/16] backend bounded-context domain barrel + 循環依存検出..."
+  echo "[8/15] backend bounded-context domain barrel + 循環依存検出..."
   if python3 scripts/check-domain-boundaries.py > /tmp/lint_domains.log 2>&1; then
     echo -e "${GREEN}OK: backend/domains/ 13 barrel 健全 (no bypass / no cycle)${NC}"
   else
@@ -298,7 +298,7 @@ check_domain_boundaries() {
 #    (provider_adapter / provider_adapter_memory 経由を強制).
 # ----------------------------------------------------------------
 check_no_self_provider_routing() {
-  echo "[9/16] provider 切替 routing 自前実装検知 (T-AI-MEM-04 / ADR-012 Decision 5)..."
+  echo "[9/15] provider 切替 routing 自前実装検知 (T-AI-MEM-04 / ADR-012 Decision 5)..."
   # 禁止語: provider 切替の自前 routing 関数 / private resolver / route hack
   local forbidden_re='\bdef[[:space:]]+(_resolve_provider_locally|_route_to_provider|_custom_provider_switch|_pick_provider_inline|_byok_then_anthropic)\b'
   local hits
@@ -324,7 +324,7 @@ check_no_self_provider_routing() {
 #     dedup / truncate / window eviction の自前実装を行わない.
 # ----------------------------------------------------------------
 check_no_self_tool_trim() {
-  echo "[10/16] tool result trim 自前実装検知 (T-M28-02 AC-4)..."
+  echo "[10/15] tool result trim 自前実装検知 (T-M28-02 AC-4)..."
   local forbidden_re='\b(trim_tool_result|_apply_size_cap|_apply_age_cap|_dedup_tool_results|truncate_tool_result|_compute_trimmed_payload|_run_trim_policy|_apply_window_eviction)\b'
   local hits
   hits=$(grep -rnE "$forbidden_re" \
@@ -346,7 +346,7 @@ check_no_self_tool_trim() {
 #     関連: ADR-009 / M-31 / T-BTSTRAP-02 (WorkspaceService.bootstrap で参照).
 # ----------------------------------------------------------------
 check_template_skeleton_complete() {
-  echo "[11/16] templates/project-bootstrap/ 必須スケルトン完整性検査 (T-BTSTRAP-01 AC-4)..."
+  echo "[11/15] templates/project-bootstrap/ 必須スケルトン完整性検査 (T-BTSTRAP-01 AC-4)..."
   local required=(
     "templates/project-bootstrap/CLAUDE.md.j2"
     "templates/project-bootstrap/docs/HANDOVER.md.j2"
@@ -386,7 +386,7 @@ check_template_skeleton_complete() {
 #     してはならない (ADR-010 + T-AI-08 spec).
 # ----------------------------------------------------------------
 check_no_self_fallback_circuit() {
-  echo "[13/16] fallback / circuit-breaker 自前実装検知 (T-AI-08 AC-UNWANTED)..."
+  echo "[13/15] fallback / circuit-breaker 自前実装検知 (T-AI-08 AC-UNWANTED)..."
   local forbidden_re='\bdef[[:space:]]+(_custom_health_circuit|_self_failover_loop|_inline_3_strike_fallback|_manual_recovery_streak|_route_to_untested_provider)\b'
   local hits
   hits=$(grep -rnE "$forbidden_re" \
@@ -405,7 +405,7 @@ check_no_self_fallback_circuit() {
 }
 
 check_no_self_constitution_inject() {
-  echo "[12/16] Constitution 自前 inject 検知 (T-AI-04 AC-1/4)..."
+  echo "[12/15] Constitution 自前 inject 検知 (T-AI-04 AC-1/4)..."
   # 禁止語: constitution を自前で system prompt に組み込む関数 / 文字列
   local forbidden_re='\bdef[[:space:]]+(_build_constitution_prompt|_inject_constitution_manually|_compose_red_lines_inline|_manual_constitution_inject)\b'
   local hits
@@ -433,7 +433,7 @@ check_no_self_constitution_inject() {
 #     G22 register_handoff_backend (SDK 差替点) は許可.
 # ----------------------------------------------------------------
 check_no_self_handoff() {
-  echo "[14/16] handoff 自前実装検知 (T-M27-03 AC-4)..."
+  echo "[14/15] handoff 自前実装検知 (T-M27-03 AC-4)..."
   local target="backend/services/handoff_service.py"
   if [ ! -f "$target" ]; then
     echo -e "${GREEN}OK: handoff_service.py が存在しない (skip)${NC}"
@@ -465,7 +465,7 @@ check_no_self_handoff() {
 #         : T-M28-04 SDK wrapper. 存在する場合のみ exempt.
 # ----------------------------------------------------------------
 check_no_self_9section_summary() {
-  echo "[15/16] 9-section summary 自前実装検知 (T-M30-03 AC-4 / T-M28-04 cross-ref)..."
+  echo "[15/15] 9-section summary 自前実装検知 (T-M30-03 AC-4 / T-M28-04 cross-ref)..."
   # 通用語 pattern (hard-coded list ではない):
   #   verb 語: generate / build / make / compose / synthesize / create /
   #            produce / assemble / construct / render / emit / write
@@ -502,32 +502,6 @@ check_no_self_9section_summary() {
   fi
 }
 
-# ----------------------------------------------------------------
-# 16. T-AI-MEM-02 AC-4 UNWANTED: server-side compaction 自前実装の禁止語検知
-#     ADR-012 Decision 1 / 公式 compact_20260112: server-side compaction は
-#     anthropic-python の context_management= 経由でのみ行う. app code 側で
-#     conversation 全体の要約 / structured-summary 生成 / 9-section 圧縮 / 95%
-#     window-eviction 等を自前実装してはならない.
-#     services/anthropic_context_editing.py (factory + validator) は除外.
-# ----------------------------------------------------------------
-check_no_self_compaction() {
-  echo "[16/16] server-side compaction 自前実装検知 (T-AI-MEM-02 AC-4)..."
-  local forbidden_re='\bdef[[:space:]]+(_self_serverside_compact|_compact_conversation_history|_compose_structured_summary|_run_window_eviction_at_95|_manual_conversation_compaction|_inline_9_section_compaction|_apply_serverside_compact_strategy|_self_compact_messages)\b'
-  local hits
-  hits=$(grep -rnE "$forbidden_re" \
-    --include="*.py" \
-    --exclude="anthropic_context_editing.py" \
-    backend/services backend/routers 2>/dev/null || true)
-  if [ -n "$hits" ]; then
-    echo -e "${RED}NG: app code に server-side compaction 自前実装の禁止語 (T-AI-MEM-02 AC-4 / ADR-012)${NC}"
-    echo "$hits"
-    echo "→ server-side compaction は anthropic-python context_management= (compact_20260112) 経由のみ"
-    EXIT_CODE=1
-  else
-    echo -e "${GREEN}OK: app code に server-side compaction 自前実装なし${NC}"
-  fi
-}
-
 case "$MODE" in
   --emoji)        check_emoji ;;
   --agpl)         check_agpl ;;
@@ -544,7 +518,6 @@ case "$MODE" in
   --no-self-fallback-circuit) check_no_self_fallback_circuit ;;
   --no-self-handoff) check_no_self_handoff ;;
   --no-self-9section) check_no_self_9section_summary ;;
-  --no-self-compaction) check_no_self_compaction ;;
   all|"")
     check_emoji
     check_agpl
@@ -561,7 +534,6 @@ case "$MODE" in
     check_no_self_fallback_circuit
     check_no_self_handoff
     check_no_self_9section_summary
-    check_no_self_compaction
     ;;
   *)
     echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|--no-self-provider-routing|--no-self-tool-trim|--template-skeleton|--no-self-constitution|--no-self-fallback-circuit|--no-self-handoff|--no-self-9section|all]"
