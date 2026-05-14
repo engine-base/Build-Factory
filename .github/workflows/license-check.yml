@@ -49,10 +49,18 @@ concurrency:
 jobs:
   license-and-mechanical-guards:
     name: AGPL / ADR-010 / baseline mechanical guards
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 5
 
     steps:
+      - name: Diagnose runner pre-checkout
+        run: |
+          echo "::group::pre-checkout env"
+          uname -a
+          cat /etc/os-release
+          df -h /
+          echo "::endgroup::"
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -60,6 +68,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: Diagnose runner post-setup
+        run: |
+          echo "::group::post-setup env"
+          python3 --version
+          bash --version | head -1
+          which bash grep python3
+          ls -la scripts/
+          echo "::endgroup::"
 
       # ──────────────────────────────────────────────────────────────
       # AC-2: 既存 scripts/lint-mock.sh を 5 invocation で実行
