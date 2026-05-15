@@ -6,6 +6,39 @@
 
 ---
 
+## 🚀 最速セットアップ (3 ステップ / 30 分)
+
+Mac で:
+
+```bash
+cd ~/Documents/Build-Factory
+git pull origin main
+
+# 1. .env テンプレをコピーして 2 箇所書き換え
+cp .env.dogfood-template .env
+nano .env
+#   - SUPABASE_JWT_SECRET = Supabase Dashboard → Settings → API → JWT Secret から
+#   - ANTHROPIC_API_KEY   = https://console.anthropic.com/settings/keys から
+
+# 2. Supabase link (初回のみ)
+supabase link --project-ref xyqdwremtusadozuicvg
+#   password 聞かれる: Y8v!qK2m#R7pLx9@aN4z
+
+# 3. ワンライナーで起動 (backend + cloudflared tunnel)
+bash start-dogfood.sh
+```
+
+出力された **Tunnel URL** を Vercel の `NEXT_PUBLIC_API_URL` 環境変数に設定 → Redeploy → ブラウザで dogfood 開始。
+
+停止する時:
+```bash
+bash stop-dogfood.sh
+```
+
+詳細手順は ↓ を参照。
+
+---
+
 ## 0. ゴール (受入基準)
 
 1 案件を Build-Factory 上で end-to-end 通せる:
