@@ -1,0 +1,133 @@
+{
+  "meta": {
+    "project": "Build-Factory",
+    "version": "v3",
+    "created_at": "2026-05-15",
+    "skill": "design-foundation",
+    "skill_version": "1.0",
+    "supersedes": "docs/mocks/2026-05-09_v1/design-tokens.md"
+  },
+  "context": {
+    "project_type": "SaaS 開発工場 OS (Build-Factory)",
+    "target_user": "受託会社 / 中小企業の社内開発チーム / フリーランス PM (30-50 代 / 高 IT リテラシー / エンジニア寄り)",
+    "phase_1_user": "ENGINE BASE 内製 dogfood = 高本まさと 1 名",
+    "phase_2_user": "外販 SaaS 顧客",
+    "brand_keywords": ["開発の工場", "並列稼働", "松本の判断基準の再現"],
+    "reference_systems": ["Linear (高密度情報)", "shadcn/ui (CSS変数構造)"],
+    "ui_library": "shadcn/ui + Radix UI",
+    "css_framework": "Tailwind CSS 4",
+    "icon_library": "Lucide Icons (only)",
+    "fonts": ["Noto Sans JP", "JetBrains Mono"]
+  },
+  "decisions": [
+    {
+      "decision": "ENGINE BASE green (#1a6648) を維持 + 11 段階スケール化",
+      "reason": "v1 / v2 で確立済のブランド色を保持 / rebrand コスト回避 / 既存 mock との互換性",
+      "alternatives": ["Vercel 風純黒 + ネオングリーン", "Notion 風 cyan", "freee 風オレンジ"],
+      "why_not_chosen": "v1 で 100+ ファイルに color hex 散在しているため rebrand は重い。色の方向性として ENGINE BASE green は『開発の工場 + 信頼感』に合致"
+    },
+    {
+      "decision": "Linear 系の高密度デザイン採用 (Notion 系より情報密度を上げる)",
+      "reason": "1 人で 10 案件並列管理 = 1 画面に出す情報量が最大化される業務性質。Linear / Vercel 等の開発系 SaaS が同じ密度を採用しているため業界標準とも一致",
+      "alternatives": ["Notion 系 (情報密度低・親しみやすさ重視)", "freee 系 (toC 寄り)"],
+      "why_not_chosen": "Notion / freee は toC や非エンジニア向けで余白が大きい。Build-Factory のターゲット (PM + エンジニア) には情報密度が低すぎる"
+    },
+    {
+      "decision": "Light + Dark 両対応の CSS 変数構造を Phase 0 で構築 (実装は Phase 1 では light のみ)",
+      "reason": "後付け対応はコストが高い。CSS 変数で構造化しておけば Phase 2 で `class='dark'` を toggle するだけで切り替わる。技術系ユーザーは dark mode 期待値高",
+      "alternatives": ["light only (Phase 1)", "両対応即実装"],
+      "why_not_chosen": "light only は Phase 2 で大幅 refactor が必要。両対応即実装は Phase 1 の dogfood 時間を圧迫"
+    },
+    {
+      "decision": "shadcn/ui の HSL CSS 変数で全色を統一",
+      "reason": "shadcn/ui との互換性 / dark mode 切り替えが CSS class one-touch で可能 / コンポーネント追加時の color override が不要",
+      "alternatives": ["RGB hex 直書き (Tailwind v3 旧形式)", "Tailwind v4 の @theme directive"],
+      "why_not_chosen": "hex 直書きは dark mode 対応が大変。Tailwind v4 @theme は新しすぎて他ライブラリ互換性に不安"
+    },
+    {
+      "decision": "WCAG AA 厳守",
+      "reason": "Phase 2 で外販 SaaS にするため A11y 必須 / コントラスト比 4.5:1 以上を全 critical pair で達成",
+      "alternatives": ["WCAG A", "意識しない"],
+      "why_not_chosen": "外販 SaaS / 大企業向けでは a11y が契約要件になる可能性。Phase 2 で後付けは難しい"
+    },
+    {
+      "decision": "Desktop first (1280px+) / モバイル <640px は閲覧専用",
+      "reason": "10 案件並列管理 = 大画面前提の業務 / モバイルでフル機能は UX 的に成立しない / 開発リソース集中",
+      "alternatives": ["モバイル first", "両対応 (responsive で全機能)"],
+      "why_not_chosen": "モバイル fullsupport は task 数 × 2 倍。Phase 2 で必要が出たら追加"
+    },
+    {
+      "decision": "Sidebar を両 mode 共通の濃グリーン (eb-700 / eb-950)",
+      "reason": "ブランド面積として固定 / ユーザーが light/dark 切替時に position 喪失しない / 既存 v1 デザインの維持",
+      "alternatives": ["Sidebar も bg-background に合わせて light/dark 切替"],
+      "why_not_chosen": "Sidebar が背景同化すると brand identity が薄れる"
+    },
+    {
+      "decision": "本文 14px / line-height 1.7 (日本語向け詰めめ)",
+      "reason": "Linear は 13-14px body。日本語の line-height は 1.7 が読みやすさと密度のバランス点。Tailwind 既定 16px は大きすぎ",
+      "alternatives": ["16px body (Tailwind 既定)", "13px body (Linear default)"],
+      "why_not_chosen": "16px は情報密度低下 / 13px は日本語可読性が落ちる (中年層ターゲット含む)"
+    },
+    {
+      "decision": "Card 既定は shadow なし + border のみ (Linear 流)",
+      "reason": "shadow を多用すると視覚的にうるさい / 高密度 UI では border 区切りが clean / Linear / Vercel が同方針",
+      "alternatives": ["shadow-sm 既定", "elevated 多用"],
+      "why_not_chosen": "shadow 多用は freee / Notion 寄り。Build-Factory のトーンと合わない"
+    },
+    {
+      "decision": "Lucide Icons のみ (絵文字 / Heroicons / Material 禁止)",
+      "reason": "v1 で絵文字 175 件混入が発覚 / 統一性 / lint #1 で機械検出可能",
+      "alternatives": ["Heroicons 併用", "Material Icons", "絵文字許容"],
+      "why_not_chosen": "Lucide は shadcn/ui との親和性高 / 軽量 / ライセンス安全 (ISC)"
+    },
+    {
+      "decision": "next/font/google で Noto Sans JP + JetBrains Mono を self-host (Phase 1 では Google Fonts CDN でも可)",
+      "reason": "Phase 2 で外販する際に外部 CDN 依存を減らすため / FOUT 防止 / パフォーマンス最適化",
+      "alternatives": ["Google Fonts CDN 永続", "Adobe Fonts", "system fonts のみ"],
+      "why_not_chosen": "CDN 依存はネット遅延 + plivacy / Adobe は商用ライセンス費 / system は日本語フォントが OS 依存で不揃い"
+    }
+  ],
+  "design_patterns": [
+    {
+      "pattern_name": "Sidebar + Main の固定 2 カラム",
+      "applicable_to": "情報密度の高い管理 SaaS / 1 ユーザーが多 entity を扱うアプリ",
+      "description": "Sidebar 240px (brand 色) + Main flex-1 (slate 系) の構成。breadcrumb / page title 等は Main 上部。常時 visible で navigation cost ゼロ"
+    },
+    {
+      "pattern_name": "KPI Hero (4 カード横並び)",
+      "applicable_to": "Dashboard / 案件俯瞰画面",
+      "description": "数値型 / ゲージ型 / 金額型 / アラート型の 4 バリアントで全 KPI を表現。大型数値 (28px mono) + ラベル + サブ + アイコン + 任意の bar"
+    },
+    {
+      "pattern_name": "shadcn HSL CSS 変数 + Tailwind 拡張色",
+      "applicable_to": "shadcn/ui を使う Next.js プロジェクト全般",
+      "description": "semantic は --primary 等の HSL 変数 / scale は eb-500 等の hex リテラル。両者を併用することで shadcn コンポーネントは変数経由、カスタムは scale 直参照で書ける"
+    },
+    {
+      "pattern_name": "全 state 網羅マトリクス",
+      "applicable_to": "コンポーネントライブラリ全般",
+      "description": "default / hover / focus / active / disabled / loading / error / empty の 8 state を最初に定義。実装時にバラつかない"
+    },
+    {
+      "pattern_name": "WCAG AA を前提に色を選ぶ",
+      "applicable_to": "B2B SaaS / 外販プロダクト",
+      "description": "コントラスト比 4.5:1 以上を全 critical text/bg pair で確認。最初に検証することで設計確定後の color 変更コストを回避"
+    }
+  ],
+  "research": {
+    "sources": [
+      {"url": "https://linear.app", "title": "Linear (UI 密度・キーボード操作の参考)", "accessed_at": "2026-05-15"},
+      {"url": "https://ui.shadcn.com/", "title": "shadcn/ui (HSL CSS 変数構造)", "accessed_at": "2026-05-15"},
+      {"url": "https://www.radix-ui.com/colors", "title": "Radix Colors (gray scale 設計)", "accessed_at": "2026-05-15"},
+      {"url": "https://www.w3.org/WAI/WCAG21/quickref/", "title": "WCAG 2.1 AA Contrast", "accessed_at": "2026-05-15"}
+    ],
+    "findings": [
+      "Linear は body 13-14px / Slate 系グレースケール / 控えめなアクセント色 / shadow 最小限",
+      "shadcn/ui の HSL CSS 変数は dark mode 切替を class one-touch で可能にする",
+      "日本語フォント (Noto Sans JP) は line-height 1.7-1.9 が業界標準",
+      "WCAG AA で text vs bg contrast 4.5:1 は全 critical pair で達成可能 (eb-500 on slate-50 = 6.2:1)",
+      "shadow 多用は親しみやすさを増すが、技術系 SaaS では border 区切りの方が clean"
+    ],
+    "research_date": "2026-05-15"
+  }
+}
