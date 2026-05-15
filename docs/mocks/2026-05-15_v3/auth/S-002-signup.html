@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-002 サインアップ — Build-Factory</title>
+
+<meta name="bf-screen-id" content="S-002">
+<meta name="bf-screen-name" content="signup">
+<meta name="bf-category" content="auth">
+<meta name="bf-feature-id" content="F-001,F-004">
+<meta name="bf-task-ids" content="T-V3-AUTH-09,T-V3-AUTH-02">
+<meta name="bf-entities" content="E-001,E-002,E-008,E-043">
+<meta name="bf-related-apis" content="POST /api/auth/signup,GET /api/invitations/{token}">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-002">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>
+  body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+
+<header class="px-6 py-4 border-b border-slate-200 bg-white">
+  <div class="flex items-center gap-2 max-w-[1400px] mx-auto">
+    <div class="w-7 h-7 rounded-md bg-eb-500 flex items-center justify-center">
+      <i data-lucide="factory" class="w-4 h-4 text-white"></i>
+    </div>
+    <div class="text-sm font-bold">Build-Factory</div>
+    <span class="text-[11px] text-slate-500 mono">v3</span>
+  </div>
+</header>
+
+<main class="flex-1 flex items-center justify-center px-6 py-12">
+  <div class="w-full max-w-[420px]">
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-eb-500 mb-4">
+        <i data-lucide="user-plus" class="w-6 h-6 text-white"></i>
+      </div>
+      <h1 class="text-2xl font-bold">アカウント作成</h1>
+      <p class="text-sm text-slate-600 mt-1">受託 EC 構築から自社 SaaS まで、開発を 1 つの工場に</p>
+    </div>
+
+    <!-- Invite token banner (optional, shown if URL has ?invite=...) -->
+    <div class="bg-eb-50 border border-eb-100 rounded-md p-3 mb-4 flex items-start gap-2">
+      <i data-lucide="ticket" class="w-4 h-4 text-eb-500 mt-0.5 shrink-0"></i>
+      <div>
+        <div class="text-sm font-medium text-eb-700">招待を受けてサインアップ</div>
+        <div class="text-xs text-slate-600 mt-0.5">案件「<span class="font-semibold">受託 EC 構築 #4</span>」のメンバーとして登録されます</div>
+      </div>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-lg p-6 space-y-4">
+      <!-- Display name -->
+      <div class="space-y-1.5">
+        <label for="name" class="text-sm font-medium block">表示名 <span class="text-red-600">*</span></label>
+        <input id="name" type="text" placeholder="高本 まさと" autocomplete="name"
+          class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md w-full focus-visible:outline-none focus-visible:border-eb-500 focus-visible:ring-2 focus-visible:ring-eb-100" />
+      </div>
+
+      <!-- Email -->
+      <div class="space-y-1.5">
+        <label for="email" class="text-sm font-medium block">メールアドレス <span class="text-red-600">*</span></label>
+        <input id="email" type="email" placeholder="you@example.com" autocomplete="email"
+          class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md w-full focus-visible:outline-none focus-visible:border-eb-500 focus-visible:ring-2 focus-visible:ring-eb-100" />
+      </div>
+
+      <!-- Password -->
+      <div class="space-y-1.5">
+        <label for="password" class="text-sm font-medium block">パスワード <span class="text-red-600">*</span></label>
+        <input id="password" type="password" placeholder="12 文字以上 / 英大小・数字・記号" autocomplete="new-password"
+          class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md w-full focus-visible:outline-none focus-visible:border-eb-500 focus-visible:ring-2 focus-visible:ring-eb-100" />
+        <!-- Password strength bar -->
+        <div class="h-1 bg-slate-100 rounded-full overflow-hidden">
+          <div class="h-full bg-eb-400" style="width: 65%"></div>
+        </div>
+        <p class="text-xs text-slate-500">強度: 普通 / 大文字を含めるとより安全</p>
+      </div>
+
+      <!-- Terms -->
+      <div class="space-y-2 pt-2">
+        <label class="flex items-start gap-2 text-sm cursor-pointer">
+          <input type="checkbox" class="w-4 h-4 rounded border-slate-300 accent-eb-500 mt-0.5" />
+          <span class="text-slate-700">
+            <a href="#" class="text-eb-500 hover:underline">利用規約</a> に同意する
+          </span>
+        </label>
+        <label class="flex items-start gap-2 text-sm cursor-pointer">
+          <input type="checkbox" class="w-4 h-4 rounded border-slate-300 accent-eb-500 mt-0.5" />
+          <span class="text-slate-700">
+            <a href="#" class="text-eb-500 hover:underline">プライバシーポリシー</a> に同意する
+          </span>
+        </label>
+      </div>
+
+      <!-- Submit -->
+      <button type="submit"
+        class="w-full bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-10 px-4 rounded-md transition-colors flex items-center justify-center gap-2 mt-2">
+        <span>アカウント作成</span>
+        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+      </button>
+
+      <!-- Divider -->
+      <div class="relative py-2">
+        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
+        <div class="relative flex justify-center"><span class="bg-white px-2 text-xs text-slate-500">または</span></div>
+      </div>
+
+      <!-- OAuth -->
+      <div class="space-y-2">
+        <button type="button" class="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-900 text-sm font-medium h-9 px-4 rounded-md transition-colors flex items-center justify-center gap-2">
+          <i data-lucide="sparkles" class="w-4 h-4 text-eb-500"></i><span>Anthropic で続ける</span>
+        </button>
+        <button type="button" class="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-900 text-sm font-medium h-9 px-4 rounded-md transition-colors flex items-center justify-center gap-2">
+          <i data-lucide="chrome" class="w-4 h-4"></i><span>Google で続ける</span>
+        </button>
+        <button type="button" class="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-900 text-sm font-medium h-9 px-4 rounded-md transition-colors flex items-center justify-center gap-2">
+          <i data-lucide="git-branch" class="w-4 h-4"></i><span>GitHub で続ける</span>
+        </button>
+      </div>
+    </div>
+
+    <p class="text-center text-sm text-slate-600 mt-6">
+      既にアカウントをお持ちの方は
+      <a href="./S-001-login.html" class="text-eb-500 hover:text-eb-600 hover:underline font-medium">ログイン</a>
+    </p>
+
+    <div class="text-center text-[11px] text-slate-400 mt-8 space-x-3">
+      <a href="#" class="hover:text-slate-600">利用規約</a><span>·</span>
+      <a href="#" class="hover:text-slate-600">プライバシーポリシー</a><span>·</span>
+      <span class="mono">© ENGINE BASE</span>
+    </div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

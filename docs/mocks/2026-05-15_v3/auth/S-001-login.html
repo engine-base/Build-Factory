@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-001 ログイン — Build-Factory</title>
+
+<!-- v3 required metadata -->
+<meta name="bf-screen-id" content="S-001">
+<meta name="bf-screen-name" content="login">
+<meta name="bf-category" content="auth">
+<meta name="bf-feature-id" content="F-001,F-021">
+<meta name="bf-task-ids" content="T-V3-AUTH-08,T-V3-AUTH-01">
+<meta name="bf-entities" content="E-001,E-038">
+<meta name="bf-related-apis" content="POST /api/auth/login,POST /api/auth/mfa/verify">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-001">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      colors: {
+        eb: { 50:'#f0faf5', 100:'#d3f0e0', 200:'#a8e1c1', 300:'#6dcc94', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a', 800:'#0c2e1f', 900:'#082015', 950:'#04110a' },
+      },
+      fontFamily: {
+        sans: ['"Noto Sans JP"', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace']
+      }
+    }}
+  };
+</script>
+
+<style>
+  body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .tabular { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+
+<!-- Header (minimal logo bar) -->
+<header class="px-6 py-4 border-b border-slate-200 bg-white">
+  <div class="flex items-center gap-2 max-w-[1400px] mx-auto">
+    <div class="w-7 h-7 rounded-md bg-eb-500 flex items-center justify-center">
+      <i data-lucide="factory" class="w-4 h-4 text-white"></i>
+    </div>
+    <div class="text-sm font-bold text-slate-900">Build-Factory</div>
+    <span class="text-[11px] text-slate-500 mono">v3</span>
+  </div>
+</header>
+
+<!-- Main centered login card -->
+<main class="flex-1 flex items-center justify-center px-6 py-12">
+  <div class="w-full max-w-[420px]">
+    <!-- Title block -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-eb-500 mb-4">
+        <i data-lucide="factory" class="w-6 h-6 text-white"></i>
+      </div>
+      <h1 class="text-2xl font-bold text-slate-900">ログイン</h1>
+      <p class="text-sm text-slate-600 mt-1">Build-Factory にサインインして案件を管理</p>
+    </div>
+
+    <!-- Login card -->
+    <div class="bg-white border border-slate-200 rounded-lg p-6 space-y-4">
+      <!-- Email -->
+      <div class="space-y-1.5">
+        <label for="email" class="text-sm font-medium text-slate-900 block">メールアドレス</label>
+        <input id="email" type="email" placeholder="you@example.com" autocomplete="email"
+          class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md w-full focus-visible:outline-none focus-visible:border-eb-500 focus-visible:ring-2 focus-visible:ring-eb-100" />
+      </div>
+
+      <!-- Password -->
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between">
+          <label for="password" class="text-sm font-medium text-slate-900">パスワード</label>
+          <a href="../auth/S-003-password-reset.html" class="text-xs text-eb-500 hover:text-eb-600 hover:underline">パスワードを忘れた</a>
+        </div>
+        <div class="relative">
+          <input id="password" type="password" placeholder="••••••••••" autocomplete="current-password"
+            class="border border-slate-200 bg-white text-sm h-9 px-3 pr-9 rounded-md w-full focus-visible:outline-none focus-visible:border-eb-500 focus-visible:ring-2 focus-visible:ring-eb-100" />
+          <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1" aria-label="パスワードを表示">
+            <i data-lucide="eye" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- MFA code (conditional / shown when state=mfa_required) -->
+      <div class="space-y-1.5 hidden" data-state="mfa_required">
+        <label for="mfa" class="text-sm font-medium text-slate-900 block">2FA コード</label>
+        <input id="mfa" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="123456"
+          class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md w-full mono tabular tracking-widest focus-visible:outline-none focus-visible:border-eb-500 focus-visible:ring-2 focus-visible:ring-eb-100" />
+        <p class="text-xs text-slate-500">認証アプリで生成された 6 桁コードを入力</p>
+      </div>
+
+      <!-- Remember me -->
+      <div class="flex items-center gap-2 pt-1">
+        <input id="remember" type="checkbox" class="w-4 h-4 rounded border-slate-300 accent-eb-500" />
+        <label for="remember" class="text-sm text-slate-600">この端末を記憶する</label>
+      </div>
+
+      <!-- Submit button -->
+      <button type="submit"
+        class="w-full bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-10 px-4 rounded-md transition-colors flex items-center justify-center gap-2">
+        <span>ログイン</span>
+        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+      </button>
+
+      <!-- Error message (conditional / state=error) -->
+      <div class="hidden bg-red-50 border border-red-200 text-red-700 text-xs px-3 py-2 rounded-md flex items-center gap-2" data-state="error">
+        <i data-lucide="alert-circle" class="w-3.5 h-3.5 shrink-0"></i>
+        <span>メールアドレスまたはパスワードが正しくありません</span>
+      </div>
+
+      <!-- Divider -->
+      <div class="relative py-2">
+        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
+        <div class="relative flex justify-center"><span class="bg-white px-2 text-xs text-slate-500">または</span></div>
+      </div>
+
+      <!-- OAuth buttons -->
+      <div class="space-y-2">
+        <button type="button"
+          class="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-900 text-sm font-medium h-9 px-4 rounded-md transition-colors flex items-center justify-center gap-2">
+          <i data-lucide="sparkles" class="w-4 h-4 text-eb-500"></i>
+          <span>Anthropic で続ける</span>
+        </button>
+        <button type="button"
+          class="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-900 text-sm font-medium h-9 px-4 rounded-md transition-colors flex items-center justify-center gap-2">
+          <i data-lucide="chrome" class="w-4 h-4 text-slate-700"></i>
+          <span>Google で続ける</span>
+        </button>
+        <button type="button"
+          class="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-900 text-sm font-medium h-9 px-4 rounded-md transition-colors flex items-center justify-center gap-2">
+          <i data-lucide="git-branch" class="w-4 h-4 text-slate-700"></i>
+          <span>GitHub で続ける</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Sign up link -->
+    <p class="text-center text-sm text-slate-600 mt-6">
+      アカウントをお持ちでない方は
+      <a href="./S-002-signup.html" class="text-eb-500 hover:text-eb-600 hover:underline font-medium">サインアップ</a>
+    </p>
+
+    <!-- Footer info -->
+    <div class="text-center text-[11px] text-slate-400 mt-8 space-x-3">
+      <a href="#" class="hover:text-slate-600">利用規約</a>
+      <span>·</span>
+      <a href="#" class="hover:text-slate-600">プライバシーポリシー</a>
+      <span>·</span>
+      <span class="mono">© ENGINE BASE</span>
+    </div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

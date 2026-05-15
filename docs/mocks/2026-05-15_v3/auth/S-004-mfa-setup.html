@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-004 MFA セットアップ — Build-Factory</title>
+
+<meta name="bf-screen-id" content="S-004">
+<meta name="bf-screen-name" content="mfa_setup">
+<meta name="bf-category" content="auth">
+<meta name="bf-feature-id" content="F-001">
+<meta name="bf-task-ids" content="T-V3-AUTH-11,T-V3-AUTH-04,T-V3-AUTH-05">
+<meta name="bf-entities" content="E-001">
+<meta name="bf-related-apis" content="POST /api/auth/mfa/enroll,POST /api/auth/mfa/verify">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-004">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>
+  body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .qr-cell { background: #0f172a; }
+  .qr-empty { background: #ffffff; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+
+<header class="px-6 py-4 border-b border-slate-200 bg-white">
+  <div class="flex items-center gap-2 max-w-[1400px] mx-auto">
+    <div class="w-7 h-7 rounded-md bg-eb-500 flex items-center justify-center"><i data-lucide="factory" class="w-4 h-4 text-white"></i></div>
+    <div class="text-sm font-bold">Build-Factory</div>
+    <span class="text-[11px] text-slate-500 mono">v3</span>
+  </div>
+</header>
+
+<main class="flex-1 flex items-center justify-center px-6 py-12">
+  <div class="w-full max-w-[560px]">
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-eb-100 mb-4">
+        <i data-lucide="shield-check" class="w-6 h-6 text-eb-500"></i>
+      </div>
+      <h1 class="text-2xl font-bold">2 段階認証 (MFA) を有効化</h1>
+      <p class="text-sm text-slate-600 mt-1">アカウントの安全性を高めるために TOTP 認証アプリを設定します</p>
+    </div>
+
+    <!-- Stepper -->
+    <div class="bg-white border border-slate-200 rounded-lg p-4 mb-4">
+      <div class="flex items-center gap-2 text-xs">
+        <div class="flex items-center gap-1.5 text-eb-500 font-semibold">
+          <div class="w-5 h-5 rounded-full bg-eb-500 text-white flex items-center justify-center mono">1</div>
+          QR スキャン
+        </div>
+        <div class="flex-1 h-px bg-slate-200"></div>
+        <div class="flex items-center gap-1.5 text-slate-500">
+          <div class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center mono">2</div>
+          コード確認
+        </div>
+        <div class="flex-1 h-px bg-slate-200"></div>
+        <div class="flex items-center gap-1.5 text-slate-500">
+          <div class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center mono">3</div>
+          バックアップ
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 1: QR scan -->
+    <div class="bg-white border border-slate-200 rounded-lg p-6 mb-4">
+      <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+        <i data-lucide="qr-code" class="w-5 h-5 text-eb-500"></i>
+        Step 1. 認証アプリで QR をスキャン
+      </h2>
+      <div class="grid grid-cols-[180px_1fr] gap-6">
+        <!-- QR display (placeholder pattern) -->
+        <div class="bg-white border border-slate-200 rounded-md p-3">
+          <div class="grid grid-cols-12 gap-0 w-full aspect-square">
+            <!-- Simple QR-like pattern as visual placeholder -->
+            <div class="qr-cell col-span-3 row-span-3"></div><div class="qr-empty col-span-6 row-span-3"></div><div class="qr-cell col-span-3 row-span-3"></div>
+            <div class="qr-cell col-span-1"></div><div class="qr-empty col-span-1"></div><div class="qr-cell col-span-1"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-1"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-1"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-1"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-1"></div><div class="qr-cell col-span-1"></div>
+            <div class="qr-cell col-span-1"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-1"></div><div class="qr-cell col-span-2"></div><div class="qr-empty col-span-1"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-2"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-1"></div><div class="qr-cell col-span-2"></div>
+            <div class="qr-empty col-span-3"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-2"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-2"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-2"></div>
+            <div class="qr-cell col-span-3 row-span-3"></div><div class="qr-empty col-span-3"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-2"></div><div class="qr-cell col-span-3"></div>
+            <div class="qr-empty col-span-1"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-2"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-2"></div><div class="qr-cell col-span-2"></div>
+            <div class="qr-cell col-span-2"></div><div class="qr-empty col-span-1"></div><div class="qr-cell col-span-2"></div><div class="qr-empty col-span-1"></div><div class="qr-cell col-span-1"></div>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <p class="text-sm text-slate-600 leading-relaxed">
+            <strong>Google Authenticator</strong> / <strong>1Password</strong> / <strong>Authy</strong> 等の TOTP 認証アプリで上記の QR をスキャンしてください。
+          </p>
+
+          <!-- Manual entry secret -->
+          <div class="border border-slate-200 rounded-md p-3 bg-slate-50">
+            <div class="text-xs text-slate-500 mb-1">手動入力用シークレット</div>
+            <div class="flex items-center gap-2">
+              <code class="mono text-sm text-slate-900 tracking-widest flex-1">JBSWY3DPEHPK3PXP</code>
+              <button class="text-slate-500 hover:text-eb-500" title="コピー">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+
+          <p class="text-xs text-slate-500">
+            QR をスキャンできない場合は、上記のシークレットを認証アプリに手動で追加してください。
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Verify code -->
+    <div class="bg-white border border-slate-200 rounded-lg p-6 mb-4">
+      <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+        <i data-lucide="key" class="w-5 h-5 text-eb-500"></i>
+        Step 2. 6 桁のコードで確認
+      </h2>
+      <div class="space-y-3">
+        <p class="text-sm text-slate-600">認証アプリに表示された 6 桁のコードを入力してください</p>
+        <div class="flex items-center gap-2">
+          <input type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="123456"
+            class="border border-slate-200 bg-white text-xl h-12 px-4 rounded-md w-44 mono tabular tracking-[0.4em] text-center focus-visible:outline-none focus-visible:border-eb-500 focus-visible:ring-2 focus-visible:ring-eb-100" />
+          <button class="bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-12 px-6 rounded-md transition-colors flex items-center gap-2">
+            <span>確認</span>
+            <i data-lucide="check" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <p class="text-xs text-slate-500">5 回以上失敗すると 15 分間ロックされます</p>
+      </div>
+    </div>
+
+    <!-- Step 3: Backup codes (collapsed initially) -->
+    <details class="bg-white border border-slate-200 rounded-lg p-6 mb-4">
+      <summary class="text-lg font-bold cursor-pointer flex items-center gap-2">
+        <i data-lucide="save" class="w-5 h-5 text-eb-500"></i>
+        Step 3. リカバリーコード (preview)
+        <span class="text-xs font-normal text-slate-500 ml-auto">クリックで表示</span>
+      </summary>
+      <div class="mt-4 space-y-3">
+        <div class="bg-amber-50 border border-amber-200 rounded-md p-3 flex items-start gap-2">
+          <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600 mt-0.5 shrink-0"></i>
+          <div class="text-xs text-amber-900">認証アプリにアクセスできなくなった場合の<strong>緊急用コード</strong>です。安全な場所に保存してください。各コードは一度だけ使用可能。</div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 mono text-sm">
+          <div class="border border-slate-200 rounded-md px-3 py-2 bg-slate-50 tabular">a3f2-8b91</div>
+          <div class="border border-slate-200 rounded-md px-3 py-2 bg-slate-50 tabular">7d4c-e208</div>
+          <div class="border border-slate-200 rounded-md px-3 py-2 bg-slate-50 tabular">5a91-2f6b</div>
+          <div class="border border-slate-200 rounded-md px-3 py-2 bg-slate-50 tabular">b8c3-d172</div>
+          <div class="border border-slate-200 rounded-md px-3 py-2 bg-slate-50 tabular">e609-1a5d</div>
+          <div class="border border-slate-200 rounded-md px-3 py-2 bg-slate-50 tabular">c247-f8b3</div>
+          <div class="border border-slate-200 rounded-md px-3 py-2 bg-slate-50 tabular">9b15-3c8e</div>
+          <div class="border border-slate-200 rounded-md px-3 py-2 bg-slate-50 tabular">4f72-a190</div>
+          <div class="border border-slate-200 rounded-md px-3 py-2 bg-slate-50 tabular">d83b-6e25</div>
+          <div class="border border-slate-200 rounded-md px-3 py-2 bg-slate-50 tabular">1c9e-7f48</div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="flex-1 bg-white border border-slate-200 hover:bg-slate-50 text-sm h-9 rounded-md transition-colors flex items-center justify-center gap-2">
+            <i data-lucide="download" class="w-4 h-4"></i>ダウンロード (TXT)
+          </button>
+          <button class="flex-1 bg-white border border-slate-200 hover:bg-slate-50 text-sm h-9 rounded-md transition-colors flex items-center justify-center gap-2">
+            <i data-lucide="copy" class="w-4 h-4"></i>コピー
+          </button>
+          <button class="flex-1 bg-white border border-slate-200 hover:bg-slate-50 text-sm h-9 rounded-md transition-colors flex items-center justify-center gap-2">
+            <i data-lucide="printer" class="w-4 h-4"></i>印刷
+          </button>
+        </div>
+      </div>
+    </details>
+
+    <!-- Final button -->
+    <button class="w-full bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-10 rounded-md transition-colors flex items-center justify-center gap-2">
+      <i data-lucide="shield-check" class="w-4 h-4"></i>
+      MFA を有効化して完了
+    </button>
+
+    <div class="text-center text-[11px] text-slate-400 mt-8 mono">© ENGINE BASE</div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build-Factory v3 — Mock Index (5/64)</title>
+<meta name="bf-doc-type" content="mock-index">
+<meta name="bf-version" content="v3">
+<meta name="bf-total-screens" content="64">
+<meta name="bf-done-count" content="5">
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: #f8fafc;
+    color: #0f172a;
+    line-height: 1.7;
+    height: 100vh;
+    overflow: hidden;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* Top bar */
+  .topbar {
+    height: 48px;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+  }
+  .brand { display: flex; align-items: center; gap: 8px; }
+  .brand-icon {
+    width: 24px; height: 24px;
+    background: #1a6648;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+  }
+  .brand-title { font-size: 13px; font-weight: 700; }
+  .brand-meta { font-size: 11px; color: #64748b; font-family: 'JetBrains Mono', monospace; }
+  .progress-info { margin-left: auto; font-size: 11px; color: #475569; }
+  .progress-bar {
+    width: 120px; height: 4px;
+    background: #e2e8f0;
+    border-radius: 9999px;
+    overflow: hidden;
+    margin-left: 8px;
+    display: inline-block;
+    vertical-align: middle;
+  }
+  .progress-fill {
+    height: 100%;
+    background: #1a6648;
+    border-radius: 9999px;
+    width: 8%;
+  }
+
+  /* Layout */
+  .container {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    height: calc(100vh - 48px);
+  }
+
+  /* Sidebar */
+  .sidebar {
+    background: #ffffff;
+    border-right: 1px solid #e2e8f0;
+    overflow-y: auto;
+    padding: 8px 0;
+  }
+  .cat-group { border-bottom: 1px solid #f1f5f9; }
+  .cat-header {
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #475569;
+  }
+  .cat-header:hover { background: #f8fafc; }
+  .cat-label { flex: 1; text-align: left; }
+  .cat-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 1px 6px;
+    border-radius: 9999px;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .cat-chevron { transition: transform 0.15s; color: #94a3b8; }
+  .cat-group.collapsed .cat-chevron { transform: rotate(-90deg); }
+  .cat-group.collapsed .cat-screens { display: none; }
+
+  .cat-screens { padding: 2px 0 6px; }
+  .screen-item {
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 5px 14px 5px 28px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    color: #475569;
+    text-align: left;
+  }
+  .screen-item:hover { background: #f8fafc; color: #0f172a; }
+  .screen-item.active { background: #f0faf5; color: #1a6648; font-weight: 600; }
+  .screen-item.active .screen-id { color: #1a6648; }
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 9999px;
+    flex-shrink: 0;
+  }
+  .status-ok { background: #16a34a; }
+  .status-todo { background: #cbd5e1; }
+  .status-wip { background: #d97706; }
+  .screen-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #94a3b8;
+    width: 36px;
+    flex-shrink: 0;
+  }
+  .screen-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Main preview */
+  .main {
+    display: flex;
+    flex-direction: column;
+    background: #f8fafc;
+  }
+  .preview-toolbar {
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 40px;
+  }
+  .preview-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #475569;
+  }
+  .preview-id { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #1a6648; font-weight: 600; }
+  .preview-meta { font-size: 11px; color: #94a3b8; margin-left: auto; }
+  .open-link {
+    font-size: 11px; color: #1a6648; text-decoration: none;
+    padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .open-link:hover { background: #f0faf5; }
+
+  .preview-frame {
+    flex: 1;
+    border: none;
+    width: 100%;
+    background: #ffffff;
+  }
+
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    text-align: center;
+    padding: 32px;
+  }
+  .empty-state .icon-box {
+    width: 64px; height: 64px;
+    border-radius: 12px;
+    background: #f1f5f9;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+  }
+  .empty-state h3 { font-size: 14px; font-weight: 600; color: #0f172a; margin-bottom: 4px; }
+  .empty-state p { font-size: 13px; color: #64748b; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-icon"><i data-lucide="factory" class="w-3.5 h-3.5"></i></div>
+    <span class="brand-title">Build-Factory</span>
+    <span class="brand-meta">v3 Mock Index</span>
+  </div>
+  <div class="progress-info">
+    Progress: <strong>5</strong> / 64
+    <span class="progress-bar"><span class="progress-fill"></span></span>
+    8%
+  </div>
+</header>
+
+<div class="container">
+  <aside class="sidebar">
+    
+        <div class="cat-group" data-cat-id="auth">
+          <button class="cat-header" onclick="toggleCat('auth')">
+            <i data-lucide="key-round" class="w-3.5 h-3.5"></i>
+            <span class="cat-label">AUTH / 認証</span>
+            <span class="cat-count">5/5</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
+          </button>
+          <div class="cat-screens">
+        
+            <button class="screen-item" data-screen-id="S-001" data-file="auth/S-001-login.html" onclick="loadScreen('S-001')">
+              <span class="status-dot status-ok"></span>
+              <span class="screen-id mono">S-001</span>
+              <span class="screen-name">ログイン</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-002" data-file="auth/S-002-signup.html" onclick="loadScreen('S-002')">
+              <span class="status-dot status-ok"></span>
+              <span class="screen-id mono">S-002</span>
+              <span class="screen-name">サインアップ</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-003" data-file="auth/S-003-password-reset.html" onclick="loadScreen('S-003')">
+              <span class="status-dot status-ok"></span>
+              <span class="screen-id mono">S-003</span>
+              <span class="screen-name">パスワード再設定</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-004" data-file="auth/S-004-mfa-setup.html" onclick="loadScreen('S-004')">
+              <span class="status-dot status-ok"></span>
+              <span class="screen-id mono">S-004</span>
+              <span class="screen-name">MFA セットアップ</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-005" data-file="auth/S-005-oauth-callback.html" onclick="loadScreen('S-005')">
+              <span class="status-dot status-ok"></span>
+              <span class="screen-id mono">S-005</span>
+              <span class="screen-name">OAuth コールバック</span>
+            </button>
+            </div></div>
+        <div class="cat-group" data-cat-id="account">
+          <button class="cat-header" onclick="toggleCat('account')">
+            <i data-lucide="user-circle" class="w-3.5 h-3.5"></i>
+            <span class="cat-label">Account / アカウント横断</span>
+            <span class="cat-count">0/6</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
+          </button>
+          <div class="cat-screens">
+        
+            <button class="screen-item" data-screen-id="S-006" data-file="" onclick="loadScreen('S-006')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-006</span>
+              <span class="screen-name">10 案件 俯瞰</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-007" data-file="" onclick="loadScreen('S-007')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-007</span>
+              <span class="screen-name">アカウント設定</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-008" data-file="" onclick="loadScreen('S-008')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-008</span>
+              <span class="screen-name">メンバー管理</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-009" data-file="" onclick="loadScreen('S-009')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-009</span>
+              <span class="screen-name">プロフィール設定</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-010" data-file="" onclick="loadScreen('S-010')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-010</span>
+              <span class="screen-name">通知 Inbox</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-011" data-file="" onclick="loadScreen('S-011')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-011</span>
+              <span class="screen-name">グローバル検索 (Cmd+K)</span>
+            </button>
+            </div></div>
+        <div class="cat-group" data-cat-id="workspace">
+          <button class="cat-header" onclick="toggleCat('workspace')">
+            <i data-lucide="briefcase" class="w-3.5 h-3.5"></i>
+            <span class="cat-label">Workspace / 案件</span>
+            <span class="cat-count">0/4</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
+          </button>
+          <div class="cat-screens">
+        
+            <button class="screen-item" data-screen-id="S-012" data-file="" onclick="loadScreen('S-012')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-012</span>
+              <span class="screen-name">案件ダッシュボード</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-013" data-file="" onclick="loadScreen('S-013')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-013</span>
+              <span class="screen-name">案件設定</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-014" data-file="" onclick="loadScreen('S-014')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-014</span>
+              <span class="screen-name">案件メンバー</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-015" data-file="" onclick="loadScreen('S-015')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-015</span>
+              <span class="screen-name">メンバー招待</span>
+            </button>
+            </div></div>
+        <div class="cat-group" data-cat-id="moat-safety">
+          <button class="cat-header" onclick="toggleCat('moat-safety')">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+            <span class="cat-label">Moat / Safety / 護岸</span>
+            <span class="cat-count">0/5</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
+          </button>
+          <div class="cat-screens">
+        
+            <button class="screen-item" data-screen-id="S-016" data-file="" onclick="loadScreen('S-016')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-016</span>
+              <span class="screen-name">フェーズ管理</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-017" data-file="" onclick="loadScreen('S-017')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-017</span>
+              <span class="screen-name">依存グラフ</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-018" data-file="" onclick="loadScreen('S-018')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-018</span>
+              <span class="screen-name">Constitution エディタ</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-019" data-file="" onclick="loadScreen('S-019')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-019</span>
+              <span class="screen-name">赤線設定</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-034" data-file="" onclick="loadScreen('S-034')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-034</span>
+              <span class="screen-name">赤線承認</span>
+            </button>
+            </div></div>
+        <div class="cat-group" data-cat-id="spec">
+          <button class="cat-header" onclick="toggleCat('spec')">
+            <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+            <span class="cat-label">Spec / 仕様</span>
+            <span class="cat-count">0/7</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
+          </button>
+          <div class="cat-screens">
+        
+            <button class="screen-item" data-screen-id="S-020" data-file="" onclick="loadScreen('S-020')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-020</span>
+              <span class="screen-name">ヒアリングセッション</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-021" data-file="" onclick="loadScreen('S-021')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-021</span>
+              <span class="screen-name">要件エディタ</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-022" data-file="" onclick="loadScreen('S-022')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-022</span>
+              <span class="screen-name">仕様書ビューア</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-023" data-file="" onclick="loadScreen('S-023')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-023</span>
+              <span class="screen-name">画面モックビューア</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-024" data-file="" onclick="loadScreen('S-024')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-024</span>
+              <span class="screen-name">コンポーネントカタログ</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-025" data-file="" onclick="loadScreen('S-025')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-025</span>
+              <span class="screen-name">画面遷移マップ</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-026" data-file="" onclick="loadScreen('S-026')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-026</span>
+              <span class="screen-name">HTML エディタ</span>
+            </button>
+            </div></div>
+        <div class="cat-group" data-cat-id="task-execution">
+          <button class="cat-header" onclick="toggleCat('task-execution')">
+            <i data-lucide="play-circle" class="w-3.5 h-3.5"></i>
+            <span class="cat-label">Task / Execution / 実行</span>
+            <span class="cat-count">0/6</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
+          </button>
+          <div class="cat-screens">
+        
+            <button class="screen-item" data-screen-id="S-027" data-file="" onclick="loadScreen('S-027')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-027</span>
+              <span class="screen-name">タスク Kanban</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-028" data-file="" onclick="loadScreen('S-028')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-028</span>
+              <span class="screen-name">タスクリスト</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-029" data-file="" onclick="loadScreen('S-029')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-029</span>
+              <span class="screen-name">タスク DAG</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-030" data-file="" onclick="loadScreen('S-030')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-030</span>
+              <span class="screen-name">タスク詳細</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-031" data-file="" onclick="loadScreen('S-031')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-031</span>
+              <span class="screen-name">Swarm 並列実行</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-032" data-file="" onclick="loadScreen('S-032')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-032</span>
+              <span class="screen-name">Swarm セッション詳細</span>
+            </button>
+            </div></div>
+        <div class="cat-group" data-cat-id="review">
+          <button class="cat-header" onclick="toggleCat('review')">
+            <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
+            <span class="cat-label">Review / レビュー</span>
+            <span class="cat-count">0/2</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
+          </button>
+          <div class="cat-screens">
+        
+            <button class="screen-item" data-screen-id="S-033" data-file="" onclick="loadScreen('S-033')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-033</span>
+              <span class="screen-name">PR レビュー</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-035" data-file="" onclick="loadScreen('S-035')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-035</span>
+              <span class="screen-name">納品承認</span>
+            </button>
+            </div></div>
+        <div class="cat-group" data-cat-id="ai-management">
+          <button class="cat-header" onclick="toggleCat('ai-management')">
+            <i data-lucide="bot" class="w-3.5 h-3.5"></i>
+            <span class="cat-label">AI 社員 / Skill</span>
+            <span class="cat-count">0/3</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
+          </button>
+          <div class="cat-screens">
+        
+            <button class="screen-item" data-screen-id="S-036" data-file="" onclick="loadScreen('S-036')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-036</span>
+              <span class="screen-name">AI 社員 組織図</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-037" data-file="" onclick="loadScreen('S-037')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-037</span>
+              <span class="screen-name">AI 社員 詳細</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-038" data-file="" onclick="loadScreen('S-038')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-038</span>
+              <span class="screen-name">スキルマネージャ</span>
+            </button>
+            </div></div>
+        <div class="cat-group" data-cat-id="knowledge-ops">
+          <button class="cat-header" onclick="toggleCat('knowledge-ops')">
+            <i data-lucide="database" class="w-3.5 h-3.5"></i>
+            <span class="cat-label">Knowledge / Ops</span>
+            <span class="cat-count">0/3</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
+          </button>
+          <div class="cat-screens">
+        
+            <button class="screen-item" data-screen-id="S-039" data-file="" onclick="loadScreen('S-039')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-039</span>
+              <span class="screen-name">ナレッジベース</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-040" data-file="" onclick="loadScreen('S-040')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-040</span>
+              <span class="screen-name">コスト ダッシュボード</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-041" data-file="" onclick="loadScreen('S-041')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-041</span>
+              <span class="screen-name">監査ログ</span>
+            </button>
+            </div></div>
+        <div class="cat-group" data-cat-id="client">
+          <button class="cat-header" onclick="toggleCat('client')">
+            <i data-lucide="users" class="w-3.5 h-3.5"></i>
+            <span class="cat-label">Client / クライアント</span>
+            <span class="cat-count">0/2</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
+          </button>
+          <div class="cat-screens">
+        
+            <button class="screen-item" data-screen-id="S-042" data-file="" onclick="loadScreen('S-042')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-042</span>
+              <span class="screen-name">クライアントポータル</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-043" data-file="" onclick="loadScreen('S-043')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-043</span>
+              <span class="screen-name">クライアントコメント</span>
+            </button>
+            </div></div>
+        <div class="cat-group" data-cat-id="system">
+          <button class="cat-header" onclick="toggleCat('system')">
+            <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
+            <span class="cat-label">System / Error pages</span>
+            <span class="cat-count">0/4</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
+          </button>
+          <div class="cat-screens">
+        
+            <button class="screen-item" data-screen-id="S-044" data-file="" onclick="loadScreen('S-044')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-044</span>
+              <span class="screen-name">404 Not Found</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-045" data-file="" onclick="loadScreen('S-045')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-045</span>
+              <span class="screen-name">500 Server Error</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-046" data-file="" onclick="loadScreen('S-046')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-046</span>
+              <span class="screen-name">403 Forbidden</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-047" data-file="" onclick="loadScreen('S-047')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-047</span>
+              <span class="screen-name">Maintenance</span>
+            </button>
+            </div></div>
+        <div class="cat-group" data-cat-id="onboarding">
+          <button class="cat-header" onclick="toggleCat('onboarding')">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+            <span class="cat-label">Onboarding / 初回</span>
+            <span class="cat-count">0/3</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
+          </button>
+          <div class="cat-screens">
+        
+            <button class="screen-item" data-screen-id="S-048" data-file="" onclick="loadScreen('S-048')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-048</span>
+              <span class="screen-name">ようこそ</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-049" data-file="" onclick="loadScreen('S-049')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-049</span>
+              <span class="screen-name">案件セットアップ</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-050" data-file="" onclick="loadScreen('S-050')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-050</span>
+              <span class="screen-name">AI 社員 紹介</span>
+            </button>
+            </div></div>
+        <div class="cat-group" data-cat-id="dialog">
+          <button class="cat-header" onclick="toggleCat('dialog')">
+            <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+            <span class="cat-label">Modal / Dialog 共通</span>
+            <span class="cat-count">0/5</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
+          </button>
+          <div class="cat-screens">
+        
+            <button class="screen-item" data-screen-id="S-051" data-file="" onclick="loadScreen('S-051')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-051</span>
+              <span class="screen-name">削除確認</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-052" data-file="" onclick="loadScreen('S-052')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-052</span>
+              <span class="screen-name">未保存警告</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-053" data-file="" onclick="loadScreen('S-053')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-053</span>
+              <span class="screen-name">MFA コード入力</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-054" data-file="" onclick="loadScreen('S-054')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-054</span>
+              <span class="screen-name">セッション切れ</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-055" data-file="" onclick="loadScreen('S-055')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-055</span>
+              <span class="screen-name">Danger Zone</span>
+            </button>
+            </div></div>
+        <div class="cat-group" data-cat-id="email">
+          <button class="cat-header" onclick="toggleCat('email')">
+            <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+            <span class="cat-label">Email Templates</span>
+            <span class="cat-count">0/5</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
+          </button>
+          <div class="cat-screens">
+        
+            <button class="screen-item" data-screen-id="S-056" data-file="" onclick="loadScreen('S-056')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-056</span>
+              <span class="screen-name">サインアップ確認メール</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-057" data-file="" onclick="loadScreen('S-057')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-057</span>
+              <span class="screen-name">パスワードリセットメール</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-058" data-file="" onclick="loadScreen('S-058')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-058</span>
+              <span class="screen-name">招待メール</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-059" data-file="" onclick="loadScreen('S-059')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-059</span>
+              <span class="screen-name">タスク通知メール</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-060" data-file="" onclick="loadScreen('S-060')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-060</span>
+              <span class="screen-name">週次サマリーメール</span>
+            </button>
+            </div></div>
+        <div class="cat-group" data-cat-id="export">
+          <button class="cat-header" onclick="toggleCat('export')">
+            <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+            <span class="cat-label">Print / Export</span>
+            <span class="cat-count">0/2</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
+          </button>
+          <div class="cat-screens">
+        
+            <button class="screen-item" data-screen-id="S-061" data-file="" onclick="loadScreen('S-061')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-061</span>
+              <span class="screen-name">仕様書 PDF</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-062" data-file="" onclick="loadScreen('S-062')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-062</span>
+              <span class="screen-name">納品レポート</span>
+            </button>
+            </div></div>
+        <div class="cat-group" data-cat-id="extras">
+          <button class="cat-header" onclick="toggleCat('extras')">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span class="cat-label">Extras (追加候補)</span>
+            <span class="cat-count">0/2</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
+          </button>
+          <div class="cat-screens">
+        
+            <button class="screen-item" data-screen-id="S-063" data-file="" onclick="loadScreen('S-063')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-063</span>
+              <span class="screen-name">検索結果</span>
+            </button>
+            
+            <button class="screen-item" data-screen-id="S-064" data-file="" onclick="loadScreen('S-064')">
+              <span class="status-dot status-todo"></span>
+              <span class="screen-id mono">S-064</span>
+              <span class="screen-name">API トークン管理</span>
+            </button>
+            </div></div>
+  </aside>
+
+  <main class="main">
+    <div class="preview-toolbar">
+      <div class="preview-info" id="preview-info">
+        <span style="color:#94a3b8;">←</span> 左から画面を選んでください
+      </div>
+      <a id="preview-open-link" class="open-link" style="display:none;" target="_blank" rel="noopener">
+        <i data-lucide="external-link" class="w-3 h-3"></i>新しいタブで開く
+      </a>
+    </div>
+    <iframe id="preview-frame" class="preview-frame" style="display:none;" sandbox="allow-scripts allow-forms allow-same-origin"></iframe>
+    <div id="empty-state" class="empty-state">
+      <div class="icon-box"><i data-lucide="layout" class="w-7 h-7" style="color:#64748b;"></i></div>
+      <h3>画面を選んでプレビュー</h3>
+      <p>左のサイドバーから画面 ID を選択すると、ここにモックが表示されます。</p>
+    </div>
+  </main>
+</div>
+
+<!-- Embedded mock templates -->
+<template id="mock-S-001"><!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-001 ログイン — Build-Factory</title>
+
+<!-- v3 required metadata -->
+<meta name="bf-screen-id" content="S-001">
+<meta name="bf-screen-name" content="login">
+<meta name="bf-category" content="auth">
+<meta name="bf-feature-id" content="F-001,F-021">
+<meta name="bf-task-ids" content="T-V3-AUTH-08,T-V3-AUTH-01">
+<meta name="bf-entities" content="E-001,E-038">
+<meta name="bf-related-apis" content="POST /api/auth/login,POST /api/auth/mfa/verify">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-001">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      colors: {
+        eb: { 50:'#f0faf5', 100:'#d3f0e0', 200:'#a8e1c1', 300:'#6dcc94', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a', 800:'#0c2e1f', 900:'#082015', 950:'#04110a' },
+      },
+      fontFamily: {
+        sans: ['"Noto Sans JP"', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace']
+      }
+    }}
+  };
+</script>
+
+<style>
+  body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .tabular { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+
+<!-- Header (minimal logo bar) -->
+<header class="px-6 py-4 border-b border-slate-200 bg-white">
+  <div class="flex items-center gap-2 max-w-[1400px] mx-auto">
+    <div class="w-7 h-7 rounded-md bg-eb-500 flex items-center justify-center">
+      <i data-lucide="factory" class="w-4 h-4 text-white"></i>
+    </div>
+    <div class="text-sm font-bold text-slate-900">Build-Factory</div>
+    <span class="text-[11px] text-slate-500 mono">v3</span>
+  </div>
+</header>
+
+<!-- Main centered login card -->
+<main class="flex-1 flex items-center justify-center px-6 py-12">
+  <div class="w-full max-w-[420px]">
+    <!-- Title block -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-eb-500 mb-4">
+        <i data-lucide="factory" class="w-6 h-6 text-white"></i>
+      </div>
+      <h1 class="text-2xl font-bold text-slate-900">ログイン</h1>
+      <p class="text-sm text-slate-600 mt-1">Build-Factory にサインインして案件を管理</p>
+    </div>
+
+    <!-- Login card -->
+    <div class="bg-white border border-slate-200 rounded-lg p-6 space-y-4">
+      <!-- Email -->
+      <div class="space-y-1.5">
+        <label for="email" class="text-sm font-medium text-slate-900 block">メールアドレス</label>
+        <input id="email" type="email" placeholder="you@example.com" autocomplete="email"
+          class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md w-full focus-visible:outline-none focus-visible:border-eb-500 focus-visible:ring-2 focus-visible:ring-eb-100" />
+      </div>
+
+      <!-- Password -->
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between">
+          <label for="password" class="text-sm font-medium text-slate-900">パスワード</label>
+          <a href="../auth/S-003-password-reset.html" class="text-xs text-eb-500 hover:text-eb-600 hover:underline">パスワードを忘れた</a>
+        </div>
+        <div class="relative">
+          <input id="password" type="password" placeholder="••••••••••" autocomplete="current-password"
+            class="border border-slate-200 bg-white text-sm h-9 px-3 pr-9 rounded-md w-full focus-visible:outline-none focus-visible:border-eb-500 focus-visible:ring-2 focus-visible:ring-eb-100" />
+          <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1" aria-label="パスワードを表示">
+            <i data-lucide="eye" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- MFA code (conditional / shown when state=mfa_required) -->
+      <div class="space-y-1.5 hidden" data-state="mfa_required">
+        <label for="mfa" class="text-sm font-medium text-slate-900 block">2FA コード</label>
+        <input id="mfa" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="123456"
+          class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md w-full mono tabular tracking-widest focus-visible:outline-none focus-visible:border-eb-500 focus-visible:ring-2 focus-visible:ring-eb-100" />
+        <p class="text-xs text-slate-500">認証アプリで生成された 6 桁コードを入力</p>
+      </div>
+
+      <!-- Remember me -->
+      <div class="flex items-center gap-2 pt-1">
+        <input id="remember" type="checkbox" class="w-4 h-4 rounded border-slate-300 accent-eb-500" />
+        <label for="remember" class="text-sm text-slate-600">この端末を記憶する</label>
+      </div>
+
+      <!-- Submit button -->
+      <button type="submit"
+        class="w-full bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-10 px-4 rounded-md transition-colors flex items-center justify-center gap-2">
+        <span>ログイン</span>
+        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+      </button>
+
+      <!-- Error message (conditional / state=error) -->
+      <div class="hidden bg-red-50 border border-red-200 text-red-700 text-xs px-3 py-2 rounded-md flex items-center gap-2" data-state="error">
+        <i data-lucide="alert-circle" class="w-3.5 h-3.5 shrink-0"></i>
+        <span>メールアドレスまたはパスワードが正しくありません</span>
+      </div>
+
+      <!-- Divider -->
+      <div class="relative py-2">
+        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
+        <div class="relative flex justify-center"><span class="bg-white px-2 text-xs text-slate-500">または</span></div>
+      </div>
+
+      <!-- OAuth buttons -->
+      <div class="space-y-2">
+        <button type="button"
+          class="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-900 text-sm font-medium h-9 px-4 rounded-md transition-colors flex items-center justify-center gap-2">
+          <i data-lucide="sparkles" class="w-4 h-4 text-eb-500"></i>
+          <span>Anthropic で続ける</span>
+        </button>
+        <button type="button"
+          class="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-900 text-sm font-medium h-9 px-4 rounded-md transition-colors flex items-center justify-center gap-2">
+          <i data-lucide="chrome" class="w-4 h-4 text-slate-700"></i>
+          <span>Google で続ける</span>
+        </button>
+        <button type="button"
+          class="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-900 text-sm font-medium h-9 px-4 rounded-md transition-colors flex items-center justify-center gap-2">
+          <i data-lucide="git-branch" class="w-4 h-4 text-slate-700"></i>
+          <span>GitHub で続ける</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Sign up link -->
+    <p class="text-center text-sm text-slate-600 mt-6">
+      アカウントをお持ちでない方は
+      <a href="./S-002-signup.html" class="text-eb-500 hover:text-eb-600 hover:underline font-medium">サインアップ</a>
+    </p>
+
+    <!-- Footer info -->
+    <div class="text-center text-[11px] text-slate-400 mt-8 space-x-3">
+      <a href="#" class="hover:text-slate-600">利用規約</a>
+      <span>·</span>
+      <a href="#" class="hover:text-slate-600">プライバシーポリシー</a>
+      <span>·</span>
+      <span class="mono">© ENGINE BASE</span>
+    </div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>
+</template><template id="mock-S-002"><!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-002 サインアップ — Build-Factory</title>
+
+<meta name="bf-screen-id" content="S-002">
+<meta name="bf-screen-name" content="signup">
+<meta name="bf-category" content="auth">
+<meta name="bf-feature-id" content="F-001,F-004">
+<meta name="bf-task-ids" content="T-V3-AUTH-09,T-V3-AUTH-02">
+<meta name="bf-entities" content="E-001,E-002,E-008,E-043">
+<meta name="bf-related-apis" content="POST /api/auth/signup,GET /api/invitations/{token}">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-002">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>
+  body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+
+<header class="px-6 py-4 border-b border-slate-200 bg-white">
+  <div class="flex items-center gap-2 max-w-[1400px] mx-auto">
+    <div class="w-7 h-7 rounded-md bg-eb-500 flex items-center justify-center">
+      <i data-lucide="factory" class="w-4 h-4 text-white"></i>
+    </div>
+    <div class="text-sm font-bold">Build-Factory</div>
+    <span class="text-[11px] text-slate-500 mono">v3</span>
+  </div>
+</header>
+
+<main class="flex-1 flex items-center justify-center px-6 py-12">
+  <div class="w-full max-w-[420px]">
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-eb-500 mb-4">
+        <i data-lucide="user-plus" class="w-6 h-6 text-white"></i>
+      </div>
+      <h1 class="text-2xl font-bold">アカウント作成</h1>
+      <p class="text-sm text-slate-600 mt-1">受託 EC 構築から自社 SaaS まで、開発を 1 つの工場に</p>
+    </div>
+
+    <!-- Invite token banner (optional, shown if URL has ?invite=...) -->
+    <div class="bg-eb-50 border border-eb-100 rounded-md p-3 mb-4 flex items-start gap-2">
+      <i data-lucide="ticket" class="w-4 h-4 text-eb-500 mt-0.5 shrink-0"></i>
+      <div>
+        <div class="text-sm font-medium text-eb-700">招待を受けてサインアップ</div>
+        <div class="text-xs text-slate-600 mt-0.5">案件「<span class="font-semibold">受託 EC 構築 #4</span>」のメンバーとして登録されます</div>
+      </div>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-lg p-6 space-y-4">
+      <!-- Display name -->
+      <div class="space-y-1.5">
+        <label for="name" class="text-sm font-medium block">表示名 <span class="text-red-600">*</span></label>
+        <input id="name" type="text" placeholder="高本 まさと" autocomplete="name"
+          class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md w-full focus-visible:outline-none focus-visible:border-eb-500 focus-visible:ring-2 focus-visible:ring-eb-100" />
+      </div>
+
+      <!-- Email -->
+      <div class="space-y-1.5">
+        <label for="email" class="text-sm font-medium block">メールアドレス <span class="text-red-600">*</span></label>
+        <input id="email" type="email" placeholder="you@example.com" autocomplete="email"
+          class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md w-full focus-visible:outline-none focus-visible:border-eb-500 focus-visible:ring-2 focus-visible:ring-eb-100" />
+      </div>
+
+      <!-- Password -->
+      <div class="space-y-1.5">
+        <label for="password" class="text-sm font-medium block">パスワード <span class="text-red-600">*</span></label>
+        <input id="password" type="password" placeholder="12 文字以上 / 英大小・数字・記号" autocomplete="new-password"
+          class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md w-full focus-visible:outline-none focus-visible:border-eb-500 focus-visible:ring-2 focus-visible:ring-eb-100" />
+        <!-- Password strength bar -->
+        <div class="h-1 bg-slate-100 rounded-full overflow-hidden">
+          <div class="h-full bg-eb-400" style="width: 65%"></div>
+        </div>
+        <p class="text-xs text-slate-500">強度: 普通 / 大文字を含めるとより安全</p>
+      </div>
+
+      <!-- Terms -->
+      <div class="space-y-2 pt-2">
+        <label class="flex items-start gap-2 text-sm cursor-pointer">
+          <input type="checkbox" class="w-4 h-4 rounded border-slate-300 accent-eb-500 mt-0.5" />
+          <span class="text-slate-700">
+            <a href="#" class="text-eb-500 hover:underline">利用規約</a> に同意する
+          </span>
+        </label>
+        <label class="flex items-start gap-2 text-sm cursor-pointer">
+          <input type="checkbox" class="w-4 h-4 rounded border-slate-300 accent-eb-500 mt-0.5" />
+          <span class="text-slate-700">
+            <a href="#" class="text-eb-500 hover:underline">プライバシーポリシー</a> に同意する
+          </span>
+        </label>
+      </div>
+
+      <!-- Submit -->
+      <button type="submit"
+        class="w-full bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-10 px-4 rounded-md transition-colors flex items-center justify-center gap-2 mt-2">
+        <span>アカウント作成</span>
+        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+      </button>
+
+      <!-- Divider -->
+      <div class="relative py-2">
+        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
+        <div class="relative flex justify-center"><span class="bg-white px-2 text-xs text-slate-500">または</span></div>
+      </div>
+
+      <!-- OAuth -->
+      <div class="space-y-2">
+        <button type="button" class="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-900 text-sm font-medium h-9 px-4 rounded-md transition-colors flex items-center justify-center gap-2">
+          <i data-lucide="sparkles" class="w-4 h-4 text-eb-500"></i><span>Anthropic で続ける</span>
+        </button>
+        <button type="button" class="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-900 text-sm font-medium h-9 px-4 rounded-md transition-colors flex items-center justify-center gap-2">
+          <i data-lucide="chrome" class="w-4 h-4"></i><span>Google で続ける</span>
+        </button>
+        <button type="button" class="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-900 text-sm font-medium h-9 px-4 rounded-md transition-colors flex items-center justify-center gap-2">
+          <i data-lucide="git-branch" class="w-4 h-4"></i><span>GitHub で続ける</span>
+        </button>
+      </div>
+    </div>
+
+    <p class="text-center text-sm text-slate-600 mt-6">
+      既にアカウントをお持ちの方は
+      <a href="./S-001-login.html" class="text-eb-500 hover:text-eb-600 hover:underline font-medium">ログイン</a>
+    </p>
+
+    <div class="text-center text-[11px] text-slate-400 mt-8 space-x-3">
+      <a href="#" class="hover:text-slate-600">利用規約</a><span>·</span>
+      <a href="#" class="hover:text-slate-600">プライバシーポリシー</a><span>·</span>
+      <span class="mono">© ENGINE BASE</span>
+    </div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>
+</template><template id="mock-S-003"><!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-003 パスワード再設定 — Build-Factory</title>
+
+<meta name="bf-screen-id" content="S-003">
+<meta name="bf-screen-name" content="password_reset">
+<meta name="bf-category" content="auth">
+<meta name="bf-feature-id" content="F-001">
+<meta name="bf-task-ids" content="T-V3-AUTH-10,T-V3-AUTH-03">
+<meta name="bf-entities" content="E-001,E-039">
+<meta name="bf-related-apis" content="POST /api/auth/password-reset">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-003">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; } .mono { font-family: 'JetBrains Mono', monospace; }</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+
+<header class="px-6 py-4 border-b border-slate-200 bg-white">
+  <div class="flex items-center gap-2 max-w-[1400px] mx-auto">
+    <div class="w-7 h-7 rounded-md bg-eb-500 flex items-center justify-center"><i data-lucide="factory" class="w-4 h-4 text-white"></i></div>
+    <div class="text-sm font-bold">Build-Factory</div>
+    <span class="text-[11px] text-slate-500 mono">v3</span>
+  </div>
+</header>
+
+<main class="flex-1 flex items-center justify-center px-6 py-12">
+  <div class="w-full max-w-[420px]">
+    <a href="./S-001-login.html" class="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-900 mb-6">
+      <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+      ログインに戻る
+    </a>
+
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-eb-100 mb-4">
+        <i data-lucide="key-round" class="w-6 h-6 text-eb-500"></i>
+      </div>
+      <h1 class="text-2xl font-bold">パスワード再設定</h1>
+      <p class="text-sm text-slate-600 mt-1">登録メールアドレスに再設定リンクを送ります</p>
+    </div>
+
+    <!-- STATE A: Request reset email -->
+    <div class="bg-white border border-slate-200 rounded-lg p-6 space-y-4">
+      <div class="space-y-1.5">
+        <label for="email" class="text-sm font-medium block">メールアドレス</label>
+        <input id="email" type="email" placeholder="you@example.com" autocomplete="email"
+          class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md w-full focus-visible:outline-none focus-visible:border-eb-500 focus-visible:ring-2 focus-visible:ring-eb-100" />
+        <p class="text-xs text-slate-500">登録時のメールアドレスを入力してください</p>
+      </div>
+
+      <button type="submit" class="w-full bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-10 px-4 rounded-md transition-colors flex items-center justify-center gap-2">
+        <i data-lucide="mail" class="w-4 h-4"></i>
+        <span>再設定リンクを送る</span>
+      </button>
+    </div>
+
+    <!-- STATE B: Email sent (success message - hidden by default) -->
+    <div class="hidden bg-white border border-eb-200 rounded-lg p-6 space-y-3 mt-4" data-state="email_sent">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-eb-100 flex items-center justify-center shrink-0">
+          <i data-lucide="check" class="w-5 h-5 text-eb-500"></i>
+        </div>
+        <div>
+          <div class="text-sm font-semibold">メールを送信しました</div>
+          <div class="text-xs text-slate-600 mt-0.5">受信トレイをご確認ください</div>
+        </div>
+      </div>
+      <div class="text-xs text-slate-500 leading-relaxed pt-3 border-t border-slate-200">
+        メールが届かない場合: <br>
+        ・迷惑メールフォルダを確認<br>
+        ・メールアドレスの入力ミスを確認<br>
+        ・5 分待ってから再送信
+      </div>
+    </div>
+
+    <!-- STATE C: New password input (after clicking email link, ?token=xxx) -->
+    <details class="bg-white border border-slate-200 rounded-lg p-6 space-y-4 mt-4" data-state="new_password">
+      <summary class="text-sm font-medium cursor-pointer text-slate-600 hover:text-slate-900">
+        <span class="inline-flex items-center gap-2"><i data-lucide="lock" class="w-4 h-4"></i>新パスワード入力モード (preview)</span>
+      </summary>
+      <div class="space-y-4 pt-4">
+        <div class="space-y-1.5">
+          <label class="text-sm font-medium block">新しいパスワード</label>
+          <input type="password" placeholder="12 文字以上" class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md w-full" />
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-sm font-medium block">確認のため再入力</label>
+          <input type="password" placeholder="同じパスワードを入力" class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md w-full" />
+        </div>
+        <button class="w-full bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-10 rounded-md transition-colors">パスワードを更新</button>
+      </div>
+    </details>
+
+    <div class="text-center text-[11px] text-slate-400 mt-8 mono">© ENGINE BASE</div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>
+</template><template id="mock-S-004"><!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-004 MFA セットアップ — Build-Factory</title>
+
+<meta name="bf-screen-id" content="S-004">
+<meta name="bf-screen-name" content="mfa_setup">
+<meta name="bf-category" content="auth">
+<meta name="bf-feature-id" content="F-001">
+<meta name="bf-task-ids" content="T-V3-AUTH-11,T-V3-AUTH-04,T-V3-AUTH-05">
+<meta name="bf-entities" content="E-001">
+<meta name="bf-related-apis" content="POST /api/auth/mfa/enroll,POST /api/auth/mfa/verify">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-004">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>
+  body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .qr-cell { background: #0f172a; }
+  .qr-empty { background: #ffffff; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+
+<header class="px-6 py-4 border-b border-slate-200 bg-white">
+  <div class="flex items-center gap-2 max-w-[1400px] mx-auto">
+    <div class="w-7 h-7 rounded-md bg-eb-500 flex items-center justify-center"><i data-lucide="factory" class="w-4 h-4 text-white"></i></div>
+    <div class="text-sm font-bold">Build-Factory</div>
+    <span class="text-[11px] text-slate-500 mono">v3</span>
+  </div>
+</header>
+
+<main class="flex-1 flex items-center justify-center px-6 py-12">
+  <div class="w-full max-w-[560px]">
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-eb-100 mb-4">
+        <i data-lucide="shield-check" class="w-6 h-6 text-eb-500"></i>
+      </div>
+      <h1 class="text-2xl font-bold">2 段階認証 (MFA) を有効化</h1>
+      <p class="text-sm text-slate-600 mt-1">アカウントの安全性を高めるために TOTP 認証アプリを設定します</p>
+    </div>
+
+    <!-- Stepper -->
+    <div class="bg-white border border-slate-200 rounded-lg p-4 mb-4">
+      <div class="flex items-center gap-2 text-xs">
+        <div class="flex items-center gap-1.5 text-eb-500 font-semibold">
+          <div class="w-5 h-5 rounded-full bg-eb-500 text-white flex items-center justify-center mono">1</div>
+          QR スキャン
+        </div>
+        <div class="flex-1 h-px bg-slate-200"></div>
+        <div class="flex items-center gap-1.5 text-slate-500">
+          <div class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center mono">2</div>
+          コード確認
+        </div>
+        <div class="flex-1 h-px bg-slate-200"></div>
+        <div class="flex items-center gap-1.5 text-slate-500">
+          <div class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center mono">3</div>
+          バックアップ
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 1: QR scan -->
+    <div class="bg-white border border-slate-200 rounded-lg p-6 mb-4">
+      <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+        <i data-lucide="qr-code" class="w-5 h-5 text-eb-500"></i>
+        Step 1. 認証アプリで QR をスキャン
+      </h2>
+      <div class="grid grid-cols-[180px_1fr] gap-6">
+        <!-- QR display (placeholder pattern) -->
+        <div class="bg-white border border-slate-200 rounded-md p-3">
+          <div class="grid grid-cols-12 gap-0 w-full aspect-square">
+            <!-- Simple QR-like pattern as visual placeholder -->
+            <div class="qr-cell col-span-3 row-span-3"></div><div class="qr-empty col-span-6 row-span-3"></div><div class="qr-cell col-span-3 row-span-3"></div>
+            <div class="qr-cell col-span-1"></div><div class="qr-empty col-span-1"></div><div class="qr-cell col-span-1"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-1"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-1"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-1"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-1"></div><div class="qr-cell col-span-1"></div>
+            <div class="qr-cell col-span-1"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-1"></div><div class="qr-cell col-span-2"></div><div class="qr-empty col-span-1"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-2"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-1"></div><div class="qr-cell col-span-2"></div>
+            <div class="qr-empty col-span-3"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-2"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-2"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-2"></div>
+            <div class="qr-cell col-span-3 row-span-3"></div><div class="qr-empty col-span-3"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-2"></div><div class="qr-cell col-span-3"></div>
+            <div class="qr-empty col-span-1"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-2"></div><div class="qr-cell col-span-1"></div><div class="qr-empty col-span-2"></div><div class="qr-cell col-span-2"></div>
+            <div class="qr-cell col-span-2"></div><div class="qr-empty col-span-1"></div><div class="qr-cell col-span-2"></div><div class="qr-empty col-span-1"></div><div class="qr-cell col-span-1"></div>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <p class="text-sm text-slate-600 leading-relaxed">
+            <strong>Google Authenticator</strong> / <strong>1Password</strong> / <strong>Authy</strong> 等の TOTP 認証アプリで上記の QR をスキャンしてください。
+          </p>
+
+          <!-- Manual entry secret -->
+          <div class="border border-slate-200 rounded-md p-3 bg-slate-50">
+            <div class="text-xs text-slate-500 mb-1">手動入力用シークレット</div>
+            <div class="flex items-center gap-2">
+              <code class="mono text-sm text-slate-900 tracking-widest flex-1">JBSWY3DPEHPK3PXP</code>
+              <button class="text-slate-500 hover:text-eb-500" title="コピー">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+
+          <p class="text-xs text-slate-500">
+            QR をスキャンできない場合は、上記のシークレットを認証アプリに手動で追加してください。
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Verify code -->
+    <div class="bg-white border border-slate-200 rounded-lg p-6 mb-4">
+      <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+        <i data-lucide="key" class="w-5 h-5 text-eb-500"></i>
+        Step 2. 6 桁のコードで確認
+      </h2>
+      <div class="space-y-3">
+        <p class="text-sm text-slate-600">認証アプリに表示された 6 桁のコードを入力してください</p>
+        <div class="flex items-center gap-2">
+          <input type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="123456"
+            class="border border-slate-200 bg-white text-xl h-12 px-4 rounded-md w-44 mono tabular tracking-[0.4em] text-center focus-visible:outline-none focus-visible:border-eb-500 focus-visible:ring-2 focus-visible:ring-eb-100" />
+          <button class="bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-12 px-6 rounded-md transition-colors flex items-center gap-2">
+            <span>確認</span>
+            <i data-lucide="check" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <p class="text-xs text-slate-500">5 回以上失敗すると 15 分間ロックされます</p>
+      </div>
+    </div>
+
+    <!-- Step 3: Backup codes (collapsed initially) -->
+    <details class="bg-white border border-slate-200 rounded-lg p-6 mb-4">
+      <summary class="text-lg font-bold cursor-pointer flex items-center gap-2">
+        <i data-lucide="save" class="w-5 h-5 text-eb-500"></i>
+        Step 3. リカバリーコード (preview)
+        <span class="text-xs font-normal text-slate-500 ml-auto">クリックで表示</span>
+      </summary>
+      <div class="mt-4 space-y-3">
+        <div class="bg-amber-50 border border-amber-200 rounded-md p-3 flex items-start gap-2">
+          <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600 mt-0.5 shrink-0"></i>
+          <div class="text-xs text-amber-900">認証アプリにアクセスできなくなった場合の<strong>緊急用コード</strong>です。安全な場所に保存してください。各コードは一度だけ使用可能。</div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 mono text-sm">
+          <div class="border border-slate-200 rounded-md px-3 py-2 bg-slate-50 tabular">a3f2-8b91</div>
+          <div class="border border-slate-200 rounded-md px-3 py-2 bg-slate-50 tabular">7d4c-e208</div>
+          <div class="border border-slate-200 rounded-md px-3 py-2 bg-slate-50 tabular">5a91-2f6b</div>
+          <div class="border border-slate-200 rounded-md px-3 py-2 bg-slate-50 tabular">b8c3-d172</div>
+          <div class="border border-slate-200 rounded-md px-3 py-2 bg-slate-50 tabular">e609-1a5d</div>
+          <div class="border border-slate-200 rounded-md px-3 py-2 bg-slate-50 tabular">c247-f8b3</div>
+          <div class="border border-slate-200 rounded-md px-3 py-2 bg-slate-50 tabular">9b15-3c8e</div>
+          <div class="border border-slate-200 rounded-md px-3 py-2 bg-slate-50 tabular">4f72-a190</div>
+          <div class="border border-slate-200 rounded-md px-3 py-2 bg-slate-50 tabular">d83b-6e25</div>
+          <div class="border border-slate-200 rounded-md px-3 py-2 bg-slate-50 tabular">1c9e-7f48</div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="flex-1 bg-white border border-slate-200 hover:bg-slate-50 text-sm h-9 rounded-md transition-colors flex items-center justify-center gap-2">
+            <i data-lucide="download" class="w-4 h-4"></i>ダウンロード (TXT)
+          </button>
+          <button class="flex-1 bg-white border border-slate-200 hover:bg-slate-50 text-sm h-9 rounded-md transition-colors flex items-center justify-center gap-2">
+            <i data-lucide="copy" class="w-4 h-4"></i>コピー
+          </button>
+          <button class="flex-1 bg-white border border-slate-200 hover:bg-slate-50 text-sm h-9 rounded-md transition-colors flex items-center justify-center gap-2">
+            <i data-lucide="printer" class="w-4 h-4"></i>印刷
+          </button>
+        </div>
+      </div>
+    </details>
+
+    <!-- Final button -->
+    <button class="w-full bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-10 rounded-md transition-colors flex items-center justify-center gap-2">
+      <i data-lucide="shield-check" class="w-4 h-4"></i>
+      MFA を有効化して完了
+    </button>
+
+    <div class="text-center text-[11px] text-slate-400 mt-8 mono">© ENGINE BASE</div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>
+</template><template id="mock-S-005"><!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-005 OAuth コールバック — Build-Factory</title>
+
+<meta name="bf-screen-id" content="S-005">
+<meta name="bf-screen-name" content="oauth_callback">
+<meta name="bf-category" content="auth">
+<meta name="bf-feature-id" content="F-001">
+<meta name="bf-task-ids" content="T-V3-AUTH-12,T-V3-AUTH-06">
+<meta name="bf-entities" content="E-001,E-040">
+<meta name="bf-related-apis" content="GET /api/auth/oauth/{provider}/callback">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-005">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>
+  body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .spin { animation: spin 1s linear infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .pulse-dot { animation: pulse-dot 1.4s infinite; }
+  @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+
+<header class="px-6 py-4 border-b border-slate-200 bg-white">
+  <div class="flex items-center gap-2 max-w-[1400px] mx-auto">
+    <div class="w-7 h-7 rounded-md bg-eb-500 flex items-center justify-center"><i data-lucide="factory" class="w-4 h-4 text-white"></i></div>
+    <div class="text-sm font-bold">Build-Factory</div>
+    <span class="text-[11px] text-slate-500 mono">v3</span>
+  </div>
+</header>
+
+<main class="flex-1 flex items-center justify-center px-6 py-12">
+  <div class="w-full max-w-[420px]">
+
+    <!-- STATE A: Loading (default) -->
+    <div class="bg-white border border-slate-200 rounded-lg p-8 text-center" data-state="loading">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-eb-100 mb-6">
+        <i data-lucide="loader-2" class="w-8 h-8 text-eb-500 spin"></i>
+      </div>
+      <h1 class="text-2xl font-bold mb-2">ログイン中...</h1>
+      <p class="text-sm text-slate-600">Anthropic アカウントで認証しています</p>
+
+      <div class="mt-8 flex items-center justify-center gap-2 text-xs text-slate-500">
+        <span class="w-1.5 h-1.5 rounded-full bg-eb-500 pulse-dot"></span>
+        <span class="mono">connecting to anthropic.com</span>
+      </div>
+
+      <!-- Progress steps -->
+      <div class="mt-6 space-y-2 text-left max-w-xs mx-auto">
+        <div class="flex items-center gap-2 text-xs">
+          <i data-lucide="check-circle-2" class="w-4 h-4 text-eb-500 shrink-0"></i>
+          <span class="text-slate-700">OAuth トークン受信</span>
+        </div>
+        <div class="flex items-center gap-2 text-xs">
+          <i data-lucide="loader-2" class="w-4 h-4 text-eb-500 spin shrink-0"></i>
+          <span class="text-slate-700">ユーザー情報取得</span>
+        </div>
+        <div class="flex items-center gap-2 text-xs">
+          <i data-lucide="circle" class="w-4 h-4 text-slate-300 shrink-0"></i>
+          <span class="text-slate-500">セッション作成</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATE B: Success (hidden by default) -->
+    <div class="hidden bg-white border border-eb-200 rounded-lg p-8 text-center mt-4" data-state="success">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-eb-100 mb-6">
+        <i data-lucide="check" class="w-8 h-8 text-eb-500"></i>
+      </div>
+      <h1 class="text-2xl font-bold mb-2">ログイン成功</h1>
+      <p class="text-sm text-slate-600">ダッシュボードへ移動します...</p>
+      <div class="mt-4 h-1 bg-slate-100 rounded-full overflow-hidden">
+        <div class="h-full bg-eb-500" style="width: 100%"></div>
+      </div>
+    </div>
+
+    <!-- STATE C: Error - CSRF mismatch (hidden by default) -->
+    <div class="hidden bg-white border border-red-200 rounded-lg p-8 text-center mt-4" data-state="error_csrf">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-50 mb-6">
+        <i data-lucide="x" class="w-8 h-8 text-red-600"></i>
+      </div>
+      <h1 class="text-2xl font-bold mb-2">認証エラー</h1>
+      <p class="text-sm text-slate-600 mb-1">セキュリティ検証に失敗しました</p>
+      <p class="text-xs text-slate-500 mono mb-6">error: oauth_csrf_check_failed</p>
+
+      <div class="text-left bg-slate-50 border border-slate-200 rounded-md p-3 mb-6">
+        <p class="text-xs text-slate-700 leading-relaxed">
+          ブラウザの cookie 設定または 5 分以上経過した可能性があります。<br>
+          ログイン画面から再度お試しください。
+        </p>
+      </div>
+
+      <a href="./S-001-login.html" class="inline-flex items-center gap-2 bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-10 px-6 rounded-md transition-colors">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        ログインに戻る
+      </a>
+    </div>
+
+    <!-- STATE D: Error - Account not found (hidden by default) -->
+    <details class="bg-white border border-slate-200 rounded-lg p-6 mt-4">
+      <summary class="text-sm font-medium cursor-pointer text-slate-600 hover:text-slate-900 flex items-center gap-2">
+        <i data-lucide="user-x" class="w-4 h-4"></i>
+        その他のエラー状態 (preview)
+      </summary>
+      <div class="mt-4 space-y-3 text-xs">
+        <div class="border border-slate-200 rounded-md p-3 bg-slate-50">
+          <div class="font-medium text-slate-900 mb-1">oauth_provider_denied</div>
+          <div class="text-slate-600">ユーザーが認証を拒否しました → ログイン画面へ戻る誘導</div>
+        </div>
+        <div class="border border-slate-200 rounded-md p-3 bg-slate-50">
+          <div class="font-medium text-slate-900 mb-1">oauth_token_invalid</div>
+          <div class="text-slate-600">プロバイダから受け取った token が不正 → 再ログイン</div>
+        </div>
+        <div class="border border-slate-200 rounded-md p-3 bg-slate-50">
+          <div class="font-medium text-slate-900 mb-1">account_not_linked</div>
+          <div class="text-slate-600">既存アカウントに OAuth が紐付いていない → サインアップ画面へ</div>
+        </div>
+      </div>
+    </details>
+
+    <div class="text-center text-[11px] text-slate-400 mt-8 mono">© ENGINE BASE</div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>
+</template>
+
+<script>
+  lucide.createIcons();
+
+  function toggleCat(catId) {
+    const cat = document.querySelector('[data-cat-id="' + catId + '"]');
+    cat.classList.toggle('collapsed');
+  }
+
+  function loadScreen(screenId) {
+    // Highlight active
+    document.querySelectorAll('.screen-item').forEach(el => el.classList.remove('active'));
+    const activeEl = document.querySelector('[data-screen-id="' + screenId + '"]');
+    activeEl?.classList.add('active');
+
+    const template = document.getElementById('mock-' + screenId);
+    const frame = document.getElementById('preview-frame');
+    const empty = document.getElementById('empty-state');
+    const info = document.getElementById('preview-info');
+    const openLink = document.getElementById('preview-open-link');
+
+    const file = activeEl?.getAttribute('data-file') || '';
+    const screenLabel = activeEl?.querySelector('.screen-name')?.textContent || '';
+
+    if (template) {
+      const content = template.innerHTML;
+      frame.srcdoc = content;
+      frame.style.display = 'block';
+      empty.style.display = 'none';
+      info.innerHTML = '<span class="preview-id">' + screenId + '</span>' +
+        '<span style="color:#cbd5e1;">·</span>' +
+        '<span>' + screenLabel + '</span>';
+      if (file) {
+        openLink.href = file;
+        openLink.style.display = 'inline-flex';
+      } else {
+        openLink.style.display = 'none';
+      }
+    } else {
+      frame.style.display = 'none';
+      empty.style.display = 'flex';
+      empty.querySelector('h3').textContent = screenId + ' は未作成です';
+      empty.querySelector('p').textContent = 'このモックはまだ生成されていません (ステータス: Todo)';
+      info.innerHTML = '<span class="preview-id">' + screenId + '</span>' +
+        '<span style="color:#cbd5e1;">·</span>' +
+        '<span>' + screenLabel + '</span>' +
+        '<span style="margin-left:8px; background:#f1f5f9; color:#64748b; font-size:10px; padding:1px 8px; border-radius:9999px; font-weight:600;">Todo</span>';
+      openLink.style.display = 'none';
+    }
+  }
+
+  // auto-open first done screen on load
+  document.addEventListener('DOMContentLoaded', () => {
+    const firstDone = document.querySelector('.screen-item .status-ok');
+    if (firstDone) {
+      const screenItem = firstDone.closest('.screen-item');
+      const id = screenItem.getAttribute('data-screen-id');
+      loadScreen(id);
+    }
+  });
+</script>
+
+</body>
+</html>

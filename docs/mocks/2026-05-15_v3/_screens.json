@@ -1,0 +1,185 @@
+{
+  "meta": {
+    "version": "v3",
+    "total": 64,
+    "created_at": "2026-05-15"
+  },
+  "categories": [
+    {
+      "id": "auth",
+      "label": "AUTH / 認証",
+      "icon": "key-round",
+      "screens": [
+        {"id": "S-001", "name": "login", "label": "ログイン", "status": "wip"},
+        {"id": "S-002", "name": "signup", "label": "サインアップ", "status": "wip"},
+        {"id": "S-003", "name": "password_reset", "label": "パスワード再設定", "status": "wip"},
+        {"id": "S-004", "name": "mfa_setup", "label": "MFA セットアップ", "status": "wip"},
+        {"id": "S-005", "name": "oauth_callback", "label": "OAuth コールバック", "status": "wip"}
+      ]
+    },
+    {
+      "id": "account",
+      "label": "Account / アカウント横断",
+      "icon": "user-circle",
+      "screens": [
+        {"id": "S-006", "name": "account_dashboard", "label": "10 案件 俯瞰", "status": "todo"},
+        {"id": "S-007", "name": "account_settings", "label": "アカウント設定", "status": "todo"},
+        {"id": "S-008", "name": "account_members", "label": "メンバー管理", "status": "todo"},
+        {"id": "S-009", "name": "profile_settings", "label": "プロフィール設定", "status": "todo"},
+        {"id": "S-010", "name": "notifications_inbox", "label": "通知 Inbox", "status": "todo"},
+        {"id": "S-011", "name": "global_search", "label": "グローバル検索 (Cmd+K)", "status": "todo"}
+      ]
+    },
+    {
+      "id": "workspace",
+      "label": "Workspace / 案件",
+      "icon": "briefcase",
+      "screens": [
+        {"id": "S-012", "name": "workspace_dashboard", "label": "案件ダッシュボード", "status": "todo"},
+        {"id": "S-013", "name": "workspace_settings", "label": "案件設定", "status": "todo"},
+        {"id": "S-014", "name": "workspace_members", "label": "案件メンバー", "status": "todo"},
+        {"id": "S-015", "name": "workspace_invite", "label": "メンバー招待", "status": "todo"}
+      ]
+    },
+    {
+      "id": "moat-safety",
+      "label": "Moat / Safety / 護岸",
+      "icon": "shield-check",
+      "screens": [
+        {"id": "S-016", "name": "phase_management", "label": "フェーズ管理", "status": "todo"},
+        {"id": "S-017", "name": "dependency_graph", "label": "依存グラフ", "status": "todo"},
+        {"id": "S-018", "name": "constitution_editor", "label": "Constitution エディタ", "status": "todo"},
+        {"id": "S-019", "name": "red_line_settings", "label": "赤線設定", "status": "todo"},
+        {"id": "S-034", "name": "red_line_approval", "label": "赤線承認", "status": "todo"}
+      ]
+    },
+    {
+      "id": "spec",
+      "label": "Spec / 仕様",
+      "icon": "file-text",
+      "screens": [
+        {"id": "S-020", "name": "hearing_session", "label": "ヒアリングセッション", "status": "todo"},
+        {"id": "S-021", "name": "requirements_editor", "label": "要件エディタ", "status": "todo"},
+        {"id": "S-022", "name": "spec_viewer", "label": "仕様書ビューア", "status": "todo"},
+        {"id": "S-023", "name": "screen_mock_viewer", "label": "画面モックビューア", "status": "todo"},
+        {"id": "S-024", "name": "component_catalog", "label": "コンポーネントカタログ", "status": "todo"},
+        {"id": "S-025", "name": "screen_flow_map", "label": "画面遷移マップ", "status": "todo"},
+        {"id": "S-026", "name": "design_html_editor", "label": "HTML エディタ", "status": "todo"}
+      ]
+    },
+    {
+      "id": "task-execution",
+      "label": "Task / Execution / 実行",
+      "icon": "play-circle",
+      "screens": [
+        {"id": "S-027", "name": "task_kanban", "label": "タスク Kanban", "status": "todo"},
+        {"id": "S-028", "name": "task_list", "label": "タスクリスト", "status": "todo"},
+        {"id": "S-029", "name": "task_dag_view", "label": "タスク DAG", "status": "todo"},
+        {"id": "S-030", "name": "task_detail", "label": "タスク詳細", "status": "todo"},
+        {"id": "S-031", "name": "swarm_grid", "label": "Swarm 並列実行", "status": "todo"},
+        {"id": "S-032", "name": "swarm_session_detail", "label": "Swarm セッション詳細", "status": "todo"}
+      ]
+    },
+    {
+      "id": "review",
+      "label": "Review / レビュー",
+      "icon": "check-circle-2",
+      "screens": [
+        {"id": "S-033", "name": "pr_review", "label": "PR レビュー", "status": "todo"},
+        {"id": "S-035", "name": "delivery_approval", "label": "納品承認", "status": "todo"}
+      ]
+    },
+    {
+      "id": "ai-management",
+      "label": "AI 社員 / Skill",
+      "icon": "bot",
+      "screens": [
+        {"id": "S-036", "name": "ai_employees_org_chart", "label": "AI 社員 組織図", "status": "todo"},
+        {"id": "S-037", "name": "ai_employee_detail", "label": "AI 社員 詳細", "status": "todo"},
+        {"id": "S-038", "name": "skill_manager", "label": "スキルマネージャ", "status": "todo"}
+      ]
+    },
+    {
+      "id": "knowledge-ops",
+      "label": "Knowledge / Ops",
+      "icon": "database",
+      "screens": [
+        {"id": "S-039", "name": "knowledge_base", "label": "ナレッジベース", "status": "todo"},
+        {"id": "S-040", "name": "cost_dashboard", "label": "コスト ダッシュボード", "status": "todo"},
+        {"id": "S-041", "name": "audit_log_viewer", "label": "監査ログ", "status": "todo"}
+      ]
+    },
+    {
+      "id": "client",
+      "label": "Client / クライアント",
+      "icon": "users",
+      "screens": [
+        {"id": "S-042", "name": "client_workspace", "label": "クライアントポータル", "status": "todo"},
+        {"id": "S-043", "name": "client_comment", "label": "クライアントコメント", "status": "todo"}
+      ]
+    },
+    {
+      "id": "system",
+      "label": "System / Error pages",
+      "icon": "alert-triangle",
+      "screens": [
+        {"id": "S-044", "name": "not_found_404", "label": "404 Not Found", "status": "todo"},
+        {"id": "S-045", "name": "server_error_500", "label": "500 Server Error", "status": "todo"},
+        {"id": "S-046", "name": "forbidden_403", "label": "403 Forbidden", "status": "todo"},
+        {"id": "S-047", "name": "maintenance", "label": "Maintenance", "status": "todo"}
+      ]
+    },
+    {
+      "id": "onboarding",
+      "label": "Onboarding / 初回",
+      "icon": "sparkles",
+      "screens": [
+        {"id": "S-048", "name": "welcome_first_login", "label": "ようこそ", "status": "todo"},
+        {"id": "S-049", "name": "workspace_setup_wizard", "label": "案件セットアップ", "status": "todo"},
+        {"id": "S-050", "name": "ai_employee_intro", "label": "AI 社員 紹介", "status": "todo"}
+      ]
+    },
+    {
+      "id": "dialog",
+      "label": "Modal / Dialog 共通",
+      "icon": "message-square",
+      "screens": [
+        {"id": "S-051", "name": "confirm_delete", "label": "削除確認", "status": "todo"},
+        {"id": "S-052", "name": "unsaved_changes", "label": "未保存警告", "status": "todo"},
+        {"id": "S-053", "name": "mfa_challenge", "label": "MFA コード入力", "status": "todo"},
+        {"id": "S-054", "name": "session_expired", "label": "セッション切れ", "status": "todo"},
+        {"id": "S-055", "name": "danger_zone", "label": "Danger Zone", "status": "todo"}
+      ]
+    },
+    {
+      "id": "email",
+      "label": "Email Templates",
+      "icon": "mail",
+      "screens": [
+        {"id": "S-056", "name": "email_signup_verify", "label": "サインアップ確認メール", "status": "todo"},
+        {"id": "S-057", "name": "email_password_reset", "label": "パスワードリセットメール", "status": "todo"},
+        {"id": "S-058", "name": "email_invitation", "label": "招待メール", "status": "todo"},
+        {"id": "S-059", "name": "email_task_notification", "label": "タスク通知メール", "status": "todo"},
+        {"id": "S-060", "name": "email_weekly_summary", "label": "週次サマリーメール", "status": "todo"}
+      ]
+    },
+    {
+      "id": "export",
+      "label": "Print / Export",
+      "icon": "printer",
+      "screens": [
+        {"id": "S-061", "name": "export_spec_pdf", "label": "仕様書 PDF", "status": "todo"},
+        {"id": "S-062", "name": "export_delivery_report", "label": "納品レポート", "status": "todo"}
+      ]
+    },
+    {
+      "id": "extras",
+      "label": "Extras (追加候補)",
+      "icon": "plus",
+      "screens": [
+        {"id": "S-063", "name": "search_results", "label": "検索結果", "status": "todo"},
+        {"id": "S-064", "name": "api_tokens", "label": "API トークン管理", "status": "todo"}
+      ]
+    }
+  ]
+}
