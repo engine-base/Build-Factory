@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
-"""Build-Factory v3 index.html generator.
+"""Build-Factory v3 index.html generator (base64 embed approach).
 
-機能:
-- _screens.json から 64 画面の一覧を読む
-- 各 category ディレクトリ配下の HTML mock を scan
-- 存在する mock は <template> として embed
-- 存在しない mock は "Coming Soon" placeholder
-- 単一の自己完結 index.html を出力 (file 送付で全画面プレビュー可)
+Bulletproof アプローチ:
+- 各 mock HTML を base64 エンコード → JSON にまとめて embed
+- base64 文字は [A-Za-z0-9+/=] のみ = HTML パーサと一切衝突しない
+- JS で atob() してデコード → iframe srcdoc
 
-使い方:
-    python3 docs/mocks/2026-05-15_v3/_generate_index.py
+これで </script> エスケープ等の脆い処理が全部不要。
 """
 import json
+import base64
 import html as html_escape
 from pathlib import Path
 
@@ -19,33 +17,19 @@ V3_DIR = Path(__file__).parent
 OUT = V3_DIR / "index.html"
 SCREENS_JSON = V3_DIR / "_screens.json"
 
-# Category dir mapping (slug → directory name relative to V3_DIR)
 CATEGORY_DIR = {
-    "auth": "auth",
-    "account": "account",
-    "workspace": "workspace",
-    "moat-safety": "moat",
-    "spec": "spec",
-    "task-execution": "task",
-    "review": "review",
-    "ai-management": "ai",
-    "knowledge-ops": "ops",
-    "client": "client",
-    "system": "system",
-    "onboarding": "onboarding",
-    "dialog": "dialog",
-    "email": "email",
-    "export": "export",
-    "extras": "extras",
+    "auth": "auth", "account": "account", "workspace": "workspace",
+    "moat-safety": "moat", "spec": "spec", "task-execution": "task",
+    "review": "review", "ai-management": "ai", "knowledge-ops": "ops",
+    "client": "client", "system": "system", "onboarding": "onboarding",
+    "dialog": "dialog", "email": "email", "export": "export", "extras": "extras",
 }
 
 
 def find_mock_file(category_slug, screen_id, screen_name):
-    """Locate a mock file for the given screen. Returns path str or None."""
     cat_dir = V3_DIR / CATEGORY_DIR.get(category_slug, category_slug)
     if not cat_dir.exists():
         return None
-    # try common naming patterns
     candidates = [
         f"{screen_id}-{screen_name.replace('_', '-')}.html",
         f"{screen_id}-{screen_name}.html",
@@ -55,7 +39,6 @@ def find_mock_file(category_slug, screen_id, screen_name):
         p = cat_dir / c
         if p.exists():
             return p
-    # fallback: glob for S-XXX-*
     for p in cat_dir.glob(f"{screen_id}-*.html"):
         return p
     return None
@@ -68,9 +51,9 @@ def main():
     categories = data["categories"]
     total = data["meta"]["total"]
     version = data["meta"]["version"]
-    created = data["meta"]["created_at"]
 
-    # Scan filesystem to determine done/todo per screen
+    # Scan filesystem + collect mocks
+    mocks_b64 = {}
     done_count = 0
     for cat in categories:
         for s in cat["screens"]:
@@ -79,8 +62,10 @@ def main():
             s["_status"] = "done" if mock else "todo"
             if mock:
                 done_count += 1
+                content = mock.read_text(encoding="utf-8")
+                mocks_b64[s["id"]] = base64.b64encode(content.encode("utf-8")).decode("ascii")
 
-    # Build sidebar HTML
+    # Sidebar HTML
     sidebar_items = []
     for cat in categories:
         cat_done = sum(1 for s in cat["screens"] if s["_status"] == "done")
@@ -93,8 +78,7 @@ def main():
             <span class="cat-count">{cat_done}/{cat_total}</span>
             <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
           </button>
-          <div class="cat-screens">
-        ''')
+          <div class="cat-screens">''')
         for s in cat["screens"]:
             status_dot = "ok" if s["_status"] == "done" else "todo"
             screen_label = html_escape.escape(s.get("label", s["name"]))
@@ -103,29 +87,14 @@ def main():
               <span class="status-dot status-{status_dot}"></span>
               <span class="screen-id mono">{s['id']}</span>
               <span class="screen-name">{screen_label}</span>
-            </button>
-            ''')
+            </button>''')
         sidebar_items.append("</div></div>")
     sidebar_html = "".join(sidebar_items)
 
-    # Build embedded mock templates (use <script type="text/html"> for opaque storage)
-    templates_html = []
-    for cat in categories:
-        for s in cat["screens"]:
-            if s["_file"]:
-                mock_path = V3_DIR / s["_file"]
-                try:
-                    content = mock_path.read_text(encoding="utf-8")
-                except Exception as e:
-                    print(f"⚠ failed to read {mock_path}: {e}")
-                    continue
-                # Escape </script> to prevent premature script termination
-                content_safe = content.replace("</script>", "<\\/script>")
-                templates_html.append(
-                    f'<script type="text/html" id="mock-{s["id"]}">{content_safe}</script>'
-                )
+    # Embed mocks as JSON (base64-encoded values, fully safe for HTML embed)
+    mocks_json = json.dumps(mocks_b64, separators=(",", ":"))
+    progress_pct = (done_count / total * 100) if total else 0
 
-    # Final index.html
     out = f'''<!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -146,28 +115,21 @@ def main():
   * {{ box-sizing: border-box; margin: 0; padding: 0; }}
   body {{
     font-family: 'Noto Sans JP', sans-serif;
-    background: #f8fafc;
-    color: #0f172a;
+    background: #f8fafc; color: #0f172a;
     line-height: 1.7;
-    height: 100vh;
-    overflow: hidden;
+    height: 100vh; overflow: hidden;
   }}
   .mono {{ font-family: 'JetBrains Mono', monospace; }}
 
-  /* Top bar */
   .topbar {{
-    height: 48px;
-    background: #ffffff;
+    height: 48px; background: #fff;
     border-bottom: 1px solid #e2e8f0;
-    display: flex;
-    align-items: center;
-    padding: 0 16px;
-    gap: 12px;
+    display: flex; align-items: center;
+    padding: 0 16px; gap: 12px;
   }}
   .brand {{ display: flex; align-items: center; gap: 8px; }}
   .brand-icon {{
-    width: 24px; height: 24px;
-    background: #1a6648;
+    width: 24px; height: 24px; background: #1a6648;
     border-radius: 6px;
     display: flex; align-items: center; justify-content: center;
     color: #fff;
@@ -177,62 +139,46 @@ def main():
   .progress-info {{ margin-left: auto; font-size: 11px; color: #475569; }}
   .progress-bar {{
     width: 120px; height: 4px;
-    background: #e2e8f0;
-    border-radius: 9999px;
-    overflow: hidden;
-    margin-left: 8px;
-    display: inline-block;
-    vertical-align: middle;
+    background: #e2e8f0; border-radius: 9999px;
+    overflow: hidden; margin-left: 8px;
+    display: inline-block; vertical-align: middle;
   }}
   .progress-fill {{
-    height: 100%;
-    background: #1a6648;
+    height: 100%; background: #1a6648;
     border-radius: 9999px;
-    width: {(done_count / total * 100):.0f}%;
+    width: {progress_pct:.0f}%;
   }}
 
-  /* Layout */
   .container {{
     display: grid;
     grid-template-columns: 280px 1fr;
     height: calc(100vh - 48px);
   }}
 
-  /* Sidebar */
   .sidebar {{
-    background: #ffffff;
+    background: #fff;
     border-right: 1px solid #e2e8f0;
     overflow-y: auto;
     padding: 8px 0;
   }}
   .cat-group {{ border-bottom: 1px solid #f1f5f9; }}
   .cat-header {{
-    width: 100%;
-    background: transparent;
-    border: none;
+    width: 100%; background: transparent; border: none;
     padding: 8px 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer; font-family: inherit;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.05em; text-transform: uppercase;
     color: #475569;
   }}
   .cat-header:hover {{ background: #f8fafc; }}
   .cat-label {{ flex: 1; text-align: left; }}
   .cat-count {{
     font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: #64748b;
-    background: #f1f5f9;
-    padding: 1px 6px;
+    font-size: 10px; color: #64748b;
+    background: #f1f5f9; padding: 1px 6px;
     border-radius: 9999px;
-    text-transform: none;
-    letter-spacing: 0;
+    text-transform: none; letter-spacing: 0;
   }}
   .cat-chevron {{ transition: transform 0.15s; color: #94a3b8; }}
   .cat-group.collapsed .cat-chevron {{ transform: rotate(-90deg); }}
@@ -240,18 +186,11 @@ def main():
 
   .cat-screens {{ padding: 2px 0 6px; }}
   .screen-item {{
-    width: 100%;
-    background: transparent;
-    border: none;
+    width: 100%; background: transparent; border: none;
     padding: 5px 14px 5px 28px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 12px;
-    color: #475569;
-    text-align: left;
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer; font-family: inherit;
+    font-size: 12px; color: #475569; text-align: left;
   }}
   .screen-item:hover {{ background: #f8fafc; color: #0f172a; }}
   .screen-item.active {{ background: #f0faf5; color: #1a6648; font-weight: 600; }}
@@ -263,68 +202,42 @@ def main():
   }}
   .status-ok {{ background: #16a34a; }}
   .status-todo {{ background: #cbd5e1; }}
-  .status-wip {{ background: #d97706; }}
   .screen-id {{
     font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: #94a3b8;
-    width: 36px;
-    flex-shrink: 0;
+    font-size: 10px; color: #94a3b8;
+    width: 36px; flex-shrink: 0;
   }}
   .screen-name {{ flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
 
-  /* Main preview */
-  .main {{
-    display: flex;
-    flex-direction: column;
-    background: #f8fafc;
-  }}
+  .main {{ display: flex; flex-direction: column; background: #f8fafc; }}
   .preview-toolbar {{
-    background: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
+    background: #fff; border-bottom: 1px solid #e2e8f0;
     padding: 8px 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    display: flex; align-items: center; gap: 12px;
     height: 40px;
   }}
-  .preview-info {{
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    color: #475569;
-  }}
+  .preview-info {{ display: flex; align-items: center; gap: 8px; font-size: 12px; color: #475569; }}
   .preview-id {{ font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #1a6648; font-weight: 600; }}
-  .preview-meta {{ font-size: 11px; color: #94a3b8; margin-left: auto; }}
   .open-link {{
+    margin-left: auto;
     font-size: 11px; color: #1a6648; text-decoration: none;
-    padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px;
+    padding: 4px 8px; border: 1px solid #e2e8f0;
+    border-radius: 4px;
     display: inline-flex; align-items: center; gap: 4px;
   }}
   .open-link:hover {{ background: #f0faf5; }}
 
-  .preview-frame {{
-    flex: 1;
-    border: none;
-    width: 100%;
-    background: #ffffff;
-  }}
+  .preview-frame {{ flex: 1; border: none; width: 100%; background: #fff; }}
 
   .empty-state {{
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: #94a3b8;
-    text-align: center;
-    padding: 32px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: #94a3b8; text-align: center; padding: 32px;
   }}
   .empty-state .icon-box {{
     width: 64px; height: 64px;
-    border-radius: 12px;
-    background: #f1f5f9;
+    border-radius: 12px; background: #f1f5f9;
     display: flex; align-items: center; justify-content: center;
     margin-bottom: 16px;
   }}
@@ -343,7 +256,7 @@ def main():
   <div class="progress-info">
     Progress: <strong>{done_count}</strong> / {total}
     <span class="progress-bar"><span class="progress-fill"></span></span>
-    {(done_count/total*100):.0f}%
+    {progress_pct:.0f}%
   </div>
 </header>
 
@@ -370,37 +283,43 @@ def main():
   </main>
 </div>
 
-<!-- Embedded mock templates -->
-{"".join(templates_html)}
+<!-- Mock data: base64-encoded HTML strings, fully safe for HTML embed (no parser conflicts) -->
+<script type="application/json" id="bf-mocks">{mocks_json}</script>
 
 <script>
+  // Decode base64 to UTF-8 string (handles 日本語)
+  function b64decode(b64) {{
+    const binary = atob(b64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new TextDecoder('utf-8').decode(bytes);
+  }}
+
+  // Load mocks data
+  const MOCKS = JSON.parse(document.getElementById('bf-mocks').textContent);
+
   lucide.createIcons();
 
   function toggleCat(catId) {{
-    const cat = document.querySelector('[data-cat-id="' + catId + '"]');
-    cat.classList.toggle('collapsed');
+    document.querySelector('[data-cat-id="' + catId + '"]').classList.toggle('collapsed');
   }}
 
   function loadScreen(screenId) {{
-    // Highlight active
     document.querySelectorAll('.screen-item').forEach(el => el.classList.remove('active'));
     const activeEl = document.querySelector('[data-screen-id="' + screenId + '"]');
-    activeEl?.classList.add('active');
+    if (activeEl) activeEl.classList.add('active');
 
-    const template = document.getElementById('mock-' + screenId);
     const frame = document.getElementById('preview-frame');
     const empty = document.getElementById('empty-state');
     const info = document.getElementById('preview-info');
     const openLink = document.getElementById('preview-open-link');
 
-    const file = activeEl?.getAttribute('data-file') || '';
-    const screenLabel = activeEl?.querySelector('.screen-name')?.textContent || '';
+    const file = activeEl ? activeEl.getAttribute('data-file') : '';
+    const screenLabel = activeEl ? activeEl.querySelector('.screen-name').textContent : '';
 
-    if (template) {{
-      // script type=text/html stores raw text. Unescape escaped close tags.
-      // NOTE: literal close tag is built via concat to avoid premature HTML parser termination.
-      const content = template.textContent.split('<\\\\/script>').join('</' + 'script>');
-      frame.srcdoc = content;
+    if (MOCKS[screenId]) {{
+      const html = b64decode(MOCKS[screenId]);
+      frame.srcdoc = html;
       frame.style.display = 'block';
       empty.style.display = 'none';
       info.innerHTML = '<span class="preview-id">' + screenId + '</span>' +
@@ -416,7 +335,7 @@ def main():
       frame.style.display = 'none';
       empty.style.display = 'flex';
       empty.querySelector('h3').textContent = screenId + ' は未作成です';
-      empty.querySelector('p').textContent = 'このモックはまだ生成されていません (ステータス: Todo)';
+      empty.querySelector('p').textContent = 'このモックはまだ生成されていません (Todo)';
       info.innerHTML = '<span class="preview-id">' + screenId + '</span>' +
         '<span style="color:#cbd5e1;">·</span>' +
         '<span>' + screenLabel + '</span>' +
@@ -425,13 +344,12 @@ def main():
     }}
   }}
 
-  // auto-open first done screen on load
+  // Auto-open first done screen
   document.addEventListener('DOMContentLoaded', () => {{
     const firstDone = document.querySelector('.screen-item .status-ok');
     if (firstDone) {{
       const screenItem = firstDone.closest('.screen-item');
-      const id = screenItem.getAttribute('data-screen-id');
-      loadScreen(id);
+      loadScreen(screenItem.getAttribute('data-screen-id'));
     }}
   }});
 </script>
@@ -445,6 +363,7 @@ def main():
     print(f"  done (mock exists): {done_count}")
     print(f"  todo: {total - done_count}")
     print(f"  file size: {OUT.stat().st_size:,} bytes")
+    print(f"  approach: base64 embed (no HTML parser conflicts)")
 
 
 if __name__ == "__main__":
