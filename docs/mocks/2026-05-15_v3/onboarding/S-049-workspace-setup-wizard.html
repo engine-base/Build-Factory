@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-049 案件セットアップ — Build-Factory</title>
+<meta name="bf-screen-id" content="S-049"><meta name="bf-screen-name" content="workspace_setup_wizard"><meta name="bf-category" content="onboarding"><meta name="bf-status" content="wip"><meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>tailwind.config={theme:{extend:{colors:{eb:{50:'#f0faf5',100:'#d3f0e0',500:'#1a6648',600:'#155238',700:'#103e2a'}},fontFamily:{sans:['"Noto Sans JP"','sans-serif'],mono:['"JetBrains Mono"','monospace']}}}};</script>
+<style>body{font-family:'Noto Sans JP',sans-serif;line-height:1.7}.mono{font-family:'JetBrains Mono',monospace}</style>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+<main class="flex-1 flex items-center justify-center px-6 py-8">
+  <div class="max-w-[640px] w-full">
+    <!-- Stepper -->
+    <div class="flex items-center gap-2 mb-8 max-w-xs mx-auto">
+      <div class="flex-1 h-1.5 bg-eb-500 rounded-full"></div>
+      <div class="flex-1 h-1.5 bg-eb-500 rounded-full"></div>
+      <div class="flex-1 h-1.5 bg-slate-200 rounded-full"></div>
+    </div>
+    <div class="text-center mb-6">
+      <div class="text-[11px] uppercase tracking-wider text-slate-500 font-bold">Step 2 / 3</div>
+      <h1 class="text-2xl font-bold mt-1">最初の案件を作成</h1>
+      <p class="text-sm text-slate-600 mt-2">案件の基本情報を入力してください</p>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-lg p-6 space-y-4">
+      <div class="space-y-1.5"><label class="text-sm font-medium">案件名 <span class="text-red-600">*</span></label><input type="text" placeholder="例: 受託 EC 構築 #4" class="border border-slate-200 bg-white text-sm h-10 px-3 rounded-md w-full" /></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="space-y-1.5"><label class="text-sm font-medium">案件種別</label><select class="border border-slate-200 bg-white text-sm h-10 px-3 rounded-md w-full"><option>受託</option><option>内製</option><option>OSS</option></select></div>
+        <div class="space-y-1.5"><label class="text-sm font-medium">想定期間</label><select class="border border-slate-200 bg-white text-sm h-10 px-3 rounded-md w-full"><option>1 ヶ月</option><option>3 ヶ月</option><option>6 ヶ月</option><option>未定</option></select></div>
+      </div>
+
+      <div class="space-y-1.5">
+        <label class="text-sm font-medium">ヒアリング 開始時の AI 社員</label>
+        <div class="grid grid-cols-3 gap-2">
+          <label class="border border-eb-500 bg-eb-50 rounded-md p-3 text-center cursor-pointer ring-2 ring-eb-100">
+            <input type="radio" name="ai" checked class="sr-only" />
+            <div class="w-8 h-8 rounded-full bg-emerald-500 text-white text-xs font-bold flex items-center justify-center mx-auto mb-1 mono">MR</div>
+            <div class="text-xs font-bold">mary</div>
+            <div class="text-[10px] text-slate-500">BA / 推奨</div>
+          </label>
+          <label class="border border-slate-200 rounded-md p-3 text-center cursor-pointer hover:border-eb-300">
+            <input type="radio" name="ai" class="sr-only" />
+            <div class="w-8 h-8 rounded-full bg-amber-500 text-white text-xs font-bold flex items-center justify-center mx-auto mb-1 mono">PS</div>
+            <div class="text-xs font-bold">preston</div>
+            <div class="text-[10px] text-slate-500">PM</div>
+          </label>
+          <label class="border border-slate-200 rounded-md p-3 text-center cursor-pointer hover:border-eb-300">
+            <input type="radio" name="ai" class="sr-only" />
+            <div class="w-8 h-8 rounded-full bg-purple-500 text-white text-xs font-bold flex items-center justify-center mx-auto mb-1 mono">SC</div>
+            <div class="text-xs font-bold">secretary</div>
+            <div class="text-[10px] text-slate-500">PM 代理</div>
+          </label>
+        </div>
+      </div>
+
+      <details class="border border-slate-200 rounded-md">
+        <summary class="cursor-pointer px-3 py-2 text-sm font-medium flex items-center gap-2"><i data-lucide="sliders" class="w-4 h-4 text-slate-500"></i>高度な設定 (任意)</summary>
+        <div class="p-4 border-t border-slate-200 space-y-3">
+          <div class="space-y-1.5"><label class="text-sm font-medium">月間トークン上限</label><input type="number" value="10000000" class="border border-slate-200 text-sm h-9 px-3 rounded-md w-full mono" /></div>
+          <div class="space-y-1.5"><label class="text-sm font-medium">並列セッション上限</label><input type="number" value="5" class="border border-slate-200 text-sm h-9 px-3 rounded-md w-32 mono" /></div>
+        </div>
+      </details>
+    </div>
+
+    <div class="mt-6 flex items-center justify-between">
+      <button class="text-sm text-slate-500 hover:text-slate-900 h-10 px-5 flex items-center gap-1"><i data-lucide="arrow-left" class="w-4 h-4"></i>戻る</button>
+      <a href="./S-050-ai-employee-intro.html" class="bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-10 px-6 rounded-md flex items-center gap-2">次へ<i data-lucide="arrow-right" class="w-4 h-4"></i></a>
+    </div>
+  </div>
+</main>
+<script>lucide.createIcons();</script>
+</body></html>

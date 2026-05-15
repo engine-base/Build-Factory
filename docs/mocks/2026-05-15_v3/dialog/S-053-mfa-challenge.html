@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-053 MFA コード入力 — Build-Factory</title>
+<meta name="bf-screen-id" content="S-053"><meta name="bf-screen-name" content="mfa_challenge"><meta name="bf-category" content="dialog"><meta name="bf-status" content="wip"><meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>tailwind.config={theme:{extend:{colors:{eb:{50:'#f0faf5',100:'#d3f0e0',500:'#1a6648',600:'#155238'}},fontFamily:{sans:['"Noto Sans JP"','sans-serif'],mono:['"JetBrains Mono"','monospace']}}}};</script>
+<style>body{font-family:'Noto Sans JP',sans-serif;line-height:1.7}.mono{font-family:'JetBrains Mono',monospace}</style>
+</head>
+<body class="bg-slate-900/50 min-h-screen flex items-center justify-center px-6">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+<div class="bg-white rounded-xl shadow-2xl max-w-[420px] w-full p-6 text-center">
+  <div class="inline-flex w-14 h-14 rounded-full bg-eb-100 items-center justify-center mb-4"><i data-lucide="shield-check" class="w-7 h-7 text-eb-500"></i></div>
+  <h2 class="text-xl font-bold">2 段階認証</h2>
+  <p class="text-sm text-slate-600 mt-2">認証アプリに表示された 6 桁コードを入力</p>
+  <div class="flex justify-center gap-2 mt-6">
+    <input type="text" maxlength="1" value="1" class="w-12 h-14 border-2 border-eb-500 ring-2 ring-eb-100 rounded-md text-2xl font-bold text-center mono" />
+    <input type="text" maxlength="1" value="2" class="w-12 h-14 border-2 border-eb-500 ring-2 ring-eb-100 rounded-md text-2xl font-bold text-center mono" />
+    <input type="text" maxlength="1" value="3" class="w-12 h-14 border-2 border-eb-500 ring-2 ring-eb-100 rounded-md text-2xl font-bold text-center mono" />
+    <input type="text" maxlength="1" value="4" class="w-12 h-14 border-2 border-eb-500 ring-2 ring-eb-100 rounded-md text-2xl font-bold text-center mono" />
+    <input type="text" maxlength="1" placeholder="•" class="w-12 h-14 border border-slate-300 rounded-md text-2xl font-bold text-center mono text-slate-300 caret-eb-500" />
+    <input type="text" maxlength="1" placeholder="•" class="w-12 h-14 border border-slate-300 rounded-md text-2xl font-bold text-center mono text-slate-300" />
+  </div>
+  <div class="text-[11px] text-slate-500 mono mt-3">残り 5 回 / 失敗で 15 分ロック</div>
+  <button class="w-full bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-10 rounded-md mt-6">検証する</button>
+  <div class="text-xs text-slate-500 mt-4"><a class="text-eb-500 hover:underline">リカバリーコードを使う</a></div>
+</div>
+<script>lucide.createIcons();</script>
+</body></html>

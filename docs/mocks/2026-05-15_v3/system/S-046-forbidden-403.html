@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-046 403 Forbidden — Build-Factory</title>
+<meta name="bf-screen-id" content="S-046"><meta name="bf-screen-name" content="forbidden_403"><meta name="bf-category" content="system">
+<meta name="bf-status" content="wip"><meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>tailwind.config={theme:{extend:{colors:{eb:{50:'#f0faf5',500:'#1a6648',600:'#155238',700:'#103e2a'}},fontFamily:{sans:['"Noto Sans JP"','sans-serif'],mono:['"JetBrains Mono"','monospace']}}}};</script>
+<style>body{font-family:'Noto Sans JP',sans-serif;line-height:1.7}.mono{font-family:'JetBrains Mono',monospace}.tabular{font-variant-numeric:tabular-nums}</style>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+<header class="px-6 py-4 border-b border-slate-200 bg-white"><div class="flex items-center gap-2"><div class="w-7 h-7 rounded-md bg-eb-500 flex items-center justify-center"><i data-lucide="factory" class="w-4 h-4 text-white"></i></div><div class="text-sm font-bold">Build-Factory</div></div></header>
+<main class="flex-1 flex items-center justify-center px-6">
+  <div class="text-center max-w-md">
+    <div class="inline-flex w-20 h-20 rounded-full bg-amber-50 items-center justify-center mb-4"><i data-lucide="lock" class="w-10 h-10 text-amber-600"></i></div>
+    <div class="text-[100px] font-bold tabular text-amber-600 leading-none">403</div>
+    <h1 class="text-2xl font-bold mt-4">アクセス権限がありません</h1>
+    <p class="text-sm text-slate-600 mt-2">このページを表示する権限がアカウントに付与されていません。</p>
+    <div class="mt-6 bg-white border border-slate-200 rounded-md p-4 text-left">
+      <div class="text-xs text-slate-500 mb-2 font-semibold">現在のロール</div>
+      <div class="flex items-center gap-2"><span class="text-[11px] bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 rounded-full mono">monitor</span><span class="text-xs text-slate-500">(読み取り専用)</span></div>
+      <div class="text-xs text-slate-500 mt-3 font-semibold">必要なロール</div>
+      <div class="mt-2"><span class="text-[11px] bg-eb-50 text-eb-700 border border-eb-200 px-2 py-0.5 rounded-full mono">workspace_admin</span></div>
+    </div>
+    <div class="mt-6 flex items-center justify-center gap-3">
+      <a class="border border-slate-200 hover:bg-slate-50 text-sm h-10 px-5 rounded-md flex items-center gap-2"><i data-lucide="mail" class="w-4 h-4"></i>管理者にロール変更依頼</a>
+      <a href="../account/S-006-account-dashboard.html" class="bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-10 px-5 rounded-md flex items-center gap-2"><i data-lucide="home" class="w-4 h-4"></i>ダッシュボードへ</a>
+    </div>
+  </div>
+</main>
+<script>lucide.createIcons();</script>
+</body></html>
