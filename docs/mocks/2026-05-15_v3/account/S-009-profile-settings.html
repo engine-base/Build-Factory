@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-009 プロフィール設定 — Build-Factory</title>
+
+<meta name="bf-screen-id" content="S-009">
+<meta name="bf-screen-name" content="profile_settings">
+<meta name="bf-category" content="account">
+<meta name="bf-feature-id" content="F-022,F-023">
+<meta name="bf-task-ids" content="T-V3-RF-02">
+<meta name="bf-entities" content="E-001,E-010,E-040">
+<meta name="bf-related-apis" content="GET /api/me,PUT /api/me,POST /api/me/api-keys,DELETE /api/me/oauth/{provider}">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-009">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>
+  body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(8px);">
+  <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+  <span>Index に戻る</span>
+</a>
+
+<aside class="w-[240px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-4 border-b border-eb-600"><div class="flex items-center gap-2 mb-3"><div class="w-7 h-7 rounded-md bg-white/10 flex items-center justify-center"><i data-lucide="factory" class="w-4 h-4 text-white"></i></div><div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div></div><div class="text-sm font-bold">ENGINE BASE</div><div class="text-[11px] text-eb-100 mt-0.5 mono">account_a1b2 · Pro</div></div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5 overflow-y-auto">
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-2 pb-1 font-bold">Account</div>
+    <a href="./S-006-account-dashboard.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> 10 案件 俯瞰</a>
+    <a href="./S-008-account-members.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="users" class="w-4 h-4"></i> メンバー</a>
+    <a href="./S-007-account-settings.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="settings" class="w-4 h-4"></i> アカウント設定</a>
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-3 pb-1 font-bold">Personal</div>
+    <a href="./S-010-notifications-inbox.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="bell" class="w-4 h-4"></i> 通知</a>
+    <a href="./S-011-global-search.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="search" class="w-4 h-4"></i> 検索</a>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 bg-eb-600 font-semibold"><i data-lucide="user" class="w-4 h-4"></i> プロフィール</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-eb-500 flex items-center justify-center text-[11px] font-bold mono">M</div><div class="flex-1 min-w-0"><div class="text-[11px] font-semibold truncate">masato</div><div class="text-[10px] text-eb-200 truncate">account_owner</div></div></div>
+</aside>
+
+<main class="flex-1 overflow-y-auto">
+  <div class="max-w-[800px] mx-auto px-6 py-8">
+    <div class="text-xs text-slate-500 flex items-center gap-1.5 mb-2"><a href="./S-006-account-dashboard.html" class="hover:text-slate-900">Account</a><i data-lucide="chevron-right" class="w-3 h-3"></i><span class="text-slate-900 font-medium">プロフィール設定</span></div>
+
+    <h1 class="text-2xl font-bold mb-1">プロフィール設定</h1>
+    <p class="text-sm text-slate-600 mb-6">個人情報 / API キー / OAuth 連携 / クローン opt-in</p>
+
+    <!-- Profile -->
+    <section class="bg-white border border-slate-200 rounded-lg p-6 mb-4">
+      <h2 class="text-base font-bold mb-4">プロフィール</h2>
+      <div class="flex items-start gap-4 mb-4">
+        <div class="w-16 h-16 rounded-full bg-eb-500 text-white text-xl font-bold flex items-center justify-center">M</div>
+        <div class="flex-1 space-y-3">
+          <div class="flex items-center gap-2">
+            <button class="border border-slate-200 hover:bg-slate-50 text-xs h-8 px-3 rounded-md">アバターをアップロード</button>
+            <button class="text-xs text-slate-500 hover:text-slate-900">削除</button>
+          </div>
+          <p class="text-xs text-slate-500">JPG / PNG / 最大 2MB</p>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div class="space-y-1.5">
+          <label class="text-sm font-medium block">表示名</label>
+          <input type="text" value="masato" class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md w-full" />
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-sm font-medium block">メールアドレス</label>
+          <input type="email" value="masato@engine-base.com" class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md w-full" />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="text-sm font-medium block">タイムゾーン</label>
+            <select class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md w-full"><option>Asia/Tokyo (UTC+9)</option><option>America/Los_Angeles</option></select>
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-sm font-medium block">言語</label>
+            <select class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md w-full"><option>日本語</option><option>English</option></select>
+          </div>
+        </div>
+        <div class="flex justify-end pt-2"><button class="bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-9 px-4 rounded-md">保存</button></div>
+      </div>
+    </section>
+
+    <!-- Notification preferences -->
+    <section class="bg-white border border-slate-200 rounded-lg p-6 mb-4">
+      <h2 class="text-base font-bold mb-4">通知設定</h2>
+      <div class="space-y-3">
+        <label class="flex items-center justify-between p-2">
+          <div><div class="text-sm font-medium">タスク assigned</div><div class="text-xs text-slate-500">自分にタスクが割り当てられた時</div></div>
+          <input type="checkbox" checked class="w-4 h-4 accent-eb-500" />
+        </label>
+        <label class="flex items-center justify-between p-2">
+          <div><div class="text-sm font-medium">赤線抵触</div><div class="text-xs text-slate-500">禁止操作を検知した時</div></div>
+          <input type="checkbox" checked class="w-4 h-4 accent-eb-500" />
+        </label>
+        <label class="flex items-center justify-between p-2">
+          <div><div class="text-sm font-medium">PR review request</div><div class="text-xs text-slate-500">レビュー依頼が来た時</div></div>
+          <input type="checkbox" checked class="w-4 h-4 accent-eb-500" />
+        </label>
+        <label class="flex items-center justify-between p-2">
+          <div><div class="text-sm font-medium">週次サマリー</div><div class="text-xs text-slate-500">毎週月曜にメール送信</div></div>
+          <input type="checkbox" class="w-4 h-4 accent-eb-500" />
+        </label>
+      </div>
+    </section>
+
+    <!-- LLM provider (BYOK) -->
+    <section class="bg-white border border-slate-200 rounded-lg p-6 mb-4">
+      <h2 class="text-base font-bold mb-1">LLM プロバイダ (BYOK)</h2>
+      <p class="text-xs text-slate-500 mb-4">自分の API キーを使うと利用料金が直接プロバイダに請求される</p>
+
+      <div class="space-y-1.5 mb-4">
+        <label class="text-sm font-medium block">既定プロバイダ</label>
+        <select class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md w-full">
+          <option>Anthropic (claude-sonnet-4-7)</option>
+          <option>OpenAI (gpt-4o)</option>
+          <option>Google (gemini-2.5-pro)</option>
+        </select>
+      </div>
+
+      <div class="space-y-2">
+        <div class="border border-slate-200 rounded-md p-3 flex items-center gap-3">
+          <i data-lucide="sparkles" class="w-5 h-5 text-eb-500 shrink-0"></i>
+          <div class="flex-1">
+            <div class="text-sm font-semibold">Anthropic</div>
+            <div class="text-xs text-slate-500 mono">sk-ant-api03-***...PQ9N_kv</div>
+          </div>
+          <span class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">connected</span>
+          <button class="text-xs text-slate-500 hover:text-red-600">削除</button>
+        </div>
+        <div class="border border-slate-200 rounded-md p-3 flex items-center gap-3">
+          <i data-lucide="chrome" class="w-5 h-5 text-blue-500 shrink-0"></i>
+          <div class="flex-1">
+            <div class="text-sm font-semibold">OpenAI</div>
+            <div class="text-xs text-slate-500">未連携</div>
+          </div>
+          <button class="text-xs text-eb-500 hover:text-eb-600 font-semibold">+ API キーを追加</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- OAuth connections -->
+    <section class="bg-white border border-slate-200 rounded-lg p-6 mb-4">
+      <h2 class="text-base font-bold mb-4">OAuth 連携</h2>
+      <div class="space-y-2">
+        <div class="border border-slate-200 rounded-md p-3 flex items-center gap-3">
+          <i data-lucide="git-branch" class="w-5 h-5 text-slate-700 shrink-0"></i>
+          <div class="flex-1"><div class="text-sm font-semibold">GitHub</div><div class="text-xs text-slate-500 mono">@masato0420</div></div>
+          <span class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">connected</span>
+          <button class="text-xs text-slate-500 hover:text-red-600">解除</button>
+        </div>
+        <div class="border border-slate-200 rounded-md p-3 flex items-center gap-3">
+          <i data-lucide="message-circle" class="w-5 h-5 text-slate-700 shrink-0"></i>
+          <div class="flex-1"><div class="text-sm font-semibold">Slack</div><div class="text-xs text-slate-500">未連携</div></div>
+          <button class="text-xs text-eb-500 hover:text-eb-600 font-semibold">連携する</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Clone opt-in -->
+    <section class="bg-white border border-slate-200 rounded-lg p-6 mb-4">
+      <h2 class="text-base font-bold mb-1">ユーザークローン (高本さんの判断基準を学習)</h2>
+      <p class="text-xs text-slate-500 mb-4">あなたの過去判断を Constitution に学習させ、AI 社員が「あなたなら何と言うか」を提案する</p>
+
+      <label class="flex items-start gap-3 p-3 border border-slate-200 rounded-md hover:border-eb-200 cursor-pointer">
+        <input type="checkbox" class="w-4 h-4 accent-eb-500 mt-1" />
+        <div class="flex-1">
+          <div class="text-sm font-semibold mb-1">クローン学習を有効化 (opt-in)</div>
+          <div class="text-xs text-slate-600 leading-relaxed">過去の判断ログ・コメント・コミットメッセージ・ヒアリング音声を学習に使用します。<br>いつでも opt-out 可能 / 学習データは削除可能 (GDPR 準拠)。</div>
+        </div>
+      </label>
+    </section>
+
+    <!-- Danger zone -->
+    <section class="bg-white border border-red-200 rounded-lg p-6">
+      <h2 class="text-base font-bold text-red-600 mb-3 flex items-center gap-2"><i data-lucide="alert-triangle" class="w-4 h-4"></i> Danger Zone</h2>
+      <div class="space-y-3">
+        <div class="flex items-center justify-between p-3 border border-slate-200 rounded-md">
+          <div><div class="text-sm font-semibold">自分のデータをエクスポート (GDPR)</div><div class="text-xs text-slate-500">プロフィール・判断ログ・学習データ全件</div></div>
+          <button class="border border-slate-300 hover:bg-slate-50 text-sm h-9 px-4 rounded-md">エクスポート</button>
+        </div>
+        <div class="flex items-center justify-between p-3 border border-red-200 rounded-md">
+          <div><div class="text-sm font-semibold text-red-600">アカウント削除依頼</div><div class="text-xs text-slate-500">30 日後に物理削除されます</div></div>
+          <button class="bg-white border border-red-600 text-red-600 hover:bg-red-50 text-sm font-semibold h-9 px-4 rounded-md">削除依頼</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>
