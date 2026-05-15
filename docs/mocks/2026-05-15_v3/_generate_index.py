@@ -108,7 +108,7 @@ def main():
         sidebar_items.append("</div></div>")
     sidebar_html = "".join(sidebar_items)
 
-    # Build embedded mock templates
+    # Build embedded mock templates (use <script type="text/html"> for opaque storage)
     templates_html = []
     for cat in categories:
         for s in cat["screens"]:
@@ -119,11 +119,11 @@ def main():
                 except Exception as e:
                     print(f"⚠ failed to read {mock_path}: {e}")
                     continue
-                # Escape </script> et al inside the template
-                # <template> preserves contents literally, but the parser still respects </script> and </template>
-                # We escape </template> as <\/template> as a safety measure
-                content_safe = content.replace("</template>", "<\\/template>")
-                templates_html.append(f'<template id="mock-{s["id"]}">{content_safe}</template>')
+                # Escape </script> to prevent premature script termination
+                content_safe = content.replace("</script>", "<\\/script>")
+                templates_html.append(
+                    f'<script type="text/html" id="mock-{s["id"]}">{content_safe}</script>'
+                )
 
     # Final index.html
     out = f'''<!DOCTYPE html>
@@ -361,7 +361,7 @@ def main():
         <i data-lucide="external-link" class="w-3 h-3"></i>新しいタブで開く
       </a>
     </div>
-    <iframe id="preview-frame" class="preview-frame" style="display:none;" sandbox="allow-scripts allow-forms allow-same-origin"></iframe>
+    <iframe id="preview-frame" class="preview-frame" style="display:none;"></iframe>
     <div id="empty-state" class="empty-state">
       <div class="icon-box"><i data-lucide="layout" class="w-7 h-7" style="color:#64748b;"></i></div>
       <h3>画面を選んでプレビュー</h3>
@@ -397,7 +397,8 @@ def main():
     const screenLabel = activeEl?.querySelector('.screen-name')?.textContent || '';
 
     if (template) {{
-      const content = template.innerHTML;
+      // <script type="text/html"> stores raw text. Use textContent and unescape </script>
+      const content = template.textContent.split('<\\\\/script>').join('</script>');
       frame.srcdoc = content;
       frame.style.display = 'block';
       empty.style.display = 'none';
