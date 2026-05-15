@@ -125,22 +125,33 @@ def main():
     height: 48px; background: #fff;
     border-bottom: 1px solid #e2e8f0;
     display: flex; align-items: center;
-    padding: 0 16px; gap: 12px;
+    padding: 0 12px; gap: 8px;
+    position: relative; z-index: 30;
   }}
-  .brand {{ display: flex; align-items: center; gap: 8px; }}
+  .menu-btn {{
+    display: none;
+    width: 32px; height: 32px;
+    background: transparent; border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    cursor: pointer; padding: 0;
+    align-items: center; justify-content: center;
+    color: #475569;
+  }}
+  .menu-btn:hover {{ background: #f8fafc; }}
+  .brand {{ display: flex; align-items: center; gap: 8px; min-width: 0; }}
   .brand-icon {{
     width: 24px; height: 24px; background: #1a6648;
-    border-radius: 6px;
+    border-radius: 6px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
     color: #fff;
   }}
-  .brand-title {{ font-size: 13px; font-weight: 700; }}
-  .brand-meta {{ font-size: 11px; color: #64748b; font-family: 'JetBrains Mono', monospace; }}
-  .progress-info {{ margin-left: auto; font-size: 11px; color: #475569; }}
+  .brand-title {{ font-size: 13px; font-weight: 700; white-space: nowrap; }}
+  .brand-meta {{ font-size: 11px; color: #64748b; font-family: 'JetBrains Mono', monospace; white-space: nowrap; }}
+  .progress-info {{ margin-left: auto; font-size: 11px; color: #475569; flex-shrink: 0; white-space: nowrap; }}
   .progress-bar {{
-    width: 120px; height: 4px;
+    width: 80px; height: 4px;
     background: #e2e8f0; border-radius: 9999px;
-    overflow: hidden; margin-left: 8px;
+    overflow: hidden; margin: 0 6px;
     display: inline-block; vertical-align: middle;
   }}
   .progress-fill {{
@@ -153,6 +164,7 @@ def main():
     display: grid;
     grid-template-columns: 280px 1fr;
     height: calc(100vh - 48px);
+    position: relative;
   }}
 
   .sidebar {{
@@ -160,11 +172,22 @@ def main():
     border-right: 1px solid #e2e8f0;
     overflow-y: auto;
     padding: 8px 0;
+    z-index: 20;
   }}
+
+  /* Sidebar overlay backdrop (mobile only) */
+  .sidebar-backdrop {{
+    display: none;
+    position: fixed;
+    inset: 48px 0 0 0;
+    background: rgba(15, 23, 42, 0.4);
+    z-index: 15;
+  }}
+
   .cat-group {{ border-bottom: 1px solid #f1f5f9; }}
   .cat-header {{
     width: 100%; background: transparent; border: none;
-    padding: 8px 14px;
+    padding: 10px 14px;
     display: flex; align-items: center; gap: 8px;
     cursor: pointer; font-family: inherit;
     font-size: 11px; font-weight: 700;
@@ -187,19 +210,15 @@ def main():
   .cat-screens {{ padding: 2px 0 6px; }}
   .screen-item {{
     width: 100%; background: transparent; border: none;
-    padding: 5px 14px 5px 28px;
+    padding: 9px 14px 9px 28px;
     display: flex; align-items: center; gap: 8px;
     cursor: pointer; font-family: inherit;
-    font-size: 12px; color: #475569; text-align: left;
+    font-size: 13px; color: #475569; text-align: left;
   }}
   .screen-item:hover {{ background: #f8fafc; color: #0f172a; }}
   .screen-item.active {{ background: #f0faf5; color: #1a6648; font-weight: 600; }}
   .screen-item.active .screen-id {{ color: #1a6648; }}
-  .status-dot {{
-    width: 6px; height: 6px;
-    border-radius: 9999px;
-    flex-shrink: 0;
-  }}
+  .status-dot {{ width: 6px; height: 6px; border-radius: 9999px; flex-shrink: 0; }}
   .status-ok {{ background: #16a34a; }}
   .status-todo {{ background: #cbd5e1; }}
   .screen-id {{
@@ -209,21 +228,22 @@ def main():
   }}
   .screen-name {{ flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
 
-  .main {{ display: flex; flex-direction: column; background: #f8fafc; }}
+  .main {{ display: flex; flex-direction: column; background: #f8fafc; min-width: 0; }}
   .preview-toolbar {{
     background: #fff; border-bottom: 1px solid #e2e8f0;
-    padding: 8px 16px;
-    display: flex; align-items: center; gap: 12px;
+    padding: 8px 12px;
+    display: flex; align-items: center; gap: 8px;
     height: 40px;
   }}
-  .preview-info {{ display: flex; align-items: center; gap: 8px; font-size: 12px; color: #475569; }}
-  .preview-id {{ font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #1a6648; font-weight: 600; }}
+  .preview-info {{ display: flex; align-items: center; gap: 6px; font-size: 12px; color: #475569; min-width: 0; flex: 1; }}
+  .preview-id {{ font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #1a6648; font-weight: 600; flex-shrink: 0; }}
+  .preview-info > span:not(.preview-id) {{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
   .open-link {{
-    margin-left: auto;
     font-size: 11px; color: #1a6648; text-decoration: none;
     padding: 4px 8px; border: 1px solid #e2e8f0;
     border-radius: 4px;
     display: inline-flex; align-items: center; gap: 4px;
+    flex-shrink: 0;
   }}
   .open-link:hover {{ background: #f0faf5; }}
 
@@ -243,35 +263,60 @@ def main():
   }}
   .empty-state h3 {{ font-size: 14px; font-weight: 600; color: #0f172a; margin-bottom: 4px; }}
   .empty-state p {{ font-size: 13px; color: #64748b; }}
+
+  /* === Mobile: sidebar becomes drawer === */
+  @media (max-width: 768px) {{
+    .menu-btn {{ display: flex; }}
+    .brand-meta {{ display: none; }}
+    .container {{
+      grid-template-columns: 1fr;
+    }}
+    .sidebar {{
+      position: fixed;
+      top: 48px; left: 0; bottom: 0;
+      width: 88vw; max-width: 320px;
+      transform: translateX(-100%);
+      transition: transform 0.2s ease-out;
+      box-shadow: 4px 0 16px rgba(0,0,0,0.08);
+    }}
+    .sidebar.open {{ transform: translateX(0); }}
+    .sidebar-backdrop.open {{ display: block; }}
+    .progress-info strong {{ font-size: 13px; }}
+  }}
 </style>
 </head>
 <body>
 
 <header class="topbar">
+  <button class="menu-btn" id="menu-btn" onclick="toggleSidebar()" aria-label="メニュー">
+    <i data-lucide="menu" class="w-4 h-4"></i>
+  </button>
   <div class="brand">
     <div class="brand-icon"><i data-lucide="factory" class="w-3.5 h-3.5"></i></div>
     <span class="brand-title">Build-Factory</span>
     <span class="brand-meta">v3 Mock Index</span>
   </div>
   <div class="progress-info">
-    Progress: <strong>{done_count}</strong> / {total}
+    <strong>{done_count}</strong>/{total}
     <span class="progress-bar"><span class="progress-fill"></span></span>
     {progress_pct:.0f}%
   </div>
 </header>
 
+<div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeSidebar()"></div>
+
 <div class="container">
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     {sidebar_html}
   </aside>
 
   <main class="main">
     <div class="preview-toolbar">
       <div class="preview-info" id="preview-info">
-        <span style="color:#94a3b8;">←</span> 左から画面を選んでください
+        <span style="color:#94a3b8;">←</span> 左から画面を選択
       </div>
       <a id="preview-open-link" class="open-link" style="display:none;" target="_blank" rel="noopener">
-        <i data-lucide="external-link" class="w-3 h-3"></i>新しいタブで開く
+        <i data-lucide="external-link" class="w-3 h-3"></i>新規タブ
       </a>
     </div>
     <iframe id="preview-frame" class="preview-frame" style="display:none;"></iframe>
@@ -300,6 +345,18 @@ def main():
 
   lucide.createIcons();
 
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+
+  function toggleSidebar() {{
+    sidebar.classList.toggle('open');
+    backdrop.classList.toggle('open');
+  }}
+  function closeSidebar() {{
+    sidebar.classList.remove('open');
+    backdrop.classList.remove('open');
+  }}
+
   function toggleCat(catId) {{
     document.querySelector('[data-cat-id="' + catId + '"]').classList.toggle('collapsed');
   }}
@@ -308,6 +365,8 @@ def main():
     document.querySelectorAll('.screen-item').forEach(el => el.classList.remove('active'));
     const activeEl = document.querySelector('[data-screen-id="' + screenId + '"]');
     if (activeEl) activeEl.classList.add('active');
+    // Close sidebar on mobile after picking
+    closeSidebar();
 
     const frame = document.getElementById('preview-frame');
     const empty = document.getElementById('empty-state');
