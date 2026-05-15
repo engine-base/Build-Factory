@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-017 依存グラフ — Build-Factory</title>
+<meta name="bf-screen-id" content="S-017">
+<meta name="bf-screen-name" content="dependency_graph">
+<meta name="bf-category" content="moat">
+<meta name="bf-feature-id" content="F-009">
+<meta name="bf-task-ids" content="T-V3-RF-07,T-V3-FIX-03">
+<meta name="bf-entities" content="E-019,E-018">
+<meta name="bf-related-apis" content="GET /api/workspaces/{id}/dependencies,POST /api/workspaces/{id}/dependencies,POST /api/workspaces/{id}/dependencies/impact-analysis">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-017">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; } .mono { font-family: 'JetBrains Mono', monospace; }</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(8px);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+
+<aside class="w-[240px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-4 border-b border-eb-600"><div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div><div class="text-sm font-bold mt-1">Build-Factory dogfood</div></div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5 overflow-y-auto">
+    <a href="../workspace/S-012-workspace-dashboard.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> ダッシュボード</a>
+    <a href="./S-016-phase-management.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="layers" class="w-4 h-4"></i> フェーズ管理</a>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 bg-eb-600 font-semibold"><i data-lucide="git-branch" class="w-4 h-4"></i> 依存グラフ</a>
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-3 pb-1 font-bold">Moat / Safety</div>
+    <a href="./S-018-constitution-editor.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="shield" class="w-4 h-4"></i> Constitution</a>
+    <a href="./S-019-red-line-settings.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="alert-octagon" class="w-4 h-4"></i> 赤線設定</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-eb-500 flex items-center justify-center text-[11px] font-bold mono">M</div><div class="flex-1 min-w-0"><div class="text-[11px] font-semibold truncate">masato</div></div></div>
+</aside>
+
+<main class="flex-1 flex flex-col">
+  <div class="px-6 py-4 border-b border-slate-200 bg-white flex items-center justify-between">
+    <div>
+      <h1 class="text-lg font-bold flex items-center gap-2"><i data-lucide="git-branch" class="w-5 h-5 text-eb-500"></i> 依存グラフ (DAG)</h1>
+      <p class="text-xs text-slate-500 mt-0.5">タスク・機能の依存関係を React Flow で可視化</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <select class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md"><option>全 Phase</option><option>Phase 1</option><option>Phase 2</option></select>
+      <button class="border border-slate-200 hover:bg-slate-50 text-sm h-9 px-3 rounded-md flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4"></i> 影響範囲分析</button>
+      <button class="bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-9 px-4 rounded-md flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> 依存追加</button>
+    </div>
+  </div>
+
+  <!-- DAG canvas -->
+  <div class="flex-1 relative bg-slate-100 overflow-hidden" style="background-image: radial-gradient(circle, #cbd5e1 1px, transparent 1px); background-size: 16px 16px;">
+    <!-- Sample DAG nodes -->
+    <svg class="absolute inset-0 w-full h-full pointer-events-none">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8" /></marker>
+        <marker id="arrow-active" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1a6648" /></marker>
+      </defs>
+      <!-- Edges -->
+      <line x1="180" y1="80" x2="320" y2="160" stroke="#1a6648" stroke-width="2" marker-end="url(#arrow-active)" />
+      <line x1="180" y1="80" x2="320" y2="320" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arrow)" />
+      <line x1="460" y1="160" x2="600" y2="80" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow)" />
+      <line x1="460" y1="160" x2="600" y2="240" stroke="#1a6648" stroke-width="2" marker-end="url(#arrow-active)" />
+      <line x1="460" y1="320" x2="600" y2="240" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arrow)" />
+      <line x1="740" y1="240" x2="880" y2="160" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow)" />
+      <line x1="740" y1="240" x2="880" y2="320" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow)" />
+    </svg>
+
+    <!-- Node: T-V3-INFRA-01 -->
+    <div class="absolute bg-white border-2 border-eb-500 rounded-lg p-3 w-[160px] shadow-md" style="left: 40px; top: 50px;">
+      <div class="text-[10px] mono text-eb-500 font-bold mb-1">T-V3-INFRA-01</div>
+      <div class="text-sm font-semibold leading-tight">ADR-013 AUTH 戦略</div>
+      <div class="flex items-center gap-1 mt-2"><span class="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded-full">done</span></div>
+    </div>
+    <!-- Node: T-V3-AUTH-01 -->
+    <div class="absolute bg-white border-2 border-eb-400 rounded-lg p-3 w-[160px] shadow-md ring-2 ring-eb-100" style="left: 320px; top: 130px;">
+      <div class="text-[10px] mono text-eb-500 font-bold mb-1">T-V3-AUTH-01</div>
+      <div class="text-sm font-semibold leading-tight">POST /api/auth/login</div>
+      <div class="flex items-center gap-1 mt-2"><span class="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded-full">running</span></div>
+    </div>
+    <!-- Node: T-V3-DB-01 -->
+    <div class="absolute bg-white border border-slate-300 rounded-lg p-3 w-[160px] shadow-sm" style="left: 320px; top: 290px;">
+      <div class="text-[10px] mono text-slate-500 font-bold mb-1">T-V3-DB-01</div>
+      <div class="text-sm font-semibold leading-tight">PhaseGate table</div>
+      <div class="flex items-center gap-1 mt-2"><span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full">todo</span></div>
+    </div>
+    <!-- Node: T-V3-AUTH-02 -->
+    <div class="absolute bg-white border border-slate-300 rounded-lg p-3 w-[160px] shadow-sm" style="left: 600px; top: 50px;">
+      <div class="text-[10px] mono text-slate-500 font-bold mb-1">T-V3-AUTH-02</div>
+      <div class="text-sm font-semibold leading-tight">POST /api/auth/signup</div>
+      <div class="flex items-center gap-1 mt-2"><span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full">todo</span></div>
+    </div>
+    <!-- Node: T-V3-AUTH-13 -->
+    <div class="absolute bg-white border-2 border-eb-400 rounded-lg p-3 w-[160px] shadow-md" style="left: 600px; top: 210px;">
+      <div class="text-[10px] mono text-eb-500 font-bold mb-1">T-V3-AUTH-13</div>
+      <div class="text-sm font-semibold leading-tight">unit test 8 cases</div>
+      <div class="flex items-center gap-1 mt-2"><span class="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded-full">running</span></div>
+    </div>
+    <!-- Node: T-V3-AUTH-08 -->
+    <div class="absolute bg-white border border-slate-300 rounded-lg p-3 w-[160px] shadow-sm" style="left: 880px; top: 130px;">
+      <div class="text-[10px] mono text-slate-500 font-bold mb-1">T-V3-AUTH-08</div>
+      <div class="text-sm font-semibold leading-tight">/login page.tsx</div>
+      <div class="flex items-center gap-1 mt-2"><span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full">todo</span></div>
+    </div>
+    <!-- Node: T-V3-AUTH-14 -->
+    <div class="absolute bg-white border border-slate-300 rounded-lg p-3 w-[160px] shadow-sm" style="left: 880px; top: 290px;">
+      <div class="text-[10px] mono text-slate-500 font-bold mb-1">T-V3-AUTH-14</div>
+      <div class="text-sm font-semibold leading-tight">Playwright e2e</div>
+      <div class="flex items-center gap-1 mt-2"><span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full">todo</span></div>
+    </div>
+
+    <!-- Legend -->
+    <div class="absolute bottom-4 left-4 bg-white border border-slate-200 rounded-md p-3 text-xs space-y-1.5">
+      <div class="font-bold text-slate-700 mb-2">Legend</div>
+      <div class="flex items-center gap-2"><svg width="24" height="2"><line x1="0" y1="1" x2="24" y2="1" stroke="#1a6648" stroke-width="2"/></svg>active path</div>
+      <div class="flex items-center gap-2"><svg width="24" height="2"><line x1="0" y1="1" x2="24" y2="1" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/></svg>soft dep</div>
+      <div class="flex items-center gap-2"><div class="w-3 h-3 rounded border-2 border-eb-500"></div>done</div>
+      <div class="flex items-center gap-2"><div class="w-3 h-3 rounded border-2 border-eb-400 ring-1 ring-eb-100"></div>running</div>
+      <div class="flex items-center gap-2"><div class="w-3 h-3 rounded border border-slate-300"></div>todo</div>
+    </div>
+
+    <!-- Controls -->
+    <div class="absolute top-4 right-4 bg-white border border-slate-200 rounded-md flex flex-col">
+      <button class="w-9 h-9 hover:bg-slate-50 border-b border-slate-200 flex items-center justify-center" title="Zoom in"><i data-lucide="plus" class="w-4 h-4"></i></button>
+      <button class="w-9 h-9 hover:bg-slate-50 border-b border-slate-200 flex items-center justify-center" title="Zoom out"><i data-lucide="minus" class="w-4 h-4"></i></button>
+      <button class="w-9 h-9 hover:bg-slate-50 flex items-center justify-center" title="Fit"><i data-lucide="maximize" class="w-4 h-4"></i></button>
+    </div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>
