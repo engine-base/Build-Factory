@@ -390,7 +390,7 @@
   }
   .kpi-icon-alert { color: var(--color-error); }
   .kpi-number {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 28px;
     font-weight: 700;
     color: var(--color-on-surface);
@@ -400,7 +400,7 @@
   }
   .kpi-number-alert { color: var(--color-error); }
   .kpi-unit {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 14px;
     color: var(--color-on-surface-variant);
     font-weight: 400;
@@ -647,7 +647,7 @@
     padding: 8px 12px;
     border-bottom: 1px solid var(--color-secondary-container);
   }
-  th.num, td.num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
   td {
     padding: 10px 12px;
     border-bottom: 1px solid var(--color-secondary-container);
@@ -1002,19 +1002,19 @@
 
     <div class="type-card">
       <div>
-        <div class="type-scale-name">Mono (Code / 数値)</div>
-        <div class="type-sample" style="font-family: var(--font-mono); font-size: 32px; font-weight: 600;">Aa 1234</div>
+        <div class="type-scale-name">Mono (Code / ID / HEX のみ)</div>
+        <div class="type-sample" style="font-family: var(--font-mono); font-size: 32px; font-weight: 600;">Aa</div>
         <div class="type-example-text" style="font-family: var(--font-mono); font-size: 13px;">const ws_id = "ws_8f3a2c";</div>
       </div>
-      <div class="type-meta">JetBrains Mono · 13px · 400<br>tabular-nums で数値桁揃え</div>
+      <div class="type-meta">JetBrains Mono · 13px · 400<br>※ KPI / Table 数値は Noto Sans JP に変更</div>
     </div>
 
     <div class="type-card" style="background: var(--color-primary-container); color: var(--color-on-primary-container); border: none;">
       <div>
         <div class="type-scale-name" style="color: var(--color-on-primary-container); opacity: 0.7;">KPI Hero</div>
-        <div style="font-family: var(--font-mono); font-size: 48px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; letter-spacing: -0.01em;">7<span style="font-size: 24px; opacity: 0.6;">/10</span></div>
+        <div style="font-family: var(--font-body); font-size: 48px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; letter-spacing: -0.01em;">7<span style="font-size: 24px; opacity: 0.6;">/10</span></div>
       </div>
-      <div class="type-meta" style="color: var(--color-on-primary-container); opacity: 0.7;">JetBrains Mono · 28px · 700<br>tabular · KPI Card 用</div>
+      <div class="type-meta" style="color: var(--color-on-primary-container); opacity: 0.7;">Noto Sans JP · 28px · 700<br>tabular-nums で桁揃え</div>
     </div>
 
     <div class="type-card">

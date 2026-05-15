@@ -243,8 +243,9 @@ components:
 - `tracking-wider` の `micro` (11px) は uppercase 専用
 
 ### Mono: JetBrains Mono
-- コード / Workspace ID / 数値 (`mono tabular-nums`)
+- **コード / Workspace ID / HEX 値 のみ** (`code` 要素 / Sidebar の `ws_XXX` / `#1a6648` など)
 - 等幅 + 0/O などの混同を回避 / プログラマー向けに最適
+- **KPI Hero 数値 や Table 数値カラムは Noto Sans JP に統一** (`font-variant-numeric: tabular-nums` で桁揃え) — UI 全体のフォント一貫性を優先
 
 ### Scale
 
@@ -371,7 +372,7 @@ Dashboard / 案件俯瞰画面で使用。4 バリアント:
 3. **金額型**: 金額 + 予算比較 + 進捗バー (例: Monthly Cost ¥8,420/¥30K)
 4. **アラート型**: 数値 + warning/error 色 + アイコン (例: Anomalies (24h) 3)
 
-KPI 大型数値は `JetBrains Mono` `tabular-nums` `28px bold` を統一。
+KPI 大型数値は `Noto Sans JP` `tabular-nums` `28px bold` を統一。
 
 ### AI 社員 Chip (Build-Factory 特化)
 `inline-flex` + avatar (5x5) + 名前 + ロール。背景 `accent` (`primary-container`)、border `surface-variant`。
