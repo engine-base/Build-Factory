@@ -1,0 +1,195 @@
+{
+  "meta": {
+    "project": "Build-Factory",
+    "version": "v3",
+    "created_at": "2026-05-15",
+    "supersedes": ["v1 (2026-05-09)", "v2 (2026-05-14)"]
+  },
+  "context": {
+    "project_type": "SaaS 開発工場 OS (Build-Factory 自身)",
+    "team_type": "Claude Code parallel sessions (人間 1 人がオーケストレーション)",
+    "decomposition_granularity": "4 時間〜2 日 / 1 task (Claude Code 1-3 セッション)",
+    "execution_target": "2 日で 211 task 完走"
+  },
+  "decisions": [
+    {
+      "id": "D-V3-01",
+      "topic": "Done 判定基準",
+      "decision": "structural + functional + regression の 3-tier 全部 PASS で初めて done フラグ",
+      "rationale": "v1 では regression (test pass) のみで done としていたため S-006 のような mock-impl drift が検知されなかった。3-tier に分割することで漏れの構造的検出を保証する。",
+      "alternatives_rejected": [
+        "test pass のみ (v1) — drift 検知不可",
+        "human review 必須 — 211 task では PM が律速、2日完走不可"
+      ],
+      "tradeoffs": "AC を 3-tier で書く労力が増える (~30% 増)、しかし lint #17-19 で自動化されるため human cost は変わらず"
+    },
+    {
+      "id": "D-V3-02",
+      "topic": "AUTH 戦略",
+      "decision": "REST API として `/api/auth/*` を backend に実装。Supabase Auth は内部ストア。",
+      "rationale": "v1 は Supabase Auth に暗黙に丸投げで、S-001..S-005 が unimplemented のまま done になっていた。REST API として明示することで spec 一致を強制。",
+      "alternatives_rejected": [
+        "Supabase Auth 丸投げ — 監査不能、自前 MFA / 拡張に弱い",
+        "両建て — 複雑化"
+      ],
+      "tradeoffs": "backend に AUTH router 実装の手間 (15 task) だが、ADR-013 で正式化"
+    },
+    {
+      "id": "D-V3-03",
+      "topic": "既存 22 画面の扱い",
+      "decision": "全件 REFACTOR (R-1〜R-4 を必ず適用)",
+      "rationale": "spec 徹底を最厳格に守るため、動いている画面でも 3-tier AC + mock-impl 一致を強制する。S-040 の h1 言語ずれ等の minor drift も漏れなく潰す。",
+      "alternatives_rejected": [
+        "全件 REUSE — drift を放置する",
+        "混在判定 — 判断が人依存になり漏れる"
+      ],
+      "tradeoffs": "22 task × ~4-8h = ~13 人日。Claude 並列で 4h に圧縮可能"
+    },
+    {
+      "id": "D-V3-04",
+      "topic": "RLS policy 不足の扱い",
+      "decision": "全 43 entity に RLS policy 必須 / 1 entity group = 1 task で 18 task に分解",
+      "rationale": "v1 では宣言 43 / 実装 ~15 のみで、28 件の policy gap がセキュリティ事故予備軍。Phase 1 dogfood 開始前に全部揃える。",
+      "alternatives_rejected": [
+        "重要 entity だけ Phase 1 — 公開時にやり直し漏れ発生",
+        "dogfood は 1 ユーザーなので後回し — multi-tenant 開始時に間に合わない"
+      ],
+      "tradeoffs": "18 task × 4h = 9 人日だが Claude 並列で 4h"
+    },
+    {
+      "id": "D-V3-05",
+      "topic": "命名ドリフト解消",
+      "decision": "DB を spec 側に合わせる (`bf_*` prefix 廃止 / PascalCase entity ↔ snake_case table 1:1)",
+      "rationale": "v1 では entity と table 名が一致せず、新規開発者の混乱と検索可能性低下を招いていた。lint #19 で構造的検出。",
+      "alternatives_rejected": [
+        "spec を DB 側に合わせる — entity 名が不細工",
+        "alias で両方残す — 永続的な複雑さ"
+      ],
+      "tradeoffs": "10 task の rename migration が必要。Claude 並列で 4h"
+    },
+    {
+      "id": "D-V3-06",
+      "topic": "並列実行設計",
+      "decision": "依存 DAG から動的計算した 7 wave 構成。30-50 並列 Claude session で 2 日完走。",
+      "rationale": "v2 の固定 Slice × Wave 構造では gap 検知できなかった。依存 DAG ベースなら最適並列度を保証。",
+      "alternatives_rejected": [
+        "Sequential — 86 人日かかる",
+        "v2 Slice 継承 — 8 群固定で柔軟性無し"
+      ],
+      "tradeoffs": "wave 設計の事前計算コスト、しかし DAG は機械的に decide できる"
+    },
+    {
+      "id": "D-V3-07",
+      "topic": "Group H (audit retrofit) の粒度",
+      "decision": "1:1 展開 (集約 12 件 → 99 件、各 1 task = 1 v1 task の audit MD 執筆)",
+      "rationale": "集約タスクでは個々の v1 task の audit 漏れを検出できない。1:1 で展開して各 audit MD を validate-audit-md.py で個別検証することで漏れゼロ保証。",
+      "alternatives_rejected": [
+        "集約 12 件のまま — audit の個別 retrofit が漏れる"
+      ],
+      "tradeoffs": "task 数が +87 件増えるが、各 task は ~1h なので合計 ~99h、Claude 並列で 2-3h"
+    },
+    {
+      "id": "D-V3-08",
+      "topic": "scripts/generate-audit-mds.py の廃止",
+      "decision": "auto-generated audit MD を禁止 / 廃止し、scripts/validate-audit-md.py を新設して generic 文言を検出 = fail",
+      "rationale": "v1 で 116 件の auto-generated audit MD が gap の隠れ蓑になった。手動執筆を強制することで品質保証。",
+      "alternatives_rejected": [
+        "auto-generated を改善 — 機械的に AC × impl 行範囲を生成するのは不可能"
+      ],
+      "tradeoffs": "audit MD 執筆に時間がかかるが、各 ~1h で Claude が代行可能"
+    },
+    {
+      "id": "D-V3-09",
+      "topic": "CI auto-merge gate",
+      "decision": "3-tier AC validator + lint 1-19 + pyright strict + coverage 70% + (UI なら lint #17 structural diff) を全 PR で必須。全 PASS なら手動 review 不要で auto-merge。",
+      "rationale": "211 task を 2 日で merge するには human review が律速。CI gate に置き換えて並列スループットを最大化。漏れは gate で検出。",
+      "alternatives_rejected": [
+        "human review 必須 — 律速、2 日不可能",
+        "gate なしで auto-merge — 漏れる"
+      ],
+      "tradeoffs": "gate の精度が品質を決める。lint #17-19 を Phase 0 で徹底実装する"
+    },
+    {
+      "id": "D-V3-10",
+      "topic": "v1 / v2 の保持",
+      "decision": "v1 (`docs/task-decomposition/2026-05-09_v1/`) と v2 (`docs/task-decomposition/2026-05-14_v2/`) は legacy 参照用にそのまま保持。v3 は `2026-05-15_v3/` に新規作成。",
+      "rationale": "legacy task ID への参照 (audit retrofit 等) を切らないため。",
+      "alternatives_rejected": [
+        "v1 削除 — legacy 参照が壊れる"
+      ],
+      "tradeoffs": "ファイル数が増えるが、historical record として有用"
+    }
+  ],
+  "research": {
+    "sources": [
+      {"url": "docs/REVIEW_REPORT_2026-05-14.md", "title": "Phase 9 honest review", "accessed_at": "2026-05-15"},
+      {"url": "docs/functional-breakdown/2026-05-09_v1/screens.json", "title": "43 screens spec", "accessed_at": "2026-05-15"},
+      {"url": "docs/functional-breakdown/2026-05-09_v1/entities.json", "title": "43 entities spec (rls_policies_count=43)", "accessed_at": "2026-05-15"},
+      {"url": "docs/audit/2026-05-13_v2/", "title": "v1 audit MDs (146 件)", "accessed_at": "2026-05-15"}
+    ],
+    "findings": [
+      "v1 の 187 task done フラグは regression のみで判定されており、structural / functional の検査が無かった",
+      "実画面の 49% (21/43) が drift or 未実装 — spec 徹底ができていなかった",
+      "AUTH (S-001〜S-005) が完全 unimplemented で backend router も無し / Supabase Auth に丸投げ前提が暗黙化",
+      "RLS policy が宣言 43 / 実装 ~15 で 28 件不足 — security gap",
+      "naming drift: PascalCase entity vs bf_ prefix table が併存 (10+ entities)",
+      "ai_employee_config / projects (legacy) / threads (legacy) 等の余剰テーブルが整理されていない",
+      "S-006 の画面に AI 社員システム由来の KPI が混入 (cross-project bleed)"
+    ],
+    "research_date": "2026-05-15"
+  },
+  "risk_flags": [
+    {
+      "task_id": "T-V3-INFRA-03",
+      "risk_type": "blocking",
+      "description": "lint #17 (mock-impl-diff) が他の全 frontend task の Done 判定に直結。これが遅れると Wave 2 以降全部止まる",
+      "mitigation": "Wave 0 の先頭に置く / 並列度を max にする / リファレンス実装 (1 画面分) を先に試す"
+    },
+    {
+      "task_id": "T-V3-AUTH-01",
+      "risk_type": "blocking",
+      "description": "AUTH login が無いと他全画面が認証無しでテストできない。Wave 1 のクリティカルパス",
+      "mitigation": "Wave 1 の先頭に置く / mock JWT で他 task 並列開発を許容"
+    },
+    {
+      "task_id": "T-V3-DRIFT-02",
+      "risk_type": "spec-content",
+      "description": "S-006 root rewrite は既存ユーザー (今 dogfood している人) に画面が変わる影響大",
+      "mitigation": "ADR-015 で明示 / ロールバック手順を用意"
+    },
+    {
+      "task_id": "T-V3-RENAME-*",
+      "risk_type": "data-loss",
+      "description": "bf_ rename migration で本番 DB に影響",
+      "mitigation": "Phase 2 (Wave 6) に配置 / 各 rename は ALTER TABLE RENAME (data 保持) / 事前 dump"
+    },
+    {
+      "task_id": "T-V3-AUDIT-*",
+      "risk_type": "tedium",
+      "description": "99 件の audit MD 執筆は単調作業で品質低下のリスク",
+      "mitigation": "validate-audit-md.py で generic 文言検出 / template に sub-clause × impl 行マッピング表必須"
+    }
+  ],
+  "task_patterns": [
+    {
+      "pattern_name": "3-tier AC 全 task 強制",
+      "applicable_to": "spec-driven SaaS development",
+      "description": "structural (UI 構造) / functional (Spec 機能) / regression (test) の 3 層で AC を分けることで漏れの種類別に検出可能になる"
+    },
+    {
+      "pattern_name": "mock-impl 自動 diff lint",
+      "applicable_to": "mock-first development with rich mock HTML",
+      "description": "mock の DOM 要素と実装の DOM 要素を h1 / KPI label / section h2 レベルで比較する lint を CI に組み込むことで cross-project bleed や drift を merge 前に検知"
+    },
+    {
+      "pattern_name": "screens.json → backend router 1:1 enforcement",
+      "applicable_to": "spec-first development with declared related_apis",
+      "description": "spec が宣言した API endpoint が backend に必ず存在することを lint で強制 (現存 backend を AST 解析して enumerate)"
+    },
+    {
+      "pattern_name": "auto-generated audit ban",
+      "applicable_to": "any project where audit MDs are evidence of done",
+      "description": "auto-generated audit は generic 文言を量産して gap を隠す。validate-audit-md.py で generic 検出 = fail にすることで手動執筆を強制"
+    }
+  ]
+}
