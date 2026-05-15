@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-063 検索結果 — Build-Factory</title>
+<meta name="bf-screen-id" content="S-063"><meta name="bf-screen-name" content="search_results"><meta name="bf-category" content="extras"><meta name="bf-status" content="wip"><meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>tailwind.config={theme:{extend:{colors:{eb:{50:'#f0faf5',100:'#d3f0e0',500:'#1a6648',600:'#155238',700:'#103e2a'}},fontFamily:{sans:['"Noto Sans JP"','sans-serif'],mono:['"JetBrains Mono"','monospace']}}}};</script>
+<style>body{font-family:'Noto Sans JP',sans-serif;line-height:1.7}.mono{font-family:'JetBrains Mono',monospace}.tabular{font-variant-numeric:tabular-nums}</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(8px);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+
+<aside class="w-[240px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-4 border-b border-eb-600"><div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div></div>
+  <nav class="flex-1 px-2 py-3 space-y-0.5">
+    <a href="../account/S-006-account-dashboard.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100 text-sm"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Account</a>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 bg-eb-600 font-semibold text-sm"><i data-lucide="search" class="w-4 h-4"></i> 検索結果</a>
+  </nav>
+</aside>
+
+<main class="flex-1 overflow-y-auto">
+  <div class="px-6 py-4 border-b border-slate-200 bg-white sticky top-0 z-10">
+    <div class="max-w-[1000px] flex items-center gap-3">
+      <div class="flex-1 relative"><i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="search" value="auth implementation" class="border border-slate-200 bg-white text-sm h-10 pl-9 pr-3 rounded-md w-full focus-visible:outline-none focus-visible:border-eb-500" /></div>
+      <button class="bg-eb-500 hover:bg-eb-600 text-white text-sm h-10 px-5 rounded-md font-semibold">検索</button>
+    </div>
+    <div class="text-xs text-slate-500 mt-2 max-w-[1000px]">「<strong>auth implementation</strong>」の検索結果: <strong class="mono tabular">142 件</strong> (0.08 秒)</div>
+  </div>
+
+  <div class="max-w-[1000px] px-6 py-6 grid grid-cols-[200px_1fr] gap-6">
+    <!-- Filter sidebar -->
+    <aside class="text-sm space-y-4">
+      <div>
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">カテゴリ</div>
+        <label class="flex items-center gap-2 py-1 cursor-pointer"><input type="checkbox" checked class="accent-eb-500" /><span>Tasks <span class="text-slate-500 mono">42</span></span></label>
+        <label class="flex items-center gap-2 py-1 cursor-pointer"><input type="checkbox" checked class="accent-eb-500" /><span>Specs <span class="text-slate-500 mono">38</span></span></label>
+        <label class="flex items-center gap-2 py-1 cursor-pointer"><input type="checkbox" checked class="accent-eb-500" /><span>Code <span class="text-slate-500 mono">28</span></span></label>
+        <label class="flex items-center gap-2 py-1 cursor-pointer"><input type="checkbox" class="accent-eb-500" /><span>Audit Logs <span class="text-slate-500 mono">22</span></span></label>
+        <label class="flex items-center gap-2 py-1 cursor-pointer"><input type="checkbox" class="accent-eb-500" /><span>Comments <span class="text-slate-500 mono">12</span></span></label>
+      </div>
+      <div>
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">案件</div>
+        <label class="flex items-center gap-2 py-1 cursor-pointer"><input type="checkbox" checked class="accent-eb-500" /><span>Build-Factory <span class="text-slate-500 mono">87</span></span></label>
+        <label class="flex items-center gap-2 py-1 cursor-pointer"><input type="checkbox" class="accent-eb-500" /><span>ABC 社 <span class="text-slate-500 mono">32</span></span></label>
+        <label class="flex items-center gap-2 py-1 cursor-pointer"><input type="checkbox" class="accent-eb-500" /><span>XYZ 社 <span class="text-slate-500 mono">15</span></span></label>
+      </div>
+      <div>
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">日付</div>
+        <select class="border border-slate-200 text-xs h-8 px-2 rounded-md w-full"><option>全期間</option><option>過去 7 日</option><option>過去 30 日</option></select>
+      </div>
+    </aside>
+
+    <!-- Results -->
+    <div class="space-y-3">
+      <div class="bg-white border border-slate-200 rounded-lg p-4 hover:border-eb-500 cursor-pointer">
+        <div class="flex items-center gap-2 mb-1"><span class="text-[10px] bg-eb-50 text-eb-700 border border-eb-200 px-1.5 py-0.5 rounded-full font-medium mono">Task</span><span class="mono text-xs text-eb-500 font-semibold">T-V3-AUTH-01</span><span class="text-[11px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">done</span></div>
+        <h3 class="text-base font-bold hover:text-eb-500">POST /api/<mark class="bg-eb-100 text-eb-700 rounded px-0.5">auth</mark>/login の<mark class="bg-eb-100 text-eb-700 rounded px-0.5">implementation</mark></h3>
+        <p class="text-sm text-slate-600 mt-1 line-clamp-2">JWT + refresh_token cookie / 401 generic / rate limit / MFA challenge. Build-Factory dogfood で devon が完了。</p>
+        <div class="text-[11px] text-slate-500 mono mt-2">Build-Factory · 2 min ago</div>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-lg p-4 hover:border-eb-500 cursor-pointer">
+        <div class="flex items-center gap-2 mb-1"><span class="text-[10px] bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded-full font-medium mono">Spec</span><span class="text-xs text-slate-500 mono">requirements / M-1</span></div>
+        <h3 class="text-base font-bold hover:text-eb-500">M-1: <mark class="bg-eb-100 text-eb-700 rounded px-0.5">認証</mark> (Auth)</h3>
+        <p class="text-sm text-slate-600 mt-1 line-clamp-2">email + password で signup / login。MFA (TOTP) / OAuth (Anthropic, Google, GitHub) を サポート。AC-M1-1〜AC-M1-5 を満たすこと。</p>
+        <div class="text-[11px] text-slate-500 mono mt-2">Build-Factory · 2 days ago</div>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-lg p-4 hover:border-eb-500 cursor-pointer">
+        <div class="flex items-center gap-2 mb-1"><span class="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded-full font-medium mono">Code</span><span class="text-xs text-slate-500 mono">backend/routers/auth.py:42-58</span></div>
+        <h3 class="text-base font-bold hover:text-eb-500">async def login(payload: LoginRequest) -> TokenResponse:</h3>
+        <pre class="bg-slate-50 border border-slate-200 rounded-md p-3 mt-2 text-xs mono leading-relaxed overflow-x-auto text-slate-700">@router.post("/login")
+async def <mark class="bg-eb-100 text-eb-700 rounded px-0.5">auth_login</mark>(payload: LoginRequest):
+    user = await users.verify(payload.email, payload.password)
+    ...</pre>
+        <div class="text-[11px] text-slate-500 mono mt-2">Build-Factory · backend · 5 min ago</div>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-lg p-4 hover:border-eb-500 cursor-pointer">
+        <div class="flex items-center gap-2 mb-1"><span class="text-[10px] bg-eb-50 text-eb-700 border border-eb-200 px-1.5 py-0.5 rounded-full font-medium mono">Task</span><span class="mono text-xs text-eb-500 font-semibold">T-V3-AUTH-02</span><span class="text-[11px] bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full">running</span></div>
+        <h3 class="text-base font-bold hover:text-eb-500">POST /api/<mark class="bg-eb-100 text-eb-700 rounded px-0.5">auth</mark>/signup 実装</h3>
+        <p class="text-sm text-slate-600 mt-1 line-clamp-2">email + password + display_name で User + Account + AccountMember を 1 transaction で作成。</p>
+        <div class="text-[11px] text-slate-500 mono mt-2">Build-Factory · devon · 12 min ago</div>
+      </div>
+
+      <div class="text-center text-xs text-slate-500 py-4">残り 138 件 · <button class="text-eb-500 hover:text-eb-600 font-semibold">さらに表示 →</button></div>
+    </div>
+  </div>
+</main>
+<script>lucide.createIcons();</script>
+</body></html>
