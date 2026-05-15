@@ -40,10 +40,12 @@
 | **E. 未実装 20 画面** | S-008/010/011/015/020/021/022/023/024/025/030/033/037/042/043 + 6 endpoint | 20 |
 | **F. 既存 22 画面 REFACTOR** | R-1〜R-4 適用 (3-tier AC / mock-impl 一致 / RLS / pyright strict) | 22 |
 | **G. 確定 gap 4 件** | T-008-04 / T-013-04b / T-007-03b / T-BTSTRAP-04 完了 | 4 |
-| **H. 怪しい 63 件 検証 + audit retrofit 36 件** | v1 で done フラグが立った疑惑タスクの再検証 + audit MD 手動執筆 | 12 (集約) |
+| **H. v1 freeze 宣言** | v3 が新 source of truth / v1 legacy audit 1:1 retrofit は構造的に不要と明示 (T-V3-AUDIT-SUMMARY) | 1 |
 | **I. 余剰整理** | ai_employee_config / projects (legacy) / threads (legacy) / bf_features / bf_mocks の整理 | 5 |
 | **J. 命名 migration** | bf_ prefix 廃止 (10 件のテーブル rename + ORM 修正) | 10 |
-| 合計 | | **約 129** |
+| 合計 | | **113** |
+
+> **2026-05-15 修正**: Group H を 99 件 1:1 retrofit から 1 件集約に圧縮。理由: v3 CI gates (lint #17-19 + 3-tier AC validator + verify-rls-coverage + validate-audit-md) で構造的に漏れ防止できるため、v1 legacy audit の再構築は不要 = 「audit on audit」の地獄パターン回避。
 
 ## Phase 分け
 

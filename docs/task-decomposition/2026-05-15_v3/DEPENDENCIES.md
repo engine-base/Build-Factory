@@ -7,12 +7,14 @@
 
 | 指標 | 値 |
 |---|---|
-| 総 task 数 | 211 |
-| 総工数 | 689 hour (~86 person-day @ 8h) |
-| Claude Code セッション換算 | 252 セッション |
+| 総 task 数 | **113** (2026-05-15 Group H 集約後) |
+| 総工数 | **594 hour** (~74 person-day @ 8h) |
+| Claude Code セッション換算 | **154 セッション** |
 | Phase 0 (gate 整備) | 8 task |
 | Phase 1 (Phase 1 dogfood 必須) | 89 task |
-| Phase 2 (公開前完成) | 114 task |
+| Phase 2 (公開前完成) | 16 task (cleanup + rename + v1 freeze 宣言) |
+
+> Group H が 99 → 1 件 (T-V3-AUDIT-SUMMARY) に圧縮されたため、Wave 5 は短縮されて Day 2 昼が空く。Day 2 で完走可能 (元 2 日計画より 0.5 日短縮)。
 
 ## 2 日で完走するための前提
 

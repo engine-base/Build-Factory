@@ -608,29 +608,26 @@ T-BTSTRAP-01 T-BTSTRAP-02 T-BTSTRAP-03 T-AI-MEM-04
 T-001-09b T-002-02 T-005b-04""".split()
 MISSING_AUDIT_V1 = sorted(set(MISSING_AUDIT_V1))[:36]
 
-GROUP_H = []
-for i, v1id in enumerate(SUSPICIOUS_V1, 1):
-    GROUP_H.append(task(
-        f"T-V3-AUDIT-S{i:02d}", f"v1 {v1id} 再検証 (怪しい 63 件)",
-        "audit", "FIX", [], [], [],
-        v1id, 2, 5, 1, 1, ["T-V3-INFRA-06"],
-        [f"docs/audit/2026-05-15_v3/T-V3-AUDIT-S{i:02d}.md"],
-        ac(functional=[
-            f"EVENT-DRIVEN: When auditing {v1id}, the auditor shall locate the implementation file (or confirm absence) and the test file (or confirm absence).",
-            f"UBIQUITOUS: The audit MD shall record: (a) the v1 spec AC verbatim, (b) which AC sub-clauses are covered by which impl line range, (c) any gap, (d) decision DONE / BLOCKED / GAP.",
-            "UNWANTED: If generic template language is detected, the audit shall fail validation."
-        ])))
-
-for i, v1id in enumerate(MISSING_AUDIT_V1, 1):
-    GROUP_H.append(task(
-        f"T-V3-AUDIT-M{i:02d}", f"v1 {v1id} audit MD 新規執筆 (audit 不在 36 件)",
-        "audit", "FIX", [], [], [],
-        v1id, 2, 5, 1, 1, ["T-V3-INFRA-06"],
-        [f"docs/audit/2026-05-15_v3/T-V3-AUDIT-M{i:02d}.md"],
-        ac(functional=[
-            f"UBIQUITOUS: A new audit MD shall be created for v1 {v1id} following the strict 3-tier format.",
-            "UNWANTED: If the audit MD uses any generic template language, it shall fail validate-audit-md.py."
-        ])))
+# Group H 削減 (2026-05-15 PM 判断):
+# v3 が新 source of truth なので v1 legacy audit を 1:1 retrofit する必要無し。
+# 99 task を 1 task に集約し、v1 freeze 宣言を REVIEW_REPORT で明記する形にする。
+# 過剰な「audit on audit」の地獄パターンを構造的に回避。
+GROUP_H = [
+    task("T-V3-AUDIT-SUMMARY",
+         "v1 legacy freeze 宣言 + v3 移行レポート起票",
+         "doc", "ARCHIVE",
+         [], [], [],
+         None, 2, 5, 4, 1,
+         ["T-V3-INFRA-06"],
+         ["docs/REVIEW_REPORT_2026-05-16_v3_migration.md"],
+         ac(functional=[
+             "UBIQUITOUS: The report shall declare v1 (docs/task-decomposition/2026-05-09_v1/) as FROZEN; no further updates allowed.",
+             "UBIQUITOUS: The report shall confirm that v3 is the new single source of truth, with all v1 spec gaps (21 drift/未実装画面 + 8 API gap + 28 RLS不足 + 4 確定gap + 5 surplus + 10 命名drift) covered by v3 tasks T-V3-INFRA-* / T-V3-AUTH-* / T-V3-DB-* / T-V3-RLS-* / T-V3-DRIFT-* / T-V3-SCR-* / T-V3-RF-* / T-V3-FIX-* / T-V3-CLEANUP-* / T-V3-RENAME-*.",
+             "UBIQUITOUS: The report shall explicitly drop the 99-task 1:1 audit retrofit (v1 怪しい 63件 + v1 audit 不在 36件) with rationale: v3 CI gates (lint #17-19 + 3-tier AC validator + verify-rls-coverage + validate-audit-md) provide structural leakage prevention without recursive auditing.",
+             "UBIQUITOUS: The report shall list the 4 v1 confirmed gaps (T-008-04 / T-013-04b / T-007-03b / T-BTSTRAP-04) and their v3 mapping (T-V3-FIX-01..04)."
+         ]),
+         notes="v1 legacy の audit 履歴は freeze。v3 が新規 task で全 gap を直接潰すため、過去 audit の再構築は不要。")
+]
 
 
 # ============================================================
