@@ -6,8 +6,6 @@
 <title>Build-Factory v3 — Mock Index (5/64)</title>
 <meta name="bf-doc-type" content="mock-index">
 <meta name="bf-version" content="v3">
-<meta name="bf-total-screens" content="64">
-<meta name="bf-done-count" content="5">
 
 <script src="https://unpkg.com/lucide@latest"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,749 +18,1019 @@
     font-family: 'Noto Sans JP', sans-serif;
     background: #f8fafc; color: #0f172a;
     line-height: 1.7;
-    height: 100vh; overflow: hidden;
+    min-height: 100vh;
   }
   .mono { font-family: 'JetBrains Mono', monospace; }
 
   .topbar {
-    height: 48px; background: #fff;
+    background: #fff;
     border-bottom: 1px solid #e2e8f0;
-    display: flex; align-items: center;
-    padding: 0 12px; gap: 8px;
-    position: relative; z-index: 30;
+    padding: 12px 16px;
+    position: sticky; top: 0; z-index: 10;
   }
-  .menu-btn {
-    display: none;
-    width: 32px; height: 32px;
-    background: transparent; border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    cursor: pointer; padding: 0;
-    align-items: center; justify-content: center;
-    color: #475569;
+  .topbar-inner {
+    max-width: 1400px; margin: 0 auto;
+    display: flex; align-items: center; gap: 12px;
+    flex-wrap: wrap;
   }
-  .menu-btn:hover { background: #f8fafc; }
-  .brand { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .brand { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
   .brand-icon {
-    width: 24px; height: 24px; background: #1a6648;
-    border-radius: 6px; flex-shrink: 0;
+    width: 28px; height: 28px; background: #1a6648;
+    border-radius: 6px;
     display: flex; align-items: center; justify-content: center;
     color: #fff;
   }
-  .brand-title { font-size: 13px; font-weight: 700; white-space: nowrap; }
-  .brand-meta { font-size: 11px; color: #64748b; font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
-  .progress-info { margin-left: auto; font-size: 11px; color: #475569; flex-shrink: 0; white-space: nowrap; }
+  .brand-title { font-size: 14px; font-weight: 700; }
+  .brand-meta { font-size: 11px; color: #64748b; font-family: 'JetBrains Mono', monospace; }
+
+  .progress {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: #475569;
+  }
+  .progress strong { font-size: 14px; color: #0f172a; font-family: 'JetBrains Mono', monospace; }
   .progress-bar {
-    width: 80px; height: 4px;
+    width: 120px; height: 6px;
     background: #e2e8f0; border-radius: 9999px;
-    overflow: hidden; margin: 0 6px;
-    display: inline-block; vertical-align: middle;
+    overflow: hidden;
   }
   .progress-fill {
     height: 100%; background: #1a6648;
     border-radius: 9999px;
     width: 8%;
+    transition: width 0.3s;
   }
 
   .container {
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    height: calc(100vh - 48px);
-    position: relative;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px 16px 64px;
   }
 
-  .sidebar {
+  .intro {
     background: #fff;
-    border-right: 1px solid #e2e8f0;
-    overflow-y: auto;
-    padding: 8px 0;
-    z-index: 20;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  .intro h1 {
+    font-size: 20px; font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .intro p {
+    font-size: 13px; color: #475569;
+    line-height: 1.7;
+  }
+  .intro .legend {
+    display: flex; gap: 16px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; color: #475569;
   }
 
-  /* Sidebar overlay backdrop (mobile only) */
-  .sidebar-backdrop {
-    display: none;
-    position: fixed;
-    inset: 48px 0 0 0;
-    background: rgba(15, 23, 42, 0.4);
-    z-index: 15;
+  .cat-section {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    overflow: hidden;
   }
-
-  .cat-group { border-bottom: 1px solid #f1f5f9; }
   .cat-header {
-    width: 100%; background: transparent; border: none;
-    padding: 10px 14px;
+    padding: 12px 16px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
     display: flex; align-items: center; gap: 8px;
-    cursor: pointer; font-family: inherit;
-    font-size: 11px; font-weight: 700;
-    letter-spacing: 0.05em; text-transform: uppercase;
-    color: #475569;
   }
-  .cat-header:hover { background: #f8fafc; }
-  .cat-label { flex: 1; text-align: left; }
+  .cat-title {
+    display: flex; align-items: center; gap: 8px;
+    flex: 1;
+    font-size: 13px; font-weight: 700;
+    color: #1a6648;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
   .cat-count {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; color: #64748b;
-    background: #f1f5f9; padding: 1px 6px;
+    font-size: 11px; color: #64748b;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    padding: 2px 8px;
     border-radius: 9999px;
-    text-transform: none; letter-spacing: 0;
   }
-  .cat-chevron { transition: transform 0.15s; color: #94a3b8; }
-  .cat-group.collapsed .cat-chevron { transform: rotate(-90deg); }
-  .cat-group.collapsed .cat-screens { display: none; }
 
-  .cat-screens { padding: 2px 0 6px; }
-  .screen-item {
-    width: 100%; background: transparent; border: none;
-    padding: 9px 14px 9px 28px;
-    display: flex; align-items: center; gap: 8px;
-    cursor: pointer; font-family: inherit;
-    font-size: 13px; color: #475569; text-align: left;
+  .screen-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 8px;
+    padding: 12px;
   }
-  .screen-item:hover { background: #f8fafc; color: #0f172a; }
-  .screen-item.active { background: #f0faf5; color: #1a6648; font-weight: 600; }
-  .screen-item.active .screen-id { color: #1a6648; }
-  .status-dot { width: 6px; height: 6px; border-radius: 9999px; flex-shrink: 0; }
+
+  .screen-card {
+    display: flex; flex-direction: column;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 12px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.15s;
+    min-height: 90px;
+  }
+  .screen-card.screen-done:hover {
+    border-color: #1a6648;
+    background: #f0faf5;
+    transform: translateY(-1px);
+  }
+  .screen-card.screen-todo {
+    background: #f8fafc;
+    border-style: dashed;
+    cursor: default;
+    opacity: 0.7;
+  }
+  .screen-card-head {
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 6px;
+  }
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 9999px;
+    flex-shrink: 0;
+  }
   .status-ok { background: #16a34a; }
   .status-todo { background: #cbd5e1; }
   .screen-id {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; color: #94a3b8;
-    width: 36px; flex-shrink: 0;
+    font-size: 11px; color: #64748b;
+    font-weight: 600;
   }
-  .screen-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-  .main { display: flex; flex-direction: column; background: #f8fafc; min-width: 0; }
-  .preview-toolbar {
-    background: #fff; border-bottom: 1px solid #e2e8f0;
-    padding: 8px 12px;
-    display: flex; align-items: center; gap: 8px;
-    height: 40px;
+  .screen-card-name {
+    font-size: 14px; font-weight: 600;
+    color: #0f172a;
+    line-height: 1.4;
+    margin-bottom: auto;
+    padding-bottom: 8px;
   }
-  .preview-info { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #475569; min-width: 0; flex: 1; }
-  .preview-id { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #1a6648; font-weight: 600; flex-shrink: 0; }
-  .preview-info > span:not(.preview-id) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .open-link {
-    font-size: 11px; color: #1a6648; text-decoration: none;
-    padding: 4px 8px; border: 1px solid #e2e8f0;
-    border-radius: 4px;
+  .screen-todo .screen-card-name { color: #64748b; }
+  .screen-card-cta {
     display: inline-flex; align-items: center; gap: 4px;
-    flex-shrink: 0;
+    font-size: 12px;
+    color: #1a6648;
+    font-weight: 600;
+    margin-top: 8px;
   }
-  .open-link:hover { background: #f0faf5; }
-
-  .preview-frame { flex: 1; border: none; width: 100%; background: #fff; }
-
-  .empty-state {
-    flex: 1;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    color: #94a3b8; text-align: center; padding: 32px;
+  .cta-todo {
+    color: #94a3b8;
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 10px;
+    align-self: flex-start;
+    margin-top: 4px;
   }
-  .empty-state .icon-box {
-    width: 64px; height: 64px;
-    border-radius: 12px; background: #f1f5f9;
-    display: flex; align-items: center; justify-content: center;
-    margin-bottom: 16px;
-  }
-  .empty-state h3 { font-size: 14px; font-weight: 600; color: #0f172a; margin-bottom: 4px; }
-  .empty-state p { font-size: 13px; color: #64748b; }
 
-  /* === Mobile: sidebar becomes drawer === */
-  @media (max-width: 768px) {
-    .menu-btn { display: flex; }
+  @media (max-width: 640px) {
+    .container { padding: 16px 12px 48px; }
+    .topbar { padding: 10px 12px; }
     .brand-meta { display: none; }
-    .container {
-      grid-template-columns: 1fr;
-    }
-    .sidebar {
-      position: fixed;
-      top: 48px; left: 0; bottom: 0;
-      width: 88vw; max-width: 320px;
-      transform: translateX(-100%);
-      transition: transform 0.2s ease-out;
-      box-shadow: 4px 0 16px rgba(0,0,0,0.08);
-    }
-    .sidebar.open { transform: translateX(0); }
-    .sidebar-backdrop.open { display: block; }
-    .progress-info strong { font-size: 13px; }
+    .progress { width: 100%; order: 3; }
+    .progress-bar { flex: 1; width: auto; }
+    .screen-grid { grid-template-columns: 1fr; gap: 8px; padding: 10px; }
+    .screen-card { min-height: auto; padding: 10px; }
   }
 </style>
 </head>
 <body>
 
 <header class="topbar">
-  <button class="menu-btn" id="menu-btn" onclick="toggleSidebar()" aria-label="メニュー">
-    <i data-lucide="menu" class="w-4 h-4"></i>
-  </button>
-  <div class="brand">
-    <div class="brand-icon"><i data-lucide="factory" class="w-3.5 h-3.5"></i></div>
-    <span class="brand-title">Build-Factory</span>
-    <span class="brand-meta">v3 Mock Index</span>
-  </div>
-  <div class="progress-info">
-    <strong>5</strong>/64
-    <span class="progress-bar"><span class="progress-fill"></span></span>
-    8%
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-icon"><i data-lucide="factory" class="w-3.5 h-3.5"></i></div>
+      <span class="brand-title">Build-Factory</span>
+      <span class="brand-meta">v3 Mock Index</span>
+    </div>
+    <div class="progress">
+      <strong>5</strong>
+      <span style="color:#cbd5e1;">/</span>
+      <span>64</span>
+      <span class="progress-bar"><span class="progress-fill"></span></span>
+      <span class="mono" style="font-size:11px; color:#64748b;">8%</span>
+    </div>
   </div>
 </header>
 
-<div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeSidebar()"></div>
-
 <div class="container">
-  <aside class="sidebar" id="sidebar">
-    
-        <div class="cat-group" data-cat-id="auth">
-          <button class="cat-header" onclick="toggleCat('auth')">
-            <i data-lucide="key-round" class="w-3.5 h-3.5"></i>
-            <span class="cat-label">AUTH / 認証</span>
-            <span class="cat-count">5/5</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
-          </button>
-          <div class="cat-screens">
-            <button class="screen-item" data-screen-id="S-001" data-file="auth/S-001-login.html" onclick="loadScreen('S-001')">
-              <span class="status-dot status-ok"></span>
-              <span class="screen-id mono">S-001</span>
-              <span class="screen-name">ログイン</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-002" data-file="auth/S-002-signup.html" onclick="loadScreen('S-002')">
-              <span class="status-dot status-ok"></span>
-              <span class="screen-id mono">S-002</span>
-              <span class="screen-name">サインアップ</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-003" data-file="auth/S-003-password-reset.html" onclick="loadScreen('S-003')">
-              <span class="status-dot status-ok"></span>
-              <span class="screen-id mono">S-003</span>
-              <span class="screen-name">パスワード再設定</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-004" data-file="auth/S-004-mfa-setup.html" onclick="loadScreen('S-004')">
-              <span class="status-dot status-ok"></span>
-              <span class="screen-id mono">S-004</span>
-              <span class="screen-name">MFA セットアップ</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-005" data-file="auth/S-005-oauth-callback.html" onclick="loadScreen('S-005')">
-              <span class="status-dot status-ok"></span>
-              <span class="screen-id mono">S-005</span>
-              <span class="screen-name">OAuth コールバック</span>
-            </button></div></div>
-        <div class="cat-group" data-cat-id="account">
-          <button class="cat-header" onclick="toggleCat('account')">
-            <i data-lucide="user-circle" class="w-3.5 h-3.5"></i>
-            <span class="cat-label">Account / アカウント横断</span>
-            <span class="cat-count">0/6</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
-          </button>
-          <div class="cat-screens">
-            <button class="screen-item" data-screen-id="S-006" data-file="" onclick="loadScreen('S-006')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-006</span>
-              <span class="screen-name">10 案件 俯瞰</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-007" data-file="" onclick="loadScreen('S-007')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-007</span>
-              <span class="screen-name">アカウント設定</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-008" data-file="" onclick="loadScreen('S-008')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-008</span>
-              <span class="screen-name">メンバー管理</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-009" data-file="" onclick="loadScreen('S-009')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-009</span>
-              <span class="screen-name">プロフィール設定</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-010" data-file="" onclick="loadScreen('S-010')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-010</span>
-              <span class="screen-name">通知 Inbox</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-011" data-file="" onclick="loadScreen('S-011')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-011</span>
-              <span class="screen-name">グローバル検索 (Cmd+K)</span>
-            </button></div></div>
-        <div class="cat-group" data-cat-id="workspace">
-          <button class="cat-header" onclick="toggleCat('workspace')">
-            <i data-lucide="briefcase" class="w-3.5 h-3.5"></i>
-            <span class="cat-label">Workspace / 案件</span>
-            <span class="cat-count">0/4</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
-          </button>
-          <div class="cat-screens">
-            <button class="screen-item" data-screen-id="S-012" data-file="" onclick="loadScreen('S-012')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-012</span>
-              <span class="screen-name">案件ダッシュボード</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-013" data-file="" onclick="loadScreen('S-013')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-013</span>
-              <span class="screen-name">案件設定</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-014" data-file="" onclick="loadScreen('S-014')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-014</span>
-              <span class="screen-name">案件メンバー</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-015" data-file="" onclick="loadScreen('S-015')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-015</span>
-              <span class="screen-name">メンバー招待</span>
-            </button></div></div>
-        <div class="cat-group" data-cat-id="moat-safety">
-          <button class="cat-header" onclick="toggleCat('moat-safety')">
-            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
-            <span class="cat-label">Moat / Safety / 護岸</span>
-            <span class="cat-count">0/5</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
-          </button>
-          <div class="cat-screens">
-            <button class="screen-item" data-screen-id="S-016" data-file="" onclick="loadScreen('S-016')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-016</span>
-              <span class="screen-name">フェーズ管理</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-017" data-file="" onclick="loadScreen('S-017')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-017</span>
-              <span class="screen-name">依存グラフ</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-018" data-file="" onclick="loadScreen('S-018')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-018</span>
-              <span class="screen-name">Constitution エディタ</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-019" data-file="" onclick="loadScreen('S-019')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-019</span>
-              <span class="screen-name">赤線設定</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-034" data-file="" onclick="loadScreen('S-034')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-034</span>
-              <span class="screen-name">赤線承認</span>
-            </button></div></div>
-        <div class="cat-group" data-cat-id="spec">
-          <button class="cat-header" onclick="toggleCat('spec')">
-            <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
-            <span class="cat-label">Spec / 仕様</span>
-            <span class="cat-count">0/7</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
-          </button>
-          <div class="cat-screens">
-            <button class="screen-item" data-screen-id="S-020" data-file="" onclick="loadScreen('S-020')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-020</span>
-              <span class="screen-name">ヒアリングセッション</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-021" data-file="" onclick="loadScreen('S-021')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-021</span>
-              <span class="screen-name">要件エディタ</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-022" data-file="" onclick="loadScreen('S-022')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-022</span>
-              <span class="screen-name">仕様書ビューア</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-023" data-file="" onclick="loadScreen('S-023')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-023</span>
-              <span class="screen-name">画面モックビューア</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-024" data-file="" onclick="loadScreen('S-024')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-024</span>
-              <span class="screen-name">コンポーネントカタログ</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-025" data-file="" onclick="loadScreen('S-025')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-025</span>
-              <span class="screen-name">画面遷移マップ</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-026" data-file="" onclick="loadScreen('S-026')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-026</span>
-              <span class="screen-name">HTML エディタ</span>
-            </button></div></div>
-        <div class="cat-group" data-cat-id="task-execution">
-          <button class="cat-header" onclick="toggleCat('task-execution')">
-            <i data-lucide="play-circle" class="w-3.5 h-3.5"></i>
-            <span class="cat-label">Task / Execution / 実行</span>
-            <span class="cat-count">0/6</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
-          </button>
-          <div class="cat-screens">
-            <button class="screen-item" data-screen-id="S-027" data-file="" onclick="loadScreen('S-027')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-027</span>
-              <span class="screen-name">タスク Kanban</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-028" data-file="" onclick="loadScreen('S-028')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-028</span>
-              <span class="screen-name">タスクリスト</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-029" data-file="" onclick="loadScreen('S-029')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-029</span>
-              <span class="screen-name">タスク DAG</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-030" data-file="" onclick="loadScreen('S-030')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-030</span>
-              <span class="screen-name">タスク詳細</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-031" data-file="" onclick="loadScreen('S-031')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-031</span>
-              <span class="screen-name">Swarm 並列実行</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-032" data-file="" onclick="loadScreen('S-032')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-032</span>
-              <span class="screen-name">Swarm セッション詳細</span>
-            </button></div></div>
-        <div class="cat-group" data-cat-id="review">
-          <button class="cat-header" onclick="toggleCat('review')">
-            <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
-            <span class="cat-label">Review / レビュー</span>
-            <span class="cat-count">0/2</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
-          </button>
-          <div class="cat-screens">
-            <button class="screen-item" data-screen-id="S-033" data-file="" onclick="loadScreen('S-033')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-033</span>
-              <span class="screen-name">PR レビュー</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-035" data-file="" onclick="loadScreen('S-035')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-035</span>
-              <span class="screen-name">納品承認</span>
-            </button></div></div>
-        <div class="cat-group" data-cat-id="ai-management">
-          <button class="cat-header" onclick="toggleCat('ai-management')">
-            <i data-lucide="bot" class="w-3.5 h-3.5"></i>
-            <span class="cat-label">AI 社員 / Skill</span>
-            <span class="cat-count">0/3</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
-          </button>
-          <div class="cat-screens">
-            <button class="screen-item" data-screen-id="S-036" data-file="" onclick="loadScreen('S-036')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-036</span>
-              <span class="screen-name">AI 社員 組織図</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-037" data-file="" onclick="loadScreen('S-037')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-037</span>
-              <span class="screen-name">AI 社員 詳細</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-038" data-file="" onclick="loadScreen('S-038')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-038</span>
-              <span class="screen-name">スキルマネージャ</span>
-            </button></div></div>
-        <div class="cat-group" data-cat-id="knowledge-ops">
-          <button class="cat-header" onclick="toggleCat('knowledge-ops')">
-            <i data-lucide="database" class="w-3.5 h-3.5"></i>
-            <span class="cat-label">Knowledge / Ops</span>
-            <span class="cat-count">0/3</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
-          </button>
-          <div class="cat-screens">
-            <button class="screen-item" data-screen-id="S-039" data-file="" onclick="loadScreen('S-039')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-039</span>
-              <span class="screen-name">ナレッジベース</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-040" data-file="" onclick="loadScreen('S-040')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-040</span>
-              <span class="screen-name">コスト ダッシュボード</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-041" data-file="" onclick="loadScreen('S-041')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-041</span>
-              <span class="screen-name">監査ログ</span>
-            </button></div></div>
-        <div class="cat-group" data-cat-id="client">
-          <button class="cat-header" onclick="toggleCat('client')">
-            <i data-lucide="users" class="w-3.5 h-3.5"></i>
-            <span class="cat-label">Client / クライアント</span>
-            <span class="cat-count">0/2</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
-          </button>
-          <div class="cat-screens">
-            <button class="screen-item" data-screen-id="S-042" data-file="" onclick="loadScreen('S-042')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-042</span>
-              <span class="screen-name">クライアントポータル</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-043" data-file="" onclick="loadScreen('S-043')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-043</span>
-              <span class="screen-name">クライアントコメント</span>
-            </button></div></div>
-        <div class="cat-group" data-cat-id="system">
-          <button class="cat-header" onclick="toggleCat('system')">
-            <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
-            <span class="cat-label">System / Error pages</span>
-            <span class="cat-count">0/4</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
-          </button>
-          <div class="cat-screens">
-            <button class="screen-item" data-screen-id="S-044" data-file="" onclick="loadScreen('S-044')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-044</span>
-              <span class="screen-name">404 Not Found</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-045" data-file="" onclick="loadScreen('S-045')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-045</span>
-              <span class="screen-name">500 Server Error</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-046" data-file="" onclick="loadScreen('S-046')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-046</span>
-              <span class="screen-name">403 Forbidden</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-047" data-file="" onclick="loadScreen('S-047')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-047</span>
-              <span class="screen-name">Maintenance</span>
-            </button></div></div>
-        <div class="cat-group" data-cat-id="onboarding">
-          <button class="cat-header" onclick="toggleCat('onboarding')">
-            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-            <span class="cat-label">Onboarding / 初回</span>
-            <span class="cat-count">0/3</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
-          </button>
-          <div class="cat-screens">
-            <button class="screen-item" data-screen-id="S-048" data-file="" onclick="loadScreen('S-048')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-048</span>
-              <span class="screen-name">ようこそ</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-049" data-file="" onclick="loadScreen('S-049')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-049</span>
-              <span class="screen-name">案件セットアップ</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-050" data-file="" onclick="loadScreen('S-050')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-050</span>
-              <span class="screen-name">AI 社員 紹介</span>
-            </button></div></div>
-        <div class="cat-group" data-cat-id="dialog">
-          <button class="cat-header" onclick="toggleCat('dialog')">
-            <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
-            <span class="cat-label">Modal / Dialog 共通</span>
-            <span class="cat-count">0/5</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
-          </button>
-          <div class="cat-screens">
-            <button class="screen-item" data-screen-id="S-051" data-file="" onclick="loadScreen('S-051')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-051</span>
-              <span class="screen-name">削除確認</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-052" data-file="" onclick="loadScreen('S-052')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-052</span>
-              <span class="screen-name">未保存警告</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-053" data-file="" onclick="loadScreen('S-053')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-053</span>
-              <span class="screen-name">MFA コード入力</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-054" data-file="" onclick="loadScreen('S-054')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-054</span>
-              <span class="screen-name">セッション切れ</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-055" data-file="" onclick="loadScreen('S-055')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-055</span>
-              <span class="screen-name">Danger Zone</span>
-            </button></div></div>
-        <div class="cat-group" data-cat-id="email">
-          <button class="cat-header" onclick="toggleCat('email')">
-            <i data-lucide="mail" class="w-3.5 h-3.5"></i>
-            <span class="cat-label">Email Templates</span>
-            <span class="cat-count">0/5</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
-          </button>
-          <div class="cat-screens">
-            <button class="screen-item" data-screen-id="S-056" data-file="" onclick="loadScreen('S-056')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-056</span>
-              <span class="screen-name">サインアップ確認メール</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-057" data-file="" onclick="loadScreen('S-057')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-057</span>
-              <span class="screen-name">パスワードリセットメール</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-058" data-file="" onclick="loadScreen('S-058')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-058</span>
-              <span class="screen-name">招待メール</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-059" data-file="" onclick="loadScreen('S-059')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-059</span>
-              <span class="screen-name">タスク通知メール</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-060" data-file="" onclick="loadScreen('S-060')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-060</span>
-              <span class="screen-name">週次サマリーメール</span>
-            </button></div></div>
-        <div class="cat-group" data-cat-id="export">
-          <button class="cat-header" onclick="toggleCat('export')">
-            <i data-lucide="printer" class="w-3.5 h-3.5"></i>
-            <span class="cat-label">Print / Export</span>
-            <span class="cat-count">0/2</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
-          </button>
-          <div class="cat-screens">
-            <button class="screen-item" data-screen-id="S-061" data-file="" onclick="loadScreen('S-061')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-061</span>
-              <span class="screen-name">仕様書 PDF</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-062" data-file="" onclick="loadScreen('S-062')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-062</span>
-              <span class="screen-name">納品レポート</span>
-            </button></div></div>
-        <div class="cat-group" data-cat-id="extras">
-          <button class="cat-header" onclick="toggleCat('extras')">
-            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-            <span class="cat-label">Extras (追加候補)</span>
-            <span class="cat-count">0/2</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 cat-chevron"></i>
-          </button>
-          <div class="cat-screens">
-            <button class="screen-item" data-screen-id="S-063" data-file="" onclick="loadScreen('S-063')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-063</span>
-              <span class="screen-name">検索結果</span>
-            </button>
-            <button class="screen-item" data-screen-id="S-064" data-file="" onclick="loadScreen('S-064')">
-              <span class="status-dot status-todo"></span>
-              <span class="screen-id mono">S-064</span>
-              <span class="screen-name">API トークン管理</span>
-            </button></div></div>
-  </aside>
+  <div class="intro">
+    <h1>v3 Mock 一覧 (5/64)</h1>
+    <p>
+      Build-Factory v3 のデザイン基盤に基づいた全画面モックの一覧です。
+      <strong>Done</strong> (緑) のカードをタップ / クリックすると個別の mock 画面に遷移します。
+      ブラウザの戻るボタンでこの一覧に戻れます。
+    </p>
+    <div class="legend">
+      <span class="legend-item"><span class="status-dot status-ok"></span>Done = 作成済み (タップで遷移)</span>
+      <span class="legend-item"><span class="status-dot status-todo"></span>Todo = 未作成</span>
+    </div>
+  </div>
 
-  <main class="main">
-    <div class="preview-toolbar">
-      <div class="preview-info" id="preview-info">
-        <span style="color:#94a3b8;">←</span> 左から画面を選択
-      </div>
-      <a id="preview-open-link" class="open-link" style="display:none;" target="_blank" rel="noopener">
-        <i data-lucide="external-link" class="w-3 h-3"></i>新規タブ
-      </a>
-    </div>
-    <iframe id="preview-frame" class="preview-frame" style="display:none;"></iframe>
-    <div id="empty-state" class="empty-state">
-      <div class="icon-box"><i data-lucide="layout" class="w-7 h-7" style="color:#64748b;"></i></div>
-      <h3>画面を選んでプレビュー</h3>
-      <p>左のサイドバーから画面 ID を選択すると、ここにモックが表示されます。</p>
-    </div>
-  </main>
+  
+    <section class="cat-section">
+      <header class="cat-header">
+        <div class="cat-title">
+          <i data-lucide="key-round" class="w-4 h-4"></i>
+          <span>AUTH / 認証</span>
+        </div>
+        <span class="cat-count">5/5</span>
+      </header>
+      <div class="screen-grid">
+        <a class="screen-card screen-done" href="auth/S-001-login.html">
+          <div class="screen-card-head">
+            <span class="status-dot status-ok"></span>
+            <span class="screen-id">S-001</span>
+          </div>
+          <div class="screen-card-name">ログイン</div>
+          <div class="screen-card-cta">
+            <span>開く</span>
+            <i data-lucide="arrow-right" class="w-3 h-3"></i>
+          </div>
+        </a>
+        <a class="screen-card screen-done" href="auth/S-002-signup.html">
+          <div class="screen-card-head">
+            <span class="status-dot status-ok"></span>
+            <span class="screen-id">S-002</span>
+          </div>
+          <div class="screen-card-name">サインアップ</div>
+          <div class="screen-card-cta">
+            <span>開く</span>
+            <i data-lucide="arrow-right" class="w-3 h-3"></i>
+          </div>
+        </a>
+        <a class="screen-card screen-done" href="auth/S-003-password-reset.html">
+          <div class="screen-card-head">
+            <span class="status-dot status-ok"></span>
+            <span class="screen-id">S-003</span>
+          </div>
+          <div class="screen-card-name">パスワード再設定</div>
+          <div class="screen-card-cta">
+            <span>開く</span>
+            <i data-lucide="arrow-right" class="w-3 h-3"></i>
+          </div>
+        </a>
+        <a class="screen-card screen-done" href="auth/S-004-mfa-setup.html">
+          <div class="screen-card-head">
+            <span class="status-dot status-ok"></span>
+            <span class="screen-id">S-004</span>
+          </div>
+          <div class="screen-card-name">MFA セットアップ</div>
+          <div class="screen-card-cta">
+            <span>開く</span>
+            <i data-lucide="arrow-right" class="w-3 h-3"></i>
+          </div>
+        </a>
+        <a class="screen-card screen-done" href="auth/S-005-oauth-callback.html">
+          <div class="screen-card-head">
+            <span class="status-dot status-ok"></span>
+            <span class="screen-id">S-005</span>
+          </div>
+          <div class="screen-card-name">OAuth コールバック</div>
+          <div class="screen-card-cta">
+            <span>開く</span>
+            <i data-lucide="arrow-right" class="w-3 h-3"></i>
+          </div>
+        </a></div></section>
+    <section class="cat-section">
+      <header class="cat-header">
+        <div class="cat-title">
+          <i data-lucide="user-circle" class="w-4 h-4"></i>
+          <span>Account / アカウント横断</span>
+        </div>
+        <span class="cat-count">0/6</span>
+      </header>
+      <div class="screen-grid">
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-006</span>
+          </div>
+          <div class="screen-card-name">10 案件 俯瞰</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-007</span>
+          </div>
+          <div class="screen-card-name">アカウント設定</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-008</span>
+          </div>
+          <div class="screen-card-name">メンバー管理</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-009</span>
+          </div>
+          <div class="screen-card-name">プロフィール設定</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-010</span>
+          </div>
+          <div class="screen-card-name">通知 Inbox</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-011</span>
+          </div>
+          <div class="screen-card-name">グローバル検索 (Cmd+K)</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div></div></section>
+    <section class="cat-section">
+      <header class="cat-header">
+        <div class="cat-title">
+          <i data-lucide="briefcase" class="w-4 h-4"></i>
+          <span>Workspace / 案件</span>
+        </div>
+        <span class="cat-count">0/4</span>
+      </header>
+      <div class="screen-grid">
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-012</span>
+          </div>
+          <div class="screen-card-name">案件ダッシュボード</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-013</span>
+          </div>
+          <div class="screen-card-name">案件設定</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-014</span>
+          </div>
+          <div class="screen-card-name">案件メンバー</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-015</span>
+          </div>
+          <div class="screen-card-name">メンバー招待</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div></div></section>
+    <section class="cat-section">
+      <header class="cat-header">
+        <div class="cat-title">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          <span>Moat / Safety / 護岸</span>
+        </div>
+        <span class="cat-count">0/5</span>
+      </header>
+      <div class="screen-grid">
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-016</span>
+          </div>
+          <div class="screen-card-name">フェーズ管理</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-017</span>
+          </div>
+          <div class="screen-card-name">依存グラフ</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-018</span>
+          </div>
+          <div class="screen-card-name">Constitution エディタ</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-019</span>
+          </div>
+          <div class="screen-card-name">赤線設定</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-034</span>
+          </div>
+          <div class="screen-card-name">赤線承認</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div></div></section>
+    <section class="cat-section">
+      <header class="cat-header">
+        <div class="cat-title">
+          <i data-lucide="file-text" class="w-4 h-4"></i>
+          <span>Spec / 仕様</span>
+        </div>
+        <span class="cat-count">0/7</span>
+      </header>
+      <div class="screen-grid">
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-020</span>
+          </div>
+          <div class="screen-card-name">ヒアリングセッション</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-021</span>
+          </div>
+          <div class="screen-card-name">要件エディタ</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-022</span>
+          </div>
+          <div class="screen-card-name">仕様書ビューア</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-023</span>
+          </div>
+          <div class="screen-card-name">画面モックビューア</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-024</span>
+          </div>
+          <div class="screen-card-name">コンポーネントカタログ</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-025</span>
+          </div>
+          <div class="screen-card-name">画面遷移マップ</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-026</span>
+          </div>
+          <div class="screen-card-name">HTML エディタ</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div></div></section>
+    <section class="cat-section">
+      <header class="cat-header">
+        <div class="cat-title">
+          <i data-lucide="play-circle" class="w-4 h-4"></i>
+          <span>Task / Execution / 実行</span>
+        </div>
+        <span class="cat-count">0/6</span>
+      </header>
+      <div class="screen-grid">
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-027</span>
+          </div>
+          <div class="screen-card-name">タスク Kanban</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-028</span>
+          </div>
+          <div class="screen-card-name">タスクリスト</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-029</span>
+          </div>
+          <div class="screen-card-name">タスク DAG</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-030</span>
+          </div>
+          <div class="screen-card-name">タスク詳細</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-031</span>
+          </div>
+          <div class="screen-card-name">Swarm 並列実行</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-032</span>
+          </div>
+          <div class="screen-card-name">Swarm セッション詳細</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div></div></section>
+    <section class="cat-section">
+      <header class="cat-header">
+        <div class="cat-title">
+          <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+          <span>Review / レビュー</span>
+        </div>
+        <span class="cat-count">0/2</span>
+      </header>
+      <div class="screen-grid">
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-033</span>
+          </div>
+          <div class="screen-card-name">PR レビュー</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-035</span>
+          </div>
+          <div class="screen-card-name">納品承認</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div></div></section>
+    <section class="cat-section">
+      <header class="cat-header">
+        <div class="cat-title">
+          <i data-lucide="bot" class="w-4 h-4"></i>
+          <span>AI 社員 / Skill</span>
+        </div>
+        <span class="cat-count">0/3</span>
+      </header>
+      <div class="screen-grid">
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-036</span>
+          </div>
+          <div class="screen-card-name">AI 社員 組織図</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-037</span>
+          </div>
+          <div class="screen-card-name">AI 社員 詳細</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-038</span>
+          </div>
+          <div class="screen-card-name">スキルマネージャ</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div></div></section>
+    <section class="cat-section">
+      <header class="cat-header">
+        <div class="cat-title">
+          <i data-lucide="database" class="w-4 h-4"></i>
+          <span>Knowledge / Ops</span>
+        </div>
+        <span class="cat-count">0/3</span>
+      </header>
+      <div class="screen-grid">
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-039</span>
+          </div>
+          <div class="screen-card-name">ナレッジベース</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-040</span>
+          </div>
+          <div class="screen-card-name">コスト ダッシュボード</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-041</span>
+          </div>
+          <div class="screen-card-name">監査ログ</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div></div></section>
+    <section class="cat-section">
+      <header class="cat-header">
+        <div class="cat-title">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          <span>Client / クライアント</span>
+        </div>
+        <span class="cat-count">0/2</span>
+      </header>
+      <div class="screen-grid">
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-042</span>
+          </div>
+          <div class="screen-card-name">クライアントポータル</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-043</span>
+          </div>
+          <div class="screen-card-name">クライアントコメント</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div></div></section>
+    <section class="cat-section">
+      <header class="cat-header">
+        <div class="cat-title">
+          <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+          <span>System / Error pages</span>
+        </div>
+        <span class="cat-count">0/4</span>
+      </header>
+      <div class="screen-grid">
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-044</span>
+          </div>
+          <div class="screen-card-name">404 Not Found</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-045</span>
+          </div>
+          <div class="screen-card-name">500 Server Error</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-046</span>
+          </div>
+          <div class="screen-card-name">403 Forbidden</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-047</span>
+          </div>
+          <div class="screen-card-name">Maintenance</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div></div></section>
+    <section class="cat-section">
+      <header class="cat-header">
+        <div class="cat-title">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+          <span>Onboarding / 初回</span>
+        </div>
+        <span class="cat-count">0/3</span>
+      </header>
+      <div class="screen-grid">
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-048</span>
+          </div>
+          <div class="screen-card-name">ようこそ</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-049</span>
+          </div>
+          <div class="screen-card-name">案件セットアップ</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-050</span>
+          </div>
+          <div class="screen-card-name">AI 社員 紹介</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div></div></section>
+    <section class="cat-section">
+      <header class="cat-header">
+        <div class="cat-title">
+          <i data-lucide="message-square" class="w-4 h-4"></i>
+          <span>Modal / Dialog 共通</span>
+        </div>
+        <span class="cat-count">0/5</span>
+      </header>
+      <div class="screen-grid">
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-051</span>
+          </div>
+          <div class="screen-card-name">削除確認</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-052</span>
+          </div>
+          <div class="screen-card-name">未保存警告</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-053</span>
+          </div>
+          <div class="screen-card-name">MFA コード入力</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-054</span>
+          </div>
+          <div class="screen-card-name">セッション切れ</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-055</span>
+          </div>
+          <div class="screen-card-name">Danger Zone</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div></div></section>
+    <section class="cat-section">
+      <header class="cat-header">
+        <div class="cat-title">
+          <i data-lucide="mail" class="w-4 h-4"></i>
+          <span>Email Templates</span>
+        </div>
+        <span class="cat-count">0/5</span>
+      </header>
+      <div class="screen-grid">
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-056</span>
+          </div>
+          <div class="screen-card-name">サインアップ確認メール</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-057</span>
+          </div>
+          <div class="screen-card-name">パスワードリセットメール</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-058</span>
+          </div>
+          <div class="screen-card-name">招待メール</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-059</span>
+          </div>
+          <div class="screen-card-name">タスク通知メール</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-060</span>
+          </div>
+          <div class="screen-card-name">週次サマリーメール</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div></div></section>
+    <section class="cat-section">
+      <header class="cat-header">
+        <div class="cat-title">
+          <i data-lucide="printer" class="w-4 h-4"></i>
+          <span>Print / Export</span>
+        </div>
+        <span class="cat-count">0/2</span>
+      </header>
+      <div class="screen-grid">
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-061</span>
+          </div>
+          <div class="screen-card-name">仕様書 PDF</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-062</span>
+          </div>
+          <div class="screen-card-name">納品レポート</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div></div></section>
+    <section class="cat-section">
+      <header class="cat-header">
+        <div class="cat-title">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>Extras (追加候補)</span>
+        </div>
+        <span class="cat-count">0/2</span>
+      </header>
+      <div class="screen-grid">
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-063</span>
+          </div>
+          <div class="screen-card-name">検索結果</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div>
+        <div class="screen-card screen-todo">
+          <div class="screen-card-head">
+            <span class="status-dot status-todo"></span>
+            <span class="screen-id">S-064</span>
+          </div>
+          <div class="screen-card-name">API トークン管理</div>
+          <div class="screen-card-cta cta-todo">
+            <span>Todo</span>
+          </div>
+        </div></div></section>
 </div>
 
-<!-- Mock data: base64-encoded HTML strings, fully safe for HTML embed (no parser conflicts) -->
-<script type="application/json" id="bf-mocks">{"S-001":"PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImphIj4KPGhlYWQ+CjxtZXRhIGNoYXJzZXQ9IlVURi04Ij4KPG1ldGEgbmFtZT0idmlld3BvcnQiIGNvbnRlbnQ9IndpZHRoPWRldmljZS13aWR0aCwgaW5pdGlhbC1zY2FsZT0xLjAiPgo8dGl0bGU+Uy0wMDEg44Ot44Kw44Kk44OzIOKAlCBCdWlsZC1GYWN0b3J5PC90aXRsZT4KCjwhLS0gdjMgcmVxdWlyZWQgbWV0YWRhdGEgLS0+CjxtZXRhIG5hbWU9ImJmLXNjcmVlbi1pZCIgY29udGVudD0iUy0wMDEiPgo8bWV0YSBuYW1lPSJiZi1zY3JlZW4tbmFtZSIgY29udGVudD0ibG9naW4iPgo8bWV0YSBuYW1lPSJiZi1jYXRlZ29yeSIgY29udGVudD0iYXV0aCI+CjxtZXRhIG5hbWU9ImJmLWZlYXR1cmUtaWQiIGNvbnRlbnQ9IkYtMDAxLEYtMDIxIj4KPG1ldGEgbmFtZT0iYmYtdGFzay1pZHMiIGNvbnRlbnQ9IlQtVjMtQVVUSC0wOCxULVYzLUFVVEgtMDEiPgo8bWV0YSBuYW1lPSJiZi1lbnRpdGllcyIgY29udGVudD0iRS0wMDEsRS0wMzgiPgo8bWV0YSBuYW1lPSJiZi1yZWxhdGVkLWFwaXMiIGNvbnRlbnQ9IlBPU1QgL2FwaS9hdXRoL2xvZ2luLFBPU1QgL2FwaS9hdXRoL21mYS92ZXJpZnkiPgo8bWV0YSBuYW1lPSJiZi1zcGVjLWxpbmsiIGNvbnRlbnQ9Ii4uLy4uLy4uL2Z1bmN0aW9uYWwtYnJlYWtkb3duLzIwMjYtMDUtMDlfdjEvc2NyZWVucy5qc29uI1MtMDAxIj4KPG1ldGEgbmFtZT0iYmYtZGVzaWduLWxpbmsiIGNvbnRlbnQ9Ii4uLy4uL2Rlc2lnbi1zeXN0ZW0vREVTSUdOLm1kIj4KPG1ldGEgbmFtZT0iYmYtc3RhdHVzIiBjb250ZW50PSJ3aXAiPgo8bWV0YSBuYW1lPSJiZi12ZXJzaW9uIiBjb250ZW50PSJ2MyI+Cgo8c2NyaXB0IHNyYz0iaHR0cHM6Ly9jZG4udGFpbHdpbmRjc3MuY29tIj48L3NjcmlwdD4KPHNjcmlwdCBzcmM9Imh0dHBzOi8vdW5wa2cuY29tL2x1Y2lkZUBsYXRlc3QiPjwvc2NyaXB0PgoKPGxpbmsgcmVsPSJwcmVjb25uZWN0IiBocmVmPSJodHRwczovL2ZvbnRzLmdvb2dsZWFwaXMuY29tIj4KPGxpbmsgcmVsPSJwcmVjb25uZWN0IiBocmVmPSJodHRwczovL2ZvbnRzLmdzdGF0aWMuY29tIiBjcm9zc29yaWdpbj4KPGxpbmsgaHJlZj0iaHR0cHM6Ly9mb250cy5nb29nbGVhcGlzLmNvbS9jc3MyP2ZhbWlseT1Ob3RvK1NhbnMrSlA6d2dodEA0MDA7NTAwOzYwMDs3MDAmZmFtaWx5PUpldEJyYWlucytNb25vOndnaHRANDAwOzUwMDs2MDAmZGlzcGxheT1zd2FwIiByZWw9InN0eWxlc2hlZXQiPgoKPHNjcmlwdD4KICB0YWlsd2luZC5jb25maWcgPSB7CiAgICB0aGVtZTogeyBleHRlbmQ6IHsKICAgICAgY29sb3JzOiB7CiAgICAgICAgZWI6IHsgNTA6JyNmMGZhZjUnLCAxMDA6JyNkM2YwZTAnLCAyMDA6JyNhOGUxYzEnLCAzMDA6JyM2ZGNjOTQnLCA0MDA6JyMzNGIxNjQnLCA1MDA6JyMxYTY2NDgnLCA2MDA6JyMxNTUyMzgnLCA3MDA6JyMxMDNlMmEnLCA4MDA6JyMwYzJlMWYnLCA5MDA6JyMwODIwMTUnLCA5NTA6JyMwNDExMGEnIH0sCiAgICAgIH0sCiAgICAgIGZvbnRGYW1pbHk6IHsKICAgICAgICBzYW5zOiBbJyJOb3RvIFNhbnMgSlAiJywgJ3NhbnMtc2VyaWYnXSwKICAgICAgICBtb25vOiBbJyJKZXRCcmFpbnMgTW9ubyInLCAnbW9ub3NwYWNlJ10KICAgICAgfQogICAgfX0KICB9Owo8L3NjcmlwdD4KCjxzdHlsZT4KICBib2R5IHsgZm9udC1mYW1pbHk6ICdOb3RvIFNhbnMgSlAnLCBzYW5zLXNlcmlmOyBsaW5lLWhlaWdodDogMS43OyB9CiAgLm1vbm8geyBmb250LWZhbWlseTogJ0pldEJyYWlucyBNb25vJywgbW9ub3NwYWNlOyB9CiAgLnRhYnVsYXIgeyBmb250LXZhcmlhbnQtbnVtZXJpYzogdGFidWxhci1udW1zOyB9Cjwvc3R5bGU+CjwvaGVhZD4KPGJvZHkgY2xhc3M9ImJnLXNsYXRlLTUwIHRleHQtc2xhdGUtOTAwIG1pbi1oLXNjcmVlbiBmbGV4IGZsZXgtY29sIj4KCjwhLS0gSGVhZGVyIChtaW5pbWFsIGxvZ28gYmFyKSAtLT4KPGhlYWRlciBjbGFzcz0icHgtNiBweS00IGJvcmRlci1iIGJvcmRlci1zbGF0ZS0yMDAgYmctd2hpdGUiPgogIDxkaXYgY2xhc3M9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIG1heC13LVsxNDAwcHhdIG14LWF1dG8iPgogICAgPGRpdiBjbGFzcz0idy03IGgtNyByb3VuZGVkLW1kIGJnLWViLTUwMCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciI+CiAgICAgIDxpIGRhdGEtbHVjaWRlPSJmYWN0b3J5IiBjbGFzcz0idy00IGgtNCB0ZXh0LXdoaXRlIj48L2k+CiAgICA8L2Rpdj4KICAgIDxkaXYgY2xhc3M9InRleHQtc20gZm9udC1ib2xkIHRleHQtc2xhdGUtOTAwIj5CdWlsZC1GYWN0b3J5PC9kaXY+CiAgICA8c3BhbiBjbGFzcz0idGV4dC1bMTFweF0gdGV4dC1zbGF0ZS01MDAgbW9ubyI+djM8L3NwYW4+CiAgPC9kaXY+CjwvaGVhZGVyPgoKPCEtLSBNYWluIGNlbnRlcmVkIGxvZ2luIGNhcmQgLS0+CjxtYWluIGNsYXNzPSJmbGV4LTEgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgcHgtNiBweS0xMiI+CiAgPGRpdiBjbGFzcz0idy1mdWxsIG1heC13LVs0MjBweF0iPgogICAgPCEtLSBUaXRsZSBibG9jayAtLT4KICAgIDxkaXYgY2xhc3M9InRleHQtY2VudGVyIG1iLTgiPgogICAgICA8ZGl2IGNsYXNzPSJpbmxpbmUtZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgdy0xMiBoLTEyIHJvdW5kZWQtbGcgYmctZWItNTAwIG1iLTQiPgogICAgICAgIDxpIGRhdGEtbHVjaWRlPSJmYWN0b3J5IiBjbGFzcz0idy02IGgtNiB0ZXh0LXdoaXRlIj48L2k+CiAgICAgIDwvZGl2PgogICAgICA8aDEgY2xhc3M9InRleHQtMnhsIGZvbnQtYm9sZCB0ZXh0LXNsYXRlLTkwMCI+44Ot44Kw44Kk44OzPC9oMT4KICAgICAgPHAgY2xhc3M9InRleHQtc20gdGV4dC1zbGF0ZS02MDAgbXQtMSI+QnVpbGQtRmFjdG9yeSDjgavjgrXjgqTjg7PjgqTjg7PjgZfjgabmoYjku7bjgpLnrqHnkIY8L3A+CiAgICA8L2Rpdj4KCiAgICA8IS0tIExvZ2luIGNhcmQgLS0+CiAgICA8ZGl2IGNsYXNzPSJiZy13aGl0ZSBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHAtNiBzcGFjZS15LTQiPgogICAgICA8IS0tIEVtYWlsIC0tPgogICAgICA8ZGl2IGNsYXNzPSJzcGFjZS15LTEuNSI+CiAgICAgICAgPGxhYmVsIGZvcj0iZW1haWwiIGNsYXNzPSJ0ZXh0LXNtIGZvbnQtbWVkaXVtIHRleHQtc2xhdGUtOTAwIGJsb2NrIj7jg6Hjg7zjg6vjgqLjg4njg6zjgrk8L2xhYmVsPgogICAgICAgIDxpbnB1dCBpZD0iZW1haWwiIHR5cGU9ImVtYWlsIiBwbGFjZWhvbGRlcj0ieW91QGV4YW1wbGUuY29tIiBhdXRvY29tcGxldGU9ImVtYWlsIgogICAgICAgICAgY2xhc3M9ImJvcmRlciBib3JkZXItc2xhdGUtMjAwIGJnLXdoaXRlIHRleHQtc20gaC05IHB4LTMgcm91bmRlZC1tZCB3LWZ1bGwgZm9jdXMtdmlzaWJsZTpvdXRsaW5lLW5vbmUgZm9jdXMtdmlzaWJsZTpib3JkZXItZWItNTAwIGZvY3VzLXZpc2libGU6cmluZy0yIGZvY3VzLXZpc2libGU6cmluZy1lYi0xMDAiIC8+CiAgICAgIDwvZGl2PgoKICAgICAgPCEtLSBQYXNzd29yZCAtLT4KICAgICAgPGRpdiBjbGFzcz0ic3BhY2UteS0xLjUiPgogICAgICAgIDxkaXYgY2xhc3M9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiI+CiAgICAgICAgICA8bGFiZWwgZm9yPSJwYXNzd29yZCIgY2xhc3M9InRleHQtc20gZm9udC1tZWRpdW0gdGV4dC1zbGF0ZS05MDAiPuODkeOCueODr+ODvOODiTwvbGFiZWw+CiAgICAgICAgICA8YSBocmVmPSIuLi9hdXRoL1MtMDAzLXBhc3N3b3JkLXJlc2V0Lmh0bWwiIGNsYXNzPSJ0ZXh0LXhzIHRleHQtZWItNTAwIGhvdmVyOnRleHQtZWItNjAwIGhvdmVyOnVuZGVybGluZSI+44OR44K544Ov44O844OJ44KS5b+Y44KM44GfPC9hPgogICAgICAgIDwvZGl2PgogICAgICAgIDxkaXYgY2xhc3M9InJlbGF0aXZlIj4KICAgICAgICAgIDxpbnB1dCBpZD0icGFzc3dvcmQiIHR5cGU9InBhc3N3b3JkIiBwbGFjZWhvbGRlcj0i4oCi4oCi4oCi4oCi4oCi4oCi4oCi4oCi4oCi4oCiIiBhdXRvY29tcGxldGU9ImN1cnJlbnQtcGFzc3dvcmQiCiAgICAgICAgICAgIGNsYXNzPSJib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCBiZy13aGl0ZSB0ZXh0LXNtIGgtOSBweC0zIHByLTkgcm91bmRlZC1tZCB3LWZ1bGwgZm9jdXMtdmlzaWJsZTpvdXRsaW5lLW5vbmUgZm9jdXMtdmlzaWJsZTpib3JkZXItZWItNTAwIGZvY3VzLXZpc2libGU6cmluZy0yIGZvY3VzLXZpc2libGU6cmluZy1lYi0xMDAiIC8+CiAgICAgICAgICA8YnV0dG9uIHR5cGU9ImJ1dHRvbiIgY2xhc3M9ImFic29sdXRlIHJpZ2h0LTIgdG9wLTEvMiAtdHJhbnNsYXRlLXktMS8yIHRleHQtc2xhdGUtNDAwIGhvdmVyOnRleHQtc2xhdGUtNjAwIHAtMSIgYXJpYS1sYWJlbD0i44OR44K544Ov44O844OJ44KS6KGo56S6Ij4KICAgICAgICAgICAgPGkgZGF0YS1sdWNpZGU9ImV5ZSIgY2xhc3M9InctNCBoLTQiPjwvaT4KICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KCiAgICAgIDwhLS0gTUZBIGNvZGUgKGNvbmRpdGlvbmFsIC8gc2hvd24gd2hlbiBzdGF0ZT1tZmFfcmVxdWlyZWQpIC0tPgogICAgICA8ZGl2IGNsYXNzPSJzcGFjZS15LTEuNSBoaWRkZW4iIGRhdGEtc3RhdGU9Im1mYV9yZXF1aXJlZCI+CiAgICAgICAgPGxhYmVsIGZvcj0ibWZhIiBjbGFzcz0idGV4dC1zbSBmb250LW1lZGl1bSB0ZXh0LXNsYXRlLTkwMCBibG9jayI+MkZBIOOCs+ODvOODiTwvbGFiZWw+CiAgICAgICAgPGlucHV0IGlkPSJtZmEiIHR5cGU9InRleHQiIGlucHV0bW9kZT0ibnVtZXJpYyIgcGF0dGVybj0iWzAtOV17Nn0iIG1heGxlbmd0aD0iNiIgcGxhY2Vob2xkZXI9IjEyMzQ1NiIKICAgICAgICAgIGNsYXNzPSJib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCBiZy13aGl0ZSB0ZXh0LXNtIGgtOSBweC0zIHJvdW5kZWQtbWQgdy1mdWxsIG1vbm8gdGFidWxhciB0cmFja2luZy13aWRlc3QgZm9jdXMtdmlzaWJsZTpvdXRsaW5lLW5vbmUgZm9jdXMtdmlzaWJsZTpib3JkZXItZWItNTAwIGZvY3VzLXZpc2libGU6cmluZy0yIGZvY3VzLXZpc2libGU6cmluZy1lYi0xMDAiIC8+CiAgICAgICAgPHAgY2xhc3M9InRleHQteHMgdGV4dC1zbGF0ZS01MDAiPuiqjeiovOOCouODl+ODquOBp+eUn+aIkOOBleOCjOOBnyA2IOahgeOCs+ODvOODieOCkuWFpeWKmzwvcD4KICAgICAgPC9kaXY+CgogICAgICA8IS0tIFJlbWVtYmVyIG1lIC0tPgogICAgICA8ZGl2IGNsYXNzPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBwdC0xIj4KICAgICAgICA8aW5wdXQgaWQ9InJlbWVtYmVyIiB0eXBlPSJjaGVja2JveCIgY2xhc3M9InctNCBoLTQgcm91bmRlZCBib3JkZXItc2xhdGUtMzAwIGFjY2VudC1lYi01MDAiIC8+CiAgICAgICAgPGxhYmVsIGZvcj0icmVtZW1iZXIiIGNsYXNzPSJ0ZXh0LXNtIHRleHQtc2xhdGUtNjAwIj7jgZPjga7nq6/mnKvjgpLoqJjmhrbjgZnjgos8L2xhYmVsPgogICAgICA8L2Rpdj4KCiAgICAgIDwhLS0gU3VibWl0IGJ1dHRvbiAtLT4KICAgICAgPGJ1dHRvbiB0eXBlPSJzdWJtaXQiCiAgICAgICAgY2xhc3M9InctZnVsbCBiZy1lYi01MDAgaG92ZXI6YmctZWItNjAwIHRleHQtd2hpdGUgdGV4dC1zbSBmb250LXNlbWlib2xkIGgtMTAgcHgtNCByb3VuZGVkLW1kIHRyYW5zaXRpb24tY29sb3JzIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGdhcC0yIj4KICAgICAgICA8c3Bhbj7jg63jgrDjgqTjg7M8L3NwYW4+CiAgICAgICAgPGkgZGF0YS1sdWNpZGU9ImFycm93LXJpZ2h0IiBjbGFzcz0idy00IGgtNCI+PC9pPgogICAgICA8L2J1dHRvbj4KCiAgICAgIDwhLS0gRXJyb3IgbWVzc2FnZSAoY29uZGl0aW9uYWwgLyBzdGF0ZT1lcnJvcikgLS0+CiAgICAgIDxkaXYgY2xhc3M9ImhpZGRlbiBiZy1yZWQtNTAgYm9yZGVyIGJvcmRlci1yZWQtMjAwIHRleHQtcmVkLTcwMCB0ZXh0LXhzIHB4LTMgcHktMiByb3VuZGVkLW1kIGZsZXggaXRlbXMtY2VudGVyIGdhcC0yIiBkYXRhLXN0YXRlPSJlcnJvciI+CiAgICAgICAgPGkgZGF0YS1sdWNpZGU9ImFsZXJ0LWNpcmNsZSIgY2xhc3M9InctMy41IGgtMy41IHNocmluay0wIj48L2k+CiAgICAgICAgPHNwYW4+44Oh44O844Or44Ki44OJ44Os44K544G+44Gf44Gv44OR44K544Ov44O844OJ44GM5q2j44GX44GP44GC44KK44G+44Gb44KTPC9zcGFuPgogICAgICA8L2Rpdj4KCiAgICAgIDwhLS0gRGl2aWRlciAtLT4KICAgICAgPGRpdiBjbGFzcz0icmVsYXRpdmUgcHktMiI+CiAgICAgICAgPGRpdiBjbGFzcz0iYWJzb2x1dGUgaW5zZXQtMCBmbGV4IGl0ZW1zLWNlbnRlciI+PGRpdiBjbGFzcz0idy1mdWxsIGJvcmRlci10IGJvcmRlci1zbGF0ZS0yMDAiPjwvZGl2PjwvZGl2PgogICAgICAgIDxkaXYgY2xhc3M9InJlbGF0aXZlIGZsZXgganVzdGlmeS1jZW50ZXIiPjxzcGFuIGNsYXNzPSJiZy13aGl0ZSBweC0yIHRleHQteHMgdGV4dC1zbGF0ZS01MDAiPuOBvuOBn+OBrzwvc3Bhbj48L2Rpdj4KICAgICAgPC9kaXY+CgogICAgICA8IS0tIE9BdXRoIGJ1dHRvbnMgLS0+CiAgICAgIDxkaXYgY2xhc3M9InNwYWNlLXktMiI+CiAgICAgICAgPGJ1dHRvbiB0eXBlPSJidXR0b24iCiAgICAgICAgICBjbGFzcz0idy1mdWxsIGJnLXdoaXRlIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIGhvdmVyOmJnLXNsYXRlLTUwIHRleHQtc2xhdGUtOTAwIHRleHQtc20gZm9udC1tZWRpdW0gaC05IHB4LTQgcm91bmRlZC1tZCB0cmFuc2l0aW9uLWNvbG9ycyBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBnYXAtMiI+CiAgICAgICAgICA8aSBkYXRhLWx1Y2lkZT0ic3BhcmtsZXMiIGNsYXNzPSJ3LTQgaC00IHRleHQtZWItNTAwIj48L2k+CiAgICAgICAgICA8c3Bhbj5BbnRocm9waWMg44Gn57aa44GR44KLPC9zcGFuPgogICAgICAgIDwvYnV0dG9uPgogICAgICAgIDxidXR0b24gdHlwZT0iYnV0dG9uIgogICAgICAgICAgY2xhc3M9InctZnVsbCBiZy13aGl0ZSBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCBob3ZlcjpiZy1zbGF0ZS01MCB0ZXh0LXNsYXRlLTkwMCB0ZXh0LXNtIGZvbnQtbWVkaXVtIGgtOSBweC00IHJvdW5kZWQtbWQgdHJhbnNpdGlvbi1jb2xvcnMgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgZ2FwLTIiPgogICAgICAgICAgPGkgZGF0YS1sdWNpZGU9ImNocm9tZSIgY2xhc3M9InctNCBoLTQgdGV4dC1zbGF0ZS03MDAiPjwvaT4KICAgICAgICAgIDxzcGFuPkdvb2dsZSDjgafntprjgZHjgos8L3NwYW4+CiAgICAgICAgPC9idXR0b24+CiAgICAgICAgPGJ1dHRvbiB0eXBlPSJidXR0b24iCiAgICAgICAgICBjbGFzcz0idy1mdWxsIGJnLXdoaXRlIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIGhvdmVyOmJnLXNsYXRlLTUwIHRleHQtc2xhdGUtOTAwIHRleHQtc20gZm9udC1tZWRpdW0gaC05IHB4LTQgcm91bmRlZC1tZCB0cmFuc2l0aW9uLWNvbG9ycyBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBnYXAtMiI+CiAgICAgICAgICA8aSBkYXRhLWx1Y2lkZT0iZ2l0LWJyYW5jaCIgY2xhc3M9InctNCBoLTQgdGV4dC1zbGF0ZS03MDAiPjwvaT4KICAgICAgICAgIDxzcGFuPkdpdEh1YiDjgafntprjgZHjgos8L3NwYW4+CiAgICAgICAgPC9idXR0b24+CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CgogICAgPCEtLSBTaWduIHVwIGxpbmsgLS0+CiAgICA8cCBjbGFzcz0idGV4dC1jZW50ZXIgdGV4dC1zbSB0ZXh0LXNsYXRlLTYwMCBtdC02Ij4KICAgICAg44Ki44Kr44Km44Oz44OI44KS44GK5oyB44Gh44Gn44Gq44GE5pa544GvCiAgICAgIDxhIGhyZWY9Ii4vUy0wMDItc2lnbnVwLmh0bWwiIGNsYXNzPSJ0ZXh0LWViLTUwMCBob3Zlcjp0ZXh0LWViLTYwMCBob3Zlcjp1bmRlcmxpbmUgZm9udC1tZWRpdW0iPuOCteOCpOODs+OCouODg+ODlzwvYT4KICAgIDwvcD4KCiAgICA8IS0tIEZvb3RlciBpbmZvIC0tPgogICAgPGRpdiBjbGFzcz0idGV4dC1jZW50ZXIgdGV4dC1bMTFweF0gdGV4dC1zbGF0ZS00MDAgbXQtOCBzcGFjZS14LTMiPgogICAgICA8YSBocmVmPSIjIiBjbGFzcz0iaG92ZXI6dGV4dC1zbGF0ZS02MDAiPuWIqeeUqOimj+e0hDwvYT4KICAgICAgPHNwYW4+wrc8L3NwYW4+CiAgICAgIDxhIGhyZWY9IiMiIGNsYXNzPSJob3Zlcjp0ZXh0LXNsYXRlLTYwMCI+44OX44Op44Kk44OQ44K344O844Od44Oq44K344O8PC9hPgogICAgICA8c3Bhbj7Ctzwvc3Bhbj4KICAgICAgPHNwYW4gY2xhc3M9Im1vbm8iPsKpIEVOR0lORSBCQVNFPC9zcGFuPgogICAgPC9kaXY+CiAgPC9kaXY+CjwvbWFpbj4KCjxzY3JpcHQ+bHVjaWRlLmNyZWF0ZUljb25zKCk7PC9zY3JpcHQ+CjwvYm9keT4KPC9odG1sPgo=","S-002":"PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImphIj4KPGhlYWQ+CjxtZXRhIGNoYXJzZXQ9IlVURi04Ij4KPG1ldGEgbmFtZT0idmlld3BvcnQiIGNvbnRlbnQ9IndpZHRoPWRldmljZS13aWR0aCwgaW5pdGlhbC1zY2FsZT0xLjAiPgo8dGl0bGU+Uy0wMDIg44K144Kk44Oz44Ki44OD44OXIOKAlCBCdWlsZC1GYWN0b3J5PC90aXRsZT4KCjxtZXRhIG5hbWU9ImJmLXNjcmVlbi1pZCIgY29udGVudD0iUy0wMDIiPgo8bWV0YSBuYW1lPSJiZi1zY3JlZW4tbmFtZSIgY29udGVudD0ic2lnbnVwIj4KPG1ldGEgbmFtZT0iYmYtY2F0ZWdvcnkiIGNvbnRlbnQ9ImF1dGgiPgo8bWV0YSBuYW1lPSJiZi1mZWF0dXJlLWlkIiBjb250ZW50PSJGLTAwMSxGLTAwNCI+CjxtZXRhIG5hbWU9ImJmLXRhc2staWRzIiBjb250ZW50PSJULVYzLUFVVEgtMDksVC1WMy1BVVRILTAyIj4KPG1ldGEgbmFtZT0iYmYtZW50aXRpZXMiIGNvbnRlbnQ9IkUtMDAxLEUtMDAyLEUtMDA4LEUtMDQzIj4KPG1ldGEgbmFtZT0iYmYtcmVsYXRlZC1hcGlzIiBjb250ZW50PSJQT1NUIC9hcGkvYXV0aC9zaWdudXAsR0VUIC9hcGkvaW52aXRhdGlvbnMve3Rva2VufSI+CjxtZXRhIG5hbWU9ImJmLXNwZWMtbGluayIgY29udGVudD0iLi4vLi4vLi4vZnVuY3Rpb25hbC1icmVha2Rvd24vMjAyNi0wNS0wOV92MS9zY3JlZW5zLmpzb24jUy0wMDIiPgo8bWV0YSBuYW1lPSJiZi1kZXNpZ24tbGluayIgY29udGVudD0iLi4vLi4vZGVzaWduLXN5c3RlbS9ERVNJR04ubWQiPgo8bWV0YSBuYW1lPSJiZi1zdGF0dXMiIGNvbnRlbnQ9IndpcCI+CjxtZXRhIG5hbWU9ImJmLXZlcnNpb24iIGNvbnRlbnQ9InYzIj4KCjxzY3JpcHQgc3JjPSJodHRwczovL2Nkbi50YWlsd2luZGNzcy5jb20iPjwvc2NyaXB0Pgo8c2NyaXB0IHNyYz0iaHR0cHM6Ly91bnBrZy5jb20vbHVjaWRlQGxhdGVzdCI+PC9zY3JpcHQ+CjxsaW5rIHJlbD0icHJlY29ubmVjdCIgaHJlZj0iaHR0cHM6Ly9mb250cy5nb29nbGVhcGlzLmNvbSI+CjxsaW5rIGhyZWY9Imh0dHBzOi8vZm9udHMuZ29vZ2xlYXBpcy5jb20vY3NzMj9mYW1pbHk9Tm90bytTYW5zK0pQOndnaHRANDAwOzUwMDs2MDA7NzAwJmZhbWlseT1KZXRCcmFpbnMrTW9ubzp3Z2h0QDQwMDs1MDA7NjAwJmRpc3BsYXk9c3dhcCIgcmVsPSJzdHlsZXNoZWV0Ij4KPHNjcmlwdD4KICB0YWlsd2luZC5jb25maWcgPSB7IHRoZW1lOiB7IGV4dGVuZDogewogICAgY29sb3JzOiB7IGViOiB7IDUwOicjZjBmYWY1JywgMTAwOicjZDNmMGUwJywgNDAwOicjMzRiMTY0JywgNTAwOicjMWE2NjQ4JywgNjAwOicjMTU1MjM4JywgNzAwOicjMTAzZTJhJyB9IH0sCiAgICBmb250RmFtaWx5OiB7IHNhbnM6IFsnIk5vdG8gU2FucyBKUCInLCdzYW5zLXNlcmlmJ10sIG1vbm86IFsnIkpldEJyYWlucyBNb25vIicsJ21vbm9zcGFjZSddIH0KICB9fX07Cjwvc2NyaXB0Pgo8c3R5bGU+CiAgYm9keSB7IGZvbnQtZmFtaWx5OiAnTm90byBTYW5zIEpQJywgc2Fucy1zZXJpZjsgbGluZS1oZWlnaHQ6IDEuNzsgfQogIC5tb25vIHsgZm9udC1mYW1pbHk6ICdKZXRCcmFpbnMgTW9ubycsIG1vbm9zcGFjZTsgfQo8L3N0eWxlPgo8L2hlYWQ+Cjxib2R5IGNsYXNzPSJiZy1zbGF0ZS01MCB0ZXh0LXNsYXRlLTkwMCBtaW4taC1zY3JlZW4gZmxleCBmbGV4LWNvbCI+Cgo8aGVhZGVyIGNsYXNzPSJweC02IHB5LTQgYm9yZGVyLWIgYm9yZGVyLXNsYXRlLTIwMCBiZy13aGl0ZSI+CiAgPGRpdiBjbGFzcz0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgbWF4LXctWzE0MDBweF0gbXgtYXV0byI+CiAgICA8ZGl2IGNsYXNzPSJ3LTcgaC03IHJvdW5kZWQtbWQgYmctZWItNTAwIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIj4KICAgICAgPGkgZGF0YS1sdWNpZGU9ImZhY3RvcnkiIGNsYXNzPSJ3LTQgaC00IHRleHQtd2hpdGUiPjwvaT4KICAgIDwvZGl2PgogICAgPGRpdiBjbGFzcz0idGV4dC1zbSBmb250LWJvbGQiPkJ1aWxkLUZhY3Rvcnk8L2Rpdj4KICAgIDxzcGFuIGNsYXNzPSJ0ZXh0LVsxMXB4XSB0ZXh0LXNsYXRlLTUwMCBtb25vIj52Mzwvc3Bhbj4KICA8L2Rpdj4KPC9oZWFkZXI+Cgo8bWFpbiBjbGFzcz0iZmxleC0xIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHB4LTYgcHktMTIiPgogIDxkaXYgY2xhc3M9InctZnVsbCBtYXgtdy1bNDIwcHhdIj4KICAgIDxkaXYgY2xhc3M9InRleHQtY2VudGVyIG1iLTgiPgogICAgICA8ZGl2IGNsYXNzPSJpbmxpbmUtZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgdy0xMiBoLTEyIHJvdW5kZWQtbGcgYmctZWItNTAwIG1iLTQiPgogICAgICAgIDxpIGRhdGEtbHVjaWRlPSJ1c2VyLXBsdXMiIGNsYXNzPSJ3LTYgaC02IHRleHQtd2hpdGUiPjwvaT4KICAgICAgPC9kaXY+CiAgICAgIDxoMSBjbGFzcz0idGV4dC0yeGwgZm9udC1ib2xkIj7jgqLjgqvjgqbjg7Pjg4jkvZzmiJA8L2gxPgogICAgICA8cCBjbGFzcz0idGV4dC1zbSB0ZXh0LXNsYXRlLTYwMCBtdC0xIj7lj5foqJcgRUMg5qeL56+J44GL44KJ6Ieq56S+IFNhYVMg44G+44Gn44CB6ZaL55m644KSIDEg44Gk44Gu5bel5aC044GrPC9wPgogICAgPC9kaXY+CgogICAgPCEtLSBJbnZpdGUgdG9rZW4gYmFubmVyIChvcHRpb25hbCwgc2hvd24gaWYgVVJMIGhhcyA/aW52aXRlPS4uLikgLS0+CiAgICA8ZGl2IGNsYXNzPSJiZy1lYi01MCBib3JkZXIgYm9yZGVyLWViLTEwMCByb3VuZGVkLW1kIHAtMyBtYi00IGZsZXggaXRlbXMtc3RhcnQgZ2FwLTIiPgogICAgICA8aSBkYXRhLWx1Y2lkZT0idGlja2V0IiBjbGFzcz0idy00IGgtNCB0ZXh0LWViLTUwMCBtdC0wLjUgc2hyaW5rLTAiPjwvaT4KICAgICAgPGRpdj4KICAgICAgICA8ZGl2IGNsYXNzPSJ0ZXh0LXNtIGZvbnQtbWVkaXVtIHRleHQtZWItNzAwIj7mi5vlvoXjgpLlj5fjgZHjgabjgrXjgqTjg7PjgqLjg4Pjg5c8L2Rpdj4KICAgICAgICA8ZGl2IGNsYXNzPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNjAwIG10LTAuNSI+5qGI5Lu244CMPHNwYW4gY2xhc3M9ImZvbnQtc2VtaWJvbGQiPuWPl+iolyBFQyDmp4vnr4kgIzQ8L3NwYW4+44CN44Gu44Oh44Oz44OQ44O844Go44GX44Gm55m76Yyy44GV44KM44G+44GZPC9kaXY+CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CgogICAgPGRpdiBjbGFzcz0iYmctd2hpdGUgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBwLTYgc3BhY2UteS00Ij4KICAgICAgPCEtLSBEaXNwbGF5IG5hbWUgLS0+CiAgICAgIDxkaXYgY2xhc3M9InNwYWNlLXktMS41Ij4KICAgICAgICA8bGFiZWwgZm9yPSJuYW1lIiBjbGFzcz0idGV4dC1zbSBmb250LW1lZGl1bSBibG9jayI+6KGo56S65ZCNIDxzcGFuIGNsYXNzPSJ0ZXh0LXJlZC02MDAiPio8L3NwYW4+PC9sYWJlbD4KICAgICAgICA8aW5wdXQgaWQ9Im5hbWUiIHR5cGU9InRleHQiIHBsYWNlaG9sZGVyPSLpq5jmnKwg44G+44GV44GoIiBhdXRvY29tcGxldGU9Im5hbWUiCiAgICAgICAgICBjbGFzcz0iYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgYmctd2hpdGUgdGV4dC1zbSBoLTkgcHgtMyByb3VuZGVkLW1kIHctZnVsbCBmb2N1cy12aXNpYmxlOm91dGxpbmUtbm9uZSBmb2N1cy12aXNpYmxlOmJvcmRlci1lYi01MDAgZm9jdXMtdmlzaWJsZTpyaW5nLTIgZm9jdXMtdmlzaWJsZTpyaW5nLWViLTEwMCIgLz4KICAgICAgPC9kaXY+CgogICAgICA8IS0tIEVtYWlsIC0tPgogICAgICA8ZGl2IGNsYXNzPSJzcGFjZS15LTEuNSI+CiAgICAgICAgPGxhYmVsIGZvcj0iZW1haWwiIGNsYXNzPSJ0ZXh0LXNtIGZvbnQtbWVkaXVtIGJsb2NrIj7jg6Hjg7zjg6vjgqLjg4njg6zjgrkgPHNwYW4gY2xhc3M9InRleHQtcmVkLTYwMCI+Kjwvc3Bhbj48L2xhYmVsPgogICAgICAgIDxpbnB1dCBpZD0iZW1haWwiIHR5cGU9ImVtYWlsIiBwbGFjZWhvbGRlcj0ieW91QGV4YW1wbGUuY29tIiBhdXRvY29tcGxldGU9ImVtYWlsIgogICAgICAgICAgY2xhc3M9ImJvcmRlciBib3JkZXItc2xhdGUtMjAwIGJnLXdoaXRlIHRleHQtc20gaC05IHB4LTMgcm91bmRlZC1tZCB3LWZ1bGwgZm9jdXMtdmlzaWJsZTpvdXRsaW5lLW5vbmUgZm9jdXMtdmlzaWJsZTpib3JkZXItZWItNTAwIGZvY3VzLXZpc2libGU6cmluZy0yIGZvY3VzLXZpc2libGU6cmluZy1lYi0xMDAiIC8+CiAgICAgIDwvZGl2PgoKICAgICAgPCEtLSBQYXNzd29yZCAtLT4KICAgICAgPGRpdiBjbGFzcz0ic3BhY2UteS0xLjUiPgogICAgICAgIDxsYWJlbCBmb3I9InBhc3N3b3JkIiBjbGFzcz0idGV4dC1zbSBmb250LW1lZGl1bSBibG9jayI+44OR44K544Ov44O844OJIDxzcGFuIGNsYXNzPSJ0ZXh0LXJlZC02MDAiPio8L3NwYW4+PC9sYWJlbD4KICAgICAgICA8aW5wdXQgaWQ9InBhc3N3b3JkIiB0eXBlPSJwYXNzd29yZCIgcGxhY2Vob2xkZXI9IjEyIOaWh+Wtl+S7peS4iiAvIOiLseWkp+Wwj+ODu+aVsOWtl+ODu+iomOWPtyIgYXV0b2NvbXBsZXRlPSJuZXctcGFzc3dvcmQiCiAgICAgICAgICBjbGFzcz0iYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgYmctd2hpdGUgdGV4dC1zbSBoLTkgcHgtMyByb3VuZGVkLW1kIHctZnVsbCBmb2N1cy12aXNpYmxlOm91dGxpbmUtbm9uZSBmb2N1cy12aXNpYmxlOmJvcmRlci1lYi01MDAgZm9jdXMtdmlzaWJsZTpyaW5nLTIgZm9jdXMtdmlzaWJsZTpyaW5nLWViLTEwMCIgLz4KICAgICAgICA8IS0tIFBhc3N3b3JkIHN0cmVuZ3RoIGJhciAtLT4KICAgICAgICA8ZGl2IGNsYXNzPSJoLTEgYmctc2xhdGUtMTAwIHJvdW5kZWQtZnVsbCBvdmVyZmxvdy1oaWRkZW4iPgogICAgICAgICAgPGRpdiBjbGFzcz0iaC1mdWxsIGJnLWViLTQwMCIgc3R5bGU9IndpZHRoOiA2NSUiPjwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICAgIDxwIGNsYXNzPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNTAwIj7lvLfluqY6IOaZrumAmiAvIOWkp+aWh+Wtl+OCkuWQq+OCgeOCi+OBqOOCiOOCiuWuieWFqDwvcD4KICAgICAgPC9kaXY+CgogICAgICA8IS0tIFRlcm1zIC0tPgogICAgICA8ZGl2IGNsYXNzPSJzcGFjZS15LTIgcHQtMiI+CiAgICAgICAgPGxhYmVsIGNsYXNzPSJmbGV4IGl0ZW1zLXN0YXJ0IGdhcC0yIHRleHQtc20gY3Vyc29yLXBvaW50ZXIiPgogICAgICAgICAgPGlucHV0IHR5cGU9ImNoZWNrYm94IiBjbGFzcz0idy00IGgtNCByb3VuZGVkIGJvcmRlci1zbGF0ZS0zMDAgYWNjZW50LWViLTUwMCBtdC0wLjUiIC8+CiAgICAgICAgICA8c3BhbiBjbGFzcz0idGV4dC1zbGF0ZS03MDAiPgogICAgICAgICAgICA8YSBocmVmPSIjIiBjbGFzcz0idGV4dC1lYi01MDAgaG92ZXI6dW5kZXJsaW5lIj7liKnnlKjopo/ntIQ8L2E+IOOBq+WQjOaEj+OBmeOCiwogICAgICAgICAgPC9zcGFuPgogICAgICAgIDwvbGFiZWw+CiAgICAgICAgPGxhYmVsIGNsYXNzPSJmbGV4IGl0ZW1zLXN0YXJ0IGdhcC0yIHRleHQtc20gY3Vyc29yLXBvaW50ZXIiPgogICAgICAgICAgPGlucHV0IHR5cGU9ImNoZWNrYm94IiBjbGFzcz0idy00IGgtNCByb3VuZGVkIGJvcmRlci1zbGF0ZS0zMDAgYWNjZW50LWViLTUwMCBtdC0wLjUiIC8+CiAgICAgICAgICA8c3BhbiBjbGFzcz0idGV4dC1zbGF0ZS03MDAiPgogICAgICAgICAgICA8YSBocmVmPSIjIiBjbGFzcz0idGV4dC1lYi01MDAgaG92ZXI6dW5kZXJsaW5lIj7jg5fjg6njgqTjg5Djgrfjg7zjg53jg6rjgrfjg7w8L2E+IOOBq+WQjOaEj+OBmeOCiwogICAgICAgICAgPC9zcGFuPgogICAgICAgIDwvbGFiZWw+CiAgICAgIDwvZGl2PgoKICAgICAgPCEtLSBTdWJtaXQgLS0+CiAgICAgIDxidXR0b24gdHlwZT0ic3VibWl0IgogICAgICAgIGNsYXNzPSJ3LWZ1bGwgYmctZWItNTAwIGhvdmVyOmJnLWViLTYwMCB0ZXh0LXdoaXRlIHRleHQtc20gZm9udC1zZW1pYm9sZCBoLTEwIHB4LTQgcm91bmRlZC1tZCB0cmFuc2l0aW9uLWNvbG9ycyBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBnYXAtMiBtdC0yIj4KICAgICAgICA8c3Bhbj7jgqLjgqvjgqbjg7Pjg4jkvZzmiJA8L3NwYW4+CiAgICAgICAgPGkgZGF0YS1sdWNpZGU9ImFycm93LXJpZ2h0IiBjbGFzcz0idy00IGgtNCI+PC9pPgogICAgICA8L2J1dHRvbj4KCiAgICAgIDwhLS0gRGl2aWRlciAtLT4KICAgICAgPGRpdiBjbGFzcz0icmVsYXRpdmUgcHktMiI+CiAgICAgICAgPGRpdiBjbGFzcz0iYWJzb2x1dGUgaW5zZXQtMCBmbGV4IGl0ZW1zLWNlbnRlciI+PGRpdiBjbGFzcz0idy1mdWxsIGJvcmRlci10IGJvcmRlci1zbGF0ZS0yMDAiPjwvZGl2PjwvZGl2PgogICAgICAgIDxkaXYgY2xhc3M9InJlbGF0aXZlIGZsZXgganVzdGlmeS1jZW50ZXIiPjxzcGFuIGNsYXNzPSJiZy13aGl0ZSBweC0yIHRleHQteHMgdGV4dC1zbGF0ZS01MDAiPuOBvuOBn+OBrzwvc3Bhbj48L2Rpdj4KICAgICAgPC9kaXY+CgogICAgICA8IS0tIE9BdXRoIC0tPgogICAgICA8ZGl2IGNsYXNzPSJzcGFjZS15LTIiPgogICAgICAgIDxidXR0b24gdHlwZT0iYnV0dG9uIiBjbGFzcz0idy1mdWxsIGJnLXdoaXRlIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIGhvdmVyOmJnLXNsYXRlLTUwIHRleHQtc2xhdGUtOTAwIHRleHQtc20gZm9udC1tZWRpdW0gaC05IHB4LTQgcm91bmRlZC1tZCB0cmFuc2l0aW9uLWNvbG9ycyBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBnYXAtMiI+CiAgICAgICAgICA8aSBkYXRhLWx1Y2lkZT0ic3BhcmtsZXMiIGNsYXNzPSJ3LTQgaC00IHRleHQtZWItNTAwIj48L2k+PHNwYW4+QW50aHJvcGljIOOBp+e2muOBkeOCizwvc3Bhbj4KICAgICAgICA8L2J1dHRvbj4KICAgICAgICA8YnV0dG9uIHR5cGU9ImJ1dHRvbiIgY2xhc3M9InctZnVsbCBiZy13aGl0ZSBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCBob3ZlcjpiZy1zbGF0ZS01MCB0ZXh0LXNsYXRlLTkwMCB0ZXh0LXNtIGZvbnQtbWVkaXVtIGgtOSBweC00IHJvdW5kZWQtbWQgdHJhbnNpdGlvbi1jb2xvcnMgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgZ2FwLTIiPgogICAgICAgICAgPGkgZGF0YS1sdWNpZGU9ImNocm9tZSIgY2xhc3M9InctNCBoLTQiPjwvaT48c3Bhbj5Hb29nbGUg44Gn57aa44GR44KLPC9zcGFuPgogICAgICAgIDwvYnV0dG9uPgogICAgICAgIDxidXR0b24gdHlwZT0iYnV0dG9uIiBjbGFzcz0idy1mdWxsIGJnLXdoaXRlIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIGhvdmVyOmJnLXNsYXRlLTUwIHRleHQtc2xhdGUtOTAwIHRleHQtc20gZm9udC1tZWRpdW0gaC05IHB4LTQgcm91bmRlZC1tZCB0cmFuc2l0aW9uLWNvbG9ycyBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBnYXAtMiI+CiAgICAgICAgICA8aSBkYXRhLWx1Y2lkZT0iZ2l0LWJyYW5jaCIgY2xhc3M9InctNCBoLTQiPjwvaT48c3Bhbj5HaXRIdWIg44Gn57aa44GR44KLPC9zcGFuPgogICAgICAgIDwvYnV0dG9uPgogICAgICA8L2Rpdj4KICAgIDwvZGl2PgoKICAgIDxwIGNsYXNzPSJ0ZXh0LWNlbnRlciB0ZXh0LXNtIHRleHQtc2xhdGUtNjAwIG10LTYiPgogICAgICDml6LjgavjgqLjgqvjgqbjg7Pjg4jjgpLjgYrmjIHjgaHjga7mlrnjga8KICAgICAgPGEgaHJlZj0iLi9TLTAwMS1sb2dpbi5odG1sIiBjbGFzcz0idGV4dC1lYi01MDAgaG92ZXI6dGV4dC1lYi02MDAgaG92ZXI6dW5kZXJsaW5lIGZvbnQtbWVkaXVtIj7jg63jgrDjgqTjg7M8L2E+CiAgICA8L3A+CgogICAgPGRpdiBjbGFzcz0idGV4dC1jZW50ZXIgdGV4dC1bMTFweF0gdGV4dC1zbGF0ZS00MDAgbXQtOCBzcGFjZS14LTMiPgogICAgICA8YSBocmVmPSIjIiBjbGFzcz0iaG92ZXI6dGV4dC1zbGF0ZS02MDAiPuWIqeeUqOimj+e0hDwvYT48c3Bhbj7Ctzwvc3Bhbj4KICAgICAgPGEgaHJlZj0iIyIgY2xhc3M9ImhvdmVyOnRleHQtc2xhdGUtNjAwIj7jg5fjg6njgqTjg5Djgrfjg7zjg53jg6rjgrfjg7w8L2E+PHNwYW4+wrc8L3NwYW4+CiAgICAgIDxzcGFuIGNsYXNzPSJtb25vIj7CqSBFTkdJTkUgQkFTRTwvc3Bhbj4KICAgIDwvZGl2PgogIDwvZGl2Pgo8L21haW4+Cgo8c2NyaXB0Pmx1Y2lkZS5jcmVhdGVJY29ucygpOzwvc2NyaXB0Pgo8L2JvZHk+CjwvaHRtbD4K","S-003":"PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImphIj4KPGhlYWQ+CjxtZXRhIGNoYXJzZXQ9IlVURi04Ij4KPG1ldGEgbmFtZT0idmlld3BvcnQiIGNvbnRlbnQ9IndpZHRoPWRldmljZS13aWR0aCwgaW5pdGlhbC1zY2FsZT0xLjAiPgo8dGl0bGU+Uy0wMDMg44OR44K544Ov44O844OJ5YaN6Kit5a6aIOKAlCBCdWlsZC1GYWN0b3J5PC90aXRsZT4KCjxtZXRhIG5hbWU9ImJmLXNjcmVlbi1pZCIgY29udGVudD0iUy0wMDMiPgo8bWV0YSBuYW1lPSJiZi1zY3JlZW4tbmFtZSIgY29udGVudD0icGFzc3dvcmRfcmVzZXQiPgo8bWV0YSBuYW1lPSJiZi1jYXRlZ29yeSIgY29udGVudD0iYXV0aCI+CjxtZXRhIG5hbWU9ImJmLWZlYXR1cmUtaWQiIGNvbnRlbnQ9IkYtMDAxIj4KPG1ldGEgbmFtZT0iYmYtdGFzay1pZHMiIGNvbnRlbnQ9IlQtVjMtQVVUSC0xMCxULVYzLUFVVEgtMDMiPgo8bWV0YSBuYW1lPSJiZi1lbnRpdGllcyIgY29udGVudD0iRS0wMDEsRS0wMzkiPgo8bWV0YSBuYW1lPSJiZi1yZWxhdGVkLWFwaXMiIGNvbnRlbnQ9IlBPU1QgL2FwaS9hdXRoL3Bhc3N3b3JkLXJlc2V0Ij4KPG1ldGEgbmFtZT0iYmYtc3BlYy1saW5rIiBjb250ZW50PSIuLi8uLi8uLi9mdW5jdGlvbmFsLWJyZWFrZG93bi8yMDI2LTA1LTA5X3YxL3NjcmVlbnMuanNvbiNTLTAwMyI+CjxtZXRhIG5hbWU9ImJmLWRlc2lnbi1saW5rIiBjb250ZW50PSIuLi8uLi9kZXNpZ24tc3lzdGVtL0RFU0lHTi5tZCI+CjxtZXRhIG5hbWU9ImJmLXN0YXR1cyIgY29udGVudD0id2lwIj4KPG1ldGEgbmFtZT0iYmYtdmVyc2lvbiIgY29udGVudD0idjMiPgoKPHNjcmlwdCBzcmM9Imh0dHBzOi8vY2RuLnRhaWx3aW5kY3NzLmNvbSI+PC9zY3JpcHQ+CjxzY3JpcHQgc3JjPSJodHRwczovL3VucGtnLmNvbS9sdWNpZGVAbGF0ZXN0Ij48L3NjcmlwdD4KPGxpbmsgcmVsPSJwcmVjb25uZWN0IiBocmVmPSJodHRwczovL2ZvbnRzLmdvb2dsZWFwaXMuY29tIj4KPGxpbmsgaHJlZj0iaHR0cHM6Ly9mb250cy5nb29nbGVhcGlzLmNvbS9jc3MyP2ZhbWlseT1Ob3RvK1NhbnMrSlA6d2dodEA0MDA7NTAwOzYwMDs3MDAmZmFtaWx5PUpldEJyYWlucytNb25vOndnaHRANDAwOzUwMDs2MDAmZGlzcGxheT1zd2FwIiByZWw9InN0eWxlc2hlZXQiPgo8c2NyaXB0PgogIHRhaWx3aW5kLmNvbmZpZyA9IHsgdGhlbWU6IHsgZXh0ZW5kOiB7CiAgICBjb2xvcnM6IHsgZWI6IHsgNTA6JyNmMGZhZjUnLCAxMDA6JyNkM2YwZTAnLCA0MDA6JyMzNGIxNjQnLCA1MDA6JyMxYTY2NDgnLCA2MDA6JyMxNTUyMzgnLCA3MDA6JyMxMDNlMmEnIH0gfSwKICAgIGZvbnRGYW1pbHk6IHsgc2FuczogWyciTm90byBTYW5zIEpQIicsJ3NhbnMtc2VyaWYnXSwgbW9ubzogWyciSmV0QnJhaW5zIE1vbm8iJywnbW9ub3NwYWNlJ10gfQogIH19fTsKPC9zY3JpcHQ+CjxzdHlsZT5ib2R5IHsgZm9udC1mYW1pbHk6ICdOb3RvIFNhbnMgSlAnLCBzYW5zLXNlcmlmOyBsaW5lLWhlaWdodDogMS43OyB9IC5tb25vIHsgZm9udC1mYW1pbHk6ICdKZXRCcmFpbnMgTW9ubycsIG1vbm9zcGFjZTsgfTwvc3R5bGU+CjwvaGVhZD4KPGJvZHkgY2xhc3M9ImJnLXNsYXRlLTUwIHRleHQtc2xhdGUtOTAwIG1pbi1oLXNjcmVlbiBmbGV4IGZsZXgtY29sIj4KCjxoZWFkZXIgY2xhc3M9InB4LTYgcHktNCBib3JkZXItYiBib3JkZXItc2xhdGUtMjAwIGJnLXdoaXRlIj4KICA8ZGl2IGNsYXNzPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBtYXgtdy1bMTQwMHB4XSBteC1hdXRvIj4KICAgIDxkaXYgY2xhc3M9InctNyBoLTcgcm91bmRlZC1tZCBiZy1lYi01MDAgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIiPjxpIGRhdGEtbHVjaWRlPSJmYWN0b3J5IiBjbGFzcz0idy00IGgtNCB0ZXh0LXdoaXRlIj48L2k+PC9kaXY+CiAgICA8ZGl2IGNsYXNzPSJ0ZXh0LXNtIGZvbnQtYm9sZCI+QnVpbGQtRmFjdG9yeTwvZGl2PgogICAgPHNwYW4gY2xhc3M9InRleHQtWzExcHhdIHRleHQtc2xhdGUtNTAwIG1vbm8iPnYzPC9zcGFuPgogIDwvZGl2Pgo8L2hlYWRlcj4KCjxtYWluIGNsYXNzPSJmbGV4LTEgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgcHgtNiBweS0xMiI+CiAgPGRpdiBjbGFzcz0idy1mdWxsIG1heC13LVs0MjBweF0iPgogICAgPGEgaHJlZj0iLi9TLTAwMS1sb2dpbi5odG1sIiBjbGFzcz0iaW5saW5lLWZsZXggaXRlbXMtY2VudGVyIGdhcC0xIHRleHQteHMgdGV4dC1zbGF0ZS01MDAgaG92ZXI6dGV4dC1zbGF0ZS05MDAgbWItNiI+CiAgICAgIDxpIGRhdGEtbHVjaWRlPSJhcnJvdy1sZWZ0IiBjbGFzcz0idy0zLjUgaC0zLjUiPjwvaT4KICAgICAg44Ot44Kw44Kk44Oz44Gr5oi744KLCiAgICA8L2E+CgogICAgPGRpdiBjbGFzcz0idGV4dC1jZW50ZXIgbWItOCI+CiAgICAgIDxkaXYgY2xhc3M9ImlubGluZS1mbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciB3LTEyIGgtMTIgcm91bmRlZC1sZyBiZy1lYi0xMDAgbWItNCI+CiAgICAgICAgPGkgZGF0YS1sdWNpZGU9ImtleS1yb3VuZCIgY2xhc3M9InctNiBoLTYgdGV4dC1lYi01MDAiPjwvaT4KICAgICAgPC9kaXY+CiAgICAgIDxoMSBjbGFzcz0idGV4dC0yeGwgZm9udC1ib2xkIj7jg5Hjgrnjg6/jg7zjg4nlho3oqK3lrpo8L2gxPgogICAgICA8cCBjbGFzcz0idGV4dC1zbSB0ZXh0LXNsYXRlLTYwMCBtdC0xIj7nmbvpjLLjg6Hjg7zjg6vjgqLjg4njg6zjgrnjgavlho3oqK3lrprjg6rjg7Pjgq/jgpLpgIHjgorjgb7jgZk8L3A+CiAgICA8L2Rpdj4KCiAgICA8IS0tIFNUQVRFIEE6IFJlcXVlc3QgcmVzZXQgZW1haWwgLS0+CiAgICA8ZGl2IGNsYXNzPSJiZy13aGl0ZSBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHAtNiBzcGFjZS15LTQiPgogICAgICA8ZGl2IGNsYXNzPSJzcGFjZS15LTEuNSI+CiAgICAgICAgPGxhYmVsIGZvcj0iZW1haWwiIGNsYXNzPSJ0ZXh0LXNtIGZvbnQtbWVkaXVtIGJsb2NrIj7jg6Hjg7zjg6vjgqLjg4njg6zjgrk8L2xhYmVsPgogICAgICAgIDxpbnB1dCBpZD0iZW1haWwiIHR5cGU9ImVtYWlsIiBwbGFjZWhvbGRlcj0ieW91QGV4YW1wbGUuY29tIiBhdXRvY29tcGxldGU9ImVtYWlsIgogICAgICAgICAgY2xhc3M9ImJvcmRlciBib3JkZXItc2xhdGUtMjAwIGJnLXdoaXRlIHRleHQtc20gaC05IHB4LTMgcm91bmRlZC1tZCB3LWZ1bGwgZm9jdXMtdmlzaWJsZTpvdXRsaW5lLW5vbmUgZm9jdXMtdmlzaWJsZTpib3JkZXItZWItNTAwIGZvY3VzLXZpc2libGU6cmluZy0yIGZvY3VzLXZpc2libGU6cmluZy1lYi0xMDAiIC8+CiAgICAgICAgPHAgY2xhc3M9InRleHQteHMgdGV4dC1zbGF0ZS01MDAiPueZu+mMsuaZguOBruODoeODvOODq+OCouODieODrOOCueOCkuWFpeWKm+OBl+OBpuOBj+OBoOOBleOBhDwvcD4KICAgICAgPC9kaXY+CgogICAgICA8YnV0dG9uIHR5cGU9InN1Ym1pdCIgY2xhc3M9InctZnVsbCBiZy1lYi01MDAgaG92ZXI6YmctZWItNjAwIHRleHQtd2hpdGUgdGV4dC1zbSBmb250LXNlbWlib2xkIGgtMTAgcHgtNCByb3VuZGVkLW1kIHRyYW5zaXRpb24tY29sb3JzIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGdhcC0yIj4KICAgICAgICA8aSBkYXRhLWx1Y2lkZT0ibWFpbCIgY2xhc3M9InctNCBoLTQiPjwvaT4KICAgICAgICA8c3Bhbj7lho3oqK3lrprjg6rjg7Pjgq/jgpLpgIHjgos8L3NwYW4+CiAgICAgIDwvYnV0dG9uPgogICAgPC9kaXY+CgogICAgPCEtLSBTVEFURSBCOiBFbWFpbCBzZW50IChzdWNjZXNzIG1lc3NhZ2UgLSBoaWRkZW4gYnkgZGVmYXVsdCkgLS0+CiAgICA8ZGl2IGNsYXNzPSJoaWRkZW4gYmctd2hpdGUgYm9yZGVyIGJvcmRlci1lYi0yMDAgcm91bmRlZC1sZyBwLTYgc3BhY2UteS0zIG10LTQiIGRhdGEtc3RhdGU9ImVtYWlsX3NlbnQiPgogICAgICA8ZGl2IGNsYXNzPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMyI+CiAgICAgICAgPGRpdiBjbGFzcz0idy0xMCBoLTEwIHJvdW5kZWQtZnVsbCBiZy1lYi0xMDAgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgc2hyaW5rLTAiPgogICAgICAgICAgPGkgZGF0YS1sdWNpZGU9ImNoZWNrIiBjbGFzcz0idy01IGgtNSB0ZXh0LWViLTUwMCI+PC9pPgogICAgICAgIDwvZGl2PgogICAgICAgIDxkaXY+CiAgICAgICAgICA8ZGl2IGNsYXNzPSJ0ZXh0LXNtIGZvbnQtc2VtaWJvbGQiPuODoeODvOODq+OCkumAgeS/oeOBl+OBvuOBl+OBnzwvZGl2PgogICAgICAgICAgPGRpdiBjbGFzcz0idGV4dC14cyB0ZXh0LXNsYXRlLTYwMCBtdC0wLjUiPuWPl+S/oeODiOODrOOCpOOCkuOBlOeiuuiqjeOBj+OBoOOBleOBhDwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KICAgICAgPGRpdiBjbGFzcz0idGV4dC14cyB0ZXh0LXNsYXRlLTUwMCBsZWFkaW5nLXJlbGF4ZWQgcHQtMyBib3JkZXItdCBib3JkZXItc2xhdGUtMjAwIj4KICAgICAgICDjg6Hjg7zjg6vjgYzlsYrjgYvjgarjgYTloLTlkIg6IDxicj4KICAgICAgICDjg7vov7fmg5Hjg6Hjg7zjg6vjg5Xjgqnjg6vjg4DjgpLnorroqo08YnI+CiAgICAgICAg44O744Oh44O844Or44Ki44OJ44Os44K544Gu5YWl5Yqb44Of44K544KS56K66KqNPGJyPgogICAgICAgIOODuzUg5YiG5b6F44Gj44Gm44GL44KJ5YaN6YCB5L+hCiAgICAgIDwvZGl2PgogICAgPC9kaXY+CgogICAgPCEtLSBTVEFURSBDOiBOZXcgcGFzc3dvcmQgaW5wdXQgKGFmdGVyIGNsaWNraW5nIGVtYWlsIGxpbmssID90b2tlbj14eHgpIC0tPgogICAgPGRldGFpbHMgY2xhc3M9ImJnLXdoaXRlIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgcC02IHNwYWNlLXktNCBtdC00IiBkYXRhLXN0YXRlPSJuZXdfcGFzc3dvcmQiPgogICAgICA8c3VtbWFyeSBjbGFzcz0idGV4dC1zbSBmb250LW1lZGl1bSBjdXJzb3ItcG9pbnRlciB0ZXh0LXNsYXRlLTYwMCBob3Zlcjp0ZXh0LXNsYXRlLTkwMCI+CiAgICAgICAgPHNwYW4gY2xhc3M9ImlubGluZS1mbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiI+PGkgZGF0YS1sdWNpZGU9ImxvY2siIGNsYXNzPSJ3LTQgaC00Ij48L2k+5paw44OR44K544Ov44O844OJ5YWl5Yqb44Oi44O844OJIChwcmV2aWV3KTwvc3Bhbj4KICAgICAgPC9zdW1tYXJ5PgogICAgICA8ZGl2IGNsYXNzPSJzcGFjZS15LTQgcHQtNCI+CiAgICAgICAgPGRpdiBjbGFzcz0ic3BhY2UteS0xLjUiPgogICAgICAgICAgPGxhYmVsIGNsYXNzPSJ0ZXh0LXNtIGZvbnQtbWVkaXVtIGJsb2NrIj7mlrDjgZfjgYTjg5Hjgrnjg6/jg7zjg4k8L2xhYmVsPgogICAgICAgICAgPGlucHV0IHR5cGU9InBhc3N3b3JkIiBwbGFjZWhvbGRlcj0iMTIg5paH5a2X5Lul5LiKIiBjbGFzcz0iYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgYmctd2hpdGUgdGV4dC1zbSBoLTkgcHgtMyByb3VuZGVkLW1kIHctZnVsbCIgLz4KICAgICAgICA8L2Rpdj4KICAgICAgICA8ZGl2IGNsYXNzPSJzcGFjZS15LTEuNSI+CiAgICAgICAgICA8bGFiZWwgY2xhc3M9InRleHQtc20gZm9udC1tZWRpdW0gYmxvY2siPueiuuiqjeOBruOBn+OCgeWGjeWFpeWKmzwvbGFiZWw+CiAgICAgICAgICA8aW5wdXQgdHlwZT0icGFzc3dvcmQiIHBsYWNlaG9sZGVyPSLlkIzjgZjjg5Hjgrnjg6/jg7zjg4njgpLlhaXlipsiIGNsYXNzPSJib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCBiZy13aGl0ZSB0ZXh0LXNtIGgtOSBweC0zIHJvdW5kZWQtbWQgdy1mdWxsIiAvPgogICAgICAgIDwvZGl2PgogICAgICAgIDxidXR0b24gY2xhc3M9InctZnVsbCBiZy1lYi01MDAgaG92ZXI6YmctZWItNjAwIHRleHQtd2hpdGUgdGV4dC1zbSBmb250LXNlbWlib2xkIGgtMTAgcm91bmRlZC1tZCB0cmFuc2l0aW9uLWNvbG9ycyI+44OR44K544Ov44O844OJ44KS5pu05pawPC9idXR0b24+CiAgICAgIDwvZGl2PgogICAgPC9kZXRhaWxzPgoKICAgIDxkaXYgY2xhc3M9InRleHQtY2VudGVyIHRleHQtWzExcHhdIHRleHQtc2xhdGUtNDAwIG10LTggbW9ubyI+wqkgRU5HSU5FIEJBU0U8L2Rpdj4KICA8L2Rpdj4KPC9tYWluPgoKPHNjcmlwdD5sdWNpZGUuY3JlYXRlSWNvbnMoKTs8L3NjcmlwdD4KPC9ib2R5Pgo8L2h0bWw+Cg==","S-004":"PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImphIj4KPGhlYWQ+CjxtZXRhIGNoYXJzZXQ9IlVURi04Ij4KPG1ldGEgbmFtZT0idmlld3BvcnQiIGNvbnRlbnQ9IndpZHRoPWRldmljZS13aWR0aCwgaW5pdGlhbC1zY2FsZT0xLjAiPgo8dGl0bGU+Uy0wMDQgTUZBIOOCu+ODg+ODiOOCouODg+ODlyDigJQgQnVpbGQtRmFjdG9yeTwvdGl0bGU+Cgo8bWV0YSBuYW1lPSJiZi1zY3JlZW4taWQiIGNvbnRlbnQ9IlMtMDA0Ij4KPG1ldGEgbmFtZT0iYmYtc2NyZWVuLW5hbWUiIGNvbnRlbnQ9Im1mYV9zZXR1cCI+CjxtZXRhIG5hbWU9ImJmLWNhdGVnb3J5IiBjb250ZW50PSJhdXRoIj4KPG1ldGEgbmFtZT0iYmYtZmVhdHVyZS1pZCIgY29udGVudD0iRi0wMDEiPgo8bWV0YSBuYW1lPSJiZi10YXNrLWlkcyIgY29udGVudD0iVC1WMy1BVVRILTExLFQtVjMtQVVUSC0wNCxULVYzLUFVVEgtMDUiPgo8bWV0YSBuYW1lPSJiZi1lbnRpdGllcyIgY29udGVudD0iRS0wMDEiPgo8bWV0YSBuYW1lPSJiZi1yZWxhdGVkLWFwaXMiIGNvbnRlbnQ9IlBPU1QgL2FwaS9hdXRoL21mYS9lbnJvbGwsUE9TVCAvYXBpL2F1dGgvbWZhL3ZlcmlmeSI+CjxtZXRhIG5hbWU9ImJmLXNwZWMtbGluayIgY29udGVudD0iLi4vLi4vLi4vZnVuY3Rpb25hbC1icmVha2Rvd24vMjAyNi0wNS0wOV92MS9zY3JlZW5zLmpzb24jUy0wMDQiPgo8bWV0YSBuYW1lPSJiZi1kZXNpZ24tbGluayIgY29udGVudD0iLi4vLi4vZGVzaWduLXN5c3RlbS9ERVNJR04ubWQiPgo8bWV0YSBuYW1lPSJiZi1zdGF0dXMiIGNvbnRlbnQ9IndpcCI+CjxtZXRhIG5hbWU9ImJmLXZlcnNpb24iIGNvbnRlbnQ9InYzIj4KCjxzY3JpcHQgc3JjPSJodHRwczovL2Nkbi50YWlsd2luZGNzcy5jb20iPjwvc2NyaXB0Pgo8c2NyaXB0IHNyYz0iaHR0cHM6Ly91bnBrZy5jb20vbHVjaWRlQGxhdGVzdCI+PC9zY3JpcHQ+CjxsaW5rIHJlbD0icHJlY29ubmVjdCIgaHJlZj0iaHR0cHM6Ly9mb250cy5nb29nbGVhcGlzLmNvbSI+CjxsaW5rIGhyZWY9Imh0dHBzOi8vZm9udHMuZ29vZ2xlYXBpcy5jb20vY3NzMj9mYW1pbHk9Tm90bytTYW5zK0pQOndnaHRANDAwOzUwMDs2MDA7NzAwJmZhbWlseT1KZXRCcmFpbnMrTW9ubzp3Z2h0QDQwMDs1MDA7NjAwJmRpc3BsYXk9c3dhcCIgcmVsPSJzdHlsZXNoZWV0Ij4KPHNjcmlwdD4KICB0YWlsd2luZC5jb25maWcgPSB7IHRoZW1lOiB7IGV4dGVuZDogewogICAgY29sb3JzOiB7IGViOiB7IDUwOicjZjBmYWY1JywgMTAwOicjZDNmMGUwJywgNDAwOicjMzRiMTY0JywgNTAwOicjMWE2NjQ4JywgNjAwOicjMTU1MjM4JywgNzAwOicjMTAzZTJhJyB9IH0sCiAgICBmb250RmFtaWx5OiB7IHNhbnM6IFsnIk5vdG8gU2FucyBKUCInLCdzYW5zLXNlcmlmJ10sIG1vbm86IFsnIkpldEJyYWlucyBNb25vIicsJ21vbm9zcGFjZSddIH0KICB9fX07Cjwvc2NyaXB0Pgo8c3R5bGU+CiAgYm9keSB7IGZvbnQtZmFtaWx5OiAnTm90byBTYW5zIEpQJywgc2Fucy1zZXJpZjsgbGluZS1oZWlnaHQ6IDEuNzsgfQogIC5tb25vIHsgZm9udC1mYW1pbHk6ICdKZXRCcmFpbnMgTW9ubycsIG1vbm9zcGFjZTsgfQogIC5xci1jZWxsIHsgYmFja2dyb3VuZDogIzBmMTcyYTsgfQogIC5xci1lbXB0eSB7IGJhY2tncm91bmQ6ICNmZmZmZmY7IH0KPC9zdHlsZT4KPC9oZWFkPgo8Ym9keSBjbGFzcz0iYmctc2xhdGUtNTAgdGV4dC1zbGF0ZS05MDAgbWluLWgtc2NyZWVuIGZsZXggZmxleC1jb2wiPgoKPGhlYWRlciBjbGFzcz0icHgtNiBweS00IGJvcmRlci1iIGJvcmRlci1zbGF0ZS0yMDAgYmctd2hpdGUiPgogIDxkaXYgY2xhc3M9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIG1heC13LVsxNDAwcHhdIG14LWF1dG8iPgogICAgPGRpdiBjbGFzcz0idy03IGgtNyByb3VuZGVkLW1kIGJnLWViLTUwMCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciI+PGkgZGF0YS1sdWNpZGU9ImZhY3RvcnkiIGNsYXNzPSJ3LTQgaC00IHRleHQtd2hpdGUiPjwvaT48L2Rpdj4KICAgIDxkaXYgY2xhc3M9InRleHQtc20gZm9udC1ib2xkIj5CdWlsZC1GYWN0b3J5PC9kaXY+CiAgICA8c3BhbiBjbGFzcz0idGV4dC1bMTFweF0gdGV4dC1zbGF0ZS01MDAgbW9ubyI+djM8L3NwYW4+CiAgPC9kaXY+CjwvaGVhZGVyPgoKPG1haW4gY2xhc3M9ImZsZXgtMSBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBweC02IHB5LTEyIj4KICA8ZGl2IGNsYXNzPSJ3LWZ1bGwgbWF4LXctWzU2MHB4XSI+CiAgICA8ZGl2IGNsYXNzPSJ0ZXh0LWNlbnRlciBtYi04Ij4KICAgICAgPGRpdiBjbGFzcz0iaW5saW5lLWZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHctMTIgaC0xMiByb3VuZGVkLWxnIGJnLWViLTEwMCBtYi00Ij4KICAgICAgICA8aSBkYXRhLWx1Y2lkZT0ic2hpZWxkLWNoZWNrIiBjbGFzcz0idy02IGgtNiB0ZXh0LWViLTUwMCI+PC9pPgogICAgICA8L2Rpdj4KICAgICAgPGgxIGNsYXNzPSJ0ZXh0LTJ4bCBmb250LWJvbGQiPjIg5q616ZqO6KqN6Ki8IChNRkEpIOOCkuacieWKueWMljwvaDE+CiAgICAgIDxwIGNsYXNzPSJ0ZXh0LXNtIHRleHQtc2xhdGUtNjAwIG10LTEiPuOCouOCq+OCpuODs+ODiOOBruWuieWFqOaAp+OCkumrmOOCgeOCi+OBn+OCgeOBqyBUT1RQIOiqjeiovOOCouODl+ODquOCkuioreWumuOBl+OBvuOBmTwvcD4KICAgIDwvZGl2PgoKICAgIDwhLS0gU3RlcHBlciAtLT4KICAgIDxkaXYgY2xhc3M9ImJnLXdoaXRlIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgcC00IG1iLTQiPgogICAgICA8ZGl2IGNsYXNzPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiB0ZXh0LXhzIj4KICAgICAgICA8ZGl2IGNsYXNzPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMS41IHRleHQtZWItNTAwIGZvbnQtc2VtaWJvbGQiPgogICAgICAgICAgPGRpdiBjbGFzcz0idy01IGgtNSByb3VuZGVkLWZ1bGwgYmctZWItNTAwIHRleHQtd2hpdGUgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgbW9ubyI+MTwvZGl2PgogICAgICAgICAgUVIg44K544Kt44Oj44OzCiAgICAgICAgPC9kaXY+CiAgICAgICAgPGRpdiBjbGFzcz0iZmxleC0xIGgtcHggYmctc2xhdGUtMjAwIj48L2Rpdj4KICAgICAgICA8ZGl2IGNsYXNzPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMS41IHRleHQtc2xhdGUtNTAwIj4KICAgICAgICAgIDxkaXYgY2xhc3M9InctNSBoLTUgcm91bmRlZC1mdWxsIGJnLXNsYXRlLTIwMCB0ZXh0LXNsYXRlLTYwMCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBtb25vIj4yPC9kaXY+CiAgICAgICAgICDjgrPjg7zjg4nnorroqo0KICAgICAgICA8L2Rpdj4KICAgICAgICA8ZGl2IGNsYXNzPSJmbGV4LTEgaC1weCBiZy1zbGF0ZS0yMDAiPjwvZGl2PgogICAgICAgIDxkaXYgY2xhc3M9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0xLjUgdGV4dC1zbGF0ZS01MDAiPgogICAgICAgICAgPGRpdiBjbGFzcz0idy01IGgtNSByb3VuZGVkLWZ1bGwgYmctc2xhdGUtMjAwIHRleHQtc2xhdGUtNjAwIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIG1vbm8iPjM8L2Rpdj4KICAgICAgICAgIOODkOODg+OCr+OCouODg+ODlwogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KICAgIDwvZGl2PgoKICAgIDwhLS0gU3RlcCAxOiBRUiBzY2FuIC0tPgogICAgPGRpdiBjbGFzcz0iYmctd2hpdGUgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBwLTYgbWItNCI+CiAgICAgIDxoMiBjbGFzcz0idGV4dC1sZyBmb250LWJvbGQgbWItNCBmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiI+CiAgICAgICAgPGkgZGF0YS1sdWNpZGU9InFyLWNvZGUiIGNsYXNzPSJ3LTUgaC01IHRleHQtZWItNTAwIj48L2k+CiAgICAgICAgU3RlcCAxLiDoqo3oqLzjgqLjg5fjg6rjgacgUVIg44KS44K544Kt44Oj44OzCiAgICAgIDwvaDI+CiAgICAgIDxkaXYgY2xhc3M9ImdyaWQgZ3JpZC1jb2xzLVsxODBweF8xZnJdIGdhcC02Ij4KICAgICAgICA8IS0tIFFSIGRpc3BsYXkgKHBsYWNlaG9sZGVyIHBhdHRlcm4pIC0tPgogICAgICAgIDxkaXYgY2xhc3M9ImJnLXdoaXRlIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbWQgcC0zIj4KICAgICAgICAgIDxkaXYgY2xhc3M9ImdyaWQgZ3JpZC1jb2xzLTEyIGdhcC0wIHctZnVsbCBhc3BlY3Qtc3F1YXJlIj4KICAgICAgICAgICAgPCEtLSBTaW1wbGUgUVItbGlrZSBwYXR0ZXJuIGFzIHZpc3VhbCBwbGFjZWhvbGRlciAtLT4KICAgICAgICAgICAgPGRpdiBjbGFzcz0icXItY2VsbCBjb2wtc3Bhbi0zIHJvdy1zcGFuLTMiPjwvZGl2PjxkaXYgY2xhc3M9InFyLWVtcHR5IGNvbC1zcGFuLTYgcm93LXNwYW4tMyI+PC9kaXY+PGRpdiBjbGFzcz0icXItY2VsbCBjb2wtc3Bhbi0zIHJvdy1zcGFuLTMiPjwvZGl2PgogICAgICAgICAgICA8ZGl2IGNsYXNzPSJxci1jZWxsIGNvbC1zcGFuLTEiPjwvZGl2PjxkaXYgY2xhc3M9InFyLWVtcHR5IGNvbC1zcGFuLTEiPjwvZGl2PjxkaXYgY2xhc3M9InFyLWNlbGwgY29sLXNwYW4tMSI+PC9kaXY+PGRpdiBjbGFzcz0icXItY2VsbCBjb2wtc3Bhbi0xIj48L2Rpdj48ZGl2IGNsYXNzPSJxci1lbXB0eSBjb2wtc3Bhbi0xIj48L2Rpdj48ZGl2IGNsYXNzPSJxci1jZWxsIGNvbC1zcGFuLTEiPjwvZGl2PjxkaXYgY2xhc3M9InFyLWVtcHR5IGNvbC1zcGFuLTEiPjwvZGl2PjxkaXYgY2xhc3M9InFyLWNlbGwgY29sLXNwYW4tMSI+PC9kaXY+PGRpdiBjbGFzcz0icXItZW1wdHkgY29sLXNwYW4tMSI+PC9kaXY+PGRpdiBjbGFzcz0icXItY2VsbCBjb2wtc3Bhbi0xIj48L2Rpdj48ZGl2IGNsYXNzPSJxci1lbXB0eSBjb2wtc3Bhbi0xIj48L2Rpdj48ZGl2IGNsYXNzPSJxci1jZWxsIGNvbC1zcGFuLTEiPjwvZGl2PgogICAgICAgICAgICA8ZGl2IGNsYXNzPSJxci1jZWxsIGNvbC1zcGFuLTEiPjwvZGl2PjxkaXYgY2xhc3M9InFyLWNlbGwgY29sLXNwYW4tMSI+PC9kaXY+PGRpdiBjbGFzcz0icXItZW1wdHkgY29sLXNwYW4tMSI+PC9kaXY+PGRpdiBjbGFzcz0icXItY2VsbCBjb2wtc3Bhbi0yIj48L2Rpdj48ZGl2IGNsYXNzPSJxci1lbXB0eSBjb2wtc3Bhbi0xIj48L2Rpdj48ZGl2IGNsYXNzPSJxci1jZWxsIGNvbC1zcGFuLTEiPjwvZGl2PjxkaXYgY2xhc3M9InFyLWVtcHR5IGNvbC1zcGFuLTIiPjwvZGl2PjxkaXYgY2xhc3M9InFyLWNlbGwgY29sLXNwYW4tMSI+PC9kaXY+PGRpdiBjbGFzcz0icXItZW1wdHkgY29sLXNwYW4tMSI+PC9kaXY+PGRpdiBjbGFzcz0icXItY2VsbCBjb2wtc3Bhbi0yIj48L2Rpdj4KICAgICAgICAgICAgPGRpdiBjbGFzcz0icXItZW1wdHkgY29sLXNwYW4tMyI+PC9kaXY+PGRpdiBjbGFzcz0icXItY2VsbCBjb2wtc3Bhbi0xIj48L2Rpdj48ZGl2IGNsYXNzPSJxci1lbXB0eSBjb2wtc3Bhbi0yIj48L2Rpdj48ZGl2IGNsYXNzPSJxci1jZWxsIGNvbC1zcGFuLTEiPjwvZGl2PjxkaXYgY2xhc3M9InFyLWVtcHR5IGNvbC1zcGFuLTIiPjwvZGl2PjxkaXYgY2xhc3M9InFyLWNlbGwgY29sLXNwYW4tMSI+PC9kaXY+PGRpdiBjbGFzcz0icXItZW1wdHkgY29sLXNwYW4tMiI+PC9kaXY+CiAgICAgICAgICAgIDxkaXYgY2xhc3M9InFyLWNlbGwgY29sLXNwYW4tMyByb3ctc3Bhbi0zIj48L2Rpdj48ZGl2IGNsYXNzPSJxci1lbXB0eSBjb2wtc3Bhbi0zIj48L2Rpdj48ZGl2IGNsYXNzPSJxci1jZWxsIGNvbC1zcGFuLTEiPjwvZGl2PjxkaXYgY2xhc3M9InFyLWVtcHR5IGNvbC1zcGFuLTIiPjwvZGl2PjxkaXYgY2xhc3M9InFyLWNlbGwgY29sLXNwYW4tMyI+PC9kaXY+CiAgICAgICAgICAgIDxkaXYgY2xhc3M9InFyLWVtcHR5IGNvbC1zcGFuLTEiPjwvZGl2PjxkaXYgY2xhc3M9InFyLWNlbGwgY29sLXNwYW4tMSI+PC9kaXY+PGRpdiBjbGFzcz0icXItZW1wdHkgY29sLXNwYW4tMiI+PC9kaXY+PGRpdiBjbGFzcz0icXItY2VsbCBjb2wtc3Bhbi0xIj48L2Rpdj48ZGl2IGNsYXNzPSJxci1lbXB0eSBjb2wtc3Bhbi0yIj48L2Rpdj48ZGl2IGNsYXNzPSJxci1jZWxsIGNvbC1zcGFuLTIiPjwvZGl2PgogICAgICAgICAgICA8ZGl2IGNsYXNzPSJxci1jZWxsIGNvbC1zcGFuLTIiPjwvZGl2PjxkaXYgY2xhc3M9InFyLWVtcHR5IGNvbC1zcGFuLTEiPjwvZGl2PjxkaXYgY2xhc3M9InFyLWNlbGwgY29sLXNwYW4tMiI+PC9kaXY+PGRpdiBjbGFzcz0icXItZW1wdHkgY29sLXNwYW4tMSI+PC9kaXY+PGRpdiBjbGFzcz0icXItY2VsbCBjb2wtc3Bhbi0xIj48L2Rpdj4KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgoKICAgICAgICA8ZGl2IGNsYXNzPSJzcGFjZS15LTMiPgogICAgICAgICAgPHAgY2xhc3M9InRleHQtc20gdGV4dC1zbGF0ZS02MDAgbGVhZGluZy1yZWxheGVkIj4KICAgICAgICAgICAgPHN0cm9uZz5Hb29nbGUgQXV0aGVudGljYXRvcjwvc3Ryb25nPiAvIDxzdHJvbmc+MVBhc3N3b3JkPC9zdHJvbmc+IC8gPHN0cm9uZz5BdXRoeTwvc3Ryb25nPiDnrYnjga4gVE9UUCDoqo3oqLzjgqLjg5fjg6rjgafkuIroqJjjga4gUVIg44KS44K544Kt44Oj44Oz44GX44Gm44GP44Gg44GV44GE44CCCiAgICAgICAgICA8L3A+CgogICAgICAgICAgPCEtLSBNYW51YWwgZW50cnkgc2VjcmV0IC0tPgogICAgICAgICAgPGRpdiBjbGFzcz0iYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1tZCBwLTMgYmctc2xhdGUtNTAiPgogICAgICAgICAgICA8ZGl2IGNsYXNzPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNTAwIG1iLTEiPuaJi+WLleWFpeWKm+eUqOOCt+ODvOOCr+ODrOODg+ODiDwvZGl2PgogICAgICAgICAgICA8ZGl2IGNsYXNzPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiI+CiAgICAgICAgICAgICAgPGNvZGUgY2xhc3M9Im1vbm8gdGV4dC1zbSB0ZXh0LXNsYXRlLTkwMCB0cmFja2luZy13aWRlc3QgZmxleC0xIj5KQlNXWTNEUEVIUEszUFhQPC9jb2RlPgogICAgICAgICAgICAgIDxidXR0b24gY2xhc3M9InRleHQtc2xhdGUtNTAwIGhvdmVyOnRleHQtZWItNTAwIiB0aXRsZT0i44Kz44OU44O8Ij4KICAgICAgICAgICAgICAgIDxpIGRhdGEtbHVjaWRlPSJjb3B5IiBjbGFzcz0idy0zLjUgaC0zLjUiPjwvaT4KICAgICAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICA8cCBjbGFzcz0idGV4dC14cyB0ZXh0LXNsYXRlLTUwMCI+CiAgICAgICAgICAgIFFSIOOCkuOCueOCreODo+ODs+OBp+OBjeOBquOBhOWgtOWQiOOBr+OAgeS4iuiomOOBruOCt+ODvOOCr+ODrOODg+ODiOOCkuiqjeiovOOCouODl+ODquOBq+aJi+WLleOBp+i/veWKoOOBl+OBpuOBj+OBoOOBleOBhOOAggogICAgICAgICAgPC9wPgogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KICAgIDwvZGl2PgoKICAgIDwhLS0gU3RlcCAyOiBWZXJpZnkgY29kZSAtLT4KICAgIDxkaXYgY2xhc3M9ImJnLXdoaXRlIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgcC02IG1iLTQiPgogICAgICA8aDIgY2xhc3M9InRleHQtbGcgZm9udC1ib2xkIG1iLTQgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIiPgogICAgICAgIDxpIGRhdGEtbHVjaWRlPSJrZXkiIGNsYXNzPSJ3LTUgaC01IHRleHQtZWItNTAwIj48L2k+CiAgICAgICAgU3RlcCAyLiA2IOahgeOBruOCs+ODvOODieOBp+eiuuiqjQogICAgICA8L2gyPgogICAgICA8ZGl2IGNsYXNzPSJzcGFjZS15LTMiPgogICAgICAgIDxwIGNsYXNzPSJ0ZXh0LXNtIHRleHQtc2xhdGUtNjAwIj7oqo3oqLzjgqLjg5fjg6rjgavooajnpLrjgZXjgozjgZ8gNiDmoYHjga7jgrPjg7zjg4njgpLlhaXlipvjgZfjgabjgY/jgaDjgZXjgYQ8L3A+CiAgICAgICAgPGRpdiBjbGFzcz0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIiPgogICAgICAgICAgPGlucHV0IHR5cGU9InRleHQiIGlucHV0bW9kZT0ibnVtZXJpYyIgcGF0dGVybj0iWzAtOV17Nn0iIG1heGxlbmd0aD0iNiIgcGxhY2Vob2xkZXI9IjEyMzQ1NiIKICAgICAgICAgICAgY2xhc3M9ImJvcmRlciBib3JkZXItc2xhdGUtMjAwIGJnLXdoaXRlIHRleHQteGwgaC0xMiBweC00IHJvdW5kZWQtbWQgdy00NCBtb25vIHRhYnVsYXIgdHJhY2tpbmctWzAuNGVtXSB0ZXh0LWNlbnRlciBmb2N1cy12aXNpYmxlOm91dGxpbmUtbm9uZSBmb2N1cy12aXNpYmxlOmJvcmRlci1lYi01MDAgZm9jdXMtdmlzaWJsZTpyaW5nLTIgZm9jdXMtdmlzaWJsZTpyaW5nLWViLTEwMCIgLz4KICAgICAgICAgIDxidXR0b24gY2xhc3M9ImJnLWViLTUwMCBob3ZlcjpiZy1lYi02MDAgdGV4dC13aGl0ZSB0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgaC0xMiBweC02IHJvdW5kZWQtbWQgdHJhbnNpdGlvbi1jb2xvcnMgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIiPgogICAgICAgICAgICA8c3Bhbj7norroqo08L3NwYW4+CiAgICAgICAgICAgIDxpIGRhdGEtbHVjaWRlPSJjaGVjayIgY2xhc3M9InctNCBoLTQiPjwvaT4KICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgIDwvZGl2PgogICAgICAgIDxwIGNsYXNzPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNTAwIj41IOWbnuS7peS4iuWkseaVl+OBmeOCi+OBqCAxNSDliIbplpPjg63jg4Pjgq/jgZXjgozjgb7jgZk8L3A+CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CgogICAgPCEtLSBTdGVwIDM6IEJhY2t1cCBjb2RlcyAoY29sbGFwc2VkIGluaXRpYWxseSkgLS0+CiAgICA8ZGV0YWlscyBjbGFzcz0iYmctd2hpdGUgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBwLTYgbWItNCI+CiAgICAgIDxzdW1tYXJ5IGNsYXNzPSJ0ZXh0LWxnIGZvbnQtYm9sZCBjdXJzb3ItcG9pbnRlciBmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiI+CiAgICAgICAgPGkgZGF0YS1sdWNpZGU9InNhdmUiIGNsYXNzPSJ3LTUgaC01IHRleHQtZWItNTAwIj48L2k+CiAgICAgICAgU3RlcCAzLiDjg6rjgqvjg5Djg6rjg7zjgrPjg7zjg4kgKHByZXZpZXcpCiAgICAgICAgPHNwYW4gY2xhc3M9InRleHQteHMgZm9udC1ub3JtYWwgdGV4dC1zbGF0ZS01MDAgbWwtYXV0byI+44Kv44Oq44OD44Kv44Gn6KGo56S6PC9zcGFuPgogICAgICA8L3N1bW1hcnk+CiAgICAgIDxkaXYgY2xhc3M9Im10LTQgc3BhY2UteS0zIj4KICAgICAgICA8ZGl2IGNsYXNzPSJiZy1hbWJlci01MCBib3JkZXIgYm9yZGVyLWFtYmVyLTIwMCByb3VuZGVkLW1kIHAtMyBmbGV4IGl0ZW1zLXN0YXJ0IGdhcC0yIj4KICAgICAgICAgIDxpIGRhdGEtbHVjaWRlPSJhbGVydC10cmlhbmdsZSIgY2xhc3M9InctNCBoLTQgdGV4dC1hbWJlci02MDAgbXQtMC41IHNocmluay0wIj48L2k+CiAgICAgICAgICA8ZGl2IGNsYXNzPSJ0ZXh0LXhzIHRleHQtYW1iZXItOTAwIj7oqo3oqLzjgqLjg5fjg6rjgavjgqLjgq/jgrvjgrnjgafjgY3jgarjgY/jgarjgaPjgZ/loLTlkIjjga48c3Ryb25nPue3iuaApeeUqOOCs+ODvOODiTwvc3Ryb25nPuOBp+OBmeOAguWuieWFqOOBquWgtOaJgOOBq+S/neWtmOOBl+OBpuOBj+OBoOOBleOBhOOAguWQhOOCs+ODvOODieOBr+S4gOW6puOBoOOBkeS9v+eUqOWPr+iDveOAgjwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICAgIDxkaXYgY2xhc3M9ImdyaWQgZ3JpZC1jb2xzLTIgZ2FwLTIgbW9ubyB0ZXh0LXNtIj4KICAgICAgICAgIDxkaXYgY2xhc3M9ImJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbWQgcHgtMyBweS0yIGJnLXNsYXRlLTUwIHRhYnVsYXIiPmEzZjItOGI5MTwvZGl2PgogICAgICAgICAgPGRpdiBjbGFzcz0iYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1tZCBweC0zIHB5LTIgYmctc2xhdGUtNTAgdGFidWxhciI+N2Q0Yy1lMjA4PC9kaXY+CiAgICAgICAgICA8ZGl2IGNsYXNzPSJib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLW1kIHB4LTMgcHktMiBiZy1zbGF0ZS01MCB0YWJ1bGFyIj41YTkxLTJmNmI8L2Rpdj4KICAgICAgICAgIDxkaXYgY2xhc3M9ImJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbWQgcHgtMyBweS0yIGJnLXNsYXRlLTUwIHRhYnVsYXIiPmI4YzMtZDE3MjwvZGl2PgogICAgICAgICAgPGRpdiBjbGFzcz0iYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1tZCBweC0zIHB5LTIgYmctc2xhdGUtNTAgdGFidWxhciI+ZTYwOS0xYTVkPC9kaXY+CiAgICAgICAgICA8ZGl2IGNsYXNzPSJib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLW1kIHB4LTMgcHktMiBiZy1zbGF0ZS01MCB0YWJ1bGFyIj5jMjQ3LWY4YjM8L2Rpdj4KICAgICAgICAgIDxkaXYgY2xhc3M9ImJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbWQgcHgtMyBweS0yIGJnLXNsYXRlLTUwIHRhYnVsYXIiPjliMTUtM2M4ZTwvZGl2PgogICAgICAgICAgPGRpdiBjbGFzcz0iYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1tZCBweC0zIHB5LTIgYmctc2xhdGUtNTAgdGFidWxhciI+NGY3Mi1hMTkwPC9kaXY+CiAgICAgICAgICA8ZGl2IGNsYXNzPSJib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLW1kIHB4LTMgcHktMiBiZy1zbGF0ZS01MCB0YWJ1bGFyIj5kODNiLTZlMjU8L2Rpdj4KICAgICAgICAgIDxkaXYgY2xhc3M9ImJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbWQgcHgtMyBweS0yIGJnLXNsYXRlLTUwIHRhYnVsYXIiPjFjOWUtN2Y0ODwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICAgIDxkaXYgY2xhc3M9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIj4KICAgICAgICAgIDxidXR0b24gY2xhc3M9ImZsZXgtMSBiZy13aGl0ZSBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCBob3ZlcjpiZy1zbGF0ZS01MCB0ZXh0LXNtIGgtOSByb3VuZGVkLW1kIHRyYW5zaXRpb24tY29sb3JzIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGdhcC0yIj4KICAgICAgICAgICAgPGkgZGF0YS1sdWNpZGU9ImRvd25sb2FkIiBjbGFzcz0idy00IGgtNCI+PC9pPuODgOOCpuODs+ODreODvOODiSAoVFhUKQogICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICA8YnV0dG9uIGNsYXNzPSJmbGV4LTEgYmctd2hpdGUgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgaG92ZXI6Ymctc2xhdGUtNTAgdGV4dC1zbSBoLTkgcm91bmRlZC1tZCB0cmFuc2l0aW9uLWNvbG9ycyBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBnYXAtMiI+CiAgICAgICAgICAgIDxpIGRhdGEtbHVjaWRlPSJjb3B5IiBjbGFzcz0idy00IGgtNCI+PC9pPuOCs+ODlOODvAogICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICA8YnV0dG9uIGNsYXNzPSJmbGV4LTEgYmctd2hpdGUgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgaG92ZXI6Ymctc2xhdGUtNTAgdGV4dC1zbSBoLTkgcm91bmRlZC1tZCB0cmFuc2l0aW9uLWNvbG9ycyBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBnYXAtMiI+CiAgICAgICAgICAgIDxpIGRhdGEtbHVjaWRlPSJwcmludGVyIiBjbGFzcz0idy00IGgtNCI+PC9pPuWNsOWItwogICAgICAgICAgPC9idXR0b24+CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgogICAgPC9kZXRhaWxzPgoKICAgIDwhLS0gRmluYWwgYnV0dG9uIC0tPgogICAgPGJ1dHRvbiBjbGFzcz0idy1mdWxsIGJnLWViLTUwMCBob3ZlcjpiZy1lYi02MDAgdGV4dC13aGl0ZSB0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgaC0xMCByb3VuZGVkLW1kIHRyYW5zaXRpb24tY29sb3JzIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGdhcC0yIj4KICAgICAgPGkgZGF0YS1sdWNpZGU9InNoaWVsZC1jaGVjayIgY2xhc3M9InctNCBoLTQiPjwvaT4KICAgICAgTUZBIOOCkuacieWKueWMluOBl+OBpuWujOS6hgogICAgPC9idXR0b24+CgogICAgPGRpdiBjbGFzcz0idGV4dC1jZW50ZXIgdGV4dC1bMTFweF0gdGV4dC1zbGF0ZS00MDAgbXQtOCBtb25vIj7CqSBFTkdJTkUgQkFTRTwvZGl2PgogIDwvZGl2Pgo8L21haW4+Cgo8c2NyaXB0Pmx1Y2lkZS5jcmVhdGVJY29ucygpOzwvc2NyaXB0Pgo8L2JvZHk+CjwvaHRtbD4K","S-005":"PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImphIj4KPGhlYWQ+CjxtZXRhIGNoYXJzZXQ9IlVURi04Ij4KPG1ldGEgbmFtZT0idmlld3BvcnQiIGNvbnRlbnQ9IndpZHRoPWRldmljZS13aWR0aCwgaW5pdGlhbC1zY2FsZT0xLjAiPgo8dGl0bGU+Uy0wMDUgT0F1dGgg44Kz44O844Or44OQ44OD44KvIOKAlCBCdWlsZC1GYWN0b3J5PC90aXRsZT4KCjxtZXRhIG5hbWU9ImJmLXNjcmVlbi1pZCIgY29udGVudD0iUy0wMDUiPgo8bWV0YSBuYW1lPSJiZi1zY3JlZW4tbmFtZSIgY29udGVudD0ib2F1dGhfY2FsbGJhY2siPgo8bWV0YSBuYW1lPSJiZi1jYXRlZ29yeSIgY29udGVudD0iYXV0aCI+CjxtZXRhIG5hbWU9ImJmLWZlYXR1cmUtaWQiIGNvbnRlbnQ9IkYtMDAxIj4KPG1ldGEgbmFtZT0iYmYtdGFzay1pZHMiIGNvbnRlbnQ9IlQtVjMtQVVUSC0xMixULVYzLUFVVEgtMDYiPgo8bWV0YSBuYW1lPSJiZi1lbnRpdGllcyIgY29udGVudD0iRS0wMDEsRS0wNDAiPgo8bWV0YSBuYW1lPSJiZi1yZWxhdGVkLWFwaXMiIGNvbnRlbnQ9IkdFVCAvYXBpL2F1dGgvb2F1dGgve3Byb3ZpZGVyfS9jYWxsYmFjayI+CjxtZXRhIG5hbWU9ImJmLXNwZWMtbGluayIgY29udGVudD0iLi4vLi4vLi4vZnVuY3Rpb25hbC1icmVha2Rvd24vMjAyNi0wNS0wOV92MS9zY3JlZW5zLmpzb24jUy0wMDUiPgo8bWV0YSBuYW1lPSJiZi1kZXNpZ24tbGluayIgY29udGVudD0iLi4vLi4vZGVzaWduLXN5c3RlbS9ERVNJR04ubWQiPgo8bWV0YSBuYW1lPSJiZi1zdGF0dXMiIGNvbnRlbnQ9IndpcCI+CjxtZXRhIG5hbWU9ImJmLXZlcnNpb24iIGNvbnRlbnQ9InYzIj4KCjxzY3JpcHQgc3JjPSJodHRwczovL2Nkbi50YWlsd2luZGNzcy5jb20iPjwvc2NyaXB0Pgo8c2NyaXB0IHNyYz0iaHR0cHM6Ly91bnBrZy5jb20vbHVjaWRlQGxhdGVzdCI+PC9zY3JpcHQ+CjxsaW5rIHJlbD0icHJlY29ubmVjdCIgaHJlZj0iaHR0cHM6Ly9mb250cy5nb29nbGVhcGlzLmNvbSI+CjxsaW5rIGhyZWY9Imh0dHBzOi8vZm9udHMuZ29vZ2xlYXBpcy5jb20vY3NzMj9mYW1pbHk9Tm90bytTYW5zK0pQOndnaHRANDAwOzUwMDs2MDA7NzAwJmZhbWlseT1KZXRCcmFpbnMrTW9ubzp3Z2h0QDQwMDs1MDA7NjAwJmRpc3BsYXk9c3dhcCIgcmVsPSJzdHlsZXNoZWV0Ij4KPHNjcmlwdD4KICB0YWlsd2luZC5jb25maWcgPSB7IHRoZW1lOiB7IGV4dGVuZDogewogICAgY29sb3JzOiB7IGViOiB7IDUwOicjZjBmYWY1JywgMTAwOicjZDNmMGUwJywgNDAwOicjMzRiMTY0JywgNTAwOicjMWE2NjQ4JywgNjAwOicjMTU1MjM4JywgNzAwOicjMTAzZTJhJyB9IH0sCiAgICBmb250RmFtaWx5OiB7IHNhbnM6IFsnIk5vdG8gU2FucyBKUCInLCdzYW5zLXNlcmlmJ10sIG1vbm86IFsnIkpldEJyYWlucyBNb25vIicsJ21vbm9zcGFjZSddIH0KICB9fX07Cjwvc2NyaXB0Pgo8c3R5bGU+CiAgYm9keSB7IGZvbnQtZmFtaWx5OiAnTm90byBTYW5zIEpQJywgc2Fucy1zZXJpZjsgbGluZS1oZWlnaHQ6IDEuNzsgfQogIC5tb25vIHsgZm9udC1mYW1pbHk6ICdKZXRCcmFpbnMgTW9ubycsIG1vbm9zcGFjZTsgfQogIC5zcGluIHsgYW5pbWF0aW9uOiBzcGluIDFzIGxpbmVhciBpbmZpbml0ZTsgfQogIEBrZXlmcmFtZXMgc3BpbiB7IGZyb20geyB0cmFuc2Zvcm06IHJvdGF0ZSgwZGVnKTsgfSB0byB7IHRyYW5zZm9ybTogcm90YXRlKDM2MGRlZyk7IH0gfQogIC5wdWxzZS1kb3QgeyBhbmltYXRpb246IHB1bHNlLWRvdCAxLjRzIGluZmluaXRlOyB9CiAgQGtleWZyYW1lcyBwdWxzZS1kb3QgeyAwJSwxMDAlIHsgb3BhY2l0eTogMTsgfSA1MCUgeyBvcGFjaXR5OiAwLjQ7IH0gfQo8L3N0eWxlPgo8L2hlYWQ+Cjxib2R5IGNsYXNzPSJiZy1zbGF0ZS01MCB0ZXh0LXNsYXRlLTkwMCBtaW4taC1zY3JlZW4gZmxleCBmbGV4LWNvbCI+Cgo8aGVhZGVyIGNsYXNzPSJweC02IHB5LTQgYm9yZGVyLWIgYm9yZGVyLXNsYXRlLTIwMCBiZy13aGl0ZSI+CiAgPGRpdiBjbGFzcz0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgbWF4LXctWzE0MDBweF0gbXgtYXV0byI+CiAgICA8ZGl2IGNsYXNzPSJ3LTcgaC03IHJvdW5kZWQtbWQgYmctZWItNTAwIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIj48aSBkYXRhLWx1Y2lkZT0iZmFjdG9yeSIgY2xhc3M9InctNCBoLTQgdGV4dC13aGl0ZSI+PC9pPjwvZGl2PgogICAgPGRpdiBjbGFzcz0idGV4dC1zbSBmb250LWJvbGQiPkJ1aWxkLUZhY3Rvcnk8L2Rpdj4KICAgIDxzcGFuIGNsYXNzPSJ0ZXh0LVsxMXB4XSB0ZXh0LXNsYXRlLTUwMCBtb25vIj52Mzwvc3Bhbj4KICA8L2Rpdj4KPC9oZWFkZXI+Cgo8bWFpbiBjbGFzcz0iZmxleC0xIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHB4LTYgcHktMTIiPgogIDxkaXYgY2xhc3M9InctZnVsbCBtYXgtdy1bNDIwcHhdIj4KCiAgICA8IS0tIFNUQVRFIEE6IExvYWRpbmcgKGRlZmF1bHQpIC0tPgogICAgPGRpdiBjbGFzcz0iYmctd2hpdGUgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBwLTggdGV4dC1jZW50ZXIiIGRhdGEtc3RhdGU9ImxvYWRpbmciPgogICAgICA8ZGl2IGNsYXNzPSJpbmxpbmUtZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgdy0xNiBoLTE2IHJvdW5kZWQtZnVsbCBiZy1lYi0xMDAgbWItNiI+CiAgICAgICAgPGkgZGF0YS1sdWNpZGU9ImxvYWRlci0yIiBjbGFzcz0idy04IGgtOCB0ZXh0LWViLTUwMCBzcGluIj48L2k+CiAgICAgIDwvZGl2PgogICAgICA8aDEgY2xhc3M9InRleHQtMnhsIGZvbnQtYm9sZCBtYi0yIj7jg63jgrDjgqTjg7PkuK0uLi48L2gxPgogICAgICA8cCBjbGFzcz0idGV4dC1zbSB0ZXh0LXNsYXRlLTYwMCI+QW50aHJvcGljIOOCouOCq+OCpuODs+ODiOOBp+iqjeiovOOBl+OBpuOBhOOBvuOBmTwvcD4KCiAgICAgIDxkaXYgY2xhc3M9Im10LTggZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgZ2FwLTIgdGV4dC14cyB0ZXh0LXNsYXRlLTUwMCI+CiAgICAgICAgPHNwYW4gY2xhc3M9InctMS41IGgtMS41IHJvdW5kZWQtZnVsbCBiZy1lYi01MDAgcHVsc2UtZG90Ij48L3NwYW4+CiAgICAgICAgPHNwYW4gY2xhc3M9Im1vbm8iPmNvbm5lY3RpbmcgdG8gYW50aHJvcGljLmNvbTwvc3Bhbj4KICAgICAgPC9kaXY+CgogICAgICA8IS0tIFByb2dyZXNzIHN0ZXBzIC0tPgogICAgICA8ZGl2IGNsYXNzPSJtdC02IHNwYWNlLXktMiB0ZXh0LWxlZnQgbWF4LXcteHMgbXgtYXV0byI+CiAgICAgICAgPGRpdiBjbGFzcz0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgdGV4dC14cyI+CiAgICAgICAgICA8aSBkYXRhLWx1Y2lkZT0iY2hlY2stY2lyY2xlLTIiIGNsYXNzPSJ3LTQgaC00IHRleHQtZWItNTAwIHNocmluay0wIj48L2k+CiAgICAgICAgICA8c3BhbiBjbGFzcz0idGV4dC1zbGF0ZS03MDAiPk9BdXRoIOODiOODvOOCr+ODs+WPl+S/oTwvc3Bhbj4KICAgICAgICA8L2Rpdj4KICAgICAgICA8ZGl2IGNsYXNzPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiB0ZXh0LXhzIj4KICAgICAgICAgIDxpIGRhdGEtbHVjaWRlPSJsb2FkZXItMiIgY2xhc3M9InctNCBoLTQgdGV4dC1lYi01MDAgc3BpbiBzaHJpbmstMCI+PC9pPgogICAgICAgICAgPHNwYW4gY2xhc3M9InRleHQtc2xhdGUtNzAwIj7jg6bjg7zjgrbjg7zmg4XloLHlj5blvpc8L3NwYW4+CiAgICAgICAgPC9kaXY+CiAgICAgICAgPGRpdiBjbGFzcz0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgdGV4dC14cyI+CiAgICAgICAgICA8aSBkYXRhLWx1Y2lkZT0iY2lyY2xlIiBjbGFzcz0idy00IGgtNCB0ZXh0LXNsYXRlLTMwMCBzaHJpbmstMCI+PC9pPgogICAgICAgICAgPHNwYW4gY2xhc3M9InRleHQtc2xhdGUtNTAwIj7jgrvjg4Pjgrfjg6fjg7PkvZzmiJA8L3NwYW4+CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CgogICAgPCEtLSBTVEFURSBCOiBTdWNjZXNzIChoaWRkZW4gYnkgZGVmYXVsdCkgLS0+CiAgICA8ZGl2IGNsYXNzPSJoaWRkZW4gYmctd2hpdGUgYm9yZGVyIGJvcmRlci1lYi0yMDAgcm91bmRlZC1sZyBwLTggdGV4dC1jZW50ZXIgbXQtNCIgZGF0YS1zdGF0ZT0ic3VjY2VzcyI+CiAgICAgIDxkaXYgY2xhc3M9ImlubGluZS1mbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciB3LTE2IGgtMTYgcm91bmRlZC1mdWxsIGJnLWViLTEwMCBtYi02Ij4KICAgICAgICA8aSBkYXRhLWx1Y2lkZT0iY2hlY2siIGNsYXNzPSJ3LTggaC04IHRleHQtZWItNTAwIj48L2k+CiAgICAgIDwvZGl2PgogICAgICA8aDEgY2xhc3M9InRleHQtMnhsIGZvbnQtYm9sZCBtYi0yIj7jg63jgrDjgqTjg7PmiJDlip88L2gxPgogICAgICA8cCBjbGFzcz0idGV4dC1zbSB0ZXh0LXNsYXRlLTYwMCI+44OA44OD44K344Ol44Oc44O844OJ44G456e75YuV44GX44G+44GZLi4uPC9wPgogICAgICA8ZGl2IGNsYXNzPSJtdC00IGgtMSBiZy1zbGF0ZS0xMDAgcm91bmRlZC1mdWxsIG92ZXJmbG93LWhpZGRlbiI+CiAgICAgICAgPGRpdiBjbGFzcz0iaC1mdWxsIGJnLWViLTUwMCIgc3R5bGU9IndpZHRoOiAxMDAlIj48L2Rpdj4KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KCiAgICA8IS0tIFNUQVRFIEM6IEVycm9yIC0gQ1NSRiBtaXNtYXRjaCAoaGlkZGVuIGJ5IGRlZmF1bHQpIC0tPgogICAgPGRpdiBjbGFzcz0iaGlkZGVuIGJnLXdoaXRlIGJvcmRlciBib3JkZXItcmVkLTIwMCByb3VuZGVkLWxnIHAtOCB0ZXh0LWNlbnRlciBtdC00IiBkYXRhLXN0YXRlPSJlcnJvcl9jc3JmIj4KICAgICAgPGRpdiBjbGFzcz0iaW5saW5lLWZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHctMTYgaC0xNiByb3VuZGVkLWZ1bGwgYmctcmVkLTUwIG1iLTYiPgogICAgICAgIDxpIGRhdGEtbHVjaWRlPSJ4IiBjbGFzcz0idy04IGgtOCB0ZXh0LXJlZC02MDAiPjwvaT4KICAgICAgPC9kaXY+CiAgICAgIDxoMSBjbGFzcz0idGV4dC0yeGwgZm9udC1ib2xkIG1iLTIiPuiqjeiovOOCqOODqeODvDwvaDE+CiAgICAgIDxwIGNsYXNzPSJ0ZXh0LXNtIHRleHQtc2xhdGUtNjAwIG1iLTEiPuOCu+OCreODpeODquODhuOCo+aknOiovOOBq+WkseaVl+OBl+OBvuOBl+OBnzwvcD4KICAgICAgPHAgY2xhc3M9InRleHQteHMgdGV4dC1zbGF0ZS01MDAgbW9ubyBtYi02Ij5lcnJvcjogb2F1dGhfY3NyZl9jaGVja19mYWlsZWQ8L3A+CgogICAgICA8ZGl2IGNsYXNzPSJ0ZXh0LWxlZnQgYmctc2xhdGUtNTAgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1tZCBwLTMgbWItNiI+CiAgICAgICAgPHAgY2xhc3M9InRleHQteHMgdGV4dC1zbGF0ZS03MDAgbGVhZGluZy1yZWxheGVkIj4KICAgICAgICAgIOODluODqeOCpuOCtuOBriBjb29raWUg6Kit5a6a44G+44Gf44GvIDUg5YiG5Lul5LiK57WM6YGO44GX44Gf5Y+v6IO95oCn44GM44GC44KK44G+44GZ44CCPGJyPgogICAgICAgICAg44Ot44Kw44Kk44Oz55S76Z2i44GL44KJ5YaN5bqm44GK6Kmm44GX44GP44Gg44GV44GE44CCCiAgICAgICAgPC9wPgogICAgICA8L2Rpdj4KCiAgICAgIDxhIGhyZWY9Ii4vUy0wMDEtbG9naW4uaHRtbCIgY2xhc3M9ImlubGluZS1mbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBiZy1lYi01MDAgaG92ZXI6YmctZWItNjAwIHRleHQtd2hpdGUgdGV4dC1zbSBmb250LXNlbWlib2xkIGgtMTAgcHgtNiByb3VuZGVkLW1kIHRyYW5zaXRpb24tY29sb3JzIj4KICAgICAgICA8aSBkYXRhLWx1Y2lkZT0iYXJyb3ctbGVmdCIgY2xhc3M9InctNCBoLTQiPjwvaT4KICAgICAgICDjg63jgrDjgqTjg7PjgavmiLvjgosKICAgICAgPC9hPgogICAgPC9kaXY+CgogICAgPCEtLSBTVEFURSBEOiBFcnJvciAtIEFjY291bnQgbm90IGZvdW5kIChoaWRkZW4gYnkgZGVmYXVsdCkgLS0+CiAgICA8ZGV0YWlscyBjbGFzcz0iYmctd2hpdGUgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBwLTYgbXQtNCI+CiAgICAgIDxzdW1tYXJ5IGNsYXNzPSJ0ZXh0LXNtIGZvbnQtbWVkaXVtIGN1cnNvci1wb2ludGVyIHRleHQtc2xhdGUtNjAwIGhvdmVyOnRleHQtc2xhdGUtOTAwIGZsZXggaXRlbXMtY2VudGVyIGdhcC0yIj4KICAgICAgICA8aSBkYXRhLWx1Y2lkZT0idXNlci14IiBjbGFzcz0idy00IGgtNCI+PC9pPgogICAgICAgIOOBneOBruS7luOBruOCqOODqeODvOeKtuaFiyAocHJldmlldykKICAgICAgPC9zdW1tYXJ5PgogICAgICA8ZGl2IGNsYXNzPSJtdC00IHNwYWNlLXktMyB0ZXh0LXhzIj4KICAgICAgICA8ZGl2IGNsYXNzPSJib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLW1kIHAtMyBiZy1zbGF0ZS01MCI+CiAgICAgICAgICA8ZGl2IGNsYXNzPSJmb250LW1lZGl1bSB0ZXh0LXNsYXRlLTkwMCBtYi0xIj5vYXV0aF9wcm92aWRlcl9kZW5pZWQ8L2Rpdj4KICAgICAgICAgIDxkaXYgY2xhc3M9InRleHQtc2xhdGUtNjAwIj7jg6bjg7zjgrbjg7zjgYzoqo3oqLzjgpLmi5LlkKbjgZfjgb7jgZfjgZ8g4oaSIOODreOCsOOCpOODs+eUu+mdouOBuOaIu+OCi+iqmOWwjjwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICAgIDxkaXYgY2xhc3M9ImJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbWQgcC0zIGJnLXNsYXRlLTUwIj4KICAgICAgICAgIDxkaXYgY2xhc3M9ImZvbnQtbWVkaXVtIHRleHQtc2xhdGUtOTAwIG1iLTEiPm9hdXRoX3Rva2VuX2ludmFsaWQ8L2Rpdj4KICAgICAgICAgIDxkaXYgY2xhc3M9InRleHQtc2xhdGUtNjAwIj7jg5fjg63jg5DjgqTjg4DjgYvjgonlj5fjgZHlj5bjgaPjgZ8gdG9rZW4g44GM5LiN5q2jIOKGkiDlho3jg63jgrDjgqTjg7M8L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgICA8ZGl2IGNsYXNzPSJib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLW1kIHAtMyBiZy1zbGF0ZS01MCI+CiAgICAgICAgICA8ZGl2IGNsYXNzPSJmb250LW1lZGl1bSB0ZXh0LXNsYXRlLTkwMCBtYi0xIj5hY2NvdW50X25vdF9saW5rZWQ8L2Rpdj4KICAgICAgICAgIDxkaXYgY2xhc3M9InRleHQtc2xhdGUtNjAwIj7ml6LlrZjjgqLjgqvjgqbjg7Pjg4jjgasgT0F1dGgg44GM57SQ5LuY44GE44Gm44GE44Gq44GEIOKGkiDjgrXjgqTjg7PjgqLjg4Pjg5fnlLvpnaLjgbg8L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CiAgICA8L2RldGFpbHM+CgogICAgPGRpdiBjbGFzcz0idGV4dC1jZW50ZXIgdGV4dC1bMTFweF0gdGV4dC1zbGF0ZS00MDAgbXQtOCBtb25vIj7CqSBFTkdJTkUgQkFTRTwvZGl2PgogIDwvZGl2Pgo8L21haW4+Cgo8c2NyaXB0Pmx1Y2lkZS5jcmVhdGVJY29ucygpOzwvc2NyaXB0Pgo8L2JvZHk+CjwvaHRtbD4K"}</script>
-
 <script>
-  // Decode base64 to UTF-8 string (handles 日本語)
-  function b64decode(b64) {
-    const binary = atob(b64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    return new TextDecoder('utf-8').decode(bytes);
-  }
-
-  // Load mocks data
-  const MOCKS = JSON.parse(document.getElementById('bf-mocks').textContent);
-
   lucide.createIcons();
-
-  const sidebar = document.getElementById('sidebar');
-  const backdrop = document.getElementById('sidebar-backdrop');
-
-  function toggleSidebar() {
-    sidebar.classList.toggle('open');
-    backdrop.classList.toggle('open');
-  }
-  function closeSidebar() {
-    sidebar.classList.remove('open');
-    backdrop.classList.remove('open');
-  }
-
-  function toggleCat(catId) {
-    document.querySelector('[data-cat-id="' + catId + '"]').classList.toggle('collapsed');
-  }
-
-  function loadScreen(screenId) {
-    document.querySelectorAll('.screen-item').forEach(el => el.classList.remove('active'));
-    const activeEl = document.querySelector('[data-screen-id="' + screenId + '"]');
-    if (activeEl) activeEl.classList.add('active');
-    // Close sidebar on mobile after picking
-    closeSidebar();
-
-    const frame = document.getElementById('preview-frame');
-    const empty = document.getElementById('empty-state');
-    const info = document.getElementById('preview-info');
-    const openLink = document.getElementById('preview-open-link');
-
-    const file = activeEl ? activeEl.getAttribute('data-file') : '';
-    const screenLabel = activeEl ? activeEl.querySelector('.screen-name').textContent : '';
-
-    if (MOCKS[screenId]) {
-      const html = b64decode(MOCKS[screenId]);
-      frame.srcdoc = html;
-      frame.style.display = 'block';
-      empty.style.display = 'none';
-      info.innerHTML = '<span class="preview-id">' + screenId + '</span>' +
-        '<span style="color:#cbd5e1;">·</span>' +
-        '<span>' + screenLabel + '</span>';
-      if (file) {
-        openLink.href = file;
-        openLink.style.display = 'inline-flex';
-      } else {
-        openLink.style.display = 'none';
-      }
-    } else {
-      frame.style.display = 'none';
-      empty.style.display = 'flex';
-      empty.querySelector('h3').textContent = screenId + ' は未作成です';
-      empty.querySelector('p').textContent = 'このモックはまだ生成されていません (Todo)';
-      info.innerHTML = '<span class="preview-id">' + screenId + '</span>' +
-        '<span style="color:#cbd5e1;">·</span>' +
-        '<span>' + screenLabel + '</span>' +
-        '<span style="margin-left:8px; background:#f1f5f9; color:#64748b; font-size:10px; padding:1px 8px; border-radius:9999px; font-weight:600;">Todo</span>';
-      openLink.style.display = 'none';
-    }
-  }
-
-  // Auto-open first done screen
-  document.addEventListener('DOMContentLoaded', () => {
-    const firstDone = document.querySelector('.screen-item .status-ok');
-    if (firstDone) {
-      const screenItem = firstDone.closest('.screen-item');
-      loadScreen(screenItem.getAttribute('data-screen-id'));
-    }
-  });
 </script>
-
 </body>
 </html>
