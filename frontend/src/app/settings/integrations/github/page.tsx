@@ -10,7 +10,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Github, Link as LinkIcon, Unlink, AlertTriangle, CheckCircle } from "lucide-react";
+import { GitBranch, Link as LinkIcon, Unlink, AlertTriangle, CheckCircle } from "lucide-react";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8001";
 
@@ -64,7 +64,7 @@ export default function GithubIntegrationPage() {
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-4 flex items-center gap-2 text-eb-500">
-        <Github className="w-6 h-6" /> GitHub Integration
+        <GitBranch className="w-6 h-6" /> GitHub Integration
       </h1>
 
       {errorMessage && (
@@ -76,7 +76,7 @@ export default function GithubIntegrationPage() {
       <div className="mb-6 p-4 border rounded">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {status?.connected ? <CheckCircle className="w-5 h-5 text-eb-500" /> : <Github className="w-5 h-5" />}
+            {status?.connected ? <CheckCircle className="w-5 h-5 text-eb-500" /> : <GitBranch className="w-5 h-5" />}
             <div>
               <div className="font-medium">{status?.connected ? `Connected as ${status.user_login}` : "Not connected"}</div>
               <div className="text-sm text-gray-500">Connect your GitHub account to link repositories</div>
