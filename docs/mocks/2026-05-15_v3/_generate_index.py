@@ -397,8 +397,9 @@ def main():
     const screenLabel = activeEl?.querySelector('.screen-name')?.textContent || '';
 
     if (template) {{
-      // <script type="text/html"> stores raw text. Use textContent and unescape </script>
-      const content = template.textContent.split('<\\\\/script>').join('</script>');
+      // script type=text/html stores raw text. Unescape escaped close tags.
+      // NOTE: literal close tag is built via concat to avoid premature HTML parser termination.
+      const content = template.textContent.split('<\\\\/script>').join('</' + 'script>');
       frame.srcdoc = content;
       frame.style.display = 'block';
       empty.style.display = 'none';
