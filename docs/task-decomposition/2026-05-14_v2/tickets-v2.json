@@ -64,25 +64,25 @@
         "name": "Kanban + DAG + Phase 管理 + 横断検索",
         "dogfood": "タスク化 → Kanban で進捗 → DAG で依存可視化 → Cmd+K で横断検索",
         "task_count": 20,
-        "done_count": 19
+        "done_count": 20
       },
       "S6": {
         "name": "MCP + Reviewer + Constitution 適用",
         "dogfood": "Quinn (QA/Reviewer) が動く + MCP server 経由で Claude Code に bf tools が見える + red-line 監視",
         "task_count": 21,
-        "done_count": 20
+        "done_count": 21
       },
       "S7": {
         "name": "Swarm 並列実行 + Worktree (= 靴屋に靴を履かせる)",
         "dogfood": "1 人の operator が Swarm UI で複数 task を並列実行できる",
         "task_count": 16,
-        "done_count": 15
+        "done_count": 16
       },
       "S8": {
         "name": "GitHub + Slack + Obsidian + 観測 + 監査 + 配信",
         "dogfood": "PR 自動化 / Slack 通知 / Obsidian エクスポート / Langfuse / 監査ログ / 納品まで完走",
         "task_count": 24,
-        "done_count": 23
+        "done_count": 24
       }
     }
   },
@@ -5672,7 +5672,7 @@
       "parallel_group": "P5.99-ETA",
       "dogfood_value": "タスク化 → Kanban で進捗 → DAG で依存可視化 → Cmd+K で横断検索",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-026-01",
@@ -6569,7 +6569,7 @@
       "parallel_group": "P6.99-ETA",
       "dogfood_value": "Quinn (QA/Reviewer) が動く + MCP server 経由で Claude Code に bf tools が見える + red-line 監視",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-M29-01",
@@ -7184,7 +7184,7 @@
       "parallel_group": "P7.99-ETA",
       "dogfood_value": "1 人の operator が Swarm UI で複数 task を並列実行できる",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-013-01",
@@ -7911,7 +7911,7 @@
       "parallel_group": "P8.99-ETA",
       "dogfood_value": "PR 自動化 / Slack 通知 / Obsidian エクスポート / Langfuse / 監査ログ / 納品まで完走",
       "unlocks": [],
-      "done_status": "pending"
+      "done_status": "done"
     },
     {
       "id": "T-BTSTRAP-01",

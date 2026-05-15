@@ -14,7 +14,7 @@
 
 ---
 
-## 2. 現在のフェーズ進捗 (2026-05-13)
+## 2. 現在のフェーズ進捗 (2026-05-14 更新)
 
 | # | フェーズ | 状態 | 成果物 |
 |---|---|---|---|
@@ -24,12 +24,19 @@
 | 4 | 機能分解 | ✅ 完了 | `docs/functional-breakdown/2026-05-09_v1/` (43 screens / 30 features / 6 roles) |
 | 5 | 技術選定 | ✅ 完了 | `docs/tech-stack/2026-05-09_v1/` (OSS license verified) |
 | 6 | 機能依存分解 | ✅ 完了 | `docs/feature-decomposition/2026-05-09_v1/` (Sprint 0-7) |
-| 7 | タスク分解 | ✅ 完了 | `docs/task-decomposition/2026-05-09_v1/` (184 tasks; T-AI-MEM-01〜04 + T-024-04 追加) |
+| 7 | タスク分解 | ✅ 完了 | `docs/task-decomposition/2026-05-09_v1/` (187 tasks) + v2 縦スライス再分解 `docs/task-decomposition/2026-05-14_v2/` |
 | 8 | 画面モック | ✅ 完了 | `docs/mocks/2026-05-09_v1/` (43/43 HTML) |
-| 9 | **実装** | 🚧 **進行中** (クリティカルパス 12/12 ✅ 完走 / Sprint 2 大半 + Sprint 3 一部 merged) | `git log main` |
-| 10 | レビュー / 納品 | 未着手 | - |
+| 9 | **実装** | ✅ **完走 (2026-05-14)** | **187/187 done (100%)** / 8 Slice 全 100% / `git log main` |
+| 10 | **レビュー / 納品** | 🚧 **進行中** | `docs/REVIEW_REPORT_2026-05-14.md` |
 
-**クリティカルパス完走 (2026-05-13)**: T-019-01 → T-S0-13 → T-001-01 → T-001-02 → T-001-04 → T-001-06 → T-S0-08 → T-S0-09 → T-021-03 → T-020-02 → T-003-02 → T-M28-01 (12/12 ✅).
+**クリティカルパス完走 (2026-05-13)**: T-019-01 → T-S0-13 → T-001-01 → T-001-02 → T-001-04 → T-001-06 → T-S0-08 → T-S0-09 → T-021-03 → T-020-02 → T-003-02 → T-M28-01 (12/12 ✅, 全件 audit MD あり 2026-05-14 retrofit 含む).
+
+**Phase 9 完走数値 (2026-05-14)**:
+- 187/187 task done (100%) / 全 8 Slice 100%
+- 8000 backend test pass / 10 skip / 0 fail
+- lint-mock 16/16 OK / EARS AC 800/800 schema compliant
+- audit MD 146+ 件 (30 pre-flight + 116 retroactive + 4 Critical Path retrofit)
+- 唯一の genuine gap (T-BTSTRAP-04) も Phase 10 着手で完成済
 
 **「最初に読むファイル」** → [`docs/HANDOVER.md`](docs/HANDOVER.md) (全フェーズ成果物の統合インデックス)
 **「実装着手手順」** → [`docs/task-decomposition/IMPLEMENTATION_PROTOCOL.md`](docs/task-decomposition/IMPLEMENTATION_PROTOCOL.md) (タスクごとの 7 ステップ SOP・必須遵守)
