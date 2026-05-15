@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-022 仕様書ビューア — Build-Factory</title>
+<meta name="bf-screen-id" content="S-022">
+<meta name="bf-screen-name" content="spec_viewer">
+<meta name="bf-category" content="spec">
+<meta name="bf-feature-id" content="F-005,F-015">
+<meta name="bf-task-ids" content="T-V3-SCR-07">
+<meta name="bf-entities" content="E-021,E-016">
+<meta name="bf-related-apis" content="GET /api/workspaces/{id}/specs,GET /api/workspaces/{id}/specs/{spec_id}/comments,POST /api/workspaces/{id}/specs/{spec_id}/comments">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-022">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; } .mono { font-family: 'JetBrains Mono', monospace; }</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(8px);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+
+<aside class="w-[240px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-4 border-b border-eb-600"><div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div><div class="text-sm font-bold mt-1">Build-Factory dogfood</div></div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5 overflow-y-auto">
+    <a href="../workspace/S-012-workspace-dashboard.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> ダッシュボード</a>
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-3 pb-1 font-bold">Spec</div>
+    <a href="./S-020-hearing-session.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="mic" class="w-4 h-4"></i> ヒアリング</a>
+    <a href="./S-021-requirements-editor.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="file-text" class="w-4 h-4"></i> 要件エディタ</a>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 bg-eb-600 font-semibold"><i data-lucide="book-open" class="w-4 h-4"></i> 仕様書</a>
+    <a href="./S-023-screen-mock-viewer.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="layout" class="w-4 h-4"></i> 画面 Mock</a>
+    <a href="./S-024-component-catalog.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="box" class="w-4 h-4"></i> Components</a>
+    <a href="./S-025-screen-flow-map.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="map" class="w-4 h-4"></i> Flow Map</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-eb-500 flex items-center justify-center text-[11px] font-bold mono">M</div><div class="flex-1 min-w-0"><div class="text-[11px] font-semibold truncate">masato</div></div></div>
+</aside>
+
+<main class="flex-1 flex flex-col overflow-hidden">
+  <div class="px-6 py-3 border-b border-slate-200 bg-white flex items-center justify-between flex-shrink-0">
+    <div>
+      <h1 class="text-lg font-bold flex items-center gap-2"><i data-lucide="book-open" class="w-5 h-5 text-eb-500"></i> 仕様書ビューア</h1>
+      <p class="text-xs text-slate-500 mt-0.5">7 種の HTML レポートをタブで切替 / クライアント共有 OK</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-1 rounded-full mono">v 2.0 (published)</span>
+      <button class="border border-slate-200 hover:bg-slate-50 text-sm h-9 px-3 rounded-md flex items-center gap-2"><i data-lucide="share-2" class="w-4 h-4"></i> 共有リンク</button>
+      <button class="border border-slate-200 hover:bg-slate-50 text-sm h-9 px-3 rounded-md flex items-center gap-2"><i data-lucide="printer" class="w-4 h-4"></i> PDF 出力</button>
+    </div>
+  </div>
+
+  <!-- Spec tabs -->
+  <div class="border-b border-slate-200 bg-white flex-shrink-0">
+    <div class="flex overflow-x-auto px-6 gap-0">
+      <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-900 whitespace-nowrap">1. ヒアリング</button>
+      <button class="px-4 py-2 text-sm font-medium border-b-2 border-eb-500 text-slate-900 whitespace-nowrap">2. 要件 (Must 34)</button>
+      <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-900 whitespace-nowrap">3. アーキ設計</button>
+      <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-900 whitespace-nowrap">4. 機能分解 (30)</button>
+      <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-900 whitespace-nowrap">5. 技術選定</button>
+      <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-900 whitespace-nowrap">6. タスク分解 (113)</button>
+      <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-900 whitespace-nowrap">7. レビュー</button>
+    </div>
+  </div>
+
+  <div class="flex-1 grid grid-cols-[1fr_320px] overflow-hidden">
+    <!-- Spec content (HTML preview) -->
+    <div class="overflow-y-auto bg-white">
+      <article class="max-w-3xl mx-auto px-8 py-10">
+        <div class="border-b border-slate-200 pb-4 mb-6">
+          <div class="text-[11px] uppercase tracking-wider text-slate-500 font-bold mb-1">Requirements v2.0</div>
+          <h1 class="text-3xl font-bold">Build-Factory 要件定義</h1>
+          <p class="text-sm text-slate-500 mt-2">2026-05-13 公開 / masato@engine-base.com</p>
+        </div>
+
+        <h2 class="text-xl font-bold mt-8 mb-3">1. プロジェクト概要</h2>
+        <p class="leading-relaxed mb-3">受託会社 / 中小企業の社内開発チーム / フリーランス PM が、1 人で 10 案件を並列開発できる SaaS 型「開発工場 OS」。ヒアリング → 要件定義 → アーキ設計 → 機能分解 → タスク分解 → 実装 → テスト → 進捗管理 → 納品 までを 1 つの Web アプリで完結させる。</p>
+
+        <h2 class="text-xl font-bold mt-8 mb-3">2. Must 要件 (34 項目)</h2>
+
+        <h3 class="text-base font-bold mt-6 mb-2 flex items-center gap-2 group">
+          <a class="text-eb-500 opacity-0 group-hover:opacity-100" href="#">#</a>
+          M-1. 認証 / Auth
+        </h3>
+        <p class="text-sm mb-2"><span class="bg-eb-100 text-eb-700 px-2 py-0.5 rounded mono text-xs">S-001</span> <span class="bg-eb-100 text-eb-700 px-2 py-0.5 rounded mono text-xs">S-002</span> <span class="bg-eb-100 text-eb-700 px-2 py-0.5 rounded mono text-xs">S-003</span> <span class="bg-eb-100 text-eb-700 px-2 py-0.5 rounded mono text-xs">S-004</span> <span class="bg-eb-100 text-eb-700 px-2 py-0.5 rounded mono text-xs">S-005</span></p>
+        <p class="leading-relaxed text-slate-700 mb-3 text-sm">email + password で signup / login。MFA (TOTP) / OAuth (Anthropic, Google, GitHub) を サポート。</p>
+
+        <div class="border-l-4 border-eb-500 bg-eb-50 pl-4 py-2 mb-3 text-sm rounded-r">
+          <strong class="text-eb-700">AC-M1-1:</strong> When valid email+password is POSTed to /api/auth/login, the system shall return 200 with JWT.
+        </div>
+
+        <h3 class="text-base font-bold mt-6 mb-2 flex items-center gap-2 group">
+          <a class="text-eb-500 opacity-0 group-hover:opacity-100" href="#">#</a>
+          M-2. 案件 (Workspace) 管理
+        </h3>
+        <p class="text-sm mb-2"><span class="bg-eb-100 text-eb-700 px-2 py-0.5 rounded mono text-xs">S-012</span> <span class="bg-eb-100 text-eb-700 px-2 py-0.5 rounded mono text-xs">S-013</span> <span class="bg-eb-100 text-eb-700 px-2 py-0.5 rounded mono text-xs">S-014</span></p>
+        <p class="leading-relaxed text-slate-700 mb-3 text-sm">アカウント配下に最大 10 案件を並列管理。各案件は独立した spec / task / session を持つ。</p>
+
+        <h3 class="text-base font-bold mt-6 mb-2 group">M-3. ヒアリング → 仕様 パイプライン</h3>
+        <p class="text-sm mb-2"><span class="bg-eb-100 text-eb-700 px-2 py-0.5 rounded mono text-xs">S-020</span> <span class="bg-eb-100 text-eb-700 px-2 py-0.5 rounded mono text-xs">S-021</span> <span class="bg-eb-100 text-eb-700 px-2 py-0.5 rounded mono text-xs">S-022</span></p>
+        <p class="leading-relaxed text-slate-700 mb-3 text-sm">mary (BA) AI 社員と対話して、4 step (ビジョン / ターゲット / 機能 / 制約) を抽出 → 要件ドラフト自動生成。</p>
+
+        <p class="text-xs text-slate-500 mt-8">... M-4 〜 M-34 続く</p>
+      </article>
+    </div>
+
+    <!-- Right: linked / comments -->
+    <aside class="border-l border-slate-200 bg-white overflow-y-auto">
+      <div class="px-4 py-3 border-b border-slate-200 flex items-center gap-2"><i data-lucide="link" class="w-4 h-4 text-eb-500"></i><span class="text-sm font-bold">関連 / コメント</span></div>
+
+      <div class="p-4 border-b border-slate-200">
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">関連画面 (5)</div>
+        <div class="flex flex-wrap gap-1.5 text-xs">
+          <a class="bg-eb-50 text-eb-700 border border-eb-200 px-2 py-0.5 rounded-md mono">S-001</a>
+          <a class="bg-eb-50 text-eb-700 border border-eb-200 px-2 py-0.5 rounded-md mono">S-002</a>
+          <a class="bg-eb-50 text-eb-700 border border-eb-200 px-2 py-0.5 rounded-md mono">S-003</a>
+          <a class="bg-eb-50 text-eb-700 border border-eb-200 px-2 py-0.5 rounded-md mono">S-012</a>
+          <a class="bg-eb-50 text-eb-700 border border-eb-200 px-2 py-0.5 rounded-md mono">S-020</a>
+        </div>
+      </div>
+
+      <div class="p-4 border-b border-slate-200">
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">関連タスク (8)</div>
+        <div class="flex flex-wrap gap-1.5 text-xs">
+          <a class="bg-slate-50 text-slate-700 border border-slate-200 px-2 py-0.5 rounded-md mono">T-V3-AUTH-01</a>
+          <a class="bg-slate-50 text-slate-700 border border-slate-200 px-2 py-0.5 rounded-md mono">T-V3-AUTH-02</a>
+          <a class="bg-slate-50 text-slate-700 border border-slate-200 px-2 py-0.5 rounded-md mono">+6</a>
+        </div>
+      </div>
+
+      <div class="p-4">
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-3">コメント (3)</div>
+        <div class="space-y-3">
+          <div class="border border-slate-200 rounded-md p-3">
+            <div class="flex items-center gap-2 mb-1">
+              <div class="w-5 h-5 rounded-full bg-slate-300 text-slate-700 text-[9px] font-bold flex items-center justify-center">C</div>
+              <span class="text-xs font-semibold">client_abc</span>
+              <span class="text-[10px] text-slate-500 mono ml-auto">2 days</span>
+            </div>
+            <p class="text-xs text-slate-700 leading-relaxed">M-1 認証で SAML SSO 対応も必要では？</p>
+          </div>
+          <div class="border border-slate-200 rounded-md p-3">
+            <div class="flex items-center gap-2 mb-1">
+              <div class="w-5 h-5 rounded-full bg-eb-500 text-white text-[9px] font-bold flex items-center justify-center">M</div>
+              <span class="text-xs font-semibold">masato</span>
+              <span class="text-[10px] text-slate-500 mono ml-auto">2 days</span>
+            </div>
+            <p class="text-xs text-slate-700 leading-relaxed">SAML は Phase 2 で対応予定。M-1 には含めません。</p>
+          </div>
+        </div>
+
+        <div class="mt-4 space-y-2">
+          <textarea class="border border-slate-200 bg-white text-sm px-3 py-2 rounded-md w-full min-h-[60px] text-xs" placeholder="コメントを書く..."></textarea>
+          <button class="w-full bg-eb-500 hover:bg-eb-600 text-white text-xs font-semibold h-8 rounded-md">投稿</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>
