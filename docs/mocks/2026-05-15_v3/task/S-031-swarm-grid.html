@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-031 Swarm 並列実行 — Build-Factory</title>
+<meta name="bf-screen-id" content="S-031">
+<meta name="bf-screen-name" content="swarm_grid">
+<meta name="bf-category" content="execution">
+<meta name="bf-feature-id" content="F-010c,F-010d">
+<meta name="bf-task-ids" content="T-V3-RF-14">
+<meta name="bf-entities" content="E-025,E-026,E-027">
+<meta name="bf-related-apis" content="GET /api/workspaces/{id}/sessions,WS /ws/sessions/{id}/log,POST /api/sessions/{id}/kill,POST /api/workspaces/{id}/sessions/kill-all">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-031">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; } .mono { font-family: 'JetBrains Mono', monospace; } .pulse-dot { animation: pulse-dot 1.4s infinite; } @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } } .terminal-cursor { animation: blink 1s infinite; } @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }</style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(8px);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+
+<aside class="w-[200px] bg-eb-950 text-white flex flex-col shrink-0">
+  <div class="px-4 py-3 border-b border-slate-800"><div class="text-[10px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div><div class="text-xs font-bold mt-1">dogfood</div></div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5">
+    <div class="text-[10px] uppercase tracking-wider text-slate-500 px-3 pt-2 pb-1 font-bold">Task</div>
+    <a href="./S-027-task-kanban.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-slate-800 text-slate-300 text-xs"><i data-lucide="kanban" class="w-3.5 h-3.5"></i> Kanban</a>
+    <div class="text-[10px] uppercase tracking-wider text-slate-500 px-3 pt-3 pb-1 font-bold">Execution</div>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 bg-eb-700 font-semibold text-xs"><i data-lucide="grid-3x3" class="w-3.5 h-3.5"></i> Swarm Grid</a>
+    <a href="./S-032-swarm-session-detail.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-slate-800 text-slate-300 text-xs"><i data-lucide="terminal" class="w-3.5 h-3.5"></i> Session</a>
+  </nav>
+  <div class="px-3 py-2 border-t border-slate-800 flex items-center gap-2"><div class="w-6 h-6 rounded-full bg-eb-500 flex items-center justify-center text-[10px] font-bold mono">M</div><div class="text-[10px] font-semibold">masato</div></div>
+</aside>
+
+<main class="flex-1 flex flex-col overflow-hidden">
+  <div class="px-6 py-3 border-b border-slate-800 bg-slate-950 flex items-center justify-between flex-shrink-0">
+    <div class="flex items-center gap-3">
+      <h1 class="text-base font-bold flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4 text-emerald-400"></i> Swarm 並列実行</h1>
+      <span class="text-xs text-slate-400 mono">5 / 16 active · ¥87 (live)</span>
+      <div class="flex items-center gap-1.5 text-xs text-emerald-400"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot"></span>WS connected</div>
+    </div>
+    <div class="flex items-center gap-2">
+      <select class="bg-slate-800 border border-slate-700 text-slate-100 text-xs h-8 px-2 rounded-md"><option>4 grid</option><option>9 grid</option><option selected>16 grid</option><option>64 grid</option></select>
+      <button class="bg-amber-500 hover:bg-amber-600 text-white text-xs h-8 px-3 rounded-md font-semibold flex items-center gap-1"><i data-lucide="pause" class="w-3 h-3"></i>pause all</button>
+      <button class="bg-red-600 hover:bg-red-700 text-white text-xs h-8 px-3 rounded-md font-semibold flex items-center gap-1"><i data-lucide="square" class="w-3 h-3"></i>kill all</button>
+    </div>
+  </div>
+
+  <!-- Grid 4x4 -->
+  <div class="flex-1 grid grid-cols-4 grid-rows-4 gap-1 p-1 bg-slate-950 overflow-auto">
+    <!-- Active sessions (5) -->
+    <a href="./S-032-swarm-session-detail.html" class="bg-slate-900 border border-emerald-500/40 rounded p-2 cursor-pointer hover:border-emerald-500 flex flex-col">
+      <div class="flex items-center justify-between mb-1">
+        <div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot"></span><span class="text-[10px] mono text-emerald-400 font-bold">DV</span></div>
+        <span class="text-[10px] mono text-slate-500">12:32</span>
+      </div>
+      <div class="text-[10px] mono text-eb-400 font-bold">T-V3-AUTH-02</div>
+      <div class="text-xs text-slate-200 truncate">signup API impl</div>
+      <pre class="text-[9px] text-emerald-400 mono mt-1 leading-tight overflow-hidden flex-1">$ pytest tests/test_signup
+collecting tests...
+PASS test_email_taken
+PASS test_weak_password
+running test_<span class="terminal-cursor">_</span></pre>
+      <div class="text-[9px] text-slate-500 mono mt-1 flex justify-between"><span>¥41 / 1.2k</span><span>12 min</span></div>
+    </a>
+    <a class="bg-slate-900 border border-amber-500/40 rounded p-2 cursor-pointer flex flex-col">
+      <div class="flex items-center justify-between mb-1"><div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 pulse-dot"></span><span class="text-[10px] mono text-amber-400 font-bold">QN</span></div><span class="text-[10px] mono text-slate-500">3 min</span></div>
+      <div class="text-[10px] mono text-eb-400 font-bold">T-V3-AUTH-13</div>
+      <div class="text-xs text-slate-200 truncate">unit tests</div>
+      <pre class="text-[9px] text-amber-300 mono mt-1 leading-tight overflow-hidden flex-1">writing test cases...
+6/8 generated<span class="terminal-cursor">_</span></pre>
+      <div class="text-[9px] text-slate-500 mono mt-1 flex justify-between"><span>¥8 / 280</span></div>
+    </a>
+    <a class="bg-slate-900 border border-blue-500/40 rounded p-2 cursor-pointer flex flex-col">
+      <div class="flex items-center justify-between mb-1"><div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-blue-500 pulse-dot"></span><span class="text-[10px] mono text-blue-400 font-bold">WS</span></div><span class="text-[10px] mono text-slate-500">7 min</span></div>
+      <div class="text-[10px] mono text-eb-400 font-bold">T-V3-DB-03</div>
+      <div class="text-xs text-slate-200 truncate">ArtifactVersion</div>
+      <pre class="text-[9px] text-emerald-400 mono mt-1 leading-tight overflow-hidden flex-1">CREATE TABLE artifact...
+ALTER TABLE add idx<span class="terminal-cursor">_</span></pre>
+      <div class="text-[9px] text-slate-500 mono mt-1 flex justify-between"><span>¥22 / 540</span></div>
+    </a>
+    <a class="bg-slate-900 border border-emerald-500/40 rounded p-2 cursor-pointer flex flex-col">
+      <div class="flex items-center justify-between mb-1"><div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot"></span><span class="text-[10px] mono text-emerald-400 font-bold">MR</span></div><span class="text-[10px] mono text-slate-500">15 min</span></div>
+      <div class="text-[10px] mono text-eb-400 font-bold">T-V3-SCR-05</div>
+      <div class="text-xs text-slate-200 truncate">hearing page</div>
+      <pre class="text-[9px] text-emerald-400 mono mt-1 leading-tight overflow-hidden flex-1">building chat UI...
+&lt;ChatThread /&gt;<span class="terminal-cursor">_</span></pre>
+      <div class="text-[9px] text-slate-500 mono mt-1 flex justify-between"><span>¥15 / 400</span></div>
+    </a>
+
+    <a class="bg-slate-900 border border-amber-500/40 rounded p-2 cursor-pointer flex flex-col">
+      <div class="flex items-center justify-between mb-1"><div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span><span class="text-[10px] mono text-amber-400 font-bold">PS</span></div><span class="text-[10px] mono text-slate-500">paused</span></div>
+      <div class="text-[10px] mono text-eb-400 font-bold">T-V3-RF-04</div>
+      <div class="text-xs text-slate-200 truncate">workspace settings</div>
+      <pre class="text-[9px] text-slate-500 mono mt-1 leading-tight overflow-hidden flex-1">[paused at line 42]
+waiting for input...</pre>
+      <div class="text-[9px] text-slate-500 mono mt-1 flex justify-between"><span>¥6 / 180</span></div>
+    </a>
+
+    <!-- Empty slots -->
+    <div class="bg-slate-900/50 border border-slate-800 rounded p-2 flex items-center justify-center text-slate-700 text-xs">empty slot</div>
+    <div class="bg-slate-900/50 border border-slate-800 rounded p-2 flex items-center justify-center text-slate-700 text-xs">empty slot</div>
+    <div class="bg-slate-900/50 border border-slate-800 rounded p-2 flex items-center justify-center text-slate-700 text-xs">empty slot</div>
+    <div class="bg-slate-900/50 border border-slate-800 rounded p-2 flex items-center justify-center text-slate-700 text-xs">empty slot</div>
+    <div class="bg-slate-900/50 border border-slate-800 rounded p-2 flex items-center justify-center text-slate-700 text-xs">empty slot</div>
+    <div class="bg-slate-900/50 border border-slate-800 rounded p-2 flex items-center justify-center text-slate-700 text-xs">empty slot</div>
+    <div class="bg-slate-900/50 border border-slate-800 rounded p-2 flex items-center justify-center text-slate-700 text-xs">empty slot</div>
+    <div class="bg-slate-900/50 border border-slate-800 rounded p-2 flex items-center justify-center text-slate-700 text-xs">empty slot</div>
+    <div class="bg-slate-900/50 border border-slate-800 rounded p-2 flex items-center justify-center text-slate-700 text-xs">empty slot</div>
+    <div class="bg-slate-900/50 border border-slate-800 rounded p-2 flex items-center justify-center text-slate-700 text-xs">empty slot</div>
+    <div class="bg-slate-900/50 border border-slate-800 rounded p-2 flex items-center justify-center text-slate-700 text-xs">empty slot</div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>
