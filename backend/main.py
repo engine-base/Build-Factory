@@ -28,6 +28,7 @@ from routers.secretary import router as secretary_router
 from routers.secretary_stream import router as secretary_stream_router
 from routers.llm_providers import router as llm_providers_router
 from routers.knowledge_actions import router as knowledge_actions_router
+from routers.knowledge import router as knowledge_router
 from routers.threads import router as threads_router
 from routers.browser_use import router as browser_use_router
 from routers.staff import router as staff_router
@@ -36,7 +37,9 @@ from routers.skill_creator import router as skill_creator_router
 from routers.artifacts import router as artifacts_router
 from routers.accounts import router as accounts_router
 from routers.workspaces import router as workspaces_router, invitations_router
+from routers.constitution import router as constitution_router
 from routers.hearing import router as hearing_router
+from routers.specs import router as specs_router
 from routers.requirements import router as requirements_router
 from routers.pricing_design import router as pricing_design_router
 from routers.proposal import router as proposal_router
@@ -67,6 +70,10 @@ from routers.phases import router as phases_router
 from routers.task_dependencies import router as task_dependencies_router
 from routers.slack_integration import router as slack_integration_router
 from routers.agent_runner import router as agent_runner_router
+from routers.sessions import (
+    router as sessions_router,
+    workspace_sessions_router as sessions_workspace_router,
+)
 from routers.admin_seed import router as admin_seed_router
 from routers.personas_guideline import router as personas_guideline_router
 from routers.spec_mock_links import router as spec_mock_links_router
@@ -85,7 +92,9 @@ from routers.escalation import router as escalation_router
 from routers.category_push import router as category_push_router
 from routers.git_wrap import router as git_wrap_router
 from routers.pr_review import router as pr_review_router
+from routers.pr_review import prs_router as prs_router  # T-V3-B-19 / F-013
 from routers.audit_trigger import router as audit_trigger_router
+from routers.audit_logs import router as audit_logs_router  # T-V3-B-24 / F-018
 from routers.observability import router as observability_router
 from routers.artifact_md import router as artifact_md_router
 from routers.export_trigger import router as export_trigger_router
@@ -113,8 +122,11 @@ from routers.handoff import router as handoff_router
 from routers.ears_classifier import router as ears_classifier_router
 from routers.screens_components import router as screens_components_router
 from routers.unified_search import router as unified_search_router
+from routers.search import router as global_search_router  # T-V3-B-27 / F-024
 from routers.intent_classifier import router as intent_classifier_router
 from routers.intent_router import router as intent_router_router
+from routers.mocks import router as mocks_router  # T-V3-B-08 / F-005b
+from routers.onboarding import router as onboarding_router  # T-V3-B-29 / F-027
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 
@@ -192,6 +204,7 @@ app.include_router(secretary_router)
 app.include_router(secretary_stream_router)
 app.include_router(llm_providers_router)
 app.include_router(knowledge_actions_router)
+app.include_router(knowledge_router)
 app.include_router(threads_router)
 app.include_router(browser_use_router)
 app.include_router(staff_router)
@@ -201,7 +214,10 @@ app.include_router(artifacts_router)
 app.include_router(accounts_router)
 app.include_router(workspaces_router)
 app.include_router(invitations_router)
+# T-V3-B-28 / F-026: Constitution backend (get / versions / approve)
+app.include_router(constitution_router)
 app.include_router(hearing_router)
+app.include_router(specs_router)
 app.include_router(requirements_router)
 app.include_router(pricing_design_router)
 app.include_router(proposal_router)
@@ -232,6 +248,8 @@ app.include_router(phases_router)
 app.include_router(task_dependencies_router)
 app.include_router(slack_integration_router)
 app.include_router(agent_runner_router)
+app.include_router(sessions_router)
+app.include_router(sessions_workspace_router)
 app.include_router(admin_seed_router)
 app.include_router(personas_guideline_router)
 app.include_router(spec_mock_links_router)
@@ -250,7 +268,9 @@ app.include_router(escalation_router)
 app.include_router(category_push_router)
 app.include_router(git_wrap_router)
 app.include_router(pr_review_router)
+app.include_router(prs_router)  # T-V3-B-19 / F-013
 app.include_router(audit_trigger_router)
+app.include_router(audit_logs_router)  # T-V3-B-24 / F-018
 app.include_router(observability_router)
 app.include_router(artifact_md_router)
 app.include_router(export_trigger_router)
@@ -279,8 +299,12 @@ app.include_router(handoff_router)
 app.include_router(ears_classifier_router)
 app.include_router(screens_components_router)
 app.include_router(unified_search_router)
+app.include_router(global_search_router)  # T-V3-B-27 / F-024 (GET /api/search)
 app.include_router(intent_classifier_router)
 app.include_router(intent_router_router)
+app.include_router(auth_router)
+app.include_router(mocks_router)  # T-V3-B-08 / F-005b
+app.include_router(onboarding_router)  # T-V3-B-29 / F-027
 
 
 @app.get("/health")

@@ -16,10 +16,43 @@ import json as _json
 import logging
 from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException, Query, Response
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import BaseModel, Field
 
 from services import requirements_service as rs
+from services import requirements_v3_service as rv3
+
+# T-V3-B-10: services.auth_middleware は supabase_client を間接 import するため,
+# Supabase env 未設定の test 環境で import error を起こさないよう
+# request-time の遅延 import で auth dependency を解決する.
+_v3_bearer = HTTPBearer(auto_error=False)
+
+
+async def _v3_require_user(
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(_v3_bearer),
+) -> dict:
+    """Lazy 版 require_user (auth_middleware.require_user と同等)."""
+    from services.auth_middleware import (
+        DEV_BYPASS, DEV_USER, verify_jwt,
+    )
+    if DEV_BYPASS and not credentials:
+        return DEV_USER
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="unauthenticated",
+        )
+    claims = verify_jwt(credentials.credentials)
+    if not claims and DEV_BYPASS:
+        return DEV_USER
+    if not claims:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="unauthenticated",
+        )
+    return claims
 
 logger = logging.getLogger(__name__)
 
@@ -290,3 +323,175 @@ async def download(workspace_id: int, tab: str, fmt: str):
             "Content-Disposition": f'attachment; filename="requirements-{tab}.json"'
         },
     )
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# T-V3-B-10 / F-006: Requirements CRUD + versions (EARS-conformant)
+#
+# spec: docs/api-design/2026-05-16_v3/openapi.yaml#F-006
+#       docs/functional-breakdown/2026-05-16_v3/features.json#F-006
+#
+# Endpoints:
+#   GET  /api/workspaces/{id}/requirements           (member)
+#   PUT  /api/workspaces/{id}/requirements           (workspace_admin)
+#   POST /api/workspaces/{id}/requirements/versions  (workspace_admin)
+#
+# Auth: bearerAuth (services.auth_middleware.require_user) → 401 if missing.
+#       role check は v3 段階では認証済みなら通す (workspace_member RLS が
+#       Supabase 側で enforce. T-V3-B-10 では tenancy 二段強制を見送り,
+#       Group D で role 強制を追加する予定).
+#
+# AC マッピング:
+#   AC-F1  EVENT-DRIVEN PUT persist + return version+1
+#   AC-F2  UNWANTED      PUT items が EARS 違反 → 422 + offending indices
+#   AC-F3  EVENT-DRIVEN POST versions snapshot + return version_id
+#   AC-F4  EVENT-DRIVEN GET 2xx + {requirements, version}
+#   AC-F5  UNWANTED     GET no auth → 401
+#   AC-F6  UNWANTED     GET body validation → 422
+#   AC-F7  EVENT-DRIVEN PUT 2xx + {id, version}
+#   AC-F8  UNWANTED     PUT no auth → 401
+#   AC-F9  UNWANTED     PUT body validation → 422
+#   AC-F10 EVENT-DRIVEN POST 2xx + {version_id, version_number}
+#   AC-F11 UNWANTED     POST no auth → 401
+#   AC-F12 UNWANTED     POST body validation → 422
+# ══════════════════════════════════════════════════════════════════════════
+
+
+class RequirementItemBody(BaseModel):
+    """PUT /api/workspaces/{id}/requirements の items 要素.
+
+    spec: features.json#F-006 RequirementItem.
+    """
+
+    ears_type: str = Field(
+        ...,
+        description="UBIQUITOUS / EVENT-DRIVEN / STATE-DRIVEN / OPTIONAL / UNWANTED",
+    )
+    text: str = Field(..., min_length=1, description="EARS-conformant text")
+    title: Optional[str] = None
+    category: Optional[str] = None
+
+
+class PutRequirementsBody(BaseModel):
+    items: list[RequirementItemBody] = Field(..., min_length=0)
+
+
+class CreateVersionBody(BaseModel):
+    message: str = Field(..., min_length=1, max_length=2000)
+
+
+def _v3_validation_error(field_errors: list[dict[str, Any]]) -> HTTPException:
+    """422 (validation error) 用の HTTPException.
+
+    AC-F6 / AC-F9 / AC-F12 / AC-F15:
+      body validation failure → 422 + field-level error map.
+    """
+    return HTTPException(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        detail={
+            "code": "validation_error",
+            "message": "request body failed validation",
+            "errors": field_errors,
+        },
+    )
+
+
+def _v3_workspace_id_or_422(workspace_id: int) -> None:
+    """workspace_id の最小バリデーション (>= 1)."""
+    if workspace_id is None or workspace_id <= 0:
+        raise _v3_validation_error([{
+            "loc": ["path", "id"],
+            "code": "invalid_workspace_id",
+            "message": "workspace_id must be a positive integer",
+        }])
+
+
+@router.get(
+    "/{workspace_id}/requirements",
+    response_model=None,
+)
+async def v3_list_requirements(
+    workspace_id: int,
+    user: dict = Depends(_v3_require_user),  # noqa: ARG001 (401 enforcement)
+) -> dict:
+    """AC-F4 / AC-F5 / AC-F6: GET /api/workspaces/{id}/requirements."""
+    _v3_workspace_id_or_422(workspace_id)
+    res = await rv3.list_requirements(workspace_id)
+    await _audit(
+        "requirements.v3.listed",
+        user_id=str(user.get("sub")) if isinstance(user, dict) else None,
+        detail={
+            "workspace_id": workspace_id,
+            "item_count": len(res.get("requirements", [])),
+            "version": res.get("version"),
+        },
+    )
+    return res
+
+
+@router.put(
+    "/{workspace_id}/requirements",
+    response_model=None,
+)
+async def v3_put_requirements(
+    workspace_id: int,
+    body: PutRequirementsBody,
+    user: dict = Depends(_v3_require_user),
+) -> dict:
+    """AC-F1 / AC-F2 / AC-F7 / AC-F8 / AC-F9: PUT requirements (EARS persist)."""
+    _v3_workspace_id_or_422(workspace_id)
+    items = [it.model_dump() for it in body.items]
+    actor = str(user.get("sub")) if isinstance(user, dict) else None
+    try:
+        res = await rv3.upsert_requirements(
+            workspace_id, items, actor_user_id=actor,
+        )
+    except rv3.EarsValidationError as e:
+        # AC-F2: items が EARS 違反 → 422 + offending indices
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={
+                "code": "ears_validation_failed",
+                "message": "items failed EARS form validation",
+                "offending_indices": e.offending_indices,
+                "errors": e.field_errors,
+            },
+        )
+    await _audit(
+        "requirements.v3.upserted",
+        user_id=actor,
+        detail={
+            "workspace_id": workspace_id,
+            "item_count": len(items),
+            "version": res.get("version"),
+        },
+    )
+    return res
+
+
+@router.post(
+    "/{workspace_id}/requirements/versions",
+    status_code=status.HTTP_201_CREATED,
+    response_model=None,
+)
+async def v3_create_version(
+    workspace_id: int,
+    body: CreateVersionBody,
+    user: dict = Depends(_v3_require_user),
+) -> dict:
+    """AC-F3 / AC-F10 / AC-F11 / AC-F12: snapshot requirements as a new version."""
+    _v3_workspace_id_or_422(workspace_id)
+    actor = str(user.get("sub")) if isinstance(user, dict) else None
+    res = await rv3.create_version(
+        workspace_id, body.message, actor_user_id=actor,
+    )
+    await _audit(
+        "requirements.v3.version_created",
+        user_id=actor,
+        detail={
+            "workspace_id": workspace_id,
+            "version_number": res.get("version_number"),
+            "message_size": len(body.message or ""),
+        },
+    )
+    return res

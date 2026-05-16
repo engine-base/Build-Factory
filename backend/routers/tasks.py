@@ -7,10 +7,48 @@ from pathlib import Path
 from typing import Optional
 
 from db import async_db as aiosqlite
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import BaseModel, Field
 
 DB_PATH = Path(__file__).resolve().parents[2] / "data" / "db" / "build.db"
+
+# T-V3-B-10: services.auth_middleware は supabase_client を間接 import するため,
+# Supabase env 未設定の test 環境で import error を起こさないよう
+# request-time の遅延 import で auth dependency を解決する.
+_v3_bearer = HTTPBearer(auto_error=False)
+
+
+async def _v3_require_user(
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(_v3_bearer),
+) -> dict:
+    """Lazy 版 require_user.
+
+    services.auth_middleware.require_user の挙動を再現:
+      - DEV_BYPASS=1 で credentials 無し → DEV_USER を返す
+      - credentials 有り → JWT 検証 (verify_jwt)
+      - 無効 → 401
+    """
+    from services.auth_middleware import (
+        DEV_BYPASS, DEV_USER, verify_jwt,
+    )
+    if DEV_BYPASS and not credentials:
+        return DEV_USER
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="unauthenticated",
+        )
+    claims = verify_jwt(credentials.credentials)
+    if not claims and DEV_BYPASS:
+        return DEV_USER
+    if not claims:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="unauthenticated",
+        )
+    return claims
 
 router = APIRouter(prefix="/api", tags=["tasks"])
 
@@ -431,3 +469,67 @@ async def get_task_handoff(task_id: int):
         "siblings": siblings,
         "children": children,
     }
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# T-V3-B-10 / F-006: POST /api/tasks/{id}/comments
+#
+# spec: docs/api-design/2026-05-16_v3/openapi.yaml#post_tasks_by_id_comments
+#       docs/functional-breakdown/2026-05-16_v3/features.json#F-006
+#
+# bf_tasks への comment 投稿 (E-016 Task + E-030 Comment).
+# 既存 task endpoint (legacy tasks table) とは分離: comment は bf_task_comments
+# に格納する (migration 20260516000000_bf_requirements_versions_comments.sql).
+#
+# AC マッピング:
+#   AC-F13 EVENT-DRIVEN POST /api/tasks/{id}/comments 2xx + comment_id
+#   AC-F14 UNWANTED      no auth → 401
+#   AC-F15 UNWANTED      body validation → 422
+# ══════════════════════════════════════════════════════════════════════════
+
+
+class TaskCommentBody(BaseModel):
+    body: str = Field(..., min_length=1, max_length=20000)
+
+
+def _v3_task_validation_error(field_errors: list[dict]) -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        detail={
+            "code": "validation_error",
+            "message": "request body failed validation",
+            "errors": field_errors,
+        },
+    )
+
+
+@router.post(
+    "/tasks/{task_id}/comments",
+    status_code=status.HTTP_201_CREATED,
+    response_model=None,
+)
+async def v3_create_task_comment(
+    task_id: int,
+    body: TaskCommentBody,
+    user: dict = Depends(_v3_require_user),
+) -> dict:
+    """T-V3-B-10 AC-F13 / AC-F14 / AC-F15."""
+    if task_id is None or task_id <= 0:
+        raise _v3_task_validation_error([{
+            "loc": ["path", "id"],
+            "code": "invalid_task_id",
+            "message": "task_id must be a positive integer",
+        }])
+    # 空白のみ body は Field min_length=1 を回避できるため再 strip check
+    if not body.body.strip():
+        raise _v3_task_validation_error([{
+            "loc": ["body", "body"],
+            "code": "empty_body",
+            "message": "body must not be blank",
+        }])
+    from services import requirements_v3_service as rv3
+    actor = str(user.get("sub")) if isinstance(user, dict) else None
+    res = await rv3.add_task_comment(
+        task_id, body.body, actor_user_id=actor,
+    )
+    return res
