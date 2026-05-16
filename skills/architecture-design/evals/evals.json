@@ -1,0 +1,91 @@
+{
+  "skill_name": "architecture-design",
+  "version": "v3-2026-05-15",
+  "description": "アーキテクチャ設計スキルのテスト (v3: Phase 0 ゲート / RLS strategy / Vertical Slice 適合性 / 30-50 並列対応 / ADR 起票)",
+  "evals": [
+    {
+      "id": "ad-eval-1",
+      "title": "BtoB SaaS 要件 → STEP 1 で Phase 0 ゲート要件を必ず質問",
+      "prompt": "BtoB SaaS のアーキテクチャ設計をお願いします。技術スタックは Next.js 15 + FastAPI + Supabase で確定 (selected-stack.json あり)。チーム 2 名 + Claude Code 30 並列。3 ヶ月で Phase 1 dogfood リリース。STEP 1 から始めてください。",
+      "expected_behavior": [
+        "STEP 1 形式で出力 (会話的前置きなし)",
+        "プロジェクト概要 + 制約条件 + 優先事項を整理",
+        "v3: Phase 0 Foundation gate 要件 (lint #17-19 / 3-tier AC validator / pyright/coverage gate) を制約に追加していること",
+        "v3: 30-50 並列セッション対応の必要性を確認 (monorepo / worktree / branch 命名)",
+        "v3: ADR 起票要否 (AUTH / 命名 / root画面) を確認",
+        "STEP 2 へ で止まる"
+      ],
+      "assertions": [
+        {"id": "format_no_preface", "check": "応答冒頭が '##' で始まる"},
+        {"id": "v3_phase0_gates_listed", "check": "Phase 0 gate 8 件 (lint/validator/pyright/coverage 等) を制約として明示"},
+        {"id": "v3_parallel_session_check", "check": "30-50 並列対応の必要性 (monorepo / worktree) を確認"},
+        {"id": "v3_adr_intake_asked", "check": "ADR 起票 (AUTH / 命名 / root画面) を確認"},
+        {"id": "stops_at_step1", "check": "STEP 1 で止まり STEP 2 を勝手に開始しない"}
+      ]
+    },
+    {
+      "id": "ad-eval-2",
+      "title": "STEP 3 DB 設計で RLS strategy が出る",
+      "prompt": "STEP 3 で DB 設計お願いします。Supabase + pgvector + pg_trgm + pgsodium 採用、entities.json に 43 entity / 想定 RLS policy 43 件、multi-tenancy は account_scoped + workspace_scoped の 2 階層。",
+      "expected_behavior": [
+        "DB 設計方針 (PK type / soft delete / migration tool / 命名規約)",
+        "v3: RLS strategy ブロック (default_enable / auth_provider / tenant_isolation_pattern / policy_naming_convention / predicates_lib)",
+        "v3: table naming セクション (PascalCase entity → snake_case table / bf_ prefix 禁止)",
+        "v3: predicates_lib (self_only / owner_only / account_member / workspace_member) を提供",
+        "v3: lint #19 entity-table-naming の検証項目を明示",
+        "STEP 4 へ で止まる"
+      ],
+      "assertions": [
+        {"id": "v3_rls_strategy_block", "check": "RLS strategy ブロックが含まれる (default_enable / auth_provider / tenant_isolation_pattern)"},
+        {"id": "v3_table_naming_section", "check": "table naming (PascalCase → snake_case / bf_ 禁止) が明示"},
+        {"id": "v3_predicates_lib", "check": "predicates_lib に self_only / owner_only / account_member / workspace_member が含まれる"},
+        {"id": "v3_lint_19_mention", "check": "lint #19 entity-table-naming への言及"},
+        {"id": "stops_at_step3", "check": "STEP 4 を勝手に開始しない"}
+      ]
+    },
+    {
+      "id": "ad-eval-3",
+      "title": "STEP 4 で 8 CI gate + v3-gate.yml template が出る",
+      "prompt": "STEP 4 でインフラ・セキュリティ・CI/CD 方針お願いします。GitHub Actions + Vercel + Oracle Cloud (Backend) + Supabase + Sentry。Claude Code 30 並列対応必須。",
+      "expected_behavior": [
+        "環境構成 (development / staging / production)",
+        "CI/CD パイプライン (GitHub Actions)",
+        "v3: 8 CI gate を merge gate として明示 (gate 1-8 全部リスト)",
+        "v3: v3-gate.yml の GitHub Actions テンプレート (steps を 8 gate に対応)",
+        "v3: 30-50 並列対応 (worktree / branch 命名 'claude/<task_id>' / squash + auto-merge)",
+        "v3: 失敗 retry プロトコル (3 回失敗で human エスカレーション)",
+        "v3: phase_0_gates.json の出力予告",
+        "セキュリティ方針 + 監視・ログ",
+        "STEP 5 へ で止まる"
+      ],
+      "assertions": [
+        {"id": "v3_8_gates_listed", "check": "merge gate 8 件全部 (lint/AC/audit/RLS/pytest/pyright/tsc/mock-impl-diff) リスト"},
+        {"id": "v3_yml_template", "check": "v3-gate.yml の GitHub Actions テンプレ (steps が 8 gate 対応)"},
+        {"id": "v3_parallel_strategy", "check": "30-50 並列 worktree / branch 命名 / squash + auto-merge を明示"},
+        {"id": "v3_retry_protocol", "check": "3 回失敗で human エスカレーションのプロトコル"},
+        {"id": "v3_phase0_gates_json_announced", "check": "phase_0_gates.json の出力予告"},
+        {"id": "stops_at_step4", "check": "STEP 5 を勝手に開始しない"}
+      ]
+    },
+    {
+      "id": "ad-eval-4-v3-new",
+      "title": "v3 新規: Vertical Slice 適合性検証 + monorepo 設計",
+      "prompt": "STEP 2 でアーキパターン選定お願いします。Build-Factory v3 と同じ要件: 1 機能 = 画面+API+test+RLS を 1 PR で完結したい。Claude Code 30 並列。Next.js + FastAPI + Supabase 採用。",
+      "expected_behavior": [
+        "アーキパターン推奨 (Modular Monolith)",
+        "v3: Vertical Slice 適合性検証 (5 項目: ディレクトリ構造 / monorepo ビルド / 型同期 / RLS migration / test 一括)",
+        "v3: monorepo tool 候補比較 (pnpm workspaces / Turborepo / Nx) と推奨",
+        "v3: ディレクトリ構造案 (frontend/backend/supabase/scripts/.github/workflows)",
+        "v3: 型同期戦略 (OpenAPI → openapi-typescript or FastAPI → pydantic-to-typescript)",
+        "STEP 3 へ で止まる"
+      ],
+      "assertions": [
+        {"id": "v3_vertical_slice_check", "check": "Vertical Slice 適合性 5 項目 (ディレクトリ / monorepo / 型同期 / RLS / test 一括) を検証"},
+        {"id": "v3_monorepo_tools_compared", "check": "monorepo tool 候補 (pnpm workspaces / Turborepo / Nx) を比較し推奨"},
+        {"id": "v3_dir_structure", "check": "ディレクトリ構造案 (frontend/backend/supabase/scripts/.github/workflows) を提示"},
+        {"id": "v3_type_sync_strategy", "check": "型同期戦略 (OpenAPI → TS / FastAPI → pydantic-to-typescript) を提示"},
+        {"id": "stops_at_step2", "check": "STEP 3 を勝手に開始しない"}
+      ]
+    }
+  ]
+}
