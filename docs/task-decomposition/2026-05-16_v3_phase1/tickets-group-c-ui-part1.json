@@ -1,0 +1,2212 @@
+{
+  "version": "v3-phase1-group-c-part1",
+  "project": "Build-Factory",
+  "profile": "build-factory",
+  "phase_target": "Phase 1B (UI / Vertical Slice)",
+  "group": "C",
+  "scope": "9 categories (account / ai_management / auth / client / dialog / email / export / extras); dialog 5 merged into parent screens",
+  "created_at": "2026-05-16",
+  "summary": {
+    "total_tasks": 25,
+    "by_category": {
+      "auth": 5,
+      "account": 6,
+      "ai_management": 3,
+      "client": 2,
+      "email": 5,
+      "export": 2,
+      "extras": 2
+    },
+    "merged_dialog_screens": [
+      {
+        "dialog": "S-051",
+        "parent": "S-008"
+      },
+      {
+        "dialog": "S-052",
+        "parent": "S-007"
+      },
+      {
+        "dialog": "S-053",
+        "parent": "S-001"
+      },
+      {
+        "dialog": "S-054",
+        "parent": "S-006"
+      },
+      {
+        "dialog": "S-055",
+        "parent": "S-007"
+      }
+    ],
+    "total_estimate_hours": 104
+  },
+  "tasks": [
+    {
+      "id": "T-V3-C-01",
+      "title": "S-001 ログイン 画面実装 (Vertical Slice / UI) +dialog S-053",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-001",
+      "feature_ids": [
+        "F-001",
+        "F-021"
+      ],
+      "screen_ids": [
+        "S-001",
+        "S-053"
+      ],
+      "entity_ids": [
+        "E-001",
+        "E-038"
+      ],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 5,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-AUTH-01",
+        "T-V3-AUTH-02",
+        "T-V3-AUTH-03",
+        "T-V3-AUTH-04",
+        "T-V3-AUTH-05",
+        "T-V3-AUTH-06",
+        "T-V3-B-RBAC-01"
+      ],
+      "files_changed": [
+        "frontend/src/app/(auth)/login/page.tsx (new)",
+        "frontend/src/api/auth.ts (modify)",
+        "frontend/tests/screens/S-001-login.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(auth)/login/page.tsx",
+          "frontend/tests/screens/S-001-login.spec.tsx",
+          "frontend/src/api/auth.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/auth/S-001-login.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-001 page is rendered, the system shall include a `data-screen-id=\"S-001\"` attribute on the root element.",
+          "STATE-DRIVEN: While S-001 page is rendered, the system shall display an h1 element with text matching screens.json[S-001].h1_text (\"ログイン\")."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the S-001 page performs its primary action, the system shall call POST /api/auth/login via the typed API client.",
+          "EVENT-DRIVEN: When the S-001 page performs its primary action, the system shall call POST /api/auth/mfa/verify via the typed API client.",
+          "UNWANTED: If a backing API call from S-001 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "EVENT-DRIVEN: When the user completes the primary flow on S-001, the system shall navigate to account_dashboard or workspace_dashboard (last visited).",
+          "EVENT-DRIVEN: When valid email/password is submitted to POST /api/auth/login, the system shall return 200 with access_token + refresh_token + user_id.",
+          "UNWANTED: If invalid credentials are submitted to POST /api/auth/login, the system shall return 401 with a generic message (no user enumeration).",
+          "STATE-DRIVEN: While MFA is enabled for the user, the system shall require POST /api/auth/mfa/verify with a valid TOTP code before issuing access_token.",
+          "STATE-DRIVEN: While the login response indicates mfa_required=true, the system shall show the mfa_challenge dialog (S-053 pattern) for TOTP entry before completing login."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-01 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-01.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/lint-mock-impl-diff.py --strict S-001 S-053` (Gate #8 / mock-impl structural diff).",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-01` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-001",
+        "docs/mocks/2026-05-15_v3/auth/S-001-login.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-001"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-01.md",
+      "branch": "claude/T-V3-C-01"
+    },
+    {
+      "id": "T-V3-C-02",
+      "title": "S-002 サインアップ 画面実装 (Vertical Slice / UI)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-001",
+      "feature_ids": [
+        "F-001",
+        "F-004"
+      ],
+      "screen_ids": [
+        "S-002"
+      ],
+      "entity_ids": [
+        "E-001",
+        "E-002",
+        "E-008",
+        "E-043"
+      ],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-AUTH-01",
+        "T-V3-AUTH-02",
+        "T-V3-AUTH-03",
+        "T-V3-AUTH-04",
+        "T-V3-AUTH-05",
+        "T-V3-AUTH-06",
+        "T-V3-B-ACCOUNT-01"
+      ],
+      "files_changed": [
+        "frontend/src/app/(auth)/signup/page.tsx (new)",
+        "frontend/src/api/auth.ts (modify)",
+        "frontend/tests/screens/S-002-signup.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(auth)/signup/page.tsx",
+          "frontend/tests/screens/S-002-signup.spec.tsx",
+          "frontend/src/api/auth.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/auth/S-002-signup.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-002 page is rendered, the system shall include a `data-screen-id=\"S-002\"` attribute on the root element.",
+          "STATE-DRIVEN: While S-002 page is rendered, the system shall display an h1 element with text matching screens.json[S-002].h1_text (\"アカウント作成\")."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the S-002 page performs its primary action, the system shall call POST /api/auth/signup via the typed API client.",
+          "EVENT-DRIVEN: When the S-002 page performs its primary action, the system shall call GET /api/invitations/{token} via the typed API client.",
+          "UNWANTED: If a backing API call from S-002 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "EVENT-DRIVEN: When the user completes the primary flow on S-002, the system shall navigate to account_dashboard (新規 account 作成) or workspace_invite_accept.",
+          "EVENT-DRIVEN: When valid email/password is submitted to POST /api/auth/login, the system shall return 200 with access_token + refresh_token + user_id.",
+          "UNWANTED: If invalid credentials are submitted to POST /api/auth/login, the system shall return 401 with a generic message (no user enumeration)."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-02 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-02.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/lint-mock-impl-diff.py --strict S-002` (Gate #8 / mock-impl structural diff).",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-02` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-002",
+        "docs/mocks/2026-05-15_v3/auth/S-002-signup.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-001"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-02.md",
+      "branch": "claude/T-V3-C-02"
+    },
+    {
+      "id": "T-V3-C-03",
+      "title": "S-003 パスワード再設定 画面実装 (Vertical Slice / UI)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-001",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [
+        "S-003"
+      ],
+      "entity_ids": [
+        "E-001",
+        "E-039"
+      ],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-AUTH-01",
+        "T-V3-AUTH-02",
+        "T-V3-AUTH-03",
+        "T-V3-AUTH-04",
+        "T-V3-AUTH-05",
+        "T-V3-AUTH-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/(auth)/password-reset/page.tsx (new)",
+        "frontend/src/api/auth.ts (modify)",
+        "frontend/tests/screens/S-003-password_reset.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(auth)/password-reset/page.tsx",
+          "frontend/tests/screens/S-003-password_reset.spec.tsx",
+          "frontend/src/api/auth.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/auth/S-003-password-reset.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-003 page is rendered, the system shall include a `data-screen-id=\"S-003\"` attribute on the root element.",
+          "STATE-DRIVEN: While S-003 page is rendered, the system shall display an h1 element with text matching screens.json[S-003].h1_text (\"パスワード再設定\")."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the S-003 page performs its primary action, the system shall call POST /api/auth/password-reset via the typed API client.",
+          "UNWANTED: If a backing API call from S-003 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "EVENT-DRIVEN: When POST /api/auth/password-reset is called with an email, the system shall always return 2xx (no account enumeration) and send reset email only if the account exists."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-03 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-03.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/lint-mock-impl-diff.py --strict S-003` (Gate #8 / mock-impl structural diff).",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-03` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-003",
+        "docs/mocks/2026-05-15_v3/auth/S-003-password-reset.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-001"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-03.md",
+      "branch": "claude/T-V3-C-03"
+    },
+    {
+      "id": "T-V3-C-04",
+      "title": "S-004 MFA セットアップ 画面実装 (Vertical Slice / UI)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-001",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [
+        "S-004"
+      ],
+      "entity_ids": [
+        "E-001"
+      ],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-AUTH-01",
+        "T-V3-AUTH-02",
+        "T-V3-AUTH-03",
+        "T-V3-AUTH-04",
+        "T-V3-AUTH-05",
+        "T-V3-AUTH-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/(auth)/mfa-setup/page.tsx (new)",
+        "frontend/src/api/auth.ts (modify)",
+        "frontend/tests/screens/S-004-mfa_setup.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(auth)/mfa-setup/page.tsx",
+          "frontend/tests/screens/S-004-mfa_setup.spec.tsx",
+          "frontend/src/api/auth.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/auth/S-004-mfa-setup.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-004 page is rendered, the system shall include a `data-screen-id=\"S-004\"` attribute on the root element.",
+          "STATE-DRIVEN: While S-004 page is rendered, the system shall display an h1 element with text matching screens.json[S-004].h1_text (\"2 段階認証 (MFA) を有効化\").",
+          "STATE-DRIVEN: While S-004 page is rendered, the system shall render h2 section headings matching screens.json[S-004].section_h2_texts (cap 12): Step 1. 認証アプリで QR をスキャン / Step 2. 6 桁のコードで確認."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the S-004 page performs its primary action, the system shall call POST /api/auth/mfa/enroll via the typed API client.",
+          "EVENT-DRIVEN: When the S-004 page performs its primary action, the system shall call POST /api/auth/mfa/verify via the typed API client.",
+          "UNWANTED: If a backing API call from S-004 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "STATE-DRIVEN: While MFA is enabled for the user, the system shall require POST /api/auth/mfa/verify with a valid TOTP code before issuing access_token."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-04 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-04.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/lint-mock-impl-diff.py --strict S-004` (Gate #8 / mock-impl structural diff).",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-04` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-004",
+        "docs/mocks/2026-05-15_v3/auth/S-004-mfa-setup.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-001"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-04.md",
+      "branch": "claude/T-V3-C-04"
+    },
+    {
+      "id": "T-V3-C-05",
+      "title": "S-005 OAuth コールバック 画面実装 (Vertical Slice / UI)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-001",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [
+        "S-005"
+      ],
+      "entity_ids": [
+        "E-001",
+        "E-040"
+      ],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-AUTH-01",
+        "T-V3-AUTH-02",
+        "T-V3-AUTH-03",
+        "T-V3-AUTH-04",
+        "T-V3-AUTH-05",
+        "T-V3-AUTH-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/(auth)/oauth-callback/page.tsx (new)",
+        "frontend/src/api/auth.ts (modify)",
+        "frontend/tests/screens/S-005-oauth_callback.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(auth)/oauth-callback/page.tsx",
+          "frontend/tests/screens/S-005-oauth_callback.spec.tsx",
+          "frontend/src/api/auth.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/auth/S-005-oauth-callback.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-005 page is rendered, the system shall include a `data-screen-id=\"S-005\"` attribute on the root element.",
+          "STATE-DRIVEN: While S-005 page is rendered, the system shall display an h1 element with text matching screens.json[S-005].h1_text (\"ログイン中...\")."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the S-005 page performs its primary action, the system shall call GET /api/auth/oauth/{provider}/callback via the typed API client.",
+          "UNWANTED: If a backing API call from S-005 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "EVENT-DRIVEN: When OAuth callback GET /api/auth/oauth/{provider}/callback is invoked with a valid state token, the system shall complete the OAuth handshake and return access_token + refresh_token."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-05 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-05.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/lint-mock-impl-diff.py --strict S-005` (Gate #8 / mock-impl structural diff).",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-05` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-005",
+        "docs/mocks/2026-05-15_v3/auth/S-005-oauth-callback.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-001"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-05.md",
+      "branch": "claude/T-V3-C-05"
+    },
+    {
+      "id": "T-V3-C-06",
+      "title": "S-006 10 案件 俯瞰 画面実装 (Vertical Slice / UI) +dialog S-054",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-024",
+      "feature_ids": [
+        "F-024",
+        "F-018",
+        "F-008",
+        "F-007",
+        "F-017"
+      ],
+      "screen_ids": [
+        "S-006",
+        "S-054"
+      ],
+      "entity_ids": [
+        "E-008",
+        "E-009",
+        "E-018",
+        "E-025",
+        "E-027",
+        "E-029"
+      ],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 5,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-B-SEARCH-01",
+        "T-V3-B-NOTIF-01",
+        "T-V3-B-AUDIT-01",
+        "T-V3-B-PHASE-01",
+        "T-V3-B-TASK-01",
+        "T-V3-B-COST-01"
+      ],
+      "files_changed": [
+        "frontend/src/app/(app)/dashboard/page.tsx (new)",
+        "frontend/src/api/search.ts (modify)",
+        "frontend/tests/screens/S-006-account_dashboard.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(app)/dashboard/page.tsx",
+          "frontend/tests/screens/S-006-account_dashboard.spec.tsx",
+          "frontend/src/api/search.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/account/S-006-account-dashboard.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-006 page is rendered, the system shall include a `data-screen-id=\"S-006\"` attribute on the root element.",
+          "STATE-DRIVEN: While S-006 page is rendered, the system shall display an h1 element with text matching screens.json[S-006].h1_text (\"10 案件 俯瞰\").",
+          "STATE-DRIVEN: While S-006 page is rendered, the system shall render h2 section headings matching screens.json[S-006].section_h2_texts (cap 12): Pending Reviews / Phase 進捗 / 完了タスク (7d) / 全 Workspaces (10 案件並走中) / AI 社員 使用率（今週） / 直近の Activity.",
+          "UBIQUITOUS: The system shall expose KPI labels on S-006 matching screens.json[S-006].kpi_labels: Active Projects / Running Sessions / Monthly Cost / Anomalies (24h)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the S-006 page performs its primary action, the system shall call GET /api/accounts/{id}/dashboard via the typed API client.",
+          "UNWANTED: If a backing API call from S-006 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "EVENT-DRIVEN: When GET /api/accounts/{id}/dashboard is called, the system shall aggregate KPI across all workspaces the caller belongs to within the account.",
+          "EVENT-DRIVEN: When the server returns 401 with session_expired code, the system shall show the session_expired dialog (S-054 pattern) and preserve in-flight form data in localStorage."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-06 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-06.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/lint-mock-impl-diff.py --strict S-006 S-054` (Gate #8 / mock-impl structural diff).",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-06` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-006",
+        "docs/mocks/2026-05-15_v3/account/S-006-account-dashboard.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-024"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-06.md",
+      "branch": "claude/T-V3-C-06"
+    },
+    {
+      "id": "T-V3-C-07",
+      "title": "S-007 アカウント設定 画面実装 (Vertical Slice / UI) +dialog S-052, S-055",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-004",
+      "feature_ids": [
+        "F-004"
+      ],
+      "screen_ids": [
+        "S-007",
+        "S-052",
+        "S-055"
+      ],
+      "entity_ids": [
+        "E-008",
+        "E-001"
+      ],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 5,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-B-ACCOUNT-01"
+      ],
+      "files_changed": [
+        "frontend/src/app/(app)/settings/account/page.tsx (new)",
+        "frontend/src/api/accounts.ts (modify)",
+        "frontend/tests/screens/S-007-account_settings.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(app)/settings/account/page.tsx",
+          "frontend/tests/screens/S-007-account_settings.spec.tsx",
+          "frontend/src/api/accounts.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/account/S-007-account-settings.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-007 page is rendered, the system shall include a `data-screen-id=\"S-007\"` attribute on the root element.",
+          "STATE-DRIVEN: While S-007 page is rendered, the system shall display an h1 element with text matching screens.json[S-007].h1_text (\"アカウント設定\").",
+          "STATE-DRIVEN: While S-007 page is rendered, the system shall render h2 section headings matching screens.json[S-007].section_h2_texts (cap 12): 基本情報 / プラン / 課金 / 所有者 (Account Owner) / Danger Zone."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the S-007 page performs its primary action, the system shall call GET /api/accounts/{id} via the typed API client.",
+          "EVENT-DRIVEN: When the S-007 page performs its primary action, the system shall call PUT /api/accounts/{id} via the typed API client.",
+          "EVENT-DRIVEN: When the S-007 page performs its primary action, the system shall call POST /api/accounts/{id}/transfer-owner via the typed API client.",
+          "EVENT-DRIVEN: When the S-007 page performs its primary action, the system shall call DELETE /api/accounts/{id} via the typed API client.",
+          "UNWANTED: If a backing API call from S-007 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "EVENT-DRIVEN: When PUT /api/accounts/{id} is called by the owner with a valid plan upgrade, the system shall update plan and emit account_updated audit log.",
+          "UNWANTED: If POST /api/accounts/{id}/transfer-owner is called for a user who is not an account member, the system shall return 409.",
+          "EVENT-DRIVEN: When POST /api/accounts/{id}/invitations is called more than 20 times per hour for the same account, the system shall return 429.",
+          "UNWANTED: If the user attempts to navigate away from a dirty form, the system shall block navigation by showing the unsaved_changes dialog (S-052 pattern) until confirmed.",
+          "STATE-DRIVEN: While the user is in the Danger Zone region (S-055 pattern), the system shall require typed-name confirmation for any irreversible action."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-07 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-07.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/lint-mock-impl-diff.py --strict S-007 S-052 S-055` (Gate #8 / mock-impl structural diff).",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-07` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-007",
+        "docs/mocks/2026-05-15_v3/account/S-007-account-settings.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-004"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-07.md",
+      "branch": "claude/T-V3-C-07"
+    },
+    {
+      "id": "T-V3-C-08",
+      "title": "S-008 メンバー管理 画面実装 (Vertical Slice / UI) +dialog S-051",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-004",
+      "feature_ids": [
+        "F-004",
+        "F-021"
+      ],
+      "screen_ids": [
+        "S-008",
+        "S-051"
+      ],
+      "entity_ids": [
+        "E-001",
+        "E-002",
+        "E-043"
+      ],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 5,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-B-ACCOUNT-01",
+        "T-V3-B-RBAC-01"
+      ],
+      "files_changed": [
+        "frontend/src/app/(app)/settings/account/members/page.tsx (new)",
+        "frontend/src/api/accounts.ts (modify)",
+        "frontend/tests/screens/S-008-account_members.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(app)/settings/account/members/page.tsx",
+          "frontend/tests/screens/S-008-account_members.spec.tsx",
+          "frontend/src/api/accounts.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/account/S-008-account-members.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-008 page is rendered, the system shall include a `data-screen-id=\"S-008\"` attribute on the root element.",
+          "STATE-DRIVEN: While S-008 page is rendered, the system shall display an h1 element with text matching screens.json[S-008].h1_text (\"メンバー管理\")."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the S-008 page performs its primary action, the system shall call GET /api/accounts/{id}/members via the typed API client.",
+          "EVENT-DRIVEN: When the S-008 page performs its primary action, the system shall call POST /api/accounts/{id}/invitations via the typed API client.",
+          "EVENT-DRIVEN: When the S-008 page performs its primary action, the system shall call DELETE /api/accounts/{id}/members/{user_id} via the typed API client.",
+          "UNWANTED: If a backing API call from S-008 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "EVENT-DRIVEN: When POST /api/accounts/{id}/invitations is called more than 20 times per hour for the same account, the system shall return 429.",
+          "EVENT-DRIVEN: When the user requests a destructive action, the system shall show the confirm_delete dialog (S-051 pattern) requiring typed-name confirmation before submitting."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-08 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-08.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/lint-mock-impl-diff.py --strict S-008 S-051` (Gate #8 / mock-impl structural diff).",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-08` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-008",
+        "docs/mocks/2026-05-15_v3/account/S-008-account-members.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-004"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-08.md",
+      "branch": "claude/T-V3-C-08"
+    },
+    {
+      "id": "T-V3-C-09",
+      "title": "S-009 プロフィール設定 画面実装 (Vertical Slice / UI)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-022",
+      "feature_ids": [
+        "F-022",
+        "F-023"
+      ],
+      "screen_ids": [
+        "S-009"
+      ],
+      "entity_ids": [
+        "E-001",
+        "E-010",
+        "E-040"
+      ],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-B-AI-02",
+        "T-V3-B-PROFILE-01"
+      ],
+      "files_changed": [
+        "frontend/src/app/(app)/settings/profile/page.tsx (new)",
+        "frontend/src/api/ai-employees.ts (modify)",
+        "frontend/tests/screens/S-009-profile_settings.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(app)/settings/profile/page.tsx",
+          "frontend/tests/screens/S-009-profile_settings.spec.tsx",
+          "frontend/src/api/ai-employees.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/account/S-009-profile-settings.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-009 page is rendered, the system shall include a `data-screen-id=\"S-009\"` attribute on the root element.",
+          "STATE-DRIVEN: While S-009 page is rendered, the system shall display an h1 element with text matching screens.json[S-009].h1_text (\"プロフィール設定\").",
+          "STATE-DRIVEN: While S-009 page is rendered, the system shall render h2 section headings matching screens.json[S-009].section_h2_texts (cap 12): プロフィール / 通知設定 / LLM プロバイダ (BYOK) / OAuth 連携 / ユーザークローン (高本さんの判断基準を学習) / Danger Zone."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the S-009 page performs its primary action, the system shall call GET /api/me via the typed API client.",
+          "EVENT-DRIVEN: When the S-009 page performs its primary action, the system shall call PUT /api/me via the typed API client.",
+          "EVENT-DRIVEN: When the S-009 page performs its primary action, the system shall call POST /api/me/api-keys via the typed API client.",
+          "EVENT-DRIVEN: When the S-009 page performs its primary action, the system shall call DELETE /api/me/oauth/{provider} via the typed API client.",
+          "UNWANTED: If a backing API call from S-009 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "STATE-DRIVEN: While clone_opt_in is FALSE for a user, the system shall not INSERT into user_interaction_log for that user (DB trigger enforced).",
+          "EVENT-DRIVEN: When a user opts out of cloning, the system shall offer immediate deletion of user_knowledge_namespace + user_interaction_log."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-09 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-09.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/lint-mock-impl-diff.py --strict S-009` (Gate #8 / mock-impl structural diff).",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-09` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-009",
+        "docs/mocks/2026-05-15_v3/account/S-009-profile-settings.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-022"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-09.md",
+      "branch": "claude/T-V3-C-09"
+    },
+    {
+      "id": "T-V3-C-10",
+      "title": "S-010 通知 Inbox 画面実装 (Vertical Slice / UI)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-018",
+      "feature_ids": [
+        "F-018"
+      ],
+      "screen_ids": [
+        "S-010"
+      ],
+      "entity_ids": [
+        "E-042"
+      ],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-B-NOTIF-01",
+        "T-V3-B-AUDIT-01"
+      ],
+      "files_changed": [
+        "frontend/src/app/(app)/notifications/page.tsx (new)",
+        "frontend/src/api/notifications.ts (modify)",
+        "frontend/tests/screens/S-010-notifications_inbox.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(app)/notifications/page.tsx",
+          "frontend/tests/screens/S-010-notifications_inbox.spec.tsx",
+          "frontend/src/api/notifications.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/account/S-010-notifications-inbox.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-010 page is rendered, the system shall include a `data-screen-id=\"S-010\"` attribute on the root element.",
+          "STATE-DRIVEN: While S-010 page is rendered, the system shall display an h1 element with text matching screens.json[S-010].h1_text (\"通知 Inbox(3 未読)\")."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the S-010 page performs its primary action, the system shall call GET /api/notifications via the typed API client.",
+          "EVENT-DRIVEN: When the S-010 page performs its primary action, the system shall call POST /api/notifications/{id}/read via the typed API client.",
+          "EVENT-DRIVEN: When the S-010 page performs its primary action, the system shall call POST /api/notifications/read-all via the typed API client.",
+          "UNWANTED: If a backing API call from S-010 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "STATE-DRIVEN: While a notification is unread, the system shall include it in the unread_count of GET /api/notifications.",
+          "EVENT-DRIVEN: When POST /api/notifications/read-all is called with no category filter, the system shall mark all unread notifications for the user as read."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-10 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-10.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/lint-mock-impl-diff.py --strict S-010` (Gate #8 / mock-impl structural diff).",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-10` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-010",
+        "docs/mocks/2026-05-15_v3/account/S-010-notifications-inbox.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-018"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-10.md",
+      "branch": "claude/T-V3-C-10"
+    },
+    {
+      "id": "T-V3-C-11",
+      "title": "S-011 グローバル検索 (Cmd+K) 画面実装 (Vertical Slice / UI)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-024",
+      "feature_ids": [
+        "F-024"
+      ],
+      "screen_ids": [
+        "S-011"
+      ],
+      "entity_ids": [
+        "E-001",
+        "E-008",
+        "E-009",
+        "E-018",
+        "E-022",
+        "E-029"
+      ],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-B-SEARCH-01"
+      ],
+      "files_changed": [
+        "frontend/src/app/(app)/search/page.tsx (new)",
+        "frontend/src/api/search.ts (modify)",
+        "frontend/tests/screens/S-011-global_search.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(app)/search/page.tsx",
+          "frontend/tests/screens/S-011-global_search.spec.tsx",
+          "frontend/src/api/search.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/account/S-011-global-search.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-011 page is rendered, the system shall include a `data-screen-id=\"S-011\"` attribute on the root element."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the S-011 page performs its primary action, the system shall call GET /api/search?q={query}&category={cat} via the typed API client.",
+          "UNWANTED: If a backing API call from S-011 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "EVENT-DRIVEN: When GET /api/search is called with a non-empty q, the system shall return hits ranked by combined FTS + vector similarity score.",
+          "UBIQUITOUS: The system shall apply RLS so search hits include only resources visible to the caller."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-11 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-11.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-11` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-011",
+        "docs/mocks/2026-05-15_v3/account/S-011-global-search.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-024"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-11.md",
+      "branch": "claude/T-V3-C-11"
+    },
+    {
+      "id": "T-V3-C-12",
+      "title": "S-036 AI 社員 組織図 画面実装 (Vertical Slice / UI)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-003",
+      "feature_ids": [
+        "F-003",
+        "F-022"
+      ],
+      "screen_ids": [
+        "S-036"
+      ],
+      "entity_ids": [
+        "E-034"
+      ],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-B-AI-01",
+        "T-V3-B-AI-02"
+      ],
+      "files_changed": [
+        "frontend/src/app/(app)/ai-employees/page.tsx (new)",
+        "frontend/src/api/ai-employees.ts (modify)",
+        "frontend/tests/screens/S-036-ai_employees_org_chart.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(app)/ai-employees/page.tsx",
+          "frontend/tests/screens/S-036-ai_employees_org_chart.spec.tsx",
+          "frontend/src/api/ai-employees.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/ai/S-036-ai-employees-org-chart.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-036 page is rendered, the system shall include a `data-screen-id=\"S-036\"` attribute on the root element.",
+          "STATE-DRIVEN: While S-036 page is rendered, the system shall display an h1 element with text matching screens.json[S-036].h1_text (\"AI 社員 組織図\")."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the S-036 page performs its primary action, the system shall call GET /api/ai-employees/org-chart via the typed API client.",
+          "EVENT-DRIVEN: When the S-036 page performs its primary action, the system shall call POST /api/ai-employees via the typed API client.",
+          "EVENT-DRIVEN: When the S-036 page performs its primary action, the system shall call POST /api/ai-employees/{id}/clone-from-user via the typed API client.",
+          "UNWANTED: If a backing API call from S-036 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "EVENT-DRIVEN: When GET /api/ai-employees/org-chart is called, the system shall return a hierarchical tree of all non-archived employees in the workspace.",
+          "EVENT-DRIVEN: When POST /api/ai-employees is called with a valid persona definition, the system shall create the employee with hierarchy_level enforced (level 1-3).",
+          "UNWANTED: If POST /api/ai-employees would create a circular parent reference, the system shall return 409.",
+          "STATE-DRIVEN: While clone opt-in is FALSE for the source user, the system shall return 403 for POST /api/ai-employees/{id}/clone-from-user.",
+          "UNWANTED: If POST /api/ai-employees/{id}/test is called more than 20 times per minute per workspace, the system shall return 429."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-12 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-12.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/lint-mock-impl-diff.py --strict S-036` (Gate #8 / mock-impl structural diff).",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-12` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-036",
+        "docs/mocks/2026-05-15_v3/ai/S-036-ai-employees-org-chart.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-003"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-12.md",
+      "branch": "claude/T-V3-C-12"
+    },
+    {
+      "id": "T-V3-C-13",
+      "title": "S-037 AI 社員 詳細 画面実装 (Vertical Slice / UI)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-003",
+      "feature_ids": [
+        "F-003",
+        "F-022"
+      ],
+      "screen_ids": [
+        "S-037"
+      ],
+      "entity_ids": [
+        "E-034",
+        "E-035",
+        "E-036"
+      ],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-B-AI-01",
+        "T-V3-B-AI-02"
+      ],
+      "files_changed": [
+        "frontend/src/app/(app)/ai-employees/[employeeId]/page.tsx (new)",
+        "frontend/src/api/ai-employees.ts (modify)",
+        "frontend/tests/screens/S-037-ai_employee_detail.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(app)/ai-employees/[employeeId]/page.tsx",
+          "frontend/tests/screens/S-037-ai_employee_detail.spec.tsx",
+          "frontend/src/api/ai-employees.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/ai/S-037-ai-employee-detail.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-037 page is rendered, the system shall include a `data-screen-id=\"S-037\"` attribute on the root element.",
+          "STATE-DRIVEN: While S-037 page is rendered, the system shall display an h1 element with text matching screens.json[S-037].h1_text (\"devon (Senior Dev)\").",
+          "STATE-DRIVEN: While S-037 page is rendered, the system shall render h2 section headings matching screens.json[S-037].section_h2_texts (cap 12): Persona / System Prompt / スキル (8) / 実行履歴 (今月 87 件)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the S-037 page performs its primary action, the system shall call GET /api/ai-employees/{id} via the typed API client.",
+          "EVENT-DRIVEN: When the S-037 page performs its primary action, the system shall call PUT /api/ai-employees/{id} via the typed API client.",
+          "EVENT-DRIVEN: When the S-037 page performs its primary action, the system shall call POST /api/ai-employees/{id}/test via the typed API client.",
+          "UNWANTED: If a backing API call from S-037 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "STATE-DRIVEN: While clone opt-in is FALSE for the source user, the system shall return 403 for POST /api/ai-employees/{id}/clone-from-user.",
+          "UNWANTED: If POST /api/ai-employees/{id}/test is called more than 20 times per minute per workspace, the system shall return 429."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-13 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-13.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/lint-mock-impl-diff.py --strict S-037` (Gate #8 / mock-impl structural diff).",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-13` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-037",
+        "docs/mocks/2026-05-15_v3/ai/S-037-ai-employee-detail.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-003"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-13.md",
+      "branch": "claude/T-V3-C-13"
+    },
+    {
+      "id": "T-V3-C-14",
+      "title": "S-038 スキルマネージャ 画面実装 (Vertical Slice / UI)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-002",
+      "feature_ids": [
+        "F-002",
+        "F-003"
+      ],
+      "screen_ids": [
+        "S-038"
+      ],
+      "entity_ids": [
+        "E-035"
+      ],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-B-SKILLS-01",
+        "T-V3-B-AI-01"
+      ],
+      "files_changed": [
+        "frontend/src/app/(app)/skills/page.tsx (new)",
+        "frontend/src/api/skills.ts (modify)",
+        "frontend/tests/screens/S-038-skill_manager.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(app)/skills/page.tsx",
+          "frontend/tests/screens/S-038-skill_manager.spec.tsx",
+          "frontend/src/api/skills.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/ai/S-038-skill-manager.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-038 page is rendered, the system shall include a `data-screen-id=\"S-038\"` attribute on the root element.",
+          "STATE-DRIVEN: While S-038 page is rendered, the system shall display an h1 element with text matching screens.json[S-038].h1_text (\"スキルマネージャ\")."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the S-038 page performs its primary action, the system shall call GET /api/skills via the typed API client.",
+          "EVENT-DRIVEN: When the S-038 page performs its primary action, the system shall call POST /api/skills via the typed API client.",
+          "EVENT-DRIVEN: When the S-038 page performs its primary action, the system shall call POST /api/skills/{id}/test via the typed API client.",
+          "EVENT-DRIVEN: When the S-038 page performs its primary action, the system shall call POST /api/skills/{id}/archive via the typed API client.",
+          "UNWANTED: If a backing API call from S-038 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "EVENT-DRIVEN: When GET /api/skills is called with category=ai, the system shall return all non-archived skills matching that category.",
+          "EVENT-DRIVEN: When POST /api/skills/{id}/archive is called by an account_owner, the system shall set archived_at and exclude the skill from AI invocation lists.",
+          "UNWANTED: If POST /api/skills is called by a non-owner role, the system shall return 403.",
+          "UNWANTED: If POST /api/skills/{id}/test is invoked more than 10 times per minute per user, the system shall return 429."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-14 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-14.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/lint-mock-impl-diff.py --strict S-038` (Gate #8 / mock-impl structural diff).",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-14` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-038",
+        "docs/mocks/2026-05-15_v3/ai/S-038-skill-manager.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-002"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-14.md",
+      "branch": "claude/T-V3-C-14"
+    },
+    {
+      "id": "T-V3-C-15",
+      "title": "S-042 クライアントポータル 画面実装 (Vertical Slice / UI)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-013",
+      "feature_ids": [
+        "F-013",
+        "F-021"
+      ],
+      "screen_ids": [
+        "S-042"
+      ],
+      "entity_ids": [
+        "E-009",
+        "E-021"
+      ],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-B-PR-01",
+        "T-V3-B-RBAC-01"
+      ],
+      "files_changed": [
+        "frontend/src/app/(client)/workspace/[shareToken]/page.tsx (new)",
+        "frontend/src/api/pr-client.ts (modify)",
+        "frontend/tests/screens/S-042-client_workspace.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(client)/workspace/[shareToken]/page.tsx",
+          "frontend/tests/screens/S-042-client_workspace.spec.tsx",
+          "frontend/src/api/pr-client.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/client/S-042-client-workspace.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-042 page is rendered, the system shall include a `data-screen-id=\"S-042\"` attribute on the root element.",
+          "STATE-DRIVEN: While S-042 page is rendered, the system shall display an h1 element with text matching screens.json[S-042].h1_text (\"案件進捗状況\").",
+          "STATE-DRIVEN: While S-042 page is rendered, the system shall render h2 section headings matching screens.json[S-042].section_h2_texts (cap 12): Phase 2: 統合テスト + 受入 / 最近の更新 / 担当チーム / 納期 / フェーズ進捗."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the S-042 page performs its primary action, the system shall call GET /api/client/workspaces/{token} via the typed API client.",
+          "EVENT-DRIVEN: When the S-042 page performs its primary action, the system shall call GET /api/client/workspaces/{token}/spec via the typed API client.",
+          "EVENT-DRIVEN: When the S-042 page performs its primary action, the system shall call POST /api/client/comments via the typed API client.",
+          "UNWANTED: If a backing API call from S-042 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "STATE-DRIVEN: While a client token has expired, the system shall return 409 for GET /api/client/workspaces/{token}.",
+          "UNWANTED: If POST /api/client/comments exceeds 20 requests per hour per token, the system shall return 429."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-15 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-15.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/lint-mock-impl-diff.py --strict S-042` (Gate #8 / mock-impl structural diff).",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-15` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-042",
+        "docs/mocks/2026-05-15_v3/client/S-042-client-workspace.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-013"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-15.md",
+      "branch": "claude/T-V3-C-15"
+    },
+    {
+      "id": "T-V3-C-16",
+      "title": "S-043 クライアントコメント 画面実装 (Vertical Slice / UI)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-013",
+      "feature_ids": [
+        "F-013"
+      ],
+      "screen_ids": [
+        "S-043"
+      ],
+      "entity_ids": [
+        "E-033"
+      ],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-B-PR-01"
+      ],
+      "files_changed": [
+        "frontend/src/app/(client)/workspace/[shareToken]/comments/page.tsx (new)",
+        "frontend/src/api/pr-client.ts (modify)",
+        "frontend/tests/screens/S-043-client_comment.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(client)/workspace/[shareToken]/comments/page.tsx",
+          "frontend/tests/screens/S-043-client_comment.spec.tsx",
+          "frontend/src/api/pr-client.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/client/S-043-client-comment.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-043 page is rendered, the system shall include a `data-screen-id=\"S-043\"` attribute on the root element.",
+          "STATE-DRIVEN: While S-043 page is rendered, the system shall display an h1 element with text matching screens.json[S-043].h1_text (\"M-1 認証で SAML SSO 対応も必要では？\")."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the S-043 page performs its primary action, the system shall call GET /api/client/comments/{thread_id} via the typed API client.",
+          "EVENT-DRIVEN: When the S-043 page performs its primary action, the system shall call POST /api/client/comments via the typed API client.",
+          "EVENT-DRIVEN: When the S-043 page performs its primary action, the system shall call POST /api/comments/{id}/resolve via the typed API client.",
+          "UNWANTED: If a backing API call from S-043 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "UNWANTED: If POST /api/client/comments exceeds 20 requests per hour per token, the system shall return 429."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-16 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-16.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/lint-mock-impl-diff.py --strict S-043` (Gate #8 / mock-impl structural diff).",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-16` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-043",
+        "docs/mocks/2026-05-15_v3/client/S-043-client-comment.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-013"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-16.md",
+      "branch": "claude/T-V3-C-16"
+    },
+    {
+      "id": "T-V3-C-17",
+      "title": "S-056 サインアップ確認メール 画面実装 (Vertical Slice / UI)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-028",
+      "feature_ids": [
+        "F-028"
+      ],
+      "screen_ids": [
+        "S-056"
+      ],
+      "entity_ids": [],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-B-EMAIL-01"
+      ],
+      "files_changed": [
+        "frontend/src/app/(email)/signup-verify/page.tsx (new)",
+        "frontend/src/api/email.ts (modify)",
+        "frontend/tests/screens/S-056-email_signup_verify.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(email)/signup-verify/page.tsx",
+          "frontend/tests/screens/S-056-email_signup_verify.spec.tsx",
+          "frontend/src/api/email.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/email/S-056-email-signup-verify.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-056 page is rendered, the system shall include a `data-screen-id=\"S-056\"` attribute on the root element.",
+          "STATE-DRIVEN: While S-056 page is rendered, the system shall display an h1 element with text matching screens.json[S-056].h1_text (\"ようこそ、masato さん\")."
+        ],
+        "functional": [
+          "UNWANTED: If a backing API call from S-056 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "EVENT-DRIVEN: When a workspace invitation is created, the system shall send the email_invitation template within 60 seconds.",
+          "UNWANTED: If an email bounces, the system shall retry up to 3 times with exponential backoff before alerting admins."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-17 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-17.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/lint-mock-impl-diff.py --strict S-056` (Gate #8 / mock-impl structural diff).",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-17` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-056",
+        "docs/mocks/2026-05-15_v3/email/S-056-email-signup-verify.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-028"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-17.md",
+      "branch": "claude/T-V3-C-17"
+    },
+    {
+      "id": "T-V3-C-18",
+      "title": "S-057 パスワードリセットメール 画面実装 (Vertical Slice / UI)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-028",
+      "feature_ids": [
+        "F-028"
+      ],
+      "screen_ids": [
+        "S-057"
+      ],
+      "entity_ids": [],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-B-EMAIL-01"
+      ],
+      "files_changed": [
+        "frontend/src/app/(email)/password-reset/page.tsx (new)",
+        "frontend/src/api/email.ts (modify)",
+        "frontend/tests/screens/S-057-email_password_reset.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(email)/password-reset/page.tsx",
+          "frontend/tests/screens/S-057-email_password_reset.spec.tsx",
+          "frontend/src/api/email.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/email/S-057-email-password-reset.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-057 page is rendered, the system shall include a `data-screen-id=\"S-057\"` attribute on the root element.",
+          "STATE-DRIVEN: While S-057 page is rendered, the system shall display an h1 element with text matching screens.json[S-057].h1_text (\"パスワード再設定リクエスト\")."
+        ],
+        "functional": [
+          "UNWANTED: If a backing API call from S-057 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "EVENT-DRIVEN: When a workspace invitation is created, the system shall send the email_invitation template within 60 seconds.",
+          "UNWANTED: If an email bounces, the system shall retry up to 3 times with exponential backoff before alerting admins."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-18 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-18.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/lint-mock-impl-diff.py --strict S-057` (Gate #8 / mock-impl structural diff).",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-18` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-057",
+        "docs/mocks/2026-05-15_v3/email/S-057-email-password-reset.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-028"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-18.md",
+      "branch": "claude/T-V3-C-18"
+    },
+    {
+      "id": "T-V3-C-19",
+      "title": "S-058 招待メール 画面実装 (Vertical Slice / UI)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-028",
+      "feature_ids": [
+        "F-028"
+      ],
+      "screen_ids": [
+        "S-058"
+      ],
+      "entity_ids": [],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-B-EMAIL-01"
+      ],
+      "files_changed": [
+        "frontend/src/app/(email)/invitation/page.tsx (new)",
+        "frontend/src/api/email.ts (modify)",
+        "frontend/tests/screens/S-058-email_invitation.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(email)/invitation/page.tsx",
+          "frontend/tests/screens/S-058-email_invitation.spec.tsx",
+          "frontend/src/api/email.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/email/S-058-email-invitation.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-058 page is rendered, the system shall include a `data-screen-id=\"S-058\"` attribute on the root element.",
+          "STATE-DRIVEN: While S-058 page is rendered, the system shall display an h1 element with text matching screens.json[S-058].h1_text (\"masato さんから案件への招待\")."
+        ],
+        "functional": [
+          "UNWANTED: If a backing API call from S-058 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "EVENT-DRIVEN: When a workspace invitation is created, the system shall send the email_invitation template within 60 seconds.",
+          "UNWANTED: If an email bounces, the system shall retry up to 3 times with exponential backoff before alerting admins."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-19 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-19.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/lint-mock-impl-diff.py --strict S-058` (Gate #8 / mock-impl structural diff).",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-19` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-058",
+        "docs/mocks/2026-05-15_v3/email/S-058-email-invitation.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-028"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-19.md",
+      "branch": "claude/T-V3-C-19"
+    },
+    {
+      "id": "T-V3-C-20",
+      "title": "S-059 タスク通知 画面実装 (Vertical Slice / UI)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-028",
+      "feature_ids": [
+        "F-028"
+      ],
+      "screen_ids": [
+        "S-059"
+      ],
+      "entity_ids": [],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-B-EMAIL-01"
+      ],
+      "files_changed": [
+        "frontend/src/app/(email)/task-notification/page.tsx (new)",
+        "frontend/src/api/email.ts (modify)",
+        "frontend/tests/screens/S-059-email_task_notification.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(email)/task-notification/page.tsx",
+          "frontend/tests/screens/S-059-email_task_notification.spec.tsx",
+          "frontend/src/api/email.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/email/S-059-email-task-notification.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-059 page is rendered, the system shall include a `data-screen-id=\"S-059\"` attribute on the root element.",
+          "STATE-DRIVEN: While S-059 page is rendered, the system shall display an h1 element with text matching screens.json[S-059].h1_text (\"タスク assigned\")."
+        ],
+        "functional": [
+          "UNWANTED: If a backing API call from S-059 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "EVENT-DRIVEN: When a workspace invitation is created, the system shall send the email_invitation template within 60 seconds.",
+          "UNWANTED: If an email bounces, the system shall retry up to 3 times with exponential backoff before alerting admins."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-20 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-20.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/lint-mock-impl-diff.py --strict S-059` (Gate #8 / mock-impl structural diff).",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-20` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-059",
+        "docs/mocks/2026-05-15_v3/email/S-059-email-task-notification.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-028"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-20.md",
+      "branch": "claude/T-V3-C-20"
+    },
+    {
+      "id": "T-V3-C-21",
+      "title": "S-060 週次サマリー 画面実装 (Vertical Slice / UI)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-028",
+      "feature_ids": [
+        "F-028"
+      ],
+      "screen_ids": [
+        "S-060"
+      ],
+      "entity_ids": [],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-B-EMAIL-01"
+      ],
+      "files_changed": [
+        "frontend/src/app/(email)/weekly-summary/page.tsx (new)",
+        "frontend/src/api/email.ts (modify)",
+        "frontend/tests/screens/S-060-email_weekly_summary.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(email)/weekly-summary/page.tsx",
+          "frontend/tests/screens/S-060-email_weekly_summary.spec.tsx",
+          "frontend/src/api/email.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/email/S-060-email-weekly-summary.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-060 page is rendered, the system shall include a `data-screen-id=\"S-060\"` attribute on the root element.",
+          "STATE-DRIVEN: While S-060 page is rendered, the system shall display an h1 element with text matching screens.json[S-060].h1_text (\"今週の進捗サマリー\")."
+        ],
+        "functional": [
+          "UNWANTED: If a backing API call from S-060 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "EVENT-DRIVEN: When a workspace invitation is created, the system shall send the email_invitation template within 60 seconds.",
+          "UNWANTED: If an email bounces, the system shall retry up to 3 times with exponential backoff before alerting admins."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-21 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-21.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/lint-mock-impl-diff.py --strict S-060` (Gate #8 / mock-impl structural diff).",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-21` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-060",
+        "docs/mocks/2026-05-15_v3/email/S-060-email-weekly-summary.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-028"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-21.md",
+      "branch": "claude/T-V3-C-21"
+    },
+    {
+      "id": "T-V3-C-22",
+      "title": "S-061 仕様書 PDF 画面実装 (Vertical Slice / UI)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-031",
+      "feature_ids": [
+        "F-031"
+      ],
+      "screen_ids": [
+        "S-061"
+      ],
+      "entity_ids": [],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-B-EXPORT-01"
+      ],
+      "files_changed": [
+        "frontend/src/app/(app)/exports/spec/[exportId]/page.tsx (new)",
+        "frontend/src/api/exports.ts (modify)",
+        "frontend/tests/screens/S-061-export_spec_pdf.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(app)/exports/spec/[exportId]/page.tsx",
+          "frontend/tests/screens/S-061-export_spec_pdf.spec.tsx",
+          "frontend/src/api/exports.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/export/S-061-export-spec-pdf.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-061 page is rendered, the system shall include a `data-screen-id=\"S-061\"` attribute on the root element.",
+          "STATE-DRIVEN: While S-061 page is rendered, the system shall display an h1 element with text matching screens.json[S-061].h1_text (\"受託 EC 構築 #4— 要件定義書 —\").",
+          "STATE-DRIVEN: While S-061 page is rendered, the system shall render h2 section headings matching screens.json[S-061].section_h2_texts (cap 12): 1. プロジェクト概要 / 2. Must 要件 (34 項目)."
+        ],
+        "functional": [
+          "UNWANTED: If a backing API call from S-061 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/exports is called with type=spec_pdf, the system shall queue a PDF generation job and return export_id within 1 second.",
+          "STATE-DRIVEN: While an export status is 'queued' or 'running', the system shall return download_url=null in GET /api/exports/{id}."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-22 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-22.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/lint-mock-impl-diff.py --strict S-061` (Gate #8 / mock-impl structural diff).",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-22` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-061",
+        "docs/mocks/2026-05-15_v3/export/S-061-export-spec-pdf.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-031"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-22.md",
+      "branch": "claude/T-V3-C-22"
+    },
+    {
+      "id": "T-V3-C-23",
+      "title": "S-062 納品レポート 画面実装 (Vertical Slice / UI)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-031",
+      "feature_ids": [
+        "F-031"
+      ],
+      "screen_ids": [
+        "S-062"
+      ],
+      "entity_ids": [],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-B-EXPORT-01"
+      ],
+      "files_changed": [
+        "frontend/src/app/(app)/exports/delivery/[exportId]/page.tsx (new)",
+        "frontend/src/api/exports.ts (modify)",
+        "frontend/tests/screens/S-062-export_delivery_report.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(app)/exports/delivery/[exportId]/page.tsx",
+          "frontend/tests/screens/S-062-export_delivery_report.spec.tsx",
+          "frontend/src/api/exports.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/export/S-062-export-delivery-report.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-062 page is rendered, the system shall include a `data-screen-id=\"S-062\"` attribute on the root element.",
+          "STATE-DRIVEN: While S-062 page is rendered, the system shall display an h1 element with text matching screens.json[S-062].h1_text (\"Phase 1 納品レポート— 受託 EC 構築 #4 / 基盤実装フェーズ —\").",
+          "STATE-DRIVEN: While S-062 page is rendered, the system shall render h2 section headings matching screens.json[S-062].section_h2_texts (cap 12): 1. 納品物サマリー / 2. 実装内容 / 3. 検証結果 / 4. 受入確認."
+        ],
+        "functional": [
+          "UNWANTED: If a backing API call from S-062 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/exports is called with type=spec_pdf, the system shall queue a PDF generation job and return export_id within 1 second.",
+          "STATE-DRIVEN: While an export status is 'queued' or 'running', the system shall return download_url=null in GET /api/exports/{id}."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-23 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-23.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/lint-mock-impl-diff.py --strict S-062` (Gate #8 / mock-impl structural diff).",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-23` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-062",
+        "docs/mocks/2026-05-15_v3/export/S-062-export-delivery-report.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-031"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-23.md",
+      "branch": "claude/T-V3-C-23"
+    },
+    {
+      "id": "T-V3-C-24",
+      "title": "S-063 検索結果 画面実装 (Vertical Slice / UI)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-024",
+      "feature_ids": [
+        "F-024"
+      ],
+      "screen_ids": [
+        "S-063"
+      ],
+      "entity_ids": [],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-B-SEARCH-01"
+      ],
+      "files_changed": [
+        "frontend/src/app/(app)/search/results/page.tsx (new)",
+        "frontend/src/api/search.ts (modify)",
+        "frontend/tests/screens/S-063-search_results.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(app)/search/results/page.tsx",
+          "frontend/tests/screens/S-063-search_results.spec.tsx",
+          "frontend/src/api/search.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/extras/S-063-search-results.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-063 page is rendered, the system shall include a `data-screen-id=\"S-063\"` attribute on the root element."
+        ],
+        "functional": [
+          "UNWANTED: If a backing API call from S-063 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "EVENT-DRIVEN: When GET /api/search is called with a non-empty q, the system shall return hits ranked by combined FTS + vector similarity score.",
+          "UBIQUITOUS: The system shall apply RLS so search hits include only resources visible to the caller."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-24 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-24.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-24` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-063",
+        "docs/mocks/2026-05-15_v3/extras/S-063-search-results.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-024"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-24.md",
+      "branch": "claude/T-V3-C-24"
+    },
+    {
+      "id": "T-V3-C-25",
+      "title": "S-064 API トークン管理 画面実装 (Vertical Slice / UI)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-030",
+      "feature_ids": [
+        "F-030"
+      ],
+      "screen_ids": [
+        "S-064"
+      ],
+      "entity_ids": [],
+      "phase": "Phase 1B",
+      "wave": 2,
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-FOUNDATION-08",
+        "T-V3-B-TOKEN-01"
+      ],
+      "files_changed": [
+        "frontend/src/app/(app)/settings/api-tokens/page.tsx (new)",
+        "frontend/src/api/api-tokens.ts (modify)",
+        "frontend/tests/screens/S-064-api_tokens.spec.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/(app)/settings/api-tokens/page.tsx",
+          "frontend/tests/screens/S-064-api_tokens.spec.tsx",
+          "frontend/src/api/api-tokens.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/src/api/index.ts",
+          "frontend/src/app/layout.tsx"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/extras/S-064-api-tokens.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "backend/"
+        ],
+        "forbidden": [
+          "scripts/",
+          "data/",
+          ".github/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While S-064 page is rendered, the system shall include a `data-screen-id=\"S-064\"` attribute on the root element.",
+          "STATE-DRIVEN: While S-064 page is rendered, the system shall display an h1 element with text matching screens.json[S-064].h1_text (\"Personal Access Tokens\").",
+          "STATE-DRIVEN: While S-064 page is rendered, the system shall render h2 section headings matching screens.json[S-064].section_h2_texts (cap 12): Scopes リファレンス."
+        ],
+        "functional": [
+          "UNWANTED: If a backing API call from S-064 returns 4xx or 5xx, the system shall surface a non-technical error toast referencing the failing endpoint without leaking server stack traces.",
+          "EVENT-DRIVEN: When POST /api/me/api-tokens is called, the system shall return the plaintext token exactly once and store only the hashed form.",
+          "UNWANTED: If GET /api/me/api-tokens response would expose the plaintext token, the system shall return only the masked form (last 4 chars)."
+        ],
+        "regression": [
+          "The system shall pass `vitest run frontend/tests/screens/` covering the new tests for T-V3-C-25 with >= 5 test cases PASS.",
+          "The system shall pass `cd frontend && tsc --noEmit` with 0 errors on touched modules.",
+          "The system shall pass `cd frontend && pnpm run lint` with 0 warnings on touched modules.",
+          "The system shall maintain coverage >= 70% on files changed by T-V3-C-25.",
+          "The system shall pass `bash scripts/lint-mock.sh` with all 16+ rules OK.",
+          "The system shall pass `python3 scripts/lint-mock-impl-diff.py --strict S-064` (Gate #8 / mock-impl structural diff).",
+          "The system shall pass `python3 scripts/validate-tickets.py` with no errors for this task entry.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-25` (audit MD exists, 3 sections present, no generic phrase)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-064",
+        "docs/mocks/2026-05-15_v3/extras/S-064-api-tokens.html",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-030"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-25.md",
+      "branch": "claude/T-V3-C-25"
+    }
+  ]
+}
