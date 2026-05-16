@@ -1,6 +1,6 @@
 ---
 name: test-verification
-description: 実装完了したコードのテスト戦略設計・品質検証スキル。何をどのレベルでテストするか、テスト種類の選定 (ユニット・統合・E2E・contract・RLS)、カバレッジ基準、CI 連携、受け入れ基準を設計する。**v3 採用 (2026-05-15〜)**: **task-decomposition の tickets.json (3-tier AC) と api-design の ears-ac-seed.json を pull** し、**3-tier AC を test レベルに 1:1 マッピング** (structural → lint #17 mock-impl-diff / functional → unit+contract / regression → CI gate 自動化)。**EARS 形式 AC から test case 自動生成** (EVENT-DRIVEN → 正常系 / UNWANTED → 異常系 / STATE-DRIVEN → parametrize)。**8 CI gate** (lint-mock / AC validator / RLS coverage / audit MD / pytest cov ≥70% / pyright / tsc / mock-impl-diff) を必ず設定し、verify-rls-coverage で **4 ロール (owner/admin/member/guest) × 7 操作 (SELECT own/others, INSERT, UPDATE own/others, DELETE own/others) マトリクス** で RLS policy をテスト。Schemathesis (OpenAPI → fuzz) + Pact (frontend ↔ backend consumer/provider) を contract test に採用。連続 3 失敗で human エスカ、全 pass で auto-merge。テストを書きたい・テスト戦略を決めたい・品質基準を設けたい・CI を整備したい・リグレッションを防ぎたい・3-tier AC を test に落としたい・EARS AC から test を生成したい・RLS を 4 ロール × OK/NG でテストしたい・8 CI gate を設定したい・lint #17/#18/#19 drift を防ぎたい・Schemathesis/Pact を contract test に使いたい・gate-config.yml を作りたい・ears-test-mapping.json を作りたいといった場面で必ず使うこと。4STEP の対話型プロセスで進み、出力はテスト計画書 (Markdown) + テスト設計 JSON + **gate-config.yml** (GitHub Actions 8 gate 設定) + **ears-test-mapping.json** (EARS AC ↔ test ID 対応) の **4 形式**。
+description: 実装完了したコードのテスト戦略設計・品質検証スキル。何をどのレベルでテストするか、テスト種類の選定 (unit / integration / E2E / contract / access-control matrix)、カバレッジ基準、CI 連携、受け入れ基準を設計する。**v3 採用 (2026-05-15〜)**: **task-decomposition の tickets.json (3-tier AC) と api-design の ears-ac-seed.json を pull** し、**3-tier AC を test レベルに 1:1 マッピング** (structural → mock-impl-diff lint / functional → unit+contract+access-control / regression → CI gate 自動化)。**EARS 形式 AC から test case 自動生成** (EVENT-DRIVEN → 正常系 / UNWANTED → 異常系 / STATE-DRIVEN → parametrize)。**N CI gate (project-defined, e.g., 5-10)** を Foundation gate (lint / format / AC validator) → Backend gate (access-control coverage / API contract / coverage threshold) → UI gate (type check / mock-impl drift / visual regression) → Polish gate (audit MD / perf / sec) の段階で構成。**Access control matrix test (role × operation, project-defined roles e.g., 3-10 × operations e.g., 5-8)** を access-control verifier で網羅。Schemathesis (OpenAPI → fuzz) + Pact (frontend ↔ backend consumer/provider) を contract test に採用。連続 N 失敗で human エスカ、全 pass で auto-merge。テストを書きたい・テスト戦略を決めたい・品質基準を設けたい・CI を整備したい・リグレッションを防ぎたい・3-tier AC を test に落としたい・EARS AC から test を生成したい・access-control を role × operation matrix でテストしたい・N CI gate を段階構成したい・mock-impl drift を防ぎたい・Schemathesis/Pact を contract test に使いたい・gate-config.yml を作りたい・ears-test-mapping.json を作りたいといった場面で必ず使うこと。4STEP の対話型プロセスで進み、出力はテスト計画書 (Markdown) + テスト設計 JSON + **gate-config.yml** (CI gate 設定) + **ears-test-mapping.json** (EARS AC ↔ test ID 対応) の **4 形式**。
 tab: 品質・運用
 builtin: true
 ---
@@ -131,10 +131,10 @@ builtin: true
 
 このスキルは「何をどのレベルでテストするか」を設計する。コードを書く前に設計できれば理想的だが、実装後でも遅くない。
 
-**Build Factoryにおけるこのスキルの位置づけ：**
-- ⑩ distributed-devでClaude Codeが実装した各ブランチの品質を検証する
-- ⑪ 統合の前に「マージしてよい品質かどうか」を判断する基準を作る
-- Done Criteriaをテストで自動化することで「完成しました」の言葉を不要にする
+**このスキルの位置づけ：**
+- 並列実装された各ブランチの品質を統一基準で検証する
+- 統合の前に「マージしてよい品質かどうか」を判断する基準を作る
+- Done Criteria を test で自動化することで「完成しました」の言葉を不要にする
 
 ---
 
@@ -152,20 +152,28 @@ builtin: true
 
 ## v3 必須ルール (2026-05-15〜)
 
-詳細: `references/v3-extensions.md`
+詳細: `references/v3-core.md`
+プロジェクト固有値の適用例: `references/profiles/build-factory.md`
 
-1. **task-decomposition の tickets.json + api-design の ears-ac-seed.json を必ず pull** — STEP 1 で 3-tier AC の path を確認
-2. **3-tier AC を test レベルに 1:1 マッピング** — structural → lint #17 mock-impl-diff / functional → unit+contract+RLS / regression → CI gate 自動化
-3. **EARS AC から test case を自動生成** — EVENT-DRIVEN → 正常系 / UNWANTED → 異常系 / STATE-DRIVEN → parametrize。`scripts/generate-tests-from-ears.py` 経由
-4. **RLS test は 4 ロール × 7 操作 マトリクスで必須網羅** — owner / admin / member / guest × SELECT own/others, INSERT, UPDATE own/others, DELETE own/others。verify-rls-coverage script で CI 検証
-5. **8 CI gate を全設定** — lint-mock (#1) / AC validator (#2) / RLS coverage (#3) / audit MD (#4) / pytest cov ≥70% (#5) / pyright (#6) / tsc (#7) / mock-impl-diff (#8)。全 pass で auto-merge、連続 3 失敗で human エスカ
-6. **Contract test 必須** — Schemathesis (OpenAPI → fuzz) + Pact (frontend ↔ backend)。openapi.yaml を api-design から pull
+> **注意**: 以下の v3 ルールは「プロジェクト依存値」を含む。固定の数値・script path は規定しない。固有値は profile 経由で注入する (profile は **例** であり必須ではない)。
+
+1. **上流出力を必ず pull** — task-decomposition の tickets.json (3-tier AC) と api-design の ears-ac-seed.json (EARS AC) を STEP 1 で path 確認
+2. **3-tier AC を test レベルに 1:1 マッピング** — structural → mock/spec drift lint / functional → unit + contract + access-control / regression → CI gate 自動化
+3. **EARS AC から test case 自動生成** — EVENT-DRIVEN → 正常系 / UNWANTED → 異常系 / STATE-DRIVEN → parametrize。`<ears_test_generator>` script 経由
+4. **Access control matrix test (role × operation)** — 必須網羅。role 数・operation 数・期待値 (OK/NG) は project-defined。`<access_control_verifier>` で CI 検証
+5. **N CI gate を Foundation → Backend → UI → Polish の段階で構成** — gate 数 N は project-defined (e.g., 5-10)。各段階の代表 gate:
+   - Foundation gate: lint / format / AC validator / type check
+   - Backend gate: access-control coverage / API contract test / coverage threshold (project-defined, e.g., 70-90%)
+   - UI gate: tsc / mock-impl drift / visual regression
+   - Polish gate: audit MD existence / perf / security scan
+6. **auto-merge** — 全 gate pass で auto-merge、連続 N 失敗で human エスカ
+7. **Contract test 必須** — Schemathesis (OpenAPI → fuzz) + Pact (frontend ↔ backend consumer/provider)。openapi.yaml を api-design から pull
 
 ---
 
 ## テンプレートファイル（assets/）
 - `assets/jest-config-template.ts` — jest.config.tsテンプレート（カバレッジ閾値・パスエイリアス設定済み）
-- `assets/ci-template.yml` — GitHub Actions CIテンプレート（Lint・型チェック・テスト・ビルドの4ジョブ構成）
+- `assets/ci-template.yml` — CI テンプレート（Lint・型チェック・テスト・ビルドの基本ジョブ構成）
 
 STEP 3（カバレッジ基準・CI設計）の最終出力時は、jest-config-template.tsのcoverageThresholdsとci-template.ymlをプロジェクトに合わせて調整した形で出力すること。
 
@@ -187,24 +195,24 @@ STEP 3（カバレッジ基準・CI設計）の最終出力時は、jest-config-
 - api-design 出力: docs/api-design/<date>_v<N>/
   - openapi.yaml (Schemathesis input)
   - ears-ac-seed.json (EARS AC ドラフト)
-  - lint-mapping.json (lint #18 検証対象)
+  - lint-mapping.json (mock ↔ API 対応の lint 検証対象)
 - functional-breakdown 出力: docs/functional-breakdown/<date>_v<N>/
-  - entities.json (RLS policy)
-  - roles.json (owner/admin/member/guest)
+  - entities.json (access control policy)
+  - roles.json (project-defined roles, e.g., 3-10 roles)
 - architecture-design 出力: docs/architecture/<date>_v<N>/
-  - phase_0_gates.json (8 gate 定義)
+  - foundation_gates.json (CI gate 定義 / N gates project-defined)
 
 ### 3-tier AC ↔ test レベル マッピング (v3 必須)
-| 3-tier AC | test レベル | tool | gate |
+| 3-tier AC | test レベル | tool | gate 段階 |
 |---|---|---|---|
-| structural (mock/spec 一致) | lint #17 mock-impl-diff | lint-mock-impl-diff.py | gate #8 |
-| functional.api (EARS) | unit + contract | pytest + Schemathesis | gate #5 |
-| functional.rls (4 ロール × 7 操作) | RLS test | verify-rls-coverage | gate #3 |
-| functional.acceptance | E2E | Playwright | gate #5 |
-| regression.coverage | coverage check | pytest-cov ≥70% | gate #5 |
-| regression.lint | mock-lint + AC validator | lint-mock.sh + validate-tickets.py | gate #1 + #2 |
-| regression.type | type check | pyright + tsc | gate #6 + #7 |
-| regression.audit | audit MD existence | audit-md-check.sh | gate #4 |
+| structural (mock/spec 一致) | mock-impl drift lint | <mock_impl_diff> | UI gate |
+| functional.api (EARS) | unit + contract | pytest/vitest + Schemathesis | Backend gate |
+| functional.access_control (role × operation matrix) | access-control test | <access_control_verifier> | Backend gate |
+| functional.acceptance | E2E | Playwright/Cypress | UI gate |
+| regression.coverage | coverage check | coverage tool (project-defined threshold) | Backend gate |
+| regression.lint | mock-lint + AC validator | <lint_runner> + <ac_validator> | Foundation gate |
+| regression.type | type check | pyright/tsc/mypy | Foundation gate |
+| regression.audit | audit MD existence | <audit_md_check> | Polish gate |
 ```
 
 **確認すること（曖昧なら【仮説】を立てて質問）：**
@@ -214,11 +222,12 @@ STEP 3（カバレッジ基準・CI設計）の最終出力時は、jest-config-
 3. **既存のテスト状況** — テストは既にあるか？あるならどのレベルまでカバーされているか？
 4. **リスクの高い箇所** — 「ここが壊れると一番困る」機能はどこか？(認証・決済・データ処理など)
 5. **テストに使える時間・リソース** — 全部丁寧にやる余裕があるか、最小限でよいか？
-6. **CIの有無** — GitHub ActionsなどのCI環境はあるか？
+6. **CIの有無** — CI 環境はあるか？ (GitHub Actions / GitLab CI / CircleCI など)
 7. **v3: tickets.json の 3-tier AC schema 適合** — 全 task が structural / functional / regression に分かれているか
 8. **v3: ears-ac-seed.json の EARS 形式** — EVENT-DRIVEN + UNWANTED 1 件以上を全 endpoint で確認
-9. **v3: 8 CI gate 採用方針** — 8 gate 全 ON or 一部 skip (例: Phase 1 で gate #3 RLS をまだ ON にしない等) の判断
+9. **v3: N CI gate 採用方針** — gate 数 / 各段階の構成 (Foundation/Backend/UI/Polish) / 一部 skip 判断 (例: 序盤で access-control gate をまだ ON にしない等)
 10. **v3: contract test (Schemathesis + Pact) 採用方針** — frontend/backend の契約検証を CI に含めるか
+11. **v3: access control role × operation matrix** — role 数・operation 数・期待値 (OK/NG) の確定 (project-defined; profile 参照可)
 
 **出力形式：**
 
@@ -257,21 +266,21 @@ STEP 3（カバレッジ基準・CI設計）の最終出力時は、jest-config-
 
 ---
 
-## STEP 2: テスト種類と粒度の設計 (v3: EARS 自動生成 + RLS 4 ロール × 7 操作)
+## STEP 2: テスト種類と粒度の設計 (v3: EARS 自動生成 + access-control matrix)
 
 **このSTEPでやること：**
-ユニット・統合・E2E・contract・RLS のどのレベルでテストするかを機能ごとに決める。
+unit / integration / E2E / contract / access-control のどのレベルでテストするかを機能ごとに決める。
 
 **v3 必須**:
-- **EARS AC → test case 自動生成** (`scripts/generate-tests-from-ears.py`)
+- **EARS AC → test case 自動生成** (`<ears_test_generator>` script)
   - EVENT-DRIVEN → `test_<endpoint>_<event>()` (正常系)
   - UNWANTED → `test_<endpoint>_<condition>_rejected()` (異常系)
-  - STATE-DRIVEN → `@pytest.mark.parametrize("state", [...])` で分岐
-- **RLS test は 4 ロール × 7 操作 マトリクスで網羅必須**
-  - 4 ロール: owner / admin / member / guest
-  - 7 操作: SELECT own / SELECT others / INSERT / UPDATE own / UPDATE others / DELETE own / DELETE others
-  - entity 1 件あたり 28 test case
-  - `scripts/verify-rls-coverage.py` で網羅検証
+  - STATE-DRIVEN → `parametrize("state", [...])` で分岐
+- **Access control test は role × operation matrix で網羅必須**
+  - role 数: project-defined (e.g., 3-10 roles)
+  - operation 数: project-defined (e.g., 5-8 operations: SELECT own / SELECT others / INSERT / UPDATE own / UPDATE others / DELETE own / DELETE others 等)
+  - entity 1 件あたりの test case 数 = role 数 × operation 数
+  - `<access_control_verifier>` で網羅検証
 - **Contract test**: Schemathesis (OpenAPI → fuzz) + Pact (frontend ↔ backend consumer/provider)
 
 **Webリサーチ（STEP 2で実施）：**
@@ -295,36 +304,38 @@ STEP 3（カバレッジ基準・CI設計）の最終出力時は、jest-config-
 ## テスト設計 (v3)
 
 ### テストレベル配分
-| 機能 | unit | contract | RLS | E2E | EARS 自動生成 | 理由 |
-|-----|------|----------|-----|-----|--------------|------|
+| 機能 | unit | contract | access-control | E2E | EARS 自動生成 | 理由 |
+|-----|------|----------|----------------|-----|--------------|------|
 
 ### EARS 自動生成 test (v3)
 - 入力: docs/api-design/<date>_v3/ears-ac-seed.json
-- 出力: backend/tests/generated/
-- script: scripts/generate-tests-from-ears.py
+- 出力: <test_dir>/generated/
+- script: <ears_test_generator>
 - 命名規則:
   - EVENT-DRIVEN → test_<endpoint>_<event>()
   - UNWANTED → test_<endpoint>_<condition>_rejected()
-  - STATE-DRIVEN → @pytest.mark.parametrize 経由
+  - STATE-DRIVEN → parametrize 経由
 
-### RLS test (v3 / 4 ロール × 7 操作 マトリクス)
-| ロール | SELECT own | SELECT others | INSERT | UPDATE own | UPDATE others | DELETE own | DELETE others |
-|---|---|---|---|---|---|---|---|
-| owner | OK | OK | OK | OK | OK | OK | OK |
-| admin | OK | OK | OK | OK | OK | OK | OK |
-| member | OK | NG | OK | OK | NG | OK | NG |
-| guest | OK (assigned) | NG | NG | NG | NG | NG | NG |
+### Access control test (v3 / role × operation matrix)
+※ role / operation / 期待値は project-defined。下表は構造例 (実値は profile 参照)。
 
-- entity 1 件 = 28 test case
-- 検証: scripts/verify-rls-coverage.py
-- gate #3 で CI 自動検証
+| role        | op_1 (SELECT own) | op_2 (SELECT others) | op_3 (INSERT) | op_4 (UPDATE own) | ... |
+|-------------|-------------------|----------------------|---------------|-------------------|-----|
+| <role_a>    | OK                | OK                   | OK            | OK                | ... |
+| <role_b>    | OK                | OK                   | OK            | OK                | ... |
+| <role_c>    | OK                | NG                   | OK            | OK                | ... |
+| <role_d>    | OK (assigned)     | NG                   | NG            | NG                | ... |
+
+- entity 1 件あたり = (role 数) × (operation 数) test case
+- 検証: <access_control_verifier>
+- Backend gate で CI 自動検証
 
 ### Contract test (v3)
 - Schemathesis: OpenAPI → fuzz (property-based test)
 - Pact: frontend (consumer) ↔ backend (provider) 契約検証
 - 入力: docs/api-design/<date>_v3/openapi.yaml
 
-### E2Eテスト設計（最小限 / Playwright）
+### E2Eテスト設計（最小限 / Playwright or Cypress）
 - クリティカルなユーザーフローのみ
 
 ### モック戦略
@@ -346,58 +357,70 @@ STEP 3（カバレッジ基準・CI設計）の最終出力時は、jest-config-
 
 ---
 
-## STEP 3: カバレッジ基準・CI設計・受け入れ基準 (v3: 8 CI gate auto-merge)
+## STEP 3: カバレッジ基準・CI設計・受け入れ基準 (v3: N CI gate auto-merge / 段階構成)
 
 **このSTEPでやること：**
-テストが「通った」とはどういう状態かを定義する。**v3: 8 CI gate auto-merge を必須化**。
+テストが「通った」とはどういう状態かを定義する。**v3: N CI gate (project-defined, e.g., 5-10) を Foundation → Backend → UI → Polish の段階で構成し、auto-merge を必須化**。
 
 **カバレッジ基準の現実解：**
 - ビジネスロジック・認証・データ操作: 80%以上
 - ユーティリティ・型変換: 60%以上
-- **v3 統一基準: pytest cov ≥70% (gate #5)**
+- **v3 統一基準: 全体 coverage ≥ project-defined threshold (e.g., 70-90%)** — Backend gate で検証
 
 **出力形式 (v3)：**
 
 ```
 ## カバレッジ基準・受け入れ基準 (v3)
 
-### 8 CI gate (v3 必須)
-| Gate | 名前 | tool | 失敗条件 |
+### N CI gate (v3 必須 / Foundation → Backend → UI → Polish 段階構成)
+※ N と各 gate の具体名/script path は project-defined。下表は段階構成の例。
+
+| 段階 | Gate 名 | tool | 失敗条件 |
 |---|---|---|---|
-| #1 | lint-mock | scripts/lint-mock.sh | 19 check のいずれか violation |
-| #2 | AC validator | scripts/validate-tickets.py | 3-tier AC schema 違反 or EARS 形式違反 |
-| #3 | RLS coverage | scripts/verify-rls-coverage.py | 4 ロール × 7 操作 マトリクス未網羅 |
-| #4 | audit MD existence | scripts/audit-md-check.sh | 該当 task の audit MD が存在しない |
-| #5 | pytest cov | pytest --cov --cov-fail-under=70 | カバレッジ <70% or test failure |
-| #6 | pyright strict | pyright | type error |
-| #7 | tsc strict | tsc --noEmit | type error |
-| #8 | mock-impl-diff | scripts/lint-mock-impl-diff.py | mock の項目が backend response に存在しない |
+| Foundation | lint / format | <lint_runner> | lint rule violation |
+| Foundation | AC validator | <ac_validator> | 3-tier AC schema 違反 or EARS 形式違反 |
+| Foundation | type check | pyright / tsc / mypy | type error |
+| Backend | access-control coverage | <access_control_verifier> | role × operation matrix 未網羅 |
+| Backend | API contract | Schemathesis (+ Pact verify) | contract violation |
+| Backend | coverage threshold | coverage tool | カバレッジ < project-defined threshold or test failure |
+| UI | tsc strict | tsc --noEmit | type error |
+| UI | mock-impl drift | <mock_impl_diff> | mock の項目が backend response に存在しない |
+| UI | visual regression (任意) | Playwright/Chromatic | snapshot diff |
+| Polish | audit MD existence | <audit_md_check> | 該当 task の audit MD が存在しない |
+| Polish | perf budget (任意) | Lighthouse / k6 | budget violation |
+| Polish | security scan (任意) | npm audit / pip-audit / Snyk | high/critical vuln |
+
+### 段階間の block 関係 (v3)
+- Foundation gate 不合格 → Backend / UI / Polish 全 skip
+- Backend gate 不合格 → UI / Polish 全 skip
+- UI gate 不合格 → Polish 全 skip
+- 全段階 pass → auto-merge
 
 ### auto-merge (v3 必須)
-- needs: [gate-1 〜 gate-8] 全 pass
+- needs: [全 gate] 全 pass
 - 動作: `gh pr merge --auto --squash`
-- 連続 3 失敗で human エスカ (Slack / メール)
-- 例外: gate #3 RLS を Phase 1 序盤で OFF にする場合は phase_0_gates.json の override で明示
+- 連続 N 失敗 (project-defined, e.g., 3) で human エスカ (Slack / メール)
+- 例外: 一部 gate を初期段階で OFF にする場合は foundation_gates.json の override で明示
 
 ### カバレッジ基準
 | 対象 | 最低カバレッジ | 重点テスト対象 |
 |-----|-------------|------------|
-| ビジネスロジック / 認証 / データ操作 | 80% | RLS / 認証 / 決済 |
+| ビジネスロジック / 認証 / データ操作 | 80% | access-control / 認証 / 決済 |
 | ユーティリティ / 型変換 | 60% | - |
-| v3 統一: 全体 | 70% | gate #5 |
+| v3 統一: 全体 | project-defined (e.g., 70-90%) | Backend gate |
 
 ### マージ可能の判断基準 (v3 / Done → auto-merge)
-- [ ] 8 CI gate 全て green
+- [ ] N CI gate 全て green
 - [ ] EARS AC → test case 自動生成済 (ears-test-mapping.json で対応取れている)
-- [ ] RLS 4 ロール × 7 操作 マトリクス網羅 (verify-rls-coverage pass)
+- [ ] Access control role × operation matrix 網羅 (<access_control_verifier> pass)
 - [ ] Schemathesis contract test pass (任意)
 - [ ] Pact contract verify pass (任意)
-- [ ] 連続 3 失敗していない (もしくは human escalate 完了)
+- [ ] 連続 N 失敗していない (もしくは human escalate 完了)
 
 ### リグレッション防止 (v3)
 - 全 EARS AC が ears-test-mapping.json に登録 → 仕様変更時に test の追従漏れを CI で検出
-- lint #17 mock-impl-diff (gate #8) で mock ↔ 実装 drift を毎 PR 検出
-- Phase 1 中の Group D (drift fix) で常時 20% を割当
+- mock-impl drift lint (UI gate) で mock ↔ 実装 drift を毎 PR 検出
+- 並列開発期間中の drift fix 専用 group を継続稼働
 ```
 
 ---
@@ -423,10 +446,10 @@ STEP 3（カバレッジ基準・CI設計）の最終出力時は、jest-config-
 
 ## 対象機能とリスク評価
 ## 3-tier AC ↔ test レベル マッピング (v3)
-## テスト設計 (unit / contract / RLS / E2E)
+## テスト設計 (unit / contract / access-control / E2E)
 ## EARS AC 自動生成方針 (v3)
-## RLS 4 ロール × 7 操作 マトリクス (v3)
-## 8 CI gate 設計 (v3)
+## Access control role × operation matrix (v3)
+## N CI gate 段階構成 (Foundation/Backend/UI/Polish, v3)
 ## カバレッジ基準
 ## マージ可能判断基準 (auto-merge)
 ```
@@ -438,80 +461,101 @@ STEP 3（カバレッジ基準・CI設計）の最終出力時は、jest-config-
   "version": "v3",
   "project_id": "",
   "test_strategy": {
-    "framework": "pytest + Playwright + Schemathesis + Pact",
+    "framework": "<framework_set>",
     "coverage_thresholds": {
       "business_logic": 80,
       "utilities": 60,
-      "overall_gate_5": 70
+      "overall": "<project-defined, e.g., 70-90>"
     },
-    "ci_checks": ["8 gates"],
-    "merge_criteria": ["8 gates green", "ears-test-mapping consistent", "RLS matrix complete"]
+    "ci_gates": {
+      "foundation": ["lint", "format", "ac-validator", "type-check"],
+      "backend": ["access-control-coverage", "contract-test", "coverage-threshold"],
+      "ui": ["tsc-strict", "mock-impl-diff"],
+      "polish": ["audit-md-existence"]
+    },
+    "merge_criteria": ["all gates green", "ears-test-mapping consistent", "access-control matrix complete"]
   },
   "test_cases": [],
   "next_skill": "distributed-dev"
 }
 ```
 
-### 出力③ gate-config.yml (v3 新規 / GitHub Actions)
+### 出力③ gate-config.yml (v3 新規 / CI runner 設定)
+
+> 下記は段階構成の例。gate 数 / script path / runner 詳細は project-defined。
 
 ```yaml
-name: 8 CI Gate
+name: N CI Gate (Foundation -> Backend -> UI -> Polish)
 on: [pull_request]
 
 jobs:
-  gate-1-lint-mock:
+  # ----- Foundation gate -----
+  foundation-lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: bash scripts/lint-mock.sh
+      - run: bash <lint_runner>
 
-  gate-2-ac-validator:
+  foundation-ac-validator:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python3 scripts/validate-tickets.py
+      - run: python3 <ac_validator>
 
-  gate-3-rls-coverage:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15
-    steps:
-      - uses: actions/checkout@v4
-      - run: python3 scripts/verify-rls-coverage.py
-
-  gate-4-audit-md:
+  foundation-type-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: bash scripts/audit-md-check.sh
+      - run: pyright   # or tsc / mypy
 
-  gate-5-pytest-cov:
+  # ----- Backend gate (depends on Foundation) -----
+  backend-access-control-coverage:
+    needs: [foundation-lint, foundation-ac-validator, foundation-type-check]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: pytest --cov --cov-fail-under=70
+      - run: python3 <access_control_verifier>
 
-  gate-6-pyright:
+  backend-contract-test:
+    needs: [foundation-lint, foundation-ac-validator, foundation-type-check]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: pyright
+      - run: schemathesis run docs/api-design/openapi.yaml --base-url http://localhost:8000
 
-  gate-7-tsc:
+  backend-coverage:
+    needs: [foundation-lint, foundation-ac-validator, foundation-type-check]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pytest --cov --cov-fail-under=<project-defined-threshold>
+
+  # ----- UI gate (depends on Backend) -----
+  ui-tsc:
+    needs: [backend-access-control-coverage, backend-contract-test, backend-coverage]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: tsc --noEmit
 
-  gate-8-mock-impl-diff:
+  ui-mock-impl-diff:
+    needs: [backend-access-control-coverage, backend-contract-test, backend-coverage]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python3 scripts/lint-mock-impl-diff.py
+      - run: python3 <mock_impl_diff>
 
+  # ----- Polish gate (depends on UI) -----
+  polish-audit-md:
+    needs: [ui-tsc, ui-mock-impl-diff]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash <audit_md_check>
+
+  # ----- auto-merge -----
   auto-merge:
-    needs: [gate-1-lint-mock, gate-2-ac-validator, gate-3-rls-coverage, gate-4-audit-md, gate-5-pytest-cov, gate-6-pyright, gate-7-tsc, gate-8-mock-impl-diff]
+    needs: [polish-audit-md]
     runs-on: ubuntu-latest
     steps:
       - name: Auto-merge PR
@@ -530,20 +574,20 @@ jobs:
       "ears_form": "EVENT-DRIVEN",
       "ears_text": "When POST /api/auth/login is called with valid email+password, the system shall return 200 with { access_token, refresh_token, user_id }.",
       "test_id": "TC-001",
-      "test_file": "backend/tests/generated/test_auth_login.py",
+      "test_file": "<test_dir>/generated/test_auth_login.py",
       "test_function": "test_auth_login_valid_credentials",
       "test_level": "unit+contract",
-      "gate": "gate-5-pytest-cov"
+      "gate": "backend-coverage"
     },
     {
       "ears_ac_id": "F-001-AC-02",
       "ears_form": "UNWANTED",
       "ears_text": "If credentials are invalid, the system shall return 401 with generic message (no user enumeration).",
       "test_id": "TC-002",
-      "test_file": "backend/tests/generated/test_auth_login.py",
+      "test_file": "<test_dir>/generated/test_auth_login.py",
       "test_function": "test_auth_login_invalid_credentials_rejected",
       "test_level": "unit+contract",
-      "gate": "gate-5-pytest-cov"
+      "gate": "backend-coverage"
     }
   ]
 }

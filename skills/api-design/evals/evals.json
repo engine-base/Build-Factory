@@ -1,91 +1,125 @@
 {
   "skill_name": "api-design",
-  "version": "v3-2026-05-15",
-  "description": "API 設計スキルのテスト (v3: EARS AC seed / functional-breakdown pull / lint #18 / RLS per endpoint / outputs_4xx 必須)",
+  "version": "v3-2026-05-16-generalized",
+  "description": "API 設計スキルのテスト (v3 汎用化版: generic prompt + BF profile prompt の 2 系統)",
   "evals": [
     {
-      "id": "api-eval-1",
-      "title": "認証 endpoint 群 → STEP 2 で auth role / rate_limit / RLS / EARS AC seed が出る",
-      "prompt": "STEP 2 で認証カテゴリの endpoint を設計してほしい。functional-breakdown の features.json から F-001 認証の api_endpoints ドラフト 6 件 (login/logout/signup/mfa/oauth/password-reset) が来てる。Supabase Auth + JWT 採用 (selected-stack.json)。",
+      "id": "api-design-generic-1",
+      "title": "汎用 prompt: STEP 1 で API↦UI 依存方向 + contract test を Foundation phase に組込明示",
+      "prompt": "STEP 1 で API 設計方針お願いします。上流の features.json (8 機能 / api_endpoints ドラフト合計 24 件) と selected-stack.json (auth provider + api framework) は受領済。Foundation phase の CI gate に contract test を組み込みたい。",
       "expected_behavior": [
-        "STEP 2 形式で出力 (会話的前置きなし)",
-        "認証カテゴリの endpoint テーブルが含まれる",
-        "v3: 各 endpoint に auth.role (public / authenticated / account_owner) を明示",
-        "v3: rate_limit (例: 5/min/ip) を明示",
-        "v3: rls_policies 紐付け (該当する場合)",
-        "v3: ears_ac_seed のドラフトを最低 3 件 (EVENT-DRIVEN + UNWANTED) を提示",
-        "v3: implementation_path (backend/routers/auth.py::xxx) を明示",
-        "STEP 3 へ で止まる"
+        "STEP 1 形式で出力 (会話的前置きなし)",
+        "v3: 上流出力 path を入力情報として明示 (project-defined path)",
+        "v3: api_endpoints ドラフト 24 件を pull した旨を表示",
+        "v3: API↦UI 依存方向の固定 (Foundation phase に contract test 組込) を明示",
+        "v3: endpoint-implementation-existence check + lint-mapping.json 出力予告",
+        "v3: ears_ac_seed を全 endpoint で必須化する方針を明示",
+        "v3: outputs_4xx を 401/403/404/409/422/429/500 で細分化する方針"
       ],
       "assertions": [
         {"id": "format_no_preface", "check": "応答冒頭が '##' で始まる"},
-        {"id": "v3_auth_role_explicit", "check": "各 endpoint に auth.role (public/authenticated/account_owner 等) が付与"},
-        {"id": "v3_rate_limit_present", "check": "login / signup などに rate_limit が明示"},
-        {"id": "v3_rls_policies_linked", "check": "auth/sessions endpoint に rls_policies (auth_sessions:user_own_select 等) が紐付き"},
-        {"id": "v3_ears_ac_seed", "check": "各 endpoint に ears_ac_seed (EVENT-DRIVEN + UNWANTED) が最低 3 件含まれる"},
-        {"id": "v3_implementation_path", "check": "implementation_path (backend/routers/auth.py::xxx) が明示"},
-        {"id": "stops_at_step2", "check": "STEP 3 を勝手に開始しない"}
+        {"id": "no_bf_jargon", "check": "Build-Factory / ENGINE BASE / scripts/lint-mock.sh / Phase 0/1/1.5/2 / 30-50 並列 / bf_meta / lint #18 (具体番号) / 8 CI gate (固定数) / 43 screens / 187 tasks / Supabase RLS (具体採用前提) の語が出ない"},
+        {"id": "v3_input_paths_listed", "check": "上流 (functional-breakdown / architecture-design) の出力 path を listing"},
+        {"id": "v3_pull_24_endpoints", "check": "api_endpoints 24 件を pull した旨を表示"},
+        {"id": "v3_api_to_ui_direction", "check": "API↦UI 依存方向 (frontend が API を消費する方向の固定) を明示"},
+        {"id": "v3_contract_test_foundation", "check": "contract test (Schemathesis / Pact / Dredd 等) を Foundation phase の CI gate に組み込む方針を明示"},
+        {"id": "v3_existence_check_announced", "check": "endpoint-implementation-existence check + lint-mapping.json 出力を予告"},
+        {"id": "v3_ears_ac_seed_required", "check": "全 endpoint に ears_ac_seed 必須化方針を明示"},
+        {"id": "v3_outputs_4xx_subdivision", "check": "outputs_4xx を 401/403/404/409/422/429/500 で細分化する方針を明示"}
       ]
     },
     {
-      "id": "api-eval-2",
-      "title": "STEP 3 で outputs_4xx[] が 401/403/404/409/422/429/500 に細分化",
-      "prompt": "STEP 3 で POST /api/auth/login の req/res 詳細をお願いします。エラーケース全パターン (401/422/429/500) を漏れなく書いて。",
+      "id": "api-design-generic-2",
+      "title": "汎用 prompt: STEP 3 で outputs_4xx[] が細分化 + ears_form (UNWANTED) 必須付与",
+      "prompt": "STEP 3 で POST /api/auth/login の req/res 詳細をお願いします。エラーケース全パターン (401/422/429/500) を漏れなく書いて。access control は project の access control mechanism を採用。",
       "expected_behavior": [
         "request body schema (email/password/mfa_code)",
         "outputs_2xx (200 + access_token/refresh_token/user_id)",
         "v3: outputs_4xx[] が 401 INVALID_CREDENTIALS / 422 VALIDATION_ERROR / 429 RATE_LIMITED / 500 INTERNAL_ERROR を網羅",
         "v3: 各 4xx に trigger (条件) と ears_form (UNWANTED 形式) を必須付与",
-        "v3: RLS 越境 403 が必要な場合は明示 (login は不要)",
+        "v3: ears_ac_seed が EARS 5 形式に限定 (EVENT-DRIVEN + UNWANTED 1 件以上)",
         "STEP 4 へ で止まる"
       ],
       "assertions": [
+        {"id": "format_no_preface", "check": "応答冒頭が '##' で始まる"},
+        {"id": "no_bf_jargon", "check": "Build-Factory / ENGINE BASE / scripts/lint-mock.sh / Supabase RLS / lint #18 (固定番号) の語が出ない"},
         {"id": "v3_outputs_4xx_401", "check": "outputs_4xx に 401 INVALID_CREDENTIALS"},
         {"id": "v3_outputs_4xx_422", "check": "outputs_4xx に 422 VALIDATION_ERROR"},
         {"id": "v3_outputs_4xx_429", "check": "outputs_4xx に 429 RATE_LIMITED"},
         {"id": "v3_4xx_trigger", "check": "各 4xx に trigger 説明"},
         {"id": "v3_4xx_ears_form", "check": "各 4xx に ears_form (UNWANTED 形式) を必須付与"},
+        {"id": "v3_ears_format_limited", "check": "ears_ac_seed が EARS 5 形式 (UBIQUITOUS/EVENT-DRIVEN/STATE-DRIVEN/OPTIONAL/UNWANTED) のいずれかで始まる"},
         {"id": "stops_at_step3", "check": "STEP 4 を勝手に開始しない"}
       ]
     },
     {
-      "id": "api-eval-3",
-      "title": "STEP 5 で ears-ac-seed.json + lint-mapping.json が出力",
+      "id": "api-design-generic-3",
+      "title": "汎用 prompt: STEP 5 最終出力 6 形式 (ears-ac-seed.json + lint-mapping.json 含む)",
       "prompt": "STEP 5 で最終出力お願いします。endpoint 24 件 / 認証 6 + リソース系 12 + 管理 6 で全部設計済み。",
       "expected_behavior": [
         "API 仕様書 (Markdown)",
         "OpenAPI YAML (openapi 3.0 形式)",
-        "TS 型定義 (frontend/src/api/types.ts 想定)",
+        "TS 型定義 (frontend types path 想定、project-defined)",
         "判断ログ JSON",
         "v3: ears-ac-seed.json (Tier 2 functional AC ドラフト一覧)",
-        "v3: lint-mapping.json (lint #18 screens-API の検証対象 path 一覧)",
-        "v3: openapi-typescript / datamodel-code-generator 連携を明示"
+        "v3: lint-mapping.json (endpoint-implementation-existence check の検証対象 path 一覧)",
+        "v3: TS client generator / server-side schema generator 連携を明示"
       ],
       "assertions": [
+        {"id": "format_no_preface", "check": "応答冒頭が '##' or '#' で始まる"},
+        {"id": "no_bf_jargon", "check": "Build-Factory / scripts/lint-mock.sh / lint #18 (固定番号) / 8 CI gate (固定数) / Pydantic 固有 (project-agnostic な server schema generator として表現される) / openapi-typescript 固定 (例として OK だが必須前提として書かれない) の語が固有値として出ない"},
         {"id": "output_count_6", "check": "出力 6 形式 (4 既存 + ears-ac-seed.json + lint-mapping.json) 全て言及"},
         {"id": "v3_ears_ac_seed_json", "check": "ears-ac-seed.json に endpoints_count + ac_seeds 配列を含む"},
         {"id": "v3_lint_mapping_json", "check": "lint-mapping.json に endpoint × implementation_path × screen_ids_referencing を含む"},
-        {"id": "v3_type_sync_tools", "check": "openapi-typescript or datamodel-code-generator への連携を明示"}
+        {"id": "v3_type_sync_tools", "check": "TS client generator (例: openapi-typescript) または server-side schema generator (例: datamodel-code-generator) への連携を例示として明示"}
       ]
     },
     {
-      "id": "api-eval-4-v3-new",
-      "title": "v3 新規: functional-breakdown features.json を pull して全 endpoint を逆算",
-      "prompt": "STEP 1 で API 設計方針お願いします。docs/functional-breakdown/2026-05-16_v1/features.json に 8 機能 / 各機能の api_endpoints ドラフトあり (合計 24 endpoint)。 architecture-design の selected-stack.json も来てる (FastAPI + Supabase Auth)。",
+      "id": "api-design-bf-profile-1",
+      "title": "BF profile 適用 prompt: 認証 endpoint 群 → STEP 2 で auth role / rate_limit / RLS / EARS AC seed",
+      "prompt": "Build-Factory profile (references/profiles/build-factory.md) を適用して、STEP 2 で認証カテゴリの endpoint を設計してほしい。functional-breakdown の features.json から F-001 認証の api_endpoints ドラフト 6 件 (login/logout/signup/mfa/oauth/password-reset) が来てる。Supabase Auth + JWT 採用 (selected-stack.json)。lint #18 screens-API の検証対象として lint-mapping.json も予告して。",
       "expected_behavior": [
-        "STEP 1 形式で出力",
-        "v3: functional-breakdown の features.json path を入力情報として明示",
-        "v3: api_endpoints ドラフト 24 件を pull した旨を表示",
-        "v3: selected-stack.json から FastAPI + Supabase Auth を引き継ぎ",
-        "v3: lint #18 screens-API 検証対象 + lint-mapping.json 出力予告",
-        "v3: ears_ac_seed を全 endpoint で必須化する方針を明示"
+        "STEP 2 形式で出力 (会話的前置きなし)",
+        "BF profile が適用されている (lint #18 screens-API の番号 / scripts/lint-mock.sh / Supabase RLS / FastAPI 等)",
+        "認証カテゴリの endpoint テーブルが含まれる",
+        "v3: 各 endpoint に auth.role (public / authenticated / account_owner) を明示",
+        "v3: rate_limit (例: 5/min/ip) を明示",
+        "v3: rls_policies 紐付け (該当する場合、形式: <table>:<policy_name>)",
+        "v3: ears_ac_seed のドラフト (EVENT-DRIVEN + UNWANTED) を最低 3 件",
+        "v3: implementation_path (backend/routers/auth.py::xxx) を明示",
+        "STEP 3 へ で止まる"
       ],
       "assertions": [
-        {"id": "v3_input_paths_listed", "check": "functional-breakdown features.json + architecture-design selected-stack.json の path を listing"},
-        {"id": "v3_pull_24_endpoints", "check": "api_endpoints 24 件を pull した旨を表示"},
-        {"id": "v3_inherit_stack", "check": "FastAPI + Supabase Auth を selected-stack.json から引き継ぎ言及"},
-        {"id": "v3_lint_18_announced", "check": "lint #18 + lint-mapping.json 出力を予告"},
-        {"id": "v3_ears_ac_seed_required", "check": "全 endpoint に ears_ac_seed 必須化方針を明示"}
+        {"id": "format_no_preface", "check": "応答冒頭が '##' で始まる"},
+        {"id": "profile_applied_lint_18", "check": "BF profile の lint #18 screens-API 番号が反映"},
+        {"id": "profile_applied_backend_path", "check": "implementation_path が backend/routers/auth.py::xxx 形式"},
+        {"id": "profile_applied_rls_format", "check": "rls_policies が <table>:<policy_name> 形式 (例: auth_sessions:user_own_select)"},
+        {"id": "v3_auth_role_explicit", "check": "各 endpoint に auth.role (public/authenticated/account_owner 等) が付与"},
+        {"id": "v3_rate_limit_present", "check": "login / signup などに rate_limit が明示"},
+        {"id": "v3_ears_ac_seed", "check": "各 endpoint に ears_ac_seed (EVENT-DRIVEN + UNWANTED) が最低 3 件含まれる"},
+        {"id": "v3_core_concepts_preserved", "check": "汎用 v3 概念 (API↦UI 依存方向 / contract test / Foundation phase / EARS 5 形式) も保持"},
+        {"id": "stops_at_step2", "check": "STEP 3 を勝手に開始しない"}
+      ]
+    },
+    {
+      "id": "api-design-bf-profile-2",
+      "title": "BF profile 適用 prompt: STEP 5 で 8 CI gate のうち gate #1 (lint #18) + gate #7 (tsc) 連携明示",
+      "prompt": "Build-Factory profile を適用して、STEP 5 で最終出力お願いします。endpoint 24 件設計済。8 CI gate の gate #1 (mock lint / lint #18 screens-API) と gate #7 (TypeScript strict) との連携、openapi-typescript と datamodel-code-generator (Pydantic v2) の採用、Schemathesis を contract test gate として組込、すべて反映してほしい。",
+      "expected_behavior": [
+        "BF profile 適用: 8 CI gate / lint #18 screens-API / openapi-typescript / datamodel-code-generator / Schemathesis を具体名で言及",
+        "BF profile 適用: 出力 path が docs/api-design/<date>_v3/ 系 / frontend/src/api/types.ts / backend/schemas.py",
+        "出力 6 形式が全て揃う",
+        "汎用 v3 概念 (API↦UI 依存方向 / contract test を Foundation phase に組込) も保持"
+      ],
+      "assertions": [
+        {"id": "profile_applied_8_gates", "check": "8 CI gate が言及される"},
+        {"id": "profile_applied_lint_18_gate1", "check": "gate #1 (mock lint) と lint #18 screens-API の連携が言及"},
+        {"id": "profile_applied_gate7_tsc", "check": "gate #7 (TypeScript strict) で types.ts drift 検出が言及"},
+        {"id": "profile_applied_openapi_ts", "check": "openapi-typescript の採用が具体名で言及"},
+        {"id": "profile_applied_datamodel_codegen", "check": "datamodel-code-generator の採用が具体名で言及"},
+        {"id": "profile_applied_schemathesis", "check": "Schemathesis の contract test gate 組込が具体名で言及"},
+        {"id": "output_count_6", "check": "出力 6 形式 (Markdown / OpenAPI YAML / TS / 判断ログ JSON / ears-ac-seed.json / lint-mapping.json) 全て揃う"},
+        {"id": "v3_core_concepts_preserved", "check": "汎用 v3 概念 (API↦UI 依存方向 / contract test を Foundation phase に組込 / EARS 5 形式) も保持"}
       ]
     }
   ]

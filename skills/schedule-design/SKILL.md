@@ -1,6 +1,6 @@
 ---
 name: schedule-design
-description: スケジュール設計スキル。タスク分解の出力 (tickets.json + DEPENDENCIES.md) と feature-decomposition の出力 (DAG.md / phase-mapping.md) をもとに「いつ・何を・誰が・どの条件で納品するか」を設計する。**v3 採用 (2026-05-15〜)**: **Phase 0 (Foundation 整備) = Wave 0 を必ず最先行**させ (8 CI gate + lint #1-19 整備完了まで他 task block)、Phase 1 (dogfood) / Phase 1.5 (REFACTOR) / Phase 2 (SaaS 公開) の 4 段階構成。**Sprint = Wave** 単位 (1 Wave = 2-4h × 30-50 並列 Claude Code セッション) でガント表を引き、各 task の完了判定は **8 CI gate auto-merge** (lint-mock / AC validator / RLS coverage / audit MD / pytest cov ≥70% / pyright / tsc / mock-impl-diff 全 pass で PR を Claude が自動 merge)。連続 3 失敗で human エスカ。Group A (Foundation) / B (Vertical Slice) / C (Integration test) / D (Drift fix 20%) の 4 Group を Wave 内で並列実行。「スケジュールを引きたい」「いつ終わるか決めたい」「フェーズごとの納品物を決めたい」「クライアントに何を確認してもらうか整理したい」「マイルストーンを設定したい」「リソース配置を決めたい」「請求タイミングを決めたい」「工数見積もりを出したい」「Wave 構成を作りたい」「Phase 0/1/1.5/2 で組みたい」「30-50 並列で組みたい」「CI gate auto-merge 前提で組みたい」「wave-schedule.json を出したい」と言われたら、明示されていなくても必ず起動する。5STEP の対話型プロセスで進み、出力はスケジュール表 (Markdown) + マイルストーン JSON + **wave-schedule.json** (Wave 単位実行プラン) + 判断ログ JSON の **4 形式**。受託開発での「フェーズごとの合意と納品」 + 30-50 並列 Claude Code 実行を前提に設計する。
+description: スケジュール設計スキル。タスク分解の出力 (tickets.json + DEPENDENCIES.md) と feature-decomposition の出力 (DAG.md / phase-mapping.md) をもとに「いつ・何を・誰が・どの条件で納品するか」を設計する。**v3 採用 (2026-05-15〜)**: **Foundation phase = Wave 0 を必ず最先行**させ (project-defined の N CI gate + lint rule 整備完了まで他 task block)、Foundation / Backend / UI / Polish phase の段階構成 (phase 名と数は project-defined naming)。**Sprint = Wave** 単位 (1 Wave = 数時間 × project-defined parallel capacity の並列セッション) でガント表を引き、各 task の完了判定は **N CI gate auto-merge** (lint / AC validator / access control coverage / audit MD / test coverage gate / type check 等、全 pass で PR を自動 merge)。連続 N 失敗で human エスカ。Group A (Foundation) / B (Vertical Slice) / C (Integration test) / D (Drift fix) の 4 Group を Wave 内で並列実行。「スケジュールを引きたい」「いつ終わるか決めたい」「フェーズごとの納品物を決めたい」「クライアントに何を確認してもらうか整理したい」「マイルストーンを設定したい」「リソース配置を決めたい」「請求タイミングを決めたい」「工数見積もりを出したい」「Wave 構成を作りたい」「Foundation phase から段階的に組みたい」「並列 Claude Code セッション前提で組みたい」「CI gate auto-merge 前提で組みたい」「wave-schedule.json を出したい」と言われたら、明示されていなくても必ず起動する。5STEP の対話型プロセスで進み、出力はスケジュール表 (Markdown) + マイルストーン JSON + **wave-schedule.json** (Wave 単位実行プラン) + 判断ログ JSON の **4 形式**。受託開発での「フェーズごとの合意と納品」 + 並列 Claude Code 実行を前提に設計する。
 tab: 実装・分解
 builtin: true
 ---
@@ -136,14 +136,14 @@ builtin: true
 - クライアントに「何を・いつ・どんな状態で」確認してもらうかが合意されていないと、終盤に「思ってたのと違う」が起きる
 - スケジュールの本質は「何がいつ動くか」ではなく「何がいつ合意されるか」
 
-**Build Factory文脈での位置づけ：**
-- 分散並列開発なので、誰がどのタスクグループを担当するかのリソース配置も含む
-- 外部実装者への渡しタイミング・返却期限・統合タイミングを明確にする
+**分散並列開発文脈での位置づけ：**
+- 並列 Claude Code セッション開発なので、各 Wave で誰がどのタスクグループを担当するかのリソース配置も含む
+- 外部実装者 (もしくは並列セッション) への渡しタイミング・返却期限・統合タイミングを明確にする
 - 社内（設計・統合・レビュー）と外部（実装）のインターフェースをスケジュール上で定義する
 
 **なぜスケジュール設計が失敗するか：**
 - タスクの工数を積み上げるだけで、バッファ・確認待ち・依存の待ち時間を加えていない
-- フェーズ境界（何を渡したら「フェーズ1完了」か）が曖昧なままスタートする
+- フェーズ境界（何を渡したら「Foundation phase 完了」か）が曖昧なままスタートする
 - リソースが並列で何をやるかが整理されておらず、全員が直列で動いてしまう
 
 ---
@@ -153,7 +153,7 @@ builtin: true
 1. **1STEPずつしか進まない** — STEPを出力したら、その場で必ず止まる。PMからの返答を受け取るまで、絶対に次のSTEPに進まない
 2. **最初のメッセージではSTEP 1だけを出力する** — どんなに情報が揃っていてもSTEP 1の出力で止まる。STEP 2以降は「STEP 2へ」という指示を受けてから初めて出力する
 3. **工数の積み上げだけで終わらない** — 確認待ち・バッファ・依存の待ち時間を必ず加える
-4. **フェーズ境界は「納品物」で定義する** — 「機能Aが完成したらフェーズ1完了」ではなく「クライアントがXXを操作して確認できる状態」まで定義する
+4. **フェーズ境界は「納品物」で定義する** — 「機能Aが完成したら Backend phase 完了」ではなく「クライアントがXXを操作して確認できる状態」まで定義する
 5. **仮説は明示する** — 不明な部分は `【仮説】` とラベルを付ける
 
 ## 最上位ルール
@@ -164,13 +164,28 @@ builtin: true
 
 ## v3 必須ルール (2026-05-15〜)
 
-詳細: `references/v3-extensions.md`
+詳細: `references/v3-core.md`
+プロジェクト固有値の適用例: `references/profiles/build-factory.md` (例として位置づけ。他プロジェクトは独自 profile を作成)
 
-1. **Phase 0 (Foundation) = Wave 0 を必ず最先行** — 8 CI gate + lint #1-19 + AC validator が整備完了するまで Phase 1 task は起動しない (機械的 block)
-2. **Sprint = Wave 単位でガント表を引く** — 週次の代わりに Wave (W0, W1, …, W7) を横軸に使う。1 Wave = 2-4h × 30-50 並列セッション
-3. **完了判定 = 8 CI gate auto-merge** — 各 task は lint-mock / AC validator / RLS coverage / audit MD / pytest cov ≥70% / pyright / tsc / mock-impl-diff の 8 gate 全 pass で PR を Claude が自動 merge。連続 3 失敗で human エスカ
-4. **Group A/B/C/D の 4 Group を Wave 内で並列実行** — A: Foundation (Phase 0 のみ) / B: Vertical Slice impl (Phase 1 で 70%) / C: Integration test (10%) / D: Drift fix (20%, Phase 1 で常時)
-5. **task-decomposition + feature-decomposition の出力を pull** — tickets.json + DEPENDENCIES.md + DAG.md + phase-mapping.md の path を STEP 1 で必ず確認
+1. **Foundation phase = Wave 0 を必ず最先行** — N CI gate + lint rule + AC validator が整備完了するまで Backend / UI phase の task は起動しない (機械的 block)
+2. **Sprint = Wave 単位でガント表を引く** — 週次の代わりに Wave (W0, W1, ..., Wn) を横軸に使う。1 Wave = 数時間 × project-defined parallel capacity
+3. **完了判定 = N CI gate auto-merge** — 各 task は project-defined gate set 全 pass で PR を Claude が自動 merge。連続 N 失敗で human エスカ
+4. **Group A/B/C/D の 4 Group を Wave 内で並列実行** — A: Foundation (Foundation phase のみ) / B: Vertical Slice impl (Backend phase / UI phase で 70%) / C: Integration test (10%) / D: Drift fix (20%, Backend phase 以降常時)
+5. **Wave 内も backend-first → UI-second の順序維持** — Backend phase の Wave が完了してから UI phase の Wave を起動する。Foundation → Backend → UI → Polish の順序を Wave 番号で表現
+6. **task-decomposition + feature-decomposition の出力を pull** — tickets.json + DEPENDENCIES.md + DAG.md + phase-mapping.md の path を STEP 1 で必ず確認
+
+### 並列度の段階モデル (project-defined parallel capacity 例)
+
+project の規模・運用体制に応じて 1 Wave 内の並列セッション数を定める：
+
+| 規模 | 並列セッション数 | 想定 project |
+|---|---|---|
+| small | 1-5 | 個人開発 / プロトタイプ |
+| medium | 10-30 | 中小プロジェクト / 受託案件 |
+| large | 30-100 | 大規模プロジェクト / 内製 SaaS dogfood |
+| massive | 100+ | エンタープライズ / 大規模複数チーム並列 |
+
+並列度は GitHub Actions / Vercel / hosting plan の上限と整合させる必要がある。
 
 ---
 
@@ -181,10 +196,11 @@ builtin: true
 | 穴の種類 | スケジュールでの例 |
 |---------|-----------------|
 | **バッファゼロ** | 工数を積み上げただけで、クライアント確認待ち・仕様変更・統合トラブルの余地がない |
-| **フェーズ境界の不明確** | 「フェーズ1が終わったら請求」と言いつつ「何が終わったらフェーズ1か」が合意されていない |
+| **フェーズ境界の不明確** | 「Backend phase が終わったら請求」と言いつつ「何が終わったら Backend phase 完了か」が合意されていない |
 | **並列の見落とし** | 全員が直列で動いている計画になっており、並列でできることを直列で積んでいる |
 | **外部依存の待ち時間無視** | クライアント承認・外部API提供・デザイン確定など「自分では動かせない待ち時間」を含めていない |
 | **リソース過負荷** | 同じ人が同時期に複数タスクを抱えている計画になっており、実際には不可能 |
+| **Foundation 軽視** | Foundation phase を「準備期間」扱いして Backend/UI phase と並列で進めて drift が増殖 |
 
 ---
 
@@ -198,7 +214,7 @@ STEP 3（スケジュール確定）の最終出力ではgantt-template.mdの構
 
 ---
 
-### ▶ STEP 1：スケジュール前提の確認 (v3: 上流出力 pull + Phase 0-2 + Wave 構成)
+### ▶ STEP 1：スケジュール前提の確認 (v3: 上流出力 pull + Foundation/Backend/UI/Polish + Wave 構成)
 
 タスク分解の結果（またはヒアリング情報）を受け取り、スケジュール設計の前提を整理する。
 
@@ -213,27 +229,27 @@ STEP 3（スケジュール確定）の最終出力ではgantt-template.mdの構
   - DEPENDENCIES.md: DAG (Mermaid + 隣接リスト)
   - tasks-overview.md: Group A (Foundation) / B (Vertical Slice) / C (Integration) / D (Drift fix) の分類
 - feature-decomposition 出力: docs/feature-decomposition/<date>_v<N>/
-  - DAG.md: Sprint 0/1/2/3 の依存関係
-  - phase-mapping.md: Phase 0/1/1.5/2 マッピング
+  - DAG.md: Slice の依存関係
+  - phase-mapping.md: Foundation / Backend / UI / Polish phase マッピング (project-defined naming)
 - architecture-design 出力: docs/architecture/<date>_v<N>/
-  - phase_0_gates.json: 8 CI gate 定義
+  - foundation_gates.json: project-defined N CI gate 定義
 
 ### Phase × Wave 構成提案 (v3 標準モデル)
-- Phase 0 (Foundation / Wave 0): 8 CI gate + lint #1-19 + AC validator 整備 (機械的 block, 単独実行)
-- Phase 1 (dogfood / Wave 1-5): Slice 0-7 マッピング, 30-50 並列 × 2-4h
-- Phase 1.5 (REFACTOR / Wave 6): drift 修正 + REFACTOR タスク
-- Phase 2 (SaaS 公開 / Wave 7+): multi-tenant / billing / oncall
+- Foundation phase (Wave 0): N CI gate + lint rule + AC validator 整備 (機械的 block, 単独実行)
+- Backend phase (Wave 1〜): Vertical Slice の data/service/API 層を per-slice で並列実行
+- UI phase (Wave N〜): Vertical Slice の screen/component 層を per-slice で並列実行 (Backend phase 完了後)
+- Polish phase (Wave M〜): cross-cutting (performance / security / docs / release readiness)
 
-### 並列度 (v3)
-- Claude Code セッション並列数: 30-50
+### 並列度 (v3, project-defined parallel capacity)
+- Claude Code セッション並列数: project-defined (small 1-5 / medium 10-30 / large 30-100 / massive 100+)
 - 人間: 0-2 名 (PR レビュー + Phase ゲート判定のみ)
-- 1 Wave 周期: 2-4 時間
-- 1 Wave のタスク数: 30-50 件
+- 1 Wave 周期: 数時間 (project-defined, 例: 2-4 時間)
+- 1 Wave のタスク数: 並列度と同等
 
 ### 完了判定 (v3)
-- 各 task: 8 CI gate auto-merge
-  - lint-mock (19 check) / AC validator / RLS coverage / audit MD / pytest cov ≥70% / pyright / tsc / mock-impl-diff
-- 連続 3 失敗 → human エスカ
+- 各 task: N CI gate auto-merge (gate 数と内容は project-defined)
+  - 例: lint / AC validator / access control coverage / audit MD / test coverage gate / type check / mock-impl-diff
+- 連続 N 失敗 → human エスカ (閾値は project-defined, 例: 3 回)
 ```
 
 **Webリサーチ（STEP 1で実施）：**
@@ -261,20 +277,22 @@ STEP 3（スケジュール確定）の最終出力ではgantt-template.mdの構
 | 役割 | 人数 | 稼働率（週〇日想定） |
 |-----|------|-----------------|
 | 社内（設計・統合・レビュー）| 〇名 | |
-| 外部実装者（フロントエンド）| 〇名 | |
-| 外部実装者（バックエンド）| 〇名 | |
+| 外部実装者 / 並列セッション (Frontend) | 〇 | |
+| 外部実装者 / 並列セッション (Backend)  | 〇 | |
 
-### フェーズ分け方針【仮説】
+### フェーズ分け方針【仮説】(project-defined naming)
 | フェーズ | 内容（案）| 期間目安 |
 |---------|---------|---------|
-| フェーズ1 | 基盤・MVP機能 | 〇週 |
-| フェーズ2 | コア機能 | 〇週 |
-| フェーズ3 | 残機能・テスト | 〇週 |
+| Foundation phase | CI gate / lint / AC validator / 基盤整備 | 〇週 |
+| Backend phase    | Vertical Slice の data/service/API | 〇週 |
+| UI phase         | Vertical Slice の screen/component | 〇週 |
+| Polish phase     | performance / security / docs / release | 〇週 |
 
 ### クライアント確認タイミング（案）
-- フェーズ1完了時：〇〇をクライアントが確認する
-- フェーズ2完了時：〇〇をクライアントが確認する
-- 最終納品前：〇〇の受け入れテスト
+- Foundation phase 完了時：Foundation gate (N CI gate green) 開放を確認
+- Backend phase 完了時：API contract 動作・access control matrix を確認
+- UI phase 完了時：エンドユーザーが実際に〇〇できる状態を確認
+- 最終納品前：受け入れテスト
 
 ## 確認事項
 （不明・曖昧な部分の質問）
@@ -286,15 +304,15 @@ STEP 3（スケジュール確定）の最終出力ではgantt-template.mdの構
 |------------|------------|
 | リリース期限は決まっているか | 「できるだけ早く」は期限ではない。具体的な日付か、イベントベースか |
 | 何フェーズに分けるか決まっているか | 受託の場合、フェーズごとに請求・確認・承認のゲートが必要 |
-| クライアントの確認頻度はどのくらいか | 週次報告か、フェーズ完了時だけか。確認待ちの時間をバッファとして計上する |
-| 外部実装者への渡しタイミングと返却期限はあるか | Build Factory型の場合、渡し→実装→返却→統合の時間を計上する |
-| バッファはどのくらい見るか | 一般的に実装工数の20〜30%のバッファが必要。クライアント次第で変わる |
-| 「フェーズ1完了」の定義は合意されているか | 「機能が動く」か「本番環境で確認できる」かで工数が大きく変わる |
-| **v3: Phase 0 (Foundation) を単独で先行させてよいか** | 機械的 block 前提。OK なら Wave 0 = Foundation 単独実行 |
-| **v3: 30-50 並列 Claude Code セッションを前提にしてよいか** | 並列度の上限は GitHub Actions / Vercel Free tier 制限と整合 |
-| **v3: 1 Wave = 2-4h × 30-50 並列の粒度でよいか** | 1 Wave 内の task は全て work-package boundary が独立している必要 |
-| **v3: CI gate auto-merge を全 task に適用してよいか** | 連続 3 失敗で human エスカ。手動 merge する task の例外定義は STEP 4 |
-| **v3: Group D (drift fix) を Phase 1 内 20% 割当でよいか** | drift 増殖を防ぐため Phase 1 中常時 20% を Group D に割当 |
+| クライアントの確認頻度はどのくらいか | Phase gate ごとか、Wave ごとか。確認待ちの時間をバッファとして計上する |
+| 外部実装者 / 並列セッションへの渡しタイミングと返却期限はあるか | 渡し→実装→返却→統合の時間を計上する |
+| バッファはどのくらい見るか | 一般的に実装工数の 20〜30% のバッファが必要 |
+| 「Backend phase 完了」の定義は合意されているか | 「機能が動く」か「本番環境で確認できる」かで工数が大きく変わる |
+| **v3: Foundation phase を単独で先行させてよいか** | 機械的 block 前提。OK なら Wave 0 = Foundation 単独実行 |
+| **v3: project-defined parallel capacity (例: 30-50 並列) を前提にしてよいか** | 並列度の上限は GitHub Actions / hosting plan と整合 |
+| **v3: 1 Wave = 数時間 × 並列セッションの粒度でよいか** | 1 Wave 内の task は全て work-package boundary が独立している必要 |
+| **v3: CI gate auto-merge を全 task に適用してよいか** | 連続 N 失敗で human エスカ。手動 merge する task の例外定義は STEP 4 |
+| **v3: Group D (drift fix) を Backend phase 以降 20% 割当でよいか** | drift 増殖を防ぐため Backend phase 以降常時 20% を Group D に割当 |
 
 **⛔ STEP 1を出力したら必ずここで止まる。STEP 2には進まない：**
 
@@ -312,91 +330,91 @@ STEP 3（スケジュール確定）の最終出力ではgantt-template.mdの構
 
 ---
 
-### ▶ STEP 2：フェーズ定義と納品物の合意（最重要 / v3: Phase 0 必須化 + Wave 内訳）
+### ▶ STEP 2：フェーズ定義と納品物の合意（最重要 / v3: Foundation 必須化 + Wave 内訳）
 
 確認後、各フェーズで「何を・どんな状態で・誰に渡すか」を定義する。受託開発での請求・確認ゲートを明確にする。
 
-**v3 必須**: Phase 0 (Foundation) を必ず最初に定義し、Phase 1/1.5/2 と独立した Phase として扱う。各 Phase に Wave 内訳と Phase gate (mechanical / observable) を明示。
+**v3 必須**: Foundation phase を必ず最初に定義し、Backend / UI / Polish phase と独立した Phase として扱う。各 Phase に Wave 内訳と Phase gate (mechanical / observable) を明示。phase 名は project-defined naming だが、Foundation → Backend → UI → Polish の **順序**は厳守。
 
 **出力する内容：**
 
 ```
-## フェーズ定義 (v3)
+## フェーズ定義 (v3, project-defined naming)
 
-### Phase 0 (Foundation 整備 / Wave 0)
+### Foundation phase (Wave 0)
 
 **期間目安：** 〇日 (〇月〇日 〜 〇月〇日)
 **Wave 構成：** W0 (単独)
-**含まれるタスク：** T-FND-01〜T-FND-10 (Group A: Foundation のみ)
-**推定 Wave 周期：** 2-3 周 (1 周 = 2-4h × 10 並列)
+**含まれるタスク：** T-FND-01〜T-FND-N (Group A: Foundation のみ)
+**推定 Wave 周期：** 1-3 周 (1 周 = 数時間 × 並列セッション)
 
-#### Phase 0 完了ゲート (mechanical, drift 0 件)
-- [ ] 8 CI gate 全てが green (lint-mock / AC validator / RLS coverage / audit MD / pytest cov ≥70% / pyright / tsc / mock-impl-diff)
-- [ ] lint #1-19 全て 0 violation
+#### Foundation phase 完了ゲート (mechanical, drift 0 件)
+- [ ] N CI gate 全てが green (project-defined gate set)
+- [ ] lint rule 全て 0 violation
 - [ ] AC validator が 3-tier schema 準拠で validate
 - [ ] audit MD template が tickets.json から自動生成可能
 
-#### Phase 1 起動条件 (block release)
-- Phase 0 完了ゲート全 pass まで Phase 1 task は機械的に block (Wave 1 起動不可)
+#### Backend phase 起動条件 (block release)
+- Foundation phase 完了ゲート全 pass まで Backend phase task は機械的に block (Wave 1 起動不可)
 
 ---
 
-### Phase 1 (dogfood: Build-Factory を Build-Factory で開発 / Wave 1-5)
+### Backend phase (Wave 1〜M)
 
 **期間目安：** 〇週 (〇月〇日 〜 〇月〇日)
-**Wave 構成：** W1 (Slice 0), W2 (Slice 1), W3 (Slice 2), W4 (Slice 3-4), W5 (Slice 5-7)
-**並列度：** 30-50 Claude Code セッション
-**含まれるタスク：** T-001-01〜T-S0-13 ほか (Group B: 70% / C: 10% / D: 20%)
+**Wave 構成：** W1 (Slice 0 の data/service/API), W2 (Slice 1), ..., WM (Slice N)
+**並列度：** project-defined parallel capacity (例: 30-50 セッション)
+**含まれるタスク：** Vertical Slice の Backend 部分 (Group B: 70% / C: 10% / D: 20%)
 
-#### 各 Wave の Group 内訳
+#### 各 Wave の Group 内訳 (例)
 | Wave | Slice | Group A | Group B | Group C | Group D | 並列数 |
 |------|-------|---------|---------|---------|---------|--------|
-| W1 | Slice 0 (auth+workspace) | 0 | 21 | 3 | 6 | 30 |
-| W2 | Slice 1 (project+hearing) | 0 | 25 | 4 | 8 | 37 |
-| W3 | Slice 2 (req+screen-spec) | 0 | 28 | 4 | 8 | 40 |
-| W4 | Slice 3-4 (arch+func) | 0 | 30 | 5 | 10 | 45 |
-| W5 | Slice 5-7 (task+DAG+impl) | 0 | 32 | 5 | 10 | 47 |
+| W1 | Slice 0 backend (auth + base schema) | 0 | 21 | 3 | 6 | 30 |
+| W2 | Slice 1 backend | 0 | 25 | 4 | 8 | 37 |
+| W3 | Slice 2 backend | 0 | 28 | 4 | 8 | 40 |
 
-#### Phase 1 完了ゲート (observable, dogfood 完走)
-- [ ] Build-Factory 自身を Build-Factory で開発完走 (8 phase 全て)
-- [ ] 187 tasks 全て 8 CI gate pass で merge 済
-- [ ] backend pytest cov ≥ 70% / frontend tsc strict / pyright strict
+#### Backend phase 完了ゲート (observable)
+- [ ] 全 Slice の API contract test pass (Schemathesis / Pact 等)
+- [ ] access control matrix 全 pass
+- [ ] backend test coverage ≥ 70%
 - [ ] 全 Phase ゲート audit MD が存在
 
-#### クライアント (内製 dogfood なので松本本人) への確認依頼内容
-- 何を確認してもらうか: Build-Factory 自身のフェーズ完走デモ
-- 環境: 内製 Vercel + Oracle Cloud + Supabase
+---
+
+### UI phase (Wave M+1〜N)
+
+**期間目安：** 〇週
+**Wave 構成：** WM+1 (Slice 0 UI), ..., WN (Slice N UI)
+**並列度：** project-defined parallel capacity
+**含まれるタスク：** Vertical Slice の UI 部分 (Group B: 70% / C: 10% / D: 20%)
+
+#### UI phase 完了ゲート (observable)
+- [ ] 全 Slice の UI E2E test pass
+- [ ] エンドユーザーが実際に〇〇できる状態
+- [ ] accessibility check pass
+- [ ] frontend test coverage ≥ 70%
+
+---
+
+### Polish phase (Wave N+1〜)
+
+**期間目安：** 〇週
+**Wave 構成：** WN+1〜 (cross-cutting: performance / security / docs / release readiness)
+**並列度：** project-defined
+
+#### Polish phase 完了ゲート
+- [ ] performance budget 達成
+- [ ] security audit pass
+- [ ] documentation 整備済
+- [ ] release readiness checklist 全 pass
+
+#### クライアントへの確認依頼内容
+- 何を確認してもらうか: エンドユーザー fluw + 受け入れ基準
+- 環境: production-like / staging
 - フィードバック期限: Phase gate 時のみ
 
-#### 請求タイミング: N/A (内製)
-
----
-
-### Phase 1.5 (REFACTOR / Wave 6)
-
-**期間目安：** 〇週
-**Wave 構成：** W6 (drift 修正 + REFACTOR タスク)
-**並列度：** 20-30 Claude Code セッション
-
-#### Phase 1.5 完了ゲート
-- [ ] lint #17 mock-impl-diff: 0 件
-- [ ] lint #18 screens-API: 0 件
-- [ ] lint #19 entity-table-naming: 0 件
-- [ ] REFACTOR タスク 50 件全 done
-
----
-
-### Phase 2 (SaaS 公開 / Wave 7+)
-
-**期間目安：** 〇週
-**Wave 構成：** W7+ (multi-tenant / billing / oncall / 監視)
-
-#### Phase 2 完了ゲート
-- [ ] multi-tenant RLS pass
-- [ ] billing (Stripe Subscription) E2E pass
-- [ ] oncall rotation 設定済
-- [ ] 外部 5 社 dogfood 完了
-- [ ] SLA 99.9% 達成
+#### 請求タイミング
+- 各 Phase gate 承認後 / 契約形態に応じて
 ```
 
 **STEP 2 の見落としチェック（必ず確認すること）：**
@@ -408,6 +426,7 @@ STEP 3（スケジュール確定）の最終出力ではgantt-template.mdの構
 | クライアント承認→次フェーズ開始のゲートはあるか | 承認なしに次フェーズに進むとスコープが膨らみやすい |
 | スコープ外の要求が来たときの対応方針は決まっているか | 追加要望の受け付け基準・変更管理フローを最初に合意しておく |
 | 各フェーズで「削除できるスコープ」は何か | 期限が迫ったときに削れる機能を事前に特定しておく |
+| **v3: Foundation → Backend → UI → Polish の順序が崩れていないか** | UI phase が Backend phase より先 / 並列に進んでいる構成は破綻する |
 
 **⛔ STEP 2を出力したら必ずここで止まる。STEP 3には進まない：**
 
@@ -427,9 +446,9 @@ STEP 3（スケジュール確定）の最終出力ではgantt-template.mdの構
 
 ### ▶ STEP 3：スケジュール詳細 (v3: Wave 単位 × 並列度 × Group 内訳)
 
-確認後、タスクを Wave 単位に並べ、各 Wave で 30-50 並列で何を実行するか整理する。
+確認後、タスクを Wave 単位に並べ、各 Wave で project-defined parallel capacity で何を実行するか整理する。
 
-**v3 必須**: ガント表は週次の代わりに Wave (W0/W1/.../W7) を横軸に使う。各 Wave に Group A/B/C/D の割合 + depends_on_waves を明示。
+**v3 必須**: ガント表は週次の代わりに Wave (W0/W1/.../Wn) を横軸に使う。各 Wave に Group A/B/C/D の割合 + depends_on_waves を明示。Backend phase の Wave が完了してから UI phase の Wave を起動する順序保証。
 
 **出力する内容：**
 
@@ -440,27 +459,26 @@ STEP 3（スケジュール確定）の最終出力ではgantt-template.mdの構
 
 | Wave | 期間 | Phase | Slice | Group A | Group B | Group C | Group D | 並列数 | depends_on_waves | マイルストーン |
 |------|------|-------|-------|---------|---------|---------|---------|--------|------------------|----------------|
-| W0 | 〇/〇〜〇/〇 | P0 | Foundation | 10 | 0 | 0 | 0 | 10 | - | Phase 0 ゲート開放 |
-| W1 | 〇/〇〜〇/〇 | P1 | Slice 0 | 0 | 21 | 3 | 6 | 30 | W0 | - |
-| W2 | 〇/〇〜〇/〇 | P1 | Slice 1 | 0 | 25 | 4 | 8 | 37 | W1 | - |
-| W3 | 〇/〇〜〇/〇 | P1 | Slice 2 | 0 | 28 | 4 | 8 | 40 | W2 | - |
-| W4 | 〇/〇〜〇/〇 | P1 | Slice 3-4 | 0 | 30 | 5 | 10 | 45 | W3 | - |
-| W5 | 〇/〇〜〇/〇 | P1 | Slice 5-7 | 0 | 32 | 5 | 10 | 47 | W4 | Phase 1 dogfood 完走 |
-| W6 | 〇/〇〜〇/〇 | P1.5 | REFACTOR | 0 | 0 | 0 | 25 | 25 | W5 | Phase 1.5 完了 |
-| W7+ | 〇/〇〜〇/〇 | P2 | SaaS 公開 | 0 | 20 | 5 | 5 | 30 | W6 | SaaS 公開 |
+| W0 | 〇/〇〜〇/〇 | Foundation | - | 10 | 0 | 0 | 0 | 10 | - | Foundation gate 開放 |
+| W1 | 〇/〇〜〇/〇 | Backend | Slice 0 BE | 0 | 21 | 3 | 6 | 30 | W0 | - |
+| W2 | 〇/〇〜〇/〇 | Backend | Slice 1 BE | 0 | 25 | 4 | 8 | 37 | W1 | - |
+| W3 | 〇/〇〜〇/〇 | Backend | Slice 2 BE | 0 | 28 | 4 | 8 | 40 | W2 | Backend gate 開放 |
+| W4 | 〇/〇〜〇/〇 | UI | Slice 0 UI | 0 | 30 | 5 | 10 | 45 | W1 | - |
+| W5 | 〇/〇〜〇/〇 | UI | Slice 1-2 UI | 0 | 32 | 5 | 10 | 47 | W2,W3 | UI gate 開放 |
+| W6 | 〇/〇〜〇/〇 | Polish | cross-cut | 0 | 20 | 5 | 5 | 30 | W5 | Release readiness |
 
 ### クリティカルパス (task ID 表記)
-T-019-01 → T-S0-13 → T-001-01 → T-001-02 → T-001-04 → T-001-06 → T-S0-08 → T-S0-09 → T-021-03 → T-020-02 → T-003-02 → T-M28-01
+T-FND-01 → T-FND-09 → T-001-01 → T-001-02 → T-001-04 → T-001-06 → T-002-01 → T-002-02 → T-003-01 → T-003-02 → T-Mxx-01
 
 ### 1 Wave 周期内の実行プラン
-- 1 Wave = 2-4h × 30-50 並列 Claude Code セッション
-- 完了判定: 各 task の 8 CI gate auto-merge
-- 連続 3 失敗 → human エスカ
+- 1 Wave = 数時間 × project-defined parallel capacity
+- 完了判定: 各 task の N CI gate auto-merge
+- 連続 N 失敗 → human エスカ
 - 全 task green で Wave 完了 → 次 Wave 起動
 
 ### Group D (Drift fix) 常時 20% の運用
-- Phase 1 内の各 Wave で Group D を常時 20% 割当
-- 対象: lint #17 mock-impl-diff / lint #18 screens-API / lint #19 entity-table-naming 違反
+- Backend phase 以降の各 Wave で Group D を常時 20% 割当
+- 対象: drift 検出 lint rule 違反 (例: mock-impl-diff / screens-API / entity-table-naming)
 - 検出: 前 Wave の merge 時に CI gate が自動検出 → 次 Wave の Group D 候補リストへ
 ```
 
@@ -470,10 +488,11 @@ T-019-01 → T-S0-13 → T-001-01 → T-001-02 → T-001-04 → T-001-06 → T-S
 |------------|------------|
 | 同じ Wave 内で work-package boundary が衝突していないか | 同一 file への並列 edit は file-level mutex で排他 |
 | クライアント確認待ちは Phase gate でのみ計上されているか | Wave 内は CI gate auto-merge。Wave 間は確認待ち 0 |
-| Wave 0 (Foundation) の完了ゲートが mechanical / observable に定義されているか | 「準備完了」ではなく 8 CI gate green と lint 0 件で機械判定 |
-| Wave 間の depends_on が DAG.md と整合しているか | 依存違反は Phase 1 開始後に破綻する |
-| 各 Wave に Group D (drift fix) 20% が割当されているか | drift 増殖を防ぐため Phase 1 内常時 |
-| 並列度 30-50 が GitHub Actions / Vercel Free tier の制限内か | 上限超過で CI が直列化するとスケジュール破綻 |
+| Wave 0 (Foundation) の完了ゲートが mechanical / observable に定義されているか | 「準備完了」ではなく N CI gate green と lint 0 件で機械判定 |
+| Wave 間の depends_on が DAG.md と整合しているか | 依存違反は Backend phase 開始後に破綻する |
+| 各 Wave に Group D (drift fix) 20% が割当されているか | drift 増殖を防ぐため Backend phase 以降常時 |
+| 並列度が GitHub Actions / hosting plan の制限内か | 上限超過で CI が直列化するとスケジュール破綻 |
+| **UI phase の Wave が対応する Backend phase の Wave 完了後に起動しているか** | UI が先行すると API spec 変更時に手戻りが大きい |
 
 **⛔ STEP 3を出力したら必ずここで止まる。STEP 4には進まない：**
 
@@ -503,13 +522,14 @@ T-019-01 → T-S0-13 → T-001-01 → T-001-02 → T-001-04 → T-001-06 → T-S
 ### スケジュールリスク一覧 (v3)
 | リスクID | リスク | 発生確率 | 影響 | 対応策 | トリガー（これが起きたら発動）|
 |---------|-------|---------|-----|-------|--------------------------|
-| R001 | ブロッキングタスク T-019-01 が遅延 | 中 | 全体が 1 Wave 遅延 | クリティカルパスにバッファ Wave 追加 | W1 開始までに T-019-01 / T-S0-13 が done でなければアラート |
-| R002 | クライアント確認 (Phase gate) が遅延 | 高 | Phase 間のゲートが詰まる | Phase gate 受付から 3 営業日後にリマインド | Phase gate フィードバック期限超過 |
-| **R-V3-01** | **CI gate 連続失敗 (1 task / 3 回 reject)** | 中 | 該当 task の Wave 内処理停止 | 3 回で human エスカ + audit MD で原因記録 | 同一 task PR で 3 回連続 gate fail |
+| R001 | ブロッキングタスク T-FND-01 が遅延 | 中 | 全体が 1 Wave 遅延 | クリティカルパスにバッファ Wave 追加 | W1 開始までに T-FND-01 系が done でなければアラート |
+| R002 | クライアント確認 (Phase gate) が遅延 | 高 | Phase 間のゲートが詰まる | Phase gate 受付から N 営業日後にリマインド | Phase gate フィードバック期限超過 |
+| **R-V3-01** | **CI gate 連続失敗 (1 task / N 回 reject)** | 中 | 該当 task の Wave 内処理停止 | N 回で human エスカ + audit MD で原因記録 | 同一 task PR で N 回連続 gate fail |
 | **R-V3-02** | **並列セッション競合 (同一 file への並列 edit)** | 中 | merge conflict 多発 | task 分解時に file-level mutex (work-package boundary) | 同 Wave 内で同一 file 編集 task が 2 件以上検出 |
-| **R-V3-03** | **drift 増殖 (Group D 滞留)** | 高 | Phase 1.5 期間が延伸 | Phase 1 Wave で常時 20% を Group D に割当 | lint #17-19 違反が前 Wave 末に増加 |
-| **R-V3-04** | **Phase 0 ゲート未達のまま Phase 1 開始** | 高 | drift がデフォルト発生 | Wave 0 完了判定を mechanical gate にし Wave 1 起動を機械的 block | Wave 0 の 8 CI gate が green でない |
-| **R-V3-05** | **GitHub Actions / Vercel Free tier 並列上限超過** | 中 | CI 直列化で Wave 周期 4h → 12h | 並列度を 30 に下げる or 有料枠への切替 | 並列 50 で queue 待ち > 10 分 |
+| **R-V3-03** | **drift 増殖 (Group D 滞留)** | 高 | Polish phase 期間が延伸 | Backend phase 以降の Wave で常時 20% を Group D に割当 | drift 検出 lint 違反が前 Wave 末に増加 |
+| **R-V3-04** | **Foundation gate 未達のまま Backend phase 開始** | 高 | drift がデフォルト発生 | Wave 0 完了判定を mechanical gate にし Wave 1 起動を機械的 block | Wave 0 の N CI gate が green でない |
+| **R-V3-05** | **CI tier (GitHub Actions / hosting plan) 並列上限超過** | 中 | CI 直列化で Wave 周期が延伸 | 並列度を下げる or 有料枠への切替 | 並列実行で queue 待ち > 10 分 |
+| **R-V3-06** | **UI phase が Backend phase の API spec 変更で手戻り** | 中 | UI Wave のやり直し | Backend phase 完了後に UI phase Wave を起動 (順序保証) | API spec 変更が UI 着手後に発生 |
 
 ### スコープ変更の管理方針
 - 追加要望の受付基準：フェーズ完了後のみ受け付ける（開発中は受け付けない）
@@ -525,7 +545,7 @@ T-019-01 → T-S0-13 → T-001-01 → T-001-02 → T-001-04 → T-001-06 → T-S
 | 対象 | 頻度 | 内容 |
 |-----|-----|------|
 | クライアント | 週次（毎週〇曜日）| 進捗報告・懸念事項・次週の予定 |
-| 外部実装者 | タスク渡し時・返却時 | 仕様確認・完了確認 |
+| 外部実装者 / 並列セッション | タスク渡し時・返却時 | 仕様確認・完了確認 |
 | 社内チーム | 日次スタンドアップ | ブロッカー共有・優先度調整 |
 ```
 
@@ -534,7 +554,7 @@ T-019-01 → T-S0-13 → T-001-01 → T-001-02 → T-001-04 → T-001-06 → T-S
 | チェック項目 | 確認ポイント |
 |------------|------------|
 | 「リスクが顕在化したと判断するトリガー」は明確か | 「遅れそう」ではなく「〇〇日時点で〇〇が完了していなければ発動」と定義 |
-| スコープ変更の受付ルールはクライアントに合意されているか | 開発中に追加が来たとき「それはフェーズ2です」と言える状態か |
+| スコープ変更の受付ルールはクライアントに合意されているか | 開発中に追加が来たとき「それは Polish phase です」と言える状態か |
 | コミュニケーション計画にクライアントの承認サイクルが含まれているか | 週次報告だけでなく、フェーズ完了時の正式承認プロセスを定義する |
 | 受託契約として「完了の定義」はクライアントと書面合意されているか | 口頭で「大丈夫です」は完了ではない。何をもって納品完了とするかを確認 |
 
@@ -569,22 +589,28 @@ T-019-01 → T-S0-13 → T-001-01 → T-001-02 → T-001-04 → T-001-06 → T-S
 
 ## サマリー
 - 総期間：〇週間
-- フェーズ数：〇フェーズ
+- フェーズ数：〇フェーズ (Foundation / Backend / UI / Polish, project-defined naming)
 - 推定総工数：〇人日（バッファ含む）
 - クリティカルパス：T〇〇→T〇〇→T〇〇
 
 ## フェーズ別スケジュール
-### フェーズ1（〇/〇〜〇/〇）：[フェーズ名]
+### Foundation phase（〇/〇〜〇/〇）
 - 含まれるタスク：〇件
 - 推定工数：〇人日
 - 納品物：（具体的な成果物）
 - クライアント確認内容：（何をどう確認してもらうか）
-- 完了条件：（観測可能な状態で定義）
+- 完了条件：（観測可能な状態で定義 / N CI gate green）
 
-### フェーズ2（〇/〇〜〇/〇）：[フェーズ名]
+### Backend phase（〇/〇〜〇/〇）
 （同様）
 
-## 週次スケジュール
+### UI phase（〇/〇〜〇/〇）
+（同様）
+
+### Polish phase（〇/〇〜〇/〇）
+（同様）
+
+## Wave 単位スケジュール
 （STEP 3のガント表）
 
 ## リスク管理
@@ -602,32 +628,33 @@ T-019-01 → T-S0-13 → T-001-01 → T-001-02 → T-001-04 → T-001-06 → T-S
   "total_duration_weeks": 0,
   "phases": [
     {
-      "phase": 1,
-      "name": "フェーズ名",
+      "phase": "foundation",
+      "name": "Foundation phase",
       "start_date": "YYYY-MM-DD",
       "end_date": "YYYY-MM-DD",
       "duration_weeks": 0,
       "estimated_person_days": 0,
-      "tasks": ["T001-01", "T001-02"],
+      "tasks": ["T-FND-01", "T-FND-02"],
       "deliverables": [
-        "ステージング環境で〇〇機能が動作していること",
-        "クライアントが〇〇を確認できること"
+        "N CI gate green",
+        "lint rule 全 0 violation",
+        "AC validator 動作確認"
       ],
       "client_review": {
-        "what_to_check": "何を確認してもらうか",
+        "what_to_check": "Foundation gate 開放の確認",
         "deadline_business_days": 3,
         "approval_required": true
       },
-      "billing_trigger": "クライアント承認後"
+      "billing_trigger": "Foundation phase 完了承認後"
     }
   ],
   "milestones": [
     {
       "id": "M001",
-      "name": "フェーズ1納品",
+      "name": "Foundation gate 開放",
       "date": "YYYY-MM-DD",
-      "type": "client_delivery",
-      "depends_on": ["T003-02", "T004-01"]
+      "type": "phase_gate",
+      "depends_on": ["T-FND-01", "T-FND-02"]
     }
   ],
   "resource_plan": [
@@ -637,7 +664,7 @@ T-019-01 → T-S0-13 → T-001-01 → T-001-02 → T-001-04 → T-001-06 → T-S
       "peak_weeks": ["W1", "W4", "W8"]
     }
   ],
-  "critical_path": ["T001-01", "T001-03", "T003-01", "統合完了"]
+  "critical_path": ["T-FND-01", "T-001-01", "T-002-01", "統合完了"]
 }
 ```
 
@@ -653,30 +680,50 @@ claude-runner / Swarm / distributed-dev が読んで起動順序を決める JSO
   "skill": "schedule-design",
   "phases": [
     {
-      "phase_id": "P0",
-      "name": "Foundation 整備",
+      "phase_id": "foundation",
+      "name": "Foundation phase",
       "wave_ids": ["W0"],
       "start_date": "YYYY-MM-DD",
       "end_date": "YYYY-MM-DD",
       "duration_days": 0,
-      "completion_gate": "8 CI gate 全 pass + lint 0 件 + drift 0 件",
+      "completion_gate": "N CI gate 全 pass + lint 0 件 + drift 0 件",
       "phase_review_required": true
     },
     {
-      "phase_id": "P1",
-      "name": "dogfood",
-      "wave_ids": ["W1", "W2", "W3", "W4", "W5"],
+      "phase_id": "backend",
+      "name": "Backend phase",
+      "wave_ids": ["W1", "W2", "W3"],
       "start_date": "YYYY-MM-DD",
       "end_date": "YYYY-MM-DD",
       "duration_days": 0,
-      "completion_gate": "Build-Factory 自身を Build-Factory で開発完走",
+      "completion_gate": "全 Slice の API contract test pass + access control matrix pass",
+      "phase_review_required": true
+    },
+    {
+      "phase_id": "ui",
+      "name": "UI phase",
+      "wave_ids": ["W4", "W5"],
+      "start_date": "YYYY-MM-DD",
+      "end_date": "YYYY-MM-DD",
+      "duration_days": 0,
+      "completion_gate": "全 Slice の UI E2E test pass + a11y pass",
+      "phase_review_required": true
+    },
+    {
+      "phase_id": "polish",
+      "name": "Polish phase",
+      "wave_ids": ["W6"],
+      "start_date": "YYYY-MM-DD",
+      "end_date": "YYYY-MM-DD",
+      "duration_days": 0,
+      "completion_gate": "release readiness checklist 全 pass",
       "phase_review_required": true
     }
   ],
   "waves": [
     {
       "wave_id": "W0",
-      "phase_id": "P0",
+      "phase_id": "foundation",
       "name": "Foundation: lint / AC validator / CI gate",
       "start_date": "YYYY-MM-DD",
       "end_date": "YYYY-MM-DD",
@@ -685,32 +732,48 @@ claude-runner / Swarm / distributed-dev が読んで起動順序を決める JSO
       "tasks": ["T-FND-01", "T-FND-02", "T-FND-03"],
       "depends_on_waves": [],
       "completion_criteria": [
-        "all 8 CI gates pass",
-        "lint #1-19 all 0 violations",
+        "all N CI gates pass (project-defined gate set)",
+        "all lint rules 0 violations",
         "AC validator validates 3-tier schema"
       ]
     },
     {
       "wave_id": "W1",
-      "phase_id": "P1",
-      "name": "Slice 0: auth + workspace + base schema",
+      "phase_id": "backend",
+      "name": "Slice 0 backend: auth + base schema",
       "start_date": "YYYY-MM-DD",
       "end_date": "YYYY-MM-DD",
       "parallel_session_count_target": 30,
       "group_split": {"A": 0, "B": 21, "C": 3, "D": 6},
-      "tasks": ["T-001-01", "T-001-02", "T-S0-08", "T-S0-09", "T-019-01"],
+      "tasks": ["T-001-01", "T-001-02"],
       "depends_on_waves": ["W0"],
       "completion_criteria": [
-        "auth flow E2E pass",
+        "auth API contract test pass",
+        "base schema migration applied",
+        "all access control policies tested"
+      ]
+    },
+    {
+      "wave_id": "W4",
+      "phase_id": "ui",
+      "name": "Slice 0 UI: auth screens + workspace dashboard",
+      "start_date": "YYYY-MM-DD",
+      "end_date": "YYYY-MM-DD",
+      "parallel_session_count_target": 30,
+      "group_split": {"A": 0, "B": 21, "C": 3, "D": 6},
+      "tasks": ["T-001-10", "T-001-11"],
+      "depends_on_waves": ["W1"],
+      "completion_criteria": [
+        "auth flow E2E pass (login/logout/signup)",
         "workspace dashboard renders KPI",
-        "all RLS policies tested"
+        "a11y check pass"
       ]
     }
   ],
   "milestones": [
     {
       "milestone_id": "M0",
-      "name": "Phase 0 完了 / Foundation gate 開放",
+      "name": "Foundation phase 完了 / Foundation gate 開放",
       "date": "YYYY-MM-DD",
       "depends_on": ["W0"],
       "type": "phase_gate"
@@ -719,22 +782,20 @@ claude-runner / Swarm / distributed-dev が読んで起動順序を決める JSO
   "ci_gate_auto_merge": {
     "enabled": true,
     "gates": [
-      "lint-mock (19 checks)",
+      "lint (project-defined rule set)",
       "AC validator (3-tier schema + EARS form)",
-      "RLS coverage (verify-rls-coverage)",
+      "access control coverage (e.g. RLS verifier)",
       "audit MD existence",
-      "pytest cov >= 70%",
-      "pyright strict",
-      "tsc strict",
-      "mock-impl-diff (lint #17)"
+      "test coverage gate (e.g. >= 70%)",
+      "type check (e.g. pyright / tsc strict)",
+      "mock-impl-diff (drift detector)"
     ],
     "consecutive_failure_threshold": 3,
     "human_escalation_after": 3
   },
   "critical_path": [
-    "T-019-01", "T-S0-13", "T-001-01", "T-001-02", "T-001-04",
-    "T-001-06", "T-S0-08", "T-S0-09", "T-021-03", "T-020-02",
-    "T-003-02", "T-M28-01"
+    "T-FND-01", "T-FND-09", "T-001-01", "T-001-02",
+    "T-002-01", "T-002-02", "T-003-01", "T-003-02"
   ]
 }
 ```
@@ -748,19 +809,20 @@ claude-runner / Swarm / distributed-dev が読んで起動順序を決める JSO
   "meta": {
     "project": "プロジェクト名",
     "created_at": "YYYY-MM-DD",
-    "skill_version": "1.0",
-    "total_phases": 0,
+    "skill_version": "v3-2026-05-16-generalized",
+    "total_phases": 4,
     "total_weeks": 0
   },
   "context": {
     "project_type": "Webアプリ/モバイル/SaaS/社内ツール",
-    "team_type": "社内チーム/外部分散/ハイブリッド",
+    "team_type": "社内チーム/外部分散/ハイブリッド/並列セッション",
     "client_type": "新規/既存/社内",
-    "contract_type": "受託固定/受託準委任/社内開発"
+    "contract_type": "受託固定/受託準委任/社内開発",
+    "parallel_capacity": "small (1-5) / medium (10-30) / large (30-100) / massive (100+)"
   },
   "decision_log": [
     {
-      "decision": "フェーズをXに分けた",
+      "decision": "Foundation / Backend / UI / Polish の 4 phase 構成にした",
       "reason": "なぜその分け方にしたか",
       "alternatives": ["2フェーズ案", "1括案"],
       "tradeoffs": "トレードオフ"
@@ -768,7 +830,7 @@ claude-runner / Swarm / distributed-dev が読んで起動順序を決める JSO
   ],
   "schedule_patterns": [
     {
-      "pattern_name": "パターン名（例：外部実装者並列グループ制御）",
+      "pattern_name": "パターン名（例：並列セッション Wave 制御）",
       "applicable_to": "どんなプロジェクトに使えるか",
       "description": "効果と適用条件"
     }
@@ -776,7 +838,7 @@ claude-runner / Swarm / distributed-dev が読んで起動順序を決める JSO
   "risk_log": [
     {
       "risk_id": "R001",
-      "risk_type": "ブロッキング遅延/クライアント確認遅延/スコープ変更",
+      "risk_type": "ブロッキング遅延/クライアント確認遅延/スコープ変更/CI gate 連続失敗/drift 増殖",
       "description": "リスクの内容",
       "trigger": "何が起きたら発動するか",
       "mitigation": "対応策"
@@ -792,30 +854,30 @@ claude-runner / Swarm / distributed-dev が読んで起動順序を決める JSO
 
 ---
 
-## このスキルの典型的な使い方（Build Factory + 受託文脈）
+## このスキルの典型的な使い方（受託 / 内製 dogfood / 並列セッション 共通）
 
 ```
 PM: 「タスク分解ができた。スケジュールを引きたい」
  → STEP 1 を出力（止まる）
 
-PM: 「3フェーズ構成で。フェーズ1は6週で認証とコア機能だけ」
+PM: 「Foundation / Backend / UI / Polish の 4 phase で。Backend phase は 6 週で認証とコア機能だけ」
  → STEP 2 を出力（止まる）
 
-PM: 「フェーズ1の納品物をもう少し具体的にしたい」
+PM: 「Backend phase の納品物をもう少し具体的にしたい」
  → 調整して再出力（止まる）
 
 PM: 「STEP 3へ」
- → 週次スケジュールとリソース配置を出力（止まる）
+ → Wave 単位ガント表とリソース配置を出力（止まる）
 
 PM: 「STEP 4へ」
  → リスク・変更管理設計を出力（止まる）
 
 PM: 「STEP 5へ」
- → 3形式の最終出力
+ → 4 形式の最終出力 (Markdown / milestones JSON / wave-schedule.json / decision log JSON)
 ```
 
 **受託開発での重要な原則：**
-スケジュールを引く前に必ず「フェーズ1が終わったら何をクライアントに見せるか」を決める。
+スケジュールを引く前に必ず「Foundation phase が終わったら何をクライアント (or 自分) に見せるか」「Backend phase 完了で何が動いているか」を決める。
 これが決まっていないスケジュールは、設計書ではなく「工数の積み上げ表」でしかない。
 
 ---
@@ -831,13 +893,13 @@ PM: 「STEP 5へ」
     {"name": "マイルストーン名", "date": "2025-03-01", "deliverables": ["成果物1"], "status": "pending"}
   ],
   "sprints": [
-    {"name": "Sprint 1", "start": "2025-01-01", "end": "2025-01-14", "goals": ["目標1"], "tasks": ["T-001"]}
+    {"name": "Wave 1", "start": "2025-01-01", "end": "2025-01-14", "goals": ["目標1"], "tasks": ["T-001"]}
   ],
   "risks": [
     {"risk": "リスク内容", "mitigation": "対策", "buffer_days": 5}
   ],
   "resources": [
-    {"role": "フロントエンドエンジニア", "allocation": "100%", "notes": ""}
+    {"role": "フロントエンドエンジニア / 並列セッション", "allocation": "100%", "notes": ""}
   ]
 }
 ```
