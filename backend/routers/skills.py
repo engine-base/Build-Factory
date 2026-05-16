@@ -13,12 +13,13 @@ T-002-01 AC:
 
 import logging
 import re
+import time
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional  # noqa: F401 (Any preserved for downstream typing)
 
 from db import async_db as aiosqlite
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, Header, HTTPException
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
@@ -269,12 +270,17 @@ async def update_skill(skill_name: str, body: SkillUpdate):
 
         # DB 更新
         updates: dict = {}
-        if body.display_name is not None: updates["display_name"] = body.display_name
-        if body.description  is not None: updates["description"]  = body.description
-        if body.category     is not None: updates["category"]     = body.category
-        if body.tags         is not None: updates["tags"]         = body.tags
-        if body.is_active    is not None: updates["is_active"]    = body.is_active
-        if body.content      is not None:
+        if body.display_name is not None:
+            updates["display_name"] = body.display_name
+        if body.description is not None:
+            updates["description"] = body.description
+        if body.category is not None:
+            updates["category"] = body.category
+        if body.tags is not None:
+            updates["tags"] = body.tags
+        if body.is_active is not None:
+            updates["is_active"] = body.is_active
+        if body.content is not None:
             updates["description"] = updates.get("description") or _extract_description(body.content)
         updates["updated_at"] = "datetime('now','localtime')"
 
@@ -358,6 +364,157 @@ async def run_skill(skill_name: str, body: dict):
         detail={"skill_name": name, "input_len": len(str(user_input))},
     )
     return {"skill_name": name, "result": result}
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# T-V3-B-03 (F-002): POST /api/skills/{id}/test
+#
+# spec: docs/api-design/2026-05-16_v3/openapi.yaml#/paths/~1api~1skills~1{id}~1test
+#       docs/functional-breakdown/2026-05-16_v3/features.json#F-002 (api_endpoints[2])
+#
+# AC マッピング (audit: docs/audit/2026-05-16_v3/T-V3-B-03.md):
+#   AC-F1 UNWANTED      : 10/min/user 超過は 429 (rate_limit)
+#   AC-F2 EVENT-DRIVEN  : valid + authorized → 2xx {output, duration_ms}
+#   AC-F3 UNWANTED      : auth token 欠如 → 401
+#   AC-F4 UNWANTED      : body 検証失敗 → 422 + field-level error map
+# ──────────────────────────────────────────────────────────────────────────
+
+
+class SkillTestRequest(BaseModel):
+    """POST /api/skills/{id}/test body (F-002 contract)."""
+
+    test_input: str = Field(..., min_length=1, description="スキルに渡すテスト入力")
+
+
+def _extract_bearer_user(authorization: Optional[str]) -> str:
+    """`Authorization: Bearer <token>` → user_id を返す.
+
+    本実装は Phase 1 minimum: token はそのまま user_id として扱う (Supabase Auth
+    middleware が将来 sub claim を decode して書き戻す前提). 形式違反 / 欠如は
+    401 で reject (AC-F3).
+    """
+    if not authorization or not authorization.strip():
+        raise _error("skills.unauthorized", "missing auth token", status_code=401)
+    parts = authorization.strip().split(None, 1)
+    if len(parts) != 2 or parts[0].lower() != "bearer" or not parts[1].strip():
+        raise _error("skills.unauthorized", "invalid auth scheme (expected Bearer)",
+                     status_code=401)
+    return parts[1].strip()
+
+
+def _resolve_skill_identifier(identifier: str) -> str:
+    """path `{id}` は openapi 上 uuid だが、現行実装は skill_name 基準なので両対応.
+
+    - UUID 形式なら skill_definitions.id (int) に変換できないため skill_name と
+      みなす (404 は後段の DB 探索で確定する)
+    - そうでなければ skill_name として validate
+    """
+    s = (identifier or "").strip()
+    if not s:
+        raise _error("skills.invalid_skill_id", "id must not be empty",
+                     status_code=422)
+    # 既存 _validate_skill_name は 400 を返すので、test endpoint では 422 に揃える
+    try:
+        return _validate_skill_name(s)
+    except HTTPException as e:
+        # 既存 detail.code を保ったまま 422 にリマップ (openapi outputs_4xx 準拠)
+        detail = e.detail if isinstance(e.detail, dict) else {
+            "code": "skills.invalid_skill_name", "message": str(e.detail),
+        }
+        raise HTTPException(status_code=422, detail=detail) from None
+
+
+@router.post("/{skill_id}/test", status_code=201)
+async def test_skill(
+    skill_id: str,
+    body: SkillTestRequest,
+    authorization: Optional[str] = Header(default=None),
+):
+    """T-V3-B-03 (F-002): スキル評価実行 (test endpoint).
+
+    Args:
+        skill_id: path {id}. 現行 schema 上は skill_name (UUID 形式は未対応).
+        body: SkillTestRequest. test_input は必須 (空文字 422).
+        authorization: `Bearer <token>` (401 if missing/invalid).
+
+    Returns:
+        201 Created {"output": str, "duration_ms": int}
+    """
+    # AC-F3: 401 (missing / invalid auth token)
+    user_id = _extract_bearer_user(authorization)
+
+    # AC-F4: 422 (id 検証 / skill_name 形式違反)
+    name = _resolve_skill_identifier(skill_id)
+
+    # AC-F1: 429 (10/min/user 超過)
+    from services.skill_test_rate_limiter import check_and_consume
+
+    allowed, _remaining = await check_and_consume(user_id)
+    if not allowed:
+        raise _error(
+            "skills.rate_limited",
+            "rate limit exceeded: max 10 test invocations per minute per user",
+            status_code=429,
+        )
+
+    # 404: skill 不在
+    async with aiosqlite.connect(DB_PATH) as db:
+        # row_factory は async_db.py 側で常に dict-like なので代入不要 (T-V3-B-03)
+        rows = await db.execute_fetchall(
+            "SELECT id, skill_name, md_path, is_active FROM skill_definitions "
+            "WHERE skill_name=?",
+            (name,),
+        )
+    if not rows:
+        raise _error("skills.not_found", f"skill not found: {name}", status_code=404)
+    item = dict(rows[0])
+    if not item.get("is_active", 1):
+        # archived/disabled は 404 同等 (AI 召喚不可)
+        raise _error("skills.not_found", f"skill not active: {name}", status_code=404)
+
+    # AC-F2: スキル評価実行 (existing skill_runner を再利用)
+    from integrations.skill_runner import invoke_skill
+
+    t0 = time.perf_counter()
+    try:
+        result = await invoke_skill(
+            name,
+            body.test_input,
+            triggered_by="user",
+        )
+    except Exception as e:
+        logger.error("[skills.test] invoke failed: %s -- %s", name, e)
+        raise _error(
+            "skills.execution_failed",
+            f"skill execution failed: {e}",
+            status_code=500,
+        )
+    elapsed_ms = int((time.perf_counter() - t0) * 1000)
+
+    # output 正規化: skill_runner は dict / str / 任意型を返しうる
+    if isinstance(result, dict):
+        # 代表的 keys を fallback で拾う
+        output_str = (
+            result.get("output")
+            or result.get("text")
+            or result.get("content")
+            or str(result)
+        )
+    elif isinstance(result, str):
+        output_str = result
+    else:
+        output_str = str(result)
+
+    await _audit(
+        "skills.tested",
+        user_id=user_id,
+        detail={
+            "skill_name": name,
+            "input_len": len(body.test_input),
+            "duration_ms": elapsed_ms,
+        },
+    )
+    return {"output": output_str, "duration_ms": elapsed_ms}
 
 
 # ──────────────────────────────────────────────────────────────────────────

@@ -207,3 +207,279 @@ async def delete_phase(phase_id: int) -> bool:
         )
         await db.commit()
         return (cur.rowcount or 0) > 0
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# T-V3-B-13 / F-008: workspace-scoped phase helpers
+#
+# F-008 spec (docs/functional-breakdown/2026-05-16_v3/features.json) uses
+# workspace-scoped URLs (/api/workspaces/{id}/phases) but the impl table
+# bf_phases keys phases via project_id. These helpers transparently resolve
+# a workspace -> its primary bf_project and operate on phases scoped to it.
+#
+# policies: max_phases_per_workspace = 10 (F-008 policies)
+# ──────────────────────────────────────────────────────────────────────────
+
+
+MAX_PHASES_PER_WORKSPACE = 10
+
+
+class WorkspaceProjectResolutionError(RuntimeError):
+    """workspace に紐付く bf_project が解決できない."""
+
+
+async def resolve_project_id_for_workspace(workspace_id: int) -> int:
+    """workspace に紐付く primary bf_project の id を返す.
+
+    bf_project が存在しなければ自動作成する (auto-bootstrap).
+    workspace 自体が存在しなければ WorkspaceProjectResolutionError.
+    """
+    if not isinstance(workspace_id, int) or workspace_id <= 0:
+        raise WorkspaceProjectResolutionError(
+            f"workspace_id must be int > 0, got {workspace_id!r}"
+        )
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        cur = await db.execute(
+            "SELECT id FROM bf_projects WHERE workspace_id = ? ORDER BY id ASC LIMIT 1",
+            (workspace_id,),
+        )
+        row = await cur.fetchone()
+        if row:
+            return int(dict(row)["id"])
+        # auto-bootstrap: workspace 名から bf_project を作成
+        ws_cur = await db.execute(
+            "SELECT name FROM workspaces WHERE id = ?", (workspace_id,),
+        )
+        ws_row = await ws_cur.fetchone()
+        if not ws_row:
+            raise WorkspaceProjectResolutionError(
+                f"workspace not found: {workspace_id}"
+            )
+        ws_name = dict(ws_row)["name"]
+        slug = f"ws-{workspace_id}"
+        ins = await db.execute(
+            """INSERT INTO bf_projects (workspace_id, name, slug, status)
+               VALUES (?, ?, ?, 'planning') RETURNING id""",
+            (workspace_id, ws_name, slug),
+        )
+        ins_row = await ins.fetchone()
+        await db.commit()
+        if not ins_row:
+            raise WorkspaceProjectResolutionError(
+                f"failed to create bf_project for workspace {workspace_id}"
+            )
+        return int(dict(ins_row)["id"])
+
+
+async def list_phases_for_workspace(workspace_id: int) -> list[dict]:
+    """workspace に紐付く phases を phase_no 順で返す.
+
+    bf_project が無い場合は空配列を返す (auto-bootstrap は行わない).
+    """
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        cur = await db.execute(
+            "SELECT id FROM bf_projects WHERE workspace_id = ? ORDER BY id ASC LIMIT 1",
+            (workspace_id,),
+        )
+        proj_row = await cur.fetchone()
+        if not proj_row:
+            return []
+        project_id = int(dict(proj_row)["id"])
+        rows = await db.execute_fetchall(
+            "SELECT * FROM bf_phases WHERE project_id = ? ORDER BY phase_no ASC",
+            (project_id,),
+        )
+    return [_row(r) for r in rows]
+
+
+async def count_phases_for_workspace(workspace_id: int) -> int:
+    """workspace に紐付く非 skipped phase 数を返す (max_phases_per_workspace チェック用)."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        cur = await db.execute(
+            "SELECT id FROM bf_projects WHERE workspace_id = ? ORDER BY id ASC LIMIT 1",
+            (workspace_id,),
+        )
+        row = await cur.fetchone()
+        if not row:
+            return 0
+        project_id = int(dict(row)["id"])
+        c2 = await db.execute(
+            "SELECT COUNT(*) AS n FROM bf_phases "
+            "WHERE project_id = ? AND status != 'skipped'",
+            (project_id,),
+        )
+        crow = await c2.fetchone()
+        return int(dict(crow)["n"]) if crow else 0
+
+
+async def create_phase_for_workspace(
+    *,
+    workspace_id: int,
+    name: str,
+    gate_conditions: Optional[list[str]] = None,
+) -> dict:
+    """F-008 POST /api/workspaces/{id}/phases.
+
+    auto-bootstrap で bf_project を解決し、次の phase_no を割り当てる.
+    max_phases_per_workspace=10 を超える場合は InvalidPhaseInput(max_phases_reached).
+    """
+    if not isinstance(name, str) or not name.strip():
+        raise InvalidPhaseInput("name must not be empty")
+    name = name.strip()
+    if len(name) > 200:
+        raise InvalidPhaseInput("name must be <= 200 chars")
+
+    existing = await count_phases_for_workspace(workspace_id)
+    if existing >= MAX_PHASES_PER_WORKSPACE:
+        raise InvalidPhaseInput(
+            f"max_phases_reached: workspace {workspace_id} already has "
+            f"{existing} phases (limit={MAX_PHASES_PER_WORKSPACE})"
+        )
+
+    project_id = await resolve_project_id_for_workspace(workspace_id)
+
+    # 次の phase_no = (現在の最大 phase_no) + 1, range 1..10
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        cur = await db.execute(
+            "SELECT COALESCE(MAX(phase_no), 0) AS mx FROM bf_phases WHERE project_id = ?",
+            (project_id,),
+        )
+        row = await cur.fetchone()
+        next_no = (int(dict(row)["mx"]) if row else 0) + 1
+    if next_no > PHASE_NO_MAX:
+        raise InvalidPhaseInput(
+            f"max_phases_reached: next phase_no={next_no} exceeds {PHASE_NO_MAX}"
+        )
+
+    # gate_conditions は notes に JSON で永続化 (F-008 spec で別 column 未定義)
+    notes_payload: Optional[str] = None
+    if gate_conditions is not None:
+        if not isinstance(gate_conditions, list) or any(
+            not isinstance(c, str) for c in gate_conditions
+        ):
+            raise InvalidPhaseInput("gate_conditions must be a list of strings")
+        notes_payload = json.dumps(
+            {"gate_conditions": list(gate_conditions)}, ensure_ascii=False,
+        )
+
+    return await create_phase(
+        project_id=project_id,
+        phase_no=next_no,
+        name=name,
+        notes=notes_payload,
+    )
+
+
+def _extract_gate_conditions(phase: dict) -> list[str]:
+    """phase.notes に格納された JSON から gate_conditions を取り出す."""
+    notes = phase.get("notes") if isinstance(phase, dict) else None
+    if not notes:
+        return []
+    try:
+        data = json.loads(notes)
+    except (ValueError, TypeError):
+        return []
+    if isinstance(data, dict):
+        gc = data.get("gate_conditions")
+        if isinstance(gc, list):
+            return [str(x) for x in gc]
+    return []
+
+
+async def get_phase_for_workspace(workspace_id: int, phase_id: int) -> Optional[dict]:
+    """phase_id が workspace に紐付くか検証してから返す.
+
+    workspace 外の phase_id は None (router で 404 に変換).
+    """
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        cur = await db.execute(
+            """SELECT p.* FROM bf_phases p
+                 JOIN bf_projects pr ON pr.id = p.project_id
+                WHERE p.id = ? AND pr.workspace_id = ?""",
+            (phase_id, workspace_id),
+        )
+        row = await cur.fetchone()
+    return _row(row) if row else None
+
+
+async def evaluate_gate_and_unlock_next(
+    *,
+    workspace_id: int,
+    phase_id: int,
+    force: bool = False,
+) -> dict:
+    """F-008 POST /api/workspaces/{id}/phases/{phase_id}/gate.
+
+    Returns:
+        {"unlocked_phase_id": <next phase id or None>,
+         "evaluated_at": <isoformat timestamp>,
+         "passed": True}
+    Raises:
+        PhaseNotFound: phase_id が workspace に紐付かない
+        InvalidPhaseInput(code="gate_conditions_not_met", failing=...) :
+            未達 (force=False のとき)
+    """
+    from datetime import datetime as _dt
+
+    phase = await get_phase_for_workspace(workspace_id, phase_id)
+    if not phase:
+        raise PhaseNotFound(
+            f"phase not found in workspace {workspace_id}: {phase_id}"
+        )
+
+    failing: list[str] = []
+    if not force:
+        # gate 条件: (a) phase.status が 'completed' であること (b) gate_conditions
+        # 全件は MVP では「completion 済」とみなす. すべての文字列条件は
+        # phase.notes に保存されている前提で、現状は status のみで判定する.
+        if phase.get("status") != "completed":
+            failing.append(
+                f"phase_not_completed: current status={phase.get('status')!r}"
+            )
+        # gate_conditions のテキスト評価 (MVP: 空でない場合 status='completed' でのみ満了)
+        gc = _extract_gate_conditions(phase)
+        if gc and phase.get("status") != "completed":
+            for c in gc:
+                failing.append(f"condition_not_met: {c}")
+
+    if failing:
+        err = InvalidPhaseInput(
+            f"gate_conditions_not_met: {failing}"
+        )
+        # 失敗条件を attribute で渡す (router が 409 detail に詰める)
+        err.failing_conditions = failing  # type: ignore[attr-defined]
+        raise err
+
+    # 次の phase を探して unlock (status を pending -> in_progress)
+    project_id = int(phase["project_id"])
+    next_phase: Optional[dict] = None
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        cur = await db.execute(
+            "SELECT * FROM bf_phases WHERE project_id = ? AND phase_no > ? "
+            "AND status != 'skipped' ORDER BY phase_no ASC LIMIT 1",
+            (project_id, int(phase["phase_no"])),
+        )
+        nrow = await cur.fetchone()
+        if nrow:
+            next_phase = _row(nrow)
+
+    unlocked_id: Optional[int] = None
+    if next_phase is not None and next_phase.get("status") in (
+        "pending", "blocked",
+    ):
+        unlocked = await start_phase(int(next_phase["id"]))
+        unlocked_id = int(unlocked["id"]) if unlocked else None
+    elif next_phase is not None:
+        unlocked_id = int(next_phase["id"])  # 既に進行中 → idempotent
+
+    return {
+        "unlocked_phase_id": unlocked_id,
+        "evaluated_at": _dt.utcnow().isoformat() + "Z",
+        "passed": True,
+    }
