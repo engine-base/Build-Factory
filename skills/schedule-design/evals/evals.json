@@ -1,0 +1,99 @@
+{
+  "skill_name": "schedule-design",
+  "version": "v3-2026-05-15",
+  "description": "スケジュール設計スキルのテスト (v3: Phase 0/1/1.5/2 + Wave 単位 + 30-50 並列 + 8 CI gate auto-merge)",
+  "evals": [
+    {
+      "id": "sd-eval-1",
+      "title": "STEP 1 で DAG.md pull + Phase 0/1/1.5/2 提案 + 30-50 並列確認",
+      "prompt": "STEP 1 で Build-Factory のスケジュール設計をお願いします。task-decomposition 出力に tickets.json (187 件) と DEPENDENCIES.md (8 Slice の DAG) があり、feature-decomposition の phase-mapping.md で Sprint 0/1/2/3 を確認済。Phase 0 から開始したい。",
+      "expected_behavior": [
+        "STEP 1 形式で出力 (会話的前置きなし)",
+        "v3: 入力情報に tickets.json / DEPENDENCIES.md / DAG.md / phase-mapping.md の path を listing",
+        "v3: Phase 0/1/1.5/2 の 4 段階構成を提案",
+        "v3: 30-50 並列 Claude Code セッション前提を明示",
+        "v3: Wave 0 = Foundation 単独実行 (他 task block) を明示",
+        "v3: 1 Wave = 2-4h × 30-50 並列の粒度を明示",
+        "v3: 完了判定 = 8 CI gate auto-merge を明示",
+        "STEP 2 へ で止まる"
+      ],
+      "assertions": [
+        {"id": "format_no_preface", "check": "応答冒頭が '##' で始まる"},
+        {"id": "v3_input_paths_listed", "check": "tickets.json + DEPENDENCIES.md + DAG.md + phase-mapping.md の path を listing"},
+        {"id": "v3_phase_0_1_1_5_2", "check": "Phase 0/1/1.5/2 の 4 段階構成を提案"},
+        {"id": "v3_parallel_30_50", "check": "30-50 並列 Claude Code セッション前提を明示"},
+        {"id": "v3_wave_0_foundation", "check": "Wave 0 = Foundation 単独実行 (他 task block) を明示"},
+        {"id": "v3_wave_granularity", "check": "1 Wave = 2-4h × 30-50 並列の粒度を明示"},
+        {"id": "v3_8_gate_auto_merge", "check": "完了判定 = 8 CI gate auto-merge を明示"},
+        {"id": "stops_at_step1", "check": "STEP 2 を勝手に開始しない"}
+      ]
+    },
+    {
+      "id": "sd-eval-2",
+      "title": "STEP 2 で Phase 0 (Foundation) を必須化 + Phase ごとの Wave 内訳",
+      "prompt": "STEP 2 へ。Phase 0 から Phase 2 まで 4 段階で。Foundation gate / dogfood / REFACTOR / 公開 の流れで合意済み。",
+      "expected_behavior": [
+        "Phase 0 (Foundation 整備) を最初に定義",
+        "v3: Phase 0 の完了ゲート = 8 CI gate 全 pass + drift 0 件",
+        "v3: Phase 1 内に Wave 1-5 (Slice 0-7 マッピング)",
+        "v3: Phase 1.5 (REFACTOR) を独立 Phase に",
+        "v3: Phase 2 (SaaS 公開) を 7+ Wave に",
+        "v3: 各 Phase の納品物に Phase gate 開放条件 (mechanical / observable)",
+        "STEP 3 へ で止まる"
+      ],
+      "assertions": [
+        {"id": "v3_phase_0_first", "check": "Phase 0 (Foundation) を最初に定義"},
+        {"id": "v3_phase_0_gate_8ci", "check": "Phase 0 完了ゲート = 8 CI gate 全 pass + drift 0 件"},
+        {"id": "v3_phase_1_waves_1_5", "check": "Phase 1 内に Wave 1-5 (Slice 0-7 マッピング)"},
+        {"id": "v3_phase_1_5_refactor", "check": "Phase 1.5 (REFACTOR) を独立 Phase に"},
+        {"id": "v3_phase_2_saas_release", "check": "Phase 2 (SaaS 公開) を Wave 7+ に"},
+        {"id": "v3_observable_gate", "check": "各 Phase の Phase gate が mechanical / observable に定義"},
+        {"id": "stops_at_step2", "check": "STEP 3 を勝手に開始しない"}
+      ]
+    },
+    {
+      "id": "sd-eval-3",
+      "title": "STEP 3 ガント表に Wave 列 + 並列度",
+      "prompt": "STEP 3 へ。ガント表を作って。",
+      "expected_behavior": [
+        "v3: ガント表に Wave 列 (W0/W1/.../W7)",
+        "v3: 各 Wave の並列セッション数 (30-50)",
+        "v3: depends_on_waves で前 Wave 依存を明示",
+        "v3: 各 Wave に Group A/B/C/D の割合明示",
+        "v3: クリティカルパスを task ID で記載",
+        "v3: クライアント確認は Phase gate 時のみ (Wave 内は CI gate auto-merge)",
+        "STEP 4 へ で止まる"
+      ],
+      "assertions": [
+        {"id": "v3_gantt_wave_column", "check": "ガント表に Wave 列 (W0/W1/.../W7)"},
+        {"id": "v3_parallel_count_per_wave", "check": "各 Wave の並列セッション数を明示"},
+        {"id": "v3_depends_on_waves", "check": "depends_on_waves で Wave 間依存を明示"},
+        {"id": "v3_group_a_b_c_d_split", "check": "各 Wave に Group A/B/C/D の割合明示"},
+        {"id": "v3_critical_path_task_id", "check": "クリティカルパスを task ID で記載"},
+        {"id": "v3_client_at_phase_gate_only", "check": "クライアント確認は Phase gate 時のみ (Wave 内は auto-merge)"},
+        {"id": "stops_at_step3", "check": "STEP 4 を勝手に開始しない"}
+      ]
+    },
+    {
+      "id": "sd-eval-4-v3-new",
+      "title": "v3 新規: wave-schedule.json 出力 (4 形式目)",
+      "prompt": "STEP 5 へ。最終出力を。",
+      "expected_behavior": [
+        "出力① スケジュール表 (Markdown)",
+        "出力② マイルストーン JSON",
+        "出力③ 判断ログ JSON",
+        "v3 出力④ wave-schedule.json (Wave 単位実行プラン)",
+        "v3: wave-schedule.json に phases / waves / milestones / ci_gate_auto_merge を含む",
+        "v3: 各 Wave に parallel_session_count_target + depends_on_waves + completion_criteria"
+      ],
+      "assertions": [
+        {"id": "output_count_4", "check": "出力 4 形式 (既存 3 + wave-schedule.json) すべて言及"},
+        {"id": "v3_wave_schedule_json", "check": "wave-schedule.json に phases/waves/milestones/ci_gate_auto_merge を含む"},
+        {"id": "v3_wave_parallel_count", "check": "各 Wave に parallel_session_count_target"},
+        {"id": "v3_wave_depends_on", "check": "各 Wave に depends_on_waves"},
+        {"id": "v3_wave_completion_criteria", "check": "各 Wave に completion_criteria"},
+        {"id": "v3_ci_gate_auto_merge_block", "check": "ci_gate_auto_merge ブロックに 8 gate + threshold が含まれる"}
+      ]
+    }
+  ]
+}
