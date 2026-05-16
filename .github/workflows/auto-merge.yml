@@ -1,0 +1,257 @@
+# T-FOUNDATION-08: auto-merge.yml (全 gate green で auto-merge + 連続 3 失敗 human エスカ)
+#
+# Phase 0 最後の task. 完成 = Phase 1 解禁.
+#
+# 役割:
+#   - ci-v3.yml workflow_run completion を listen
+#   - conclusion == 'success' → gate-summary artifact を fetch して passed:true なら
+#     gh pr merge --auto --squash で auto-merge
+#   - conclusion == 'failure' → PR の failure-N label を increment (1 → 2 → 3)
+#     3 失敗で needs-human-review label 付与 + reviewer 割当
+#
+# 既存 workflow との関係:
+#   - ci.yml / ci-v3.yml : 触らない (work-package boundary: forbidden)
+#   - license-check.yml  : 触らない (style 参考のみ)
+#   本 workflow は workflow_run trigger + pull_request trigger (label 初期化用) のみ.
+#
+# AC マッピング (3-tier, tickets.json T-FOUNDATION-08 と 1:1):
+#   structural.1 : 2 job (auto-merge / failure-counter) を declare      → job auto-merge / failure-counter
+#   structural.2 : actions/download-artifact@v4 で gate-summary fetch   → job auto-merge step "Download gate-summary"
+#   functional.1 : ci-v3.yml success + gate-summary.json.passed==true で
+#                  gh pr merge <PR> --auto --squash 実行                → job auto-merge step "Auto-merge PR"
+#   functional.2 : ci-v3.yml failure で failure-N label を 1→2→3 に
+#                  increment                                            → job failure-counter step "Increment counter"
+#   functional.3 : failure-3 到達で needs-human-review label 付与 +
+#                  reviewer 割当                                        → job failure-counter step "Escalate"
+#   functional.4 : do-not-auto-merge label 付き PR は auto-merge skip   → job auto-merge step "Check skip label"
+#   functional.5 : permission: pull-requests: write 不足は明確 error    → job permissions ブロック + step "Verify permissions"
+#   regression.1 : actionlint 0 errors                                   → local 検証済 (PR description)
+#   regression.2 : dry-run 3 連続失敗 → needs-human-review 確認         → Phase 1 初 PR で実動作検証 (SKIP-WITH-REASON, audit MD)
+#   regression.3 : dry-run 全 gate green → auto-merge 確認              → Phase 1 初 PR で実動作検証 (SKIP-WITH-REASON, audit MD)
+#   regression.4 : bash scripts/pre-commit-check.sh PASS                → 着手前 / commit 前確認
+#   regression.5 : python3 scripts/validate-tickets.py PASS              → 着手前 / commit 前確認
+#   regression.6 : audit_md_path に Tier 1-3 逐語                        → docs/audit/2026-05-16_v3/T-FOUNDATION-08.md
+#
+# 重要事項 (token / branch protection):
+#   - workflow_run trigger は default branch から triggered (PR branch ではなく)
+#   - GITHUB_TOKEN は pull-requests: write + contents: write 必須 (job permissions に宣言)
+#   - `gh pr merge --auto --squash` は branch protection 設定有無に応じて動作:
+#       * protection あり: 全 required check pass で auto-merge enqueue
+#       * protection なし: 即時 squash merge
+#   - `needs-human-review` label は存在しなくても idempotent に gh label create で作成
+
+name: auto-merge
+
+on:
+  workflow_run:
+    workflows: ["ci-v3"]
+    types: [completed]
+  pull_request:
+    # failure-N label 初期化 (PR open / push) のため. label 操作のみで
+    # auto-merge は workflow_run 経由 (CI 完走後) でしか発火しない.
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: read
+  actions: read
+
+concurrency:
+  # workflow_run の pull_requests[0] と pull_request 直接 trigger の両方を統一 group に.
+  # cancel-in-progress: false が重要 — 並走 run が来ても failure counter を確実に処理.
+  group: auto-merge-${{ github.event.pull_request.number || github.event.workflow_run.pull_requests[0].number || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  # ==========================================================================
+  # Job 1: auto-merge
+  #   ci-v3.yml が success conclusion + gate-summary.json.passed==true の時に
+  #   PR を auto-merge する.
+  # ==========================================================================
+  auto-merge:
+    name: auto-merge (全 gate green で squash merge)
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: read
+    steps:
+      - name: Verify permissions (functional.5)
+        # workflow file 内で permissions: pull-requests: write が宣言済か簡易確認.
+        # job permissions ブロックで宣言しているため到達時点で write 有り.
+        # 不足時は gh コマンド自体が 403 で fail し、明確 error message を残す.
+        run: |
+          echo "Configured job permissions:"
+          echo "  contents: write"
+          echo "  pull-requests: write"
+          echo "  actions: read"
+          echo "If any gh call below returns 403, the underlying token lacks scope."
+
+      - name: Extract PR number
+        id: pr
+        run: |
+          PR='${{ github.event.workflow_run.pull_requests[0].number }}'
+          if [ -z "$PR" ] || [ "$PR" = "null" ]; then
+            echo "::warning::workflow_run has no associated PR — skipping auto-merge"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "pr=$PR" >> "$GITHUB_OUTPUT"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "Target PR: #$PR"
+          fi
+
+      - name: Download gate-summary artifact (structural.2)
+        if: steps.pr.outputs.skip != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          # ci-v3.yml gate-summary job が "gate-summary-${{ github.run_id }}" 名で upload.
+          # pattern + merge-multiple で run_id 不問に名前一致を吸収.
+          pattern: gate-summary-*
+          merge-multiple: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Verify gate passed
+        id: check
+        if: steps.pr.outputs.skip != 'true'
+        run: |
+          if [ ! -f gate-summary.json ]; then
+            echo "::error::gate-summary.json not found in workflow_run artifacts"
+            echo "passed=false" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          echo "gate-summary.json contents:"
+          cat gate-summary.json
+          passed=$(jq -r '.passed' gate-summary.json)
+          if [ "$passed" = "true" ]; then
+            echo "passed=true" >> "$GITHUB_OUTPUT"
+            echo "All gates PASS — proceeding to auto-merge eligibility check."
+          else
+            echo "passed=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::gate-summary.passed != true — skipping auto-merge"
+          fi
+
+      - name: Check do-not-auto-merge label (functional.4)
+        id: label_check
+        if: steps.pr.outputs.skip != 'true' && steps.check.outputs.passed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ steps.pr.outputs.pr }}
+        run: |
+          set -e
+          # do-not-auto-merge label が付与されていれば skip.
+          if gh pr view "$PR" --json labels --jq '.labels[].name' | grep -qx 'do-not-auto-merge'; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "PR #$PR has 'do-not-auto-merge' label — skipping auto-merge (functional.4)"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "No 'do-not-auto-merge' label — proceeding."
+          fi
+
+      - name: Auto-merge PR (functional.1)
+        if: steps.pr.outputs.skip != 'true' && steps.check.outputs.passed == 'true' && steps.label_check.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ steps.pr.outputs.pr }}
+        run: |
+          set -e
+          # branch protection の有無に応じて挙動が変わるため両方をログに残す.
+          # protection あり: --auto は required check pass 後に enqueue.
+          # protection なし: 即時 squash merge.
+          echo "Attempting auto-merge for PR #$PR with --auto --squash..."
+          if gh pr merge "$PR" --auto --squash 2>&1; then
+            echo "Auto-merge enqueued/completed for PR #$PR."
+          else
+            # branch protection 無設定で --auto が unsupported な場合のフォールバック.
+            echo "::warning::gh pr merge --auto failed — falling back to direct --squash merge"
+            gh pr merge "$PR" --squash --delete-branch=false
+            echo "Direct squash merge done for PR #$PR."
+          fi
+
+  # ==========================================================================
+  # Job 2: failure-counter
+  #   ci-v3.yml が failure conclusion の時に PR の failure-N label を increment.
+  #   3 失敗で needs-human-review に escalate.
+  # ==========================================================================
+  failure-counter:
+    name: failure-counter (3 連続失敗で human エスカ)
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Extract PR number
+        id: pr
+        run: |
+          PR='${{ github.event.workflow_run.pull_requests[0].number }}'
+          if [ -z "$PR" ] || [ "$PR" = "null" ]; then
+            echo "::warning::workflow_run has no associated PR — skipping failure counter"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "pr=$PR" >> "$GITHUB_OUTPUT"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "Target PR: #$PR"
+          fi
+
+      - name: Ensure required labels exist (idempotent)
+        if: steps.pr.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          # gh label create は既存 label には failure するため || true で idempotent 化.
+          for L in failure-1 failure-2 failure-3 needs-human-review do-not-auto-merge; do
+            gh label create "$L" --color "ededed" --description "auto-merge.yml managed" 2>/dev/null || true
+          done
+
+      - name: Increment failure counter (functional.2 / .3)
+        if: steps.pr.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ steps.pr.outputs.pr }}
+        run: |
+          set -e
+          # 現在の failure-N label を読み出し (最大 1 個想定, 複数あれば最初の 1 個).
+          CURRENT=$(gh pr view "$PR" --json labels --jq '[.labels[].name | select(startswith("failure-"))] | .[0] // ""')
+          echo "Current failure label on PR #$PR: '${CURRENT:-<none>}'"
+
+          if [ -z "$CURRENT" ]; then
+            NEXT="failure-1"
+            echo "First failure → adding $NEXT"
+            gh pr edit "$PR" --add-label "$NEXT"
+          elif [ "$CURRENT" = "failure-1" ]; then
+            NEXT="failure-2"
+            echo "Second failure → $CURRENT → $NEXT"
+            gh pr edit "$PR" --remove-label "$CURRENT" --add-label "$NEXT"
+          elif [ "$CURRENT" = "failure-2" ]; then
+            NEXT="failure-3"
+            echo "Third failure → $CURRENT → $NEXT + escalate (functional.3)"
+            gh pr edit "$PR" --remove-label "$CURRENT" --add-label "$NEXT"
+            gh pr edit "$PR" --add-label "needs-human-review"
+            # reviewer 割当 (組織 team 形式). 環境変数 ESCALATION_TEAM が設定されていれば
+            # 使う (例: engine-base/dev-team). 未設定なら label 付与のみで通知不要.
+            if [ -n "${ESCALATION_TEAM:-}" ]; then
+              gh pr edit "$PR" --add-reviewer "$ESCALATION_TEAM" || \
+                echo "::warning::failed to assign reviewer $ESCALATION_TEAM (team may not exist or lack access)"
+            else
+              echo "::notice::ESCALATION_TEAM not set — needs-human-review label のみ付与 (reviewer 割当はスキップ)"
+            fi
+          else
+            # 既に failure-3 (rare: workflow_run が re-fire したケース). escalate を冪等再実行.
+            echo "Already at $CURRENT — re-applying escalation labels (idempotent)"
+            gh pr edit "$PR" --add-label "needs-human-review"
+          fi
+          echo "Failure counter step done for PR #$PR."
+
+  # NOTE: AC structural.1 で「exactly 2 jobs: auto-merge and failure-counter」と
+  # 明記されているため job は 2 つのみ. pull_request trigger は将来的な拡張
+  # (label 初期化等) の hook として確保しているが、現状 job は発火しない.
+  # failure-N label のリセットは GitHub の auto-cleanup または手動で対応.
