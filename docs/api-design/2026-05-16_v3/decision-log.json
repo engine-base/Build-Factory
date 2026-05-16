@@ -1,0 +1,88 @@
+{
+  "version": "v3",
+  "skill": "api-design",
+  "project": "Build-Factory",
+  "created_at": "2026-05-16",
+  "decisions": [
+    {
+      "id": "AD-001",
+      "topic": "API style",
+      "decision": "RESTful HTTP/JSON + 2 WebSocket streams (hearing / session log).",
+      "rationale": "v3 features.json already declares REST verbs and resource paths; consistent with existing 453 backend routers. WebSocket only used for long-running streams (LLM hearing, session log)."
+    },
+    {
+      "id": "AD-002",
+      "topic": "URL prefix / versioning",
+      "decision": "Keep `/api/<resource>/...` (no `/api/v1/` prefix).",
+      "rationale": "features.json declares 138/140 endpoints under `/api/...` and 2 under `/ws/...`. Backend has ~453 existing endpoints under `/api/...` already in production-shape; introducing `/api/v1/` would force a wholesale rewrite. BF profile section 'URL pattern' specifies `/api/<resource>/...` (kebab-case). Future v2 will introduce `/api/v2/` when breaking changes accumulate."
+    },
+    {
+      "id": "AD-003",
+      "topic": "Authentication",
+      "decision": "Supabase Auth (GoTrue) Bearer JWT. ADR-013 (AUTH strategy).",
+      "rationale": "Selected stack mandates Supabase Auth + JWT + 2FA TOTP + OAuth (Anthropic/GitHub/Slack/Google). Bearer is the simplest standard scheme — declared via OpenAPI `securitySchemes.bearerAuth` (http/bearer/JWT)."
+    },
+    {
+      "id": "AD-004",
+      "topic": "Access control encoding",
+      "decision": "x-bf-access-control-policies per operation, format `<table>:<policy_name>` (BF profile rule).",
+      "rationale": "Supabase Postgres RLS is the authoritative authorisation layer. Each operation declares which `(table, policy)` pair gates the row visibility. `scripts/verify-rls-coverage.py` consumes this to ensure every endpoint touches at least one declared policy."
+    },
+    {
+      "id": "AD-005",
+      "topic": "Error model",
+      "decision": "Standard 4xx components reused via $ref: Unauthorized / Forbidden / NotFound / Conflict / ValidationError / RateLimited / InternalServerError. Body schema = ErrorBody (error/code/message/details/retry_after_sec).",
+      "rationale": "DRY for 140 endpoints. Triggers / EARS-UNWANTED forms remain per-endpoint via x-bf-error-seeds so the same response component carries different ears_form text downstream."
+    },
+    {
+      "id": "AD-006",
+      "topic": "ears_ac_seed — verbatim vs synthesised",
+      "decision": "features.json `ears_ac_seed[]` is the master text; copied verbatim into ears-ac-seed.json. outputs_4xx triggers are wrapped into UNWANTED EARS forms (status 429 → EVENT-DRIVEN per v3-core convention).",
+      "rationale": "Task-decomposition Tier 2 functional AC MUST quote api-design verbatim. Synthesising new wording introduces drift and defeats the EARS validator."
+    },
+    {
+      "id": "AD-007",
+      "topic": "Rate limiting",
+      "decision": "Surface as `x-bf-rate-limit` extension on each operation (format `<count>/<window>/<scope>` from features.json). Enforced by FastAPI middleware (slowapi) per ADR-013.",
+      "rationale": "OpenAPI 3.1 has no canonical rate-limit field. `x-bf-rate-limit` is parsed by `scripts/lint-screens-api.py` and Schemathesis 4xx fuzz to ensure 429 is reachable."
+    },
+    {
+      "id": "AD-008",
+      "topic": "WebSocket endpoints",
+      "decision": "Represent /ws/* as HTTP GET with x-bf-protocol=websocket and response 101 Switching Protocols.",
+      "rationale": "OpenAPI 3.1 has no first-class WebSocket support yet (AsyncAPI is separate). The GET + extension shim is the de-facto convention used by openapi-typescript / Schemathesis."
+    },
+    {
+      "id": "AD-009",
+      "topic": "Drift carry-over",
+      "decision": "Each operation that exists in api-drift-summary.md gets x-bf-drift{severity,task_id,recommendation,impl_router_state}. 104/140 endpoints currently lack backend impl (94 critical + 7 high + 1 medium + 2 low).",
+      "rationale": "task-decomposition Group B-1 (vertical slice) will consume x-bf-drift.task_id to materialise T-V3-DRIFT-F-XXX-NN tasks. screens-API lint (#18) blocks merges when an endpoint is referenced from mock but has no implementation_path."
+    },
+    {
+      "id": "AD-010",
+      "topic": "Schema generation chain",
+      "decision": "openapi.yaml → openapi-typescript → frontend/src/api/types.ts. openapi.yaml → datamodel-code-generator → backend/schemas.py. Schemathesis runs against openapi.yaml in Foundation gate.",
+      "rationale": "Per BF profile §型自動生成チェーン. types.ts and schemas.py are committed but generated (edit禁止). Foundation phase CI gate #1 (mock lint #18) + gate #7 (tsc --strict) detect drift."
+    },
+    {
+      "id": "AD-011",
+      "topic": "Entity schema fidelity",
+      "decision": "Entity schemas in components.schemas are minimal envelopes derived from entities.json field names + name-based type heuristics (id/_id → uuid; _at → date-time; is_/has_ → boolean; etc.).",
+      "rationale": "entities.json fields are stored as raw_v1_descriptor strings without strict types. We do not fabricate detailed schemas — backend schemas.py (generated by datamodel-codegen from Pydantic models, which read SQLAlchemy declarative types) is the precise source. types.ts consumers should treat entity types as loose dicts plus `id`."
+    },
+    {
+      "id": "AD-012",
+      "topic": "Endpoint count discipline",
+      "decision": "Exactly 140 endpoints exported (138 HTTP + 2 WebSocket). No legacy ~340 backend endpoints included.",
+      "rationale": "Per session brief: 'legacy は別 audit'. Phase 1.5 will run a separate audit to either lift surviving endpoints into v3 spec or mark them deprecated."
+    }
+  ],
+  "metrics": {
+    "endpoint_count": 140,
+    "feature_count": 35,
+    "entity_count": 68,
+    "role_count": 6,
+    "drift_critical_endpoints": 94,
+    "drift_high_endpoints": 7
+  }
+}

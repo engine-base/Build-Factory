@@ -1,0 +1,2369 @@
+{
+  "version": "v3",
+  "skill": "api-design",
+  "project": "Build-Factory",
+  "created_at": "2026-05-16",
+  "lint_consumer": "scripts/lint-screens-api.py (lint #18 screens-API in lint-mock.sh)",
+  "endpoints_count": 140,
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "feature_id": "F-001",
+      "auth_role": "public",
+      "screen_ids_referencing": [
+        "S-001",
+        "S-002",
+        "S-003",
+        "S-004",
+        "S-005"
+      ],
+      "implementation_path": "backend/routers/auth.py::post_auth_login",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-001-01",
+      "access_control_policies": []
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/signup",
+      "feature_id": "F-001",
+      "auth_role": "public",
+      "screen_ids_referencing": [
+        "S-001",
+        "S-002",
+        "S-003",
+        "S-004",
+        "S-005"
+      ],
+      "implementation_path": "backend/routers/auth.py::post_auth_signup",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-001-02",
+      "access_control_policies": []
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/password-reset",
+      "feature_id": "F-001",
+      "auth_role": "public",
+      "screen_ids_referencing": [
+        "S-001",
+        "S-002",
+        "S-003",
+        "S-004",
+        "S-005"
+      ],
+      "implementation_path": "backend/routers/auth.py::post_auth_password_reset",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-001-03",
+      "access_control_policies": []
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/mfa/enroll",
+      "feature_id": "F-001",
+      "auth_role": "authenticated",
+      "screen_ids_referencing": [
+        "S-001",
+        "S-002",
+        "S-003",
+        "S-004",
+        "S-005"
+      ],
+      "implementation_path": "backend/routers/auth.py::post_auth_mfa_enroll",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-001-04",
+      "access_control_policies": [
+        "user:authenticated_select"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/mfa/verify",
+      "feature_id": "F-001",
+      "auth_role": "public",
+      "screen_ids_referencing": [
+        "S-001",
+        "S-002",
+        "S-003",
+        "S-004",
+        "S-005"
+      ],
+      "implementation_path": "backend/routers/auth.py::post_auth_mfa_verify",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-001-05",
+      "access_control_policies": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/oauth/{provider}/callback",
+      "feature_id": "F-001",
+      "auth_role": "public",
+      "screen_ids_referencing": [
+        "S-001",
+        "S-002",
+        "S-003",
+        "S-004",
+        "S-005"
+      ],
+      "implementation_path": "backend/routers/auth.py::get_auth_oauth_by_provider_callback",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-001-06",
+      "access_control_policies": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/skills",
+      "feature_id": "F-002",
+      "auth_role": "authenticated",
+      "screen_ids_referencing": [
+        "S-038"
+      ],
+      "implementation_path": "backend/routers/skills.py::get_skills",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "skill:authenticated_select"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/skills",
+      "feature_id": "F-002",
+      "auth_role": "account_owner",
+      "screen_ids_referencing": [
+        "S-038"
+      ],
+      "implementation_path": "backend/routers/skills.py::post_skills",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "skill:account_owner_all"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/skills/{id}/test",
+      "feature_id": "F-002",
+      "auth_role": "account_owner",
+      "screen_ids_referencing": [
+        "S-038"
+      ],
+      "implementation_path": "backend/routers/skills.py::post_skills_by_id_test",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-002-01",
+      "access_control_policies": [
+        "skill:account_owner_all"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/skills/{id}/archive",
+      "feature_id": "F-002",
+      "auth_role": "account_owner",
+      "screen_ids_referencing": [
+        "S-038"
+      ],
+      "implementation_path": "backend/routers/skills.py::post_skills_by_id_archive",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "skill:account_owner_all"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/ai-employees/org-chart",
+      "feature_id": "F-003",
+      "auth_role": "authenticated",
+      "screen_ids_referencing": [
+        "S-036",
+        "S-037",
+        "S-038"
+      ],
+      "implementation_path": "backend/routers/ai_employees.py::get_ai_employees_org_chart",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-003-01",
+      "access_control_policies": [
+        "a_i_employee:authenticated_select",
+        "skill:authenticated_select"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/ai-employees",
+      "feature_id": "F-003",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-036",
+        "S-037",
+        "S-038"
+      ],
+      "implementation_path": "backend/routers/ai_employees.py::post_ai_employees",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "a_i_employee:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/ai-employees/{id}",
+      "feature_id": "F-003",
+      "auth_role": "authenticated",
+      "screen_ids_referencing": [
+        "S-036",
+        "S-037",
+        "S-038"
+      ],
+      "implementation_path": "backend/routers/ai_employees.py::get_ai_employees_by_id",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "a_i_employee:authenticated_select"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/ai-employees/{id}",
+      "feature_id": "F-003",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-036",
+        "S-037",
+        "S-038"
+      ],
+      "implementation_path": "backend/routers/ai_employees.py::put_ai_employees_by_id",
+      "drift_severity": "high",
+      "drift_task_id": "T-V3-DRIFT-F-003-02",
+      "access_control_policies": [
+        "a_i_employee:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/ai-employees/{id}/test",
+      "feature_id": "F-003",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-036",
+        "S-037",
+        "S-038"
+      ],
+      "implementation_path": "backend/routers/ai_employees.py::post_ai_employees_by_id_test",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-003-03",
+      "access_control_policies": [
+        "a_i_employee:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/ai-employees/{id}/clone-from-user",
+      "feature_id": "F-003",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-036",
+        "S-037",
+        "S-038"
+      ],
+      "implementation_path": "backend/routers/ai_employees.py::post_ai_employees_by_id_clone_from_user",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-003-04",
+      "access_control_policies": [
+        "a_i_employee:workspace_admin_rw",
+        "user_knowledge_namespace:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounts/{id}",
+      "feature_id": "F-004",
+      "auth_role": "authenticated",
+      "screen_ids_referencing": [
+        "S-007",
+        "S-008",
+        "S-013",
+        "S-014",
+        "S-015"
+      ],
+      "implementation_path": "backend/routers/accounts.py::get_accounts_by_id",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "account:authenticated_select"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/accounts/{id}",
+      "feature_id": "F-004",
+      "auth_role": "account_owner",
+      "screen_ids_referencing": [
+        "S-007",
+        "S-008",
+        "S-013",
+        "S-014",
+        "S-015"
+      ],
+      "implementation_path": "backend/routers/accounts.py::put_accounts_by_id",
+      "drift_severity": "high",
+      "drift_task_id": "T-V3-DRIFT-F-004-01",
+      "access_control_policies": [
+        "account:account_owner_all"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/accounts/{id}/transfer-owner",
+      "feature_id": "F-004",
+      "auth_role": "account_owner",
+      "screen_ids_referencing": [
+        "S-007",
+        "S-008",
+        "S-013",
+        "S-014",
+        "S-015"
+      ],
+      "implementation_path": "backend/routers/accounts.py::post_accounts_by_id_transfer_owner",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-004-02",
+      "access_control_policies": [
+        "account:account_owner_all",
+        "user:account_owner_all"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/accounts/{id}",
+      "feature_id": "F-004",
+      "auth_role": "account_owner",
+      "screen_ids_referencing": [
+        "S-007",
+        "S-008",
+        "S-013",
+        "S-014",
+        "S-015"
+      ],
+      "implementation_path": "backend/routers/accounts.py::delete_accounts_by_id",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "account:account_owner_all"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounts/{id}/members",
+      "feature_id": "F-004",
+      "auth_role": "authenticated",
+      "screen_ids_referencing": [
+        "S-007",
+        "S-008",
+        "S-013",
+        "S-014",
+        "S-015"
+      ],
+      "implementation_path": "backend/routers/accounts.py::get_accounts_by_id_members",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "account:authenticated_select",
+        "user:authenticated_select"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/accounts/{id}/invitations",
+      "feature_id": "F-004",
+      "auth_role": "account_owner",
+      "screen_ids_referencing": [
+        "S-007",
+        "S-008",
+        "S-013",
+        "S-014",
+        "S-015"
+      ],
+      "implementation_path": "backend/routers/accounts.py::post_accounts_by_id_invitations",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-004-03",
+      "access_control_policies": [
+        "account:account_owner_all"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/accounts/{id}/members/{user_id}",
+      "feature_id": "F-004",
+      "auth_role": "account_owner",
+      "screen_ids_referencing": [
+        "S-007",
+        "S-008",
+        "S-013",
+        "S-014",
+        "S-015"
+      ],
+      "implementation_path": "backend/routers/accounts.py::delete_accounts_by_id_members_by_user_id",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-004-04",
+      "access_control_policies": [
+        "account:account_owner_all",
+        "user:account_owner_all"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}",
+      "feature_id": "F-004",
+      "auth_role": "authenticated",
+      "screen_ids_referencing": [
+        "S-007",
+        "S-008",
+        "S-013",
+        "S-014",
+        "S-015"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "workspace:authenticated_select"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/workspaces/{id}",
+      "feature_id": "F-004",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-007",
+        "S-008",
+        "S-013",
+        "S-014",
+        "S-015"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::put_workspaces_by_id",
+      "drift_severity": "high",
+      "drift_task_id": "T-V3-DRIFT-F-004-05",
+      "access_control_policies": [
+        "workspace:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/workspaces/{id}",
+      "feature_id": "F-004",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-007",
+        "S-008",
+        "S-013",
+        "S-014",
+        "S-015"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::delete_workspaces_by_id",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "workspace:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/members",
+      "feature_id": "F-004",
+      "auth_role": "authenticated",
+      "screen_ids_referencing": [
+        "S-007",
+        "S-008",
+        "S-013",
+        "S-014",
+        "S-015"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_members",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "workspace:authenticated_select",
+        "workspace_member:authenticated_select"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/workspaces/{id}/members/{user_id}/role",
+      "feature_id": "F-004",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-007",
+        "S-008",
+        "S-013",
+        "S-014",
+        "S-015"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::put_workspaces_by_id_members_by_user_id_role",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-004-06",
+      "access_control_policies": [
+        "workspace_member:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/workspaces/{id}/members/{user_id}",
+      "feature_id": "F-004",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-007",
+        "S-008",
+        "S-013",
+        "S-014",
+        "S-015"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::delete_workspaces_by_id_members_by_user_id",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "workspace_member:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/invitations",
+      "feature_id": "F-004",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-007",
+        "S-008",
+        "S-013",
+        "S-014",
+        "S-015"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_invitations",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "workspace:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/invitations",
+      "feature_id": "F-004",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-007",
+        "S-008",
+        "S-013",
+        "S-014",
+        "S-015"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_invitations",
+      "drift_severity": "high",
+      "drift_task_id": "T-V3-DRIFT-F-004-07",
+      "access_control_policies": [
+        "workspace:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/workspaces/{id}/invitations/{token}",
+      "feature_id": "F-004",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-007",
+        "S-008",
+        "S-013",
+        "S-014",
+        "S-015"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::delete_workspaces_by_id_invitations_by_token",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-004-08",
+      "access_control_policies": [
+        "workspace:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/invitations/{token}",
+      "feature_id": "F-004",
+      "auth_role": "public",
+      "screen_ids_referencing": [
+        "S-007",
+        "S-008",
+        "S-013",
+        "S-014",
+        "S-015"
+      ],
+      "implementation_path": "backend/routers/invitations.py::get_invitations_by_token",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-004-09",
+      "access_control_policies": []
+    },
+    {
+      "method": "WS",
+      "path": "/ws/hearing/{session_id}",
+      "feature_id": "F-005",
+      "auth_role": "authenticated",
+      "screen_ids_referencing": [
+        "S-020",
+        "S-022"
+      ],
+      "implementation_path": "backend/routers/ws.py::ws_ws_hearing_by_session_id",
+      "drift_severity": "low",
+      "drift_task_id": "T-V3-DRIFT-F-005-01",
+      "access_control_policies": [
+        "chat_thread:authenticated_select",
+        "chat_message:authenticated_select"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/hearing/save",
+      "feature_id": "F-005",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-020",
+        "S-022"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_hearing_save",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-005-02",
+      "access_control_policies": [
+        "hearing:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/specs",
+      "feature_id": "F-005",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-020",
+        "S-022"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_specs",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-005-03",
+      "access_control_policies": [
+        "spec:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/specs/{spec_id}/comments",
+      "feature_id": "F-005",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-020",
+        "S-022"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_specs_by_spec_id_comments",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-005-04",
+      "access_control_policies": [
+        "spec:workspace_member_rw",
+        "comment:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/specs/{spec_id}/comments",
+      "feature_id": "F-005",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-020",
+        "S-022"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_specs_by_spec_id_comments",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-005-05",
+      "access_control_policies": [
+        "comment:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/mocks",
+      "feature_id": "F-005b",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-023",
+        "S-024",
+        "S-025",
+        "S-026"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_mocks",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-005b-01",
+      "access_control_policies": [
+        "screen:workspace_member_rw",
+        "component:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/mocks/{screen_id}",
+      "feature_id": "F-005b",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-023",
+        "S-024",
+        "S-025",
+        "S-026"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_mocks_by_screen_id",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-005b-02",
+      "access_control_policies": [
+        "screen:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/mocks/{screen_id}/html",
+      "feature_id": "F-005b",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-023",
+        "S-024",
+        "S-025",
+        "S-026"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_mocks_by_screen_id_html",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-005b-03",
+      "access_control_policies": [
+        "screen:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/workspaces/{id}/mocks/{screen_id}/html",
+      "feature_id": "F-005b",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-023",
+        "S-024",
+        "S-025",
+        "S-026"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::put_workspaces_by_id_mocks_by_screen_id_html",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-005b-04",
+      "access_control_policies": [
+        "screen:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/mocks/{screen_id}/ai-edit",
+      "feature_id": "F-005b",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-023",
+        "S-024",
+        "S-025",
+        "S-026"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_mocks_by_screen_id_ai_edit",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-005b-05",
+      "access_control_policies": [
+        "screen:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/components",
+      "feature_id": "F-005b",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-023",
+        "S-024",
+        "S-025",
+        "S-026"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_components",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-005b-06",
+      "access_control_policies": [
+        "component:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/components/{id}/usage",
+      "feature_id": "F-005b",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-023",
+        "S-024",
+        "S-025",
+        "S-026"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_components_by_id_usage",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-005b-07",
+      "access_control_policies": [
+        "component:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/screen-flow",
+      "feature_id": "F-005b",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-023",
+        "S-024",
+        "S-025",
+        "S-026"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_screen_flow",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-005b-08",
+      "access_control_policies": [
+        "screen:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/requirements",
+      "feature_id": "F-006",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-021",
+        "S-030"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_requirements",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-006-01",
+      "access_control_policies": [
+        "requirement:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/workspaces/{id}/requirements",
+      "feature_id": "F-006",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-021",
+        "S-030"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::put_workspaces_by_id_requirements",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-006-02",
+      "access_control_policies": [
+        "requirement:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/requirements/versions",
+      "feature_id": "F-006",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-021",
+        "S-030"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_requirements_versions",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-006-03",
+      "access_control_policies": [
+        "requirement:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/tasks/{id}",
+      "feature_id": "F-006",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-021",
+        "S-030"
+      ],
+      "implementation_path": "backend/routers/tasks.py::get_tasks_by_id",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "task:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/tasks/{id}",
+      "feature_id": "F-006",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-021",
+        "S-030"
+      ],
+      "implementation_path": "backend/routers/tasks.py::put_tasks_by_id",
+      "drift_severity": "high",
+      "drift_task_id": "T-V3-DRIFT-F-006-04",
+      "access_control_policies": [
+        "task:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/tasks/{id}/comments",
+      "feature_id": "F-006",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-021",
+        "S-030"
+      ],
+      "implementation_path": "backend/routers/tasks.py::post_tasks_by_id_comments",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-006-05",
+      "access_control_policies": [
+        "task:workspace_member_rw",
+        "comment:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/tasks",
+      "feature_id": "F-007",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-012",
+        "S-027",
+        "S-028",
+        "S-029",
+        "S-030"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_tasks",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "task:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/tasks/bulk-play",
+      "feature_id": "F-007",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-012",
+        "S-027",
+        "S-028",
+        "S-029",
+        "S-030"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_tasks_bulk_play",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-007-01",
+      "access_control_policies": [
+        "task:workspace_member_rw",
+        "session:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/tasks/bulk-archive",
+      "feature_id": "F-007",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-012",
+        "S-027",
+        "S-028",
+        "S-029",
+        "S-030"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_tasks_bulk_archive",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-007-02",
+      "access_control_policies": [
+        "task:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/tasks/export.csv",
+      "feature_id": "F-007",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-012",
+        "S-027",
+        "S-028",
+        "S-029",
+        "S-030"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_tasks_export.csv",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-007-03",
+      "access_control_policies": [
+        "task:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/tasks/dag",
+      "feature_id": "F-007",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-012",
+        "S-027",
+        "S-028",
+        "S-029",
+        "S-030"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_tasks_dag",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-007-04",
+      "access_control_policies": [
+        "task:workspace_member_rw",
+        "task_dependency:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/tasks/{id}/play",
+      "feature_id": "F-007",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-012",
+        "S-027",
+        "S-028",
+        "S-029",
+        "S-030"
+      ],
+      "implementation_path": "backend/routers/tasks.py::post_tasks_by_id_play",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-007-05",
+      "access_control_policies": [
+        "task:workspace_member_rw",
+        "session:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/tasks/play-all",
+      "feature_id": "F-007",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-012",
+        "S-027",
+        "S-028",
+        "S-029",
+        "S-030"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_tasks_play_all",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-007-06",
+      "access_control_policies": [
+        "task:workspace_admin_rw",
+        "session:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/play-all",
+      "feature_id": "F-007",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-012",
+        "S-027",
+        "S-028",
+        "S-029",
+        "S-030"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_play_all",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-007-07",
+      "access_control_policies": [
+        "task:workspace_admin_rw",
+        "session:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/dashboard",
+      "feature_id": "F-007",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-012",
+        "S-027",
+        "S-028",
+        "S-029",
+        "S-030"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_dashboard",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "workspace:workspace_member_rw",
+        "task:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/phases",
+      "feature_id": "F-008",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-016"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_phases",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-008-01",
+      "access_control_policies": [
+        "phase:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/phases",
+      "feature_id": "F-008",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-016"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_phases",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-008-02",
+      "access_control_policies": [
+        "phase:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/phases/{phase_id}/gate",
+      "feature_id": "F-008",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-016"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_phases_by_phase_id_gate",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-008-03",
+      "access_control_policies": [
+        "phase:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/dependencies",
+      "feature_id": "F-009",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-017",
+        "S-029"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_dependencies",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-009-01",
+      "access_control_policies": [
+        "task_dependency:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/dependencies",
+      "feature_id": "F-009",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-017",
+        "S-029"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_dependencies",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-009-02",
+      "access_control_policies": [
+        "task_dependency:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/dependencies/impact-analysis",
+      "feature_id": "F-009",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-017",
+        "S-029"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_dependencies_impact_analysis",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-009-03",
+      "access_control_policies": [
+        "task_dependency:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/sessions",
+      "feature_id": "F-010",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-031",
+        "S-032"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_sessions",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-010-01",
+      "access_control_policies": [
+        "session:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/sessions/{id}",
+      "feature_id": "F-010",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-031",
+        "S-032"
+      ],
+      "implementation_path": "backend/routers/sessions.py::get_sessions_by_id",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-010-02",
+      "access_control_policies": [
+        "session:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "WS",
+      "path": "/ws/sessions/{id}/log",
+      "feature_id": "F-010",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-031",
+        "S-032"
+      ],
+      "implementation_path": "backend/routers/ws.py::ws_ws_sessions_by_id_log",
+      "drift_severity": "low",
+      "drift_task_id": "T-V3-DRIFT-F-010-03",
+      "access_control_policies": [
+        "session:workspace_member_rw",
+        "session_log:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/sessions/{id}/kill",
+      "feature_id": "F-010",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-031",
+        "S-032"
+      ],
+      "implementation_path": "backend/routers/sessions.py::post_sessions_by_id_kill",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-010-04",
+      "access_control_policies": [
+        "session:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/sessions/{id}/pause",
+      "feature_id": "F-010",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-031",
+        "S-032"
+      ],
+      "implementation_path": "backend/routers/sessions.py::post_sessions_by_id_pause",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-010-05",
+      "access_control_policies": [
+        "session:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/sessions/{id}/resume",
+      "feature_id": "F-010",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-031",
+        "S-032"
+      ],
+      "implementation_path": "backend/routers/sessions.py::post_sessions_by_id_resume",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-010-06",
+      "access_control_policies": [
+        "session:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/sessions/{id}/rollback",
+      "feature_id": "F-010",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-031",
+        "S-032"
+      ],
+      "implementation_path": "backend/routers/sessions.py::post_sessions_by_id_rollback",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-010-07",
+      "access_control_policies": [
+        "session:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/sessions/kill-all",
+      "feature_id": "F-010",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-031",
+        "S-032"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_sessions_kill_all",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-010-08",
+      "access_control_policies": [
+        "session:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/red-lines",
+      "feature_id": "F-012",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-019",
+        "S-034"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_red_lines",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-012-01",
+      "access_control_policies": [
+        "red_line:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/red-lines",
+      "feature_id": "F-012",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-019",
+        "S-034"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_red_lines",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-012-02",
+      "access_control_policies": [
+        "red_line:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/red-lines/test",
+      "feature_id": "F-012",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-019",
+        "S-034"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_red_lines_test",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-012-03",
+      "access_control_policies": [
+        "red_line:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/violations",
+      "feature_id": "F-012",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-019",
+        "S-034"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_violations",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-012-04",
+      "access_control_policies": [
+        "red_line:workspace_admin_rw",
+        "red_line_violation:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/violations/{id}/approve",
+      "feature_id": "F-012",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-019",
+        "S-034"
+      ],
+      "implementation_path": "backend/routers/violations.py::post_violations_by_id_approve",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-012-05",
+      "access_control_policies": [
+        "red_line_violation:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/violations/{id}/reject",
+      "feature_id": "F-012",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-019",
+        "S-034"
+      ],
+      "implementation_path": "backend/routers/violations.py::post_violations_by_id_reject",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-012-06",
+      "access_control_policies": [
+        "red_line_violation:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/prs/{pr_number}",
+      "feature_id": "F-013",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-033",
+        "S-035",
+        "S-042",
+        "S-043"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_prs_by_pr_number",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-013-01",
+      "access_control_policies": [
+        "pull_request:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/prs/{id}/approve",
+      "feature_id": "F-013",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-033",
+        "S-035",
+        "S-042",
+        "S-043"
+      ],
+      "implementation_path": "backend/routers/prs.py::post_prs_by_id_approve",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-013-02",
+      "access_control_policies": [
+        "pull_request:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/prs/{id}/comments",
+      "feature_id": "F-013",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-033",
+        "S-035",
+        "S-042",
+        "S-043"
+      ],
+      "implementation_path": "backend/routers/prs.py::post_prs_by_id_comments",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-013-03",
+      "access_control_policies": [
+        "pull_request:workspace_member_rw",
+        "comment:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/prs/{id}/merge",
+      "feature_id": "F-013",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-033",
+        "S-035",
+        "S-042",
+        "S-043"
+      ],
+      "implementation_path": "backend/routers/prs.py::post_prs_by_id_merge",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-013-04",
+      "access_control_policies": [
+        "pull_request:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/client/workspaces/{token}",
+      "feature_id": "F-013",
+      "auth_role": "public",
+      "screen_ids_referencing": [
+        "S-033",
+        "S-035",
+        "S-042",
+        "S-043"
+      ],
+      "implementation_path": "backend/routers/client_portal.py::get_client_workspaces_by_token",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-013-05",
+      "access_control_policies": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/client/workspaces/{token}/spec",
+      "feature_id": "F-013",
+      "auth_role": "public",
+      "screen_ids_referencing": [
+        "S-033",
+        "S-035",
+        "S-042",
+        "S-043"
+      ],
+      "implementation_path": "backend/routers/client_portal.py::get_client_workspaces_by_token_spec",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-013-06",
+      "access_control_policies": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/client/comments/{thread_id}",
+      "feature_id": "F-013",
+      "auth_role": "public",
+      "screen_ids_referencing": [
+        "S-033",
+        "S-035",
+        "S-042",
+        "S-043"
+      ],
+      "implementation_path": "backend/routers/client_portal.py::get_client_comments_by_thread_id",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-013-07",
+      "access_control_policies": []
+    },
+    {
+      "method": "POST",
+      "path": "/api/client/comments",
+      "feature_id": "F-013",
+      "auth_role": "public",
+      "screen_ids_referencing": [
+        "S-033",
+        "S-035",
+        "S-042",
+        "S-043"
+      ],
+      "implementation_path": "backend/routers/client_portal.py::post_client_comments",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-013-08",
+      "access_control_policies": []
+    },
+    {
+      "method": "POST",
+      "path": "/api/comments/{id}/resolve",
+      "feature_id": "F-013",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-033",
+        "S-035",
+        "S-042",
+        "S-043"
+      ],
+      "implementation_path": "backend/routers/comments.py::post_comments_by_id_resolve",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-013-09",
+      "access_control_policies": [
+        "comment:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/delivery",
+      "feature_id": "F-013",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-033",
+        "S-035",
+        "S-042",
+        "S-043"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_delivery",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-013-10",
+      "access_control_policies": [
+        "delivery:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/delivery/approve",
+      "feature_id": "F-013",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-033",
+        "S-035",
+        "S-042",
+        "S-043"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_delivery_approve",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-013-11",
+      "access_control_policies": [
+        "delivery:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/delivery/send-client",
+      "feature_id": "F-013",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-033",
+        "S-035",
+        "S-042",
+        "S-043"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_delivery_send_client",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-013-12",
+      "access_control_policies": [
+        "delivery:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/knowledge",
+      "feature_id": "F-016",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-039"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_knowledge",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-016-01",
+      "access_control_policies": [
+        "knowledge_item:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/knowledge/search",
+      "feature_id": "F-016",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-039"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_knowledge_search",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-016-02",
+      "access_control_policies": [
+        "knowledge_item:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/observability/cost-summary",
+      "feature_id": "F-017",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-040"
+      ],
+      "implementation_path": "backend/routers/observability.py::get_observability_cost_summary",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "cost_log:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/observability/cost-summary/export.csv",
+      "feature_id": "F-017",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-040"
+      ],
+      "implementation_path": "backend/routers/observability.py::get_observability_cost_summary_export.csv",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-017-01",
+      "access_control_policies": [
+        "cost_log:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/token-limit",
+      "feature_id": "F-017",
+      "auth_role": "account_owner",
+      "screen_ids_referencing": [
+        "S-040"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_token_limit",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-017-02",
+      "access_control_policies": [
+        "workspace:account_owner_all"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit-logs",
+      "feature_id": "F-018",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-010",
+        "S-041"
+      ],
+      "implementation_path": "backend/routers/audit_logs.py::get_audit_logs",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-018-01",
+      "access_control_policies": [
+        "audit_log:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit-logs/export.csv",
+      "feature_id": "F-018",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-010",
+        "S-041"
+      ],
+      "implementation_path": "backend/routers/audit_logs.py::get_audit_logs_export.csv",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-018-02",
+      "access_control_policies": [
+        "audit_log:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit-logs/export.json",
+      "feature_id": "F-018",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-010",
+        "S-041"
+      ],
+      "implementation_path": "backend/routers/audit_logs.py::get_audit_logs_export.json",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-018-03",
+      "access_control_policies": [
+        "audit_log:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications",
+      "feature_id": "F-018",
+      "auth_role": "authenticated",
+      "screen_ids_referencing": [
+        "S-010",
+        "S-041"
+      ],
+      "implementation_path": "backend/routers/notifications.py::get_notifications",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-018-04",
+      "access_control_policies": [
+        "notification:authenticated_select"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/notifications/{id}/read",
+      "feature_id": "F-018",
+      "auth_role": "authenticated",
+      "screen_ids_referencing": [
+        "S-010",
+        "S-041"
+      ],
+      "implementation_path": "backend/routers/notifications.py::post_notifications_by_id_read",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-018-05",
+      "access_control_policies": [
+        "notification:authenticated_select"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/notifications/read-all",
+      "feature_id": "F-018",
+      "auth_role": "authenticated",
+      "screen_ids_referencing": [
+        "S-010",
+        "S-041"
+      ],
+      "implementation_path": "backend/routers/notifications.py::post_notifications_read_all",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-018-06",
+      "access_control_policies": [
+        "notification:authenticated_select"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/me",
+      "feature_id": "F-023",
+      "auth_role": "authenticated",
+      "screen_ids_referencing": [
+        "S-009"
+      ],
+      "implementation_path": "backend/routers/me.py::get_me",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-023-01",
+      "access_control_policies": [
+        "user:authenticated_select",
+        "user_settings:authenticated_select"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/me",
+      "feature_id": "F-023",
+      "auth_role": "authenticated",
+      "screen_ids_referencing": [
+        "S-009"
+      ],
+      "implementation_path": "backend/routers/me.py::put_me",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-023-02",
+      "access_control_policies": [
+        "user:authenticated_select"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/me/api-keys",
+      "feature_id": "F-023",
+      "auth_role": "authenticated",
+      "screen_ids_referencing": [
+        "S-009"
+      ],
+      "implementation_path": "backend/routers/me.py::post_me_api_keys",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-023-03",
+      "access_control_policies": [
+        "api_key:authenticated_select"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/me/oauth/{provider}",
+      "feature_id": "F-023",
+      "auth_role": "authenticated",
+      "screen_ids_referencing": [
+        "S-009"
+      ],
+      "implementation_path": "backend/routers/me.py::delete_me_oauth_by_provider",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-023-04",
+      "access_control_policies": [
+        "user:authenticated_select"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/search",
+      "feature_id": "F-024",
+      "auth_role": "authenticated",
+      "screen_ids_referencing": [
+        "S-006",
+        "S-011"
+      ],
+      "implementation_path": "backend/routers/search.py::get_search",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-024-01",
+      "access_control_policies": [
+        "task:authenticated_select",
+        "artifact:authenticated_select",
+        "knowledge_item:authenticated_select",
+        "audit_log:authenticated_select"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounts/{id}/dashboard",
+      "feature_id": "F-024",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-006",
+        "S-011"
+      ],
+      "implementation_path": "backend/routers/accounts.py::get_accounts_by_id_dashboard",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-024-02",
+      "access_control_policies": [
+        "account:workspace_member_rw",
+        "workspace:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/constitution",
+      "feature_id": "F-026",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-018"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_constitution",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-026-01",
+      "access_control_policies": [
+        "constitution:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/constitution/versions",
+      "feature_id": "F-026",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-018"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_constitution_versions",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-026-02",
+      "access_control_policies": [
+        "constitution:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/constitution/versions/{v}/approve",
+      "feature_id": "F-026",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-018"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_constitution_versions_by_v_approve",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-026-03",
+      "access_control_policies": [
+        "constitution:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/onboarding",
+      "feature_id": "F-027",
+      "auth_role": "authenticated",
+      "screen_ids_referencing": [
+        "S-048",
+        "S-049",
+        "S-050"
+      ],
+      "implementation_path": "backend/routers/me.py::get_me_onboarding",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-027-01",
+      "access_control_policies": [
+        "user_settings:authenticated_select"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/me/onboarding/advance",
+      "feature_id": "F-027",
+      "auth_role": "authenticated",
+      "screen_ids_referencing": [
+        "S-048",
+        "S-049",
+        "S-050"
+      ],
+      "implementation_path": "backend/routers/me.py::post_me_onboarding_advance",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-027-02",
+      "access_control_policies": [
+        "user_settings:authenticated_select"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/me/onboarding/skip",
+      "feature_id": "F-027",
+      "auth_role": "authenticated",
+      "screen_ids_referencing": [
+        "S-048",
+        "S-049",
+        "S-050"
+      ],
+      "implementation_path": "backend/routers/me.py::post_me_onboarding_skip",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-027-03",
+      "access_control_policies": [
+        "user_settings:authenticated_select"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/email/templates",
+      "feature_id": "F-028",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-056",
+        "S-057",
+        "S-058",
+        "S-059",
+        "S-060"
+      ],
+      "implementation_path": "backend/routers/email.py::get_email_templates",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-028-01",
+      "access_control_policies": [
+        "email_template:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/email/templates/{id}",
+      "feature_id": "F-028",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-056",
+        "S-057",
+        "S-058",
+        "S-059",
+        "S-060"
+      ],
+      "implementation_path": "backend/routers/email.py::put_email_templates_by_id",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "email_template:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/email/test-send",
+      "feature_id": "F-028",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-056",
+        "S-057",
+        "S-058",
+        "S-059",
+        "S-060"
+      ],
+      "implementation_path": "backend/routers/email.py::post_email_test_send",
+      "drift_severity": "critical",
+      "drift_task_id": "T-V3-DRIFT-F-028-02",
+      "access_control_policies": [
+        "email_delivery:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/email/unsubscribe",
+      "feature_id": "F-028",
+      "auth_role": "public",
+      "screen_ids_referencing": [
+        "S-056",
+        "S-057",
+        "S-058",
+        "S-059",
+        "S-060"
+      ],
+      "implementation_path": "backend/routers/email.py::post_email_unsubscribe",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/design-system/tokens",
+      "feature_id": "F-029",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-024",
+        "S-025"
+      ],
+      "implementation_path": "backend/routers/design_system.py::get_design_system_tokens",
+      "drift_severity": "medium",
+      "drift_task_id": "T-V3-DRIFT-F-029-01",
+      "access_control_policies": [
+        "component:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/design-system/icons",
+      "feature_id": "F-029",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-024",
+        "S-025"
+      ],
+      "implementation_path": "backend/routers/design_system.py::get_design_system_icons",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "component:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/api-tokens",
+      "feature_id": "F-030",
+      "auth_role": "authenticated",
+      "screen_ids_referencing": [
+        "S-063",
+        "S-064"
+      ],
+      "implementation_path": "backend/routers/me.py::get_me_api_tokens",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "api_key:authenticated_select"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/me/api-tokens",
+      "feature_id": "F-030",
+      "auth_role": "authenticated",
+      "screen_ids_referencing": [
+        "S-063",
+        "S-064"
+      ],
+      "implementation_path": "backend/routers/me.py::post_me_api_tokens",
+      "drift_severity": "high",
+      "drift_task_id": "T-V3-DRIFT-F-030-01",
+      "access_control_policies": [
+        "api_key:authenticated_select"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/me/api-tokens/{id}",
+      "feature_id": "F-030",
+      "auth_role": "authenticated",
+      "screen_ids_referencing": [
+        "S-063",
+        "S-064"
+      ],
+      "implementation_path": "backend/routers/me.py::delete_me_api_tokens_by_id",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "api_key:authenticated_select"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/exports",
+      "feature_id": "F-031",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-061",
+        "S-062"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_exports",
+      "drift_severity": "high",
+      "drift_task_id": "T-V3-DRIFT-F-031-01",
+      "access_control_policies": [
+        "artifact:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/exports/{id}",
+      "feature_id": "F-031",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-061",
+        "S-062"
+      ],
+      "implementation_path": "backend/routers/exports.py::get_exports_by_id",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "artifact:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/mcp/tokens",
+      "feature_id": "F-010a",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [],
+      "implementation_path": "backend/routers/mcp.py::post_mcp_tokens",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "api_key:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/mcp/tokens",
+      "feature_id": "F-010a",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [],
+      "implementation_path": "backend/routers/mcp.py::get_mcp_tokens",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "api_key:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/mcp/tokens/{token_id}",
+      "feature_id": "F-010a",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [],
+      "implementation_path": "backend/routers/mcp.py::delete_mcp_tokens_by_token_id",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "api_key:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/pr-review/start",
+      "feature_id": "F-011",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-033",
+        "S-030"
+      ],
+      "implementation_path": "backend/routers/misc.py::post_pr_review_start",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "p_r_review:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/pr-review/{id}",
+      "feature_id": "F-011",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-033",
+        "S-030"
+      ],
+      "implementation_path": "backend/routers/misc.py::get_pr_review_by_id",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "p_r_review:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/pr-review/{id}/escalate",
+      "feature_id": "F-011",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [
+        "S-033",
+        "S-030"
+      ],
+      "implementation_path": "backend/routers/misc.py::post_pr_review_by_id_escalate",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "p_r_review:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/slack/webhooks",
+      "feature_id": "F-014",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_slack_webhooks",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "slack_webhook:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/slack/webhooks",
+      "feature_id": "F-014",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_slack_webhooks",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "slack_webhook:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/slack/webhooks/{webhook_id}/test",
+      "feature_id": "F-014",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_slack_webhooks_by_webhook_id_test",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "slack_webhook:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/workspaces/{id}/slack/webhooks/{webhook_id}",
+      "feature_id": "F-014",
+      "auth_role": "workspace_admin",
+      "screen_ids_referencing": [],
+      "implementation_path": "backend/routers/workspaces.py::delete_workspaces_by_id_slack_webhooks_by_webhook_id",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "slack_webhook:workspace_admin_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspaces/{id}/reports",
+      "feature_id": "F-015",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-022",
+        "S-035"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::get_workspaces_by_id_reports",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "artifact:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/workspaces/{id}/reports",
+      "feature_id": "F-015",
+      "auth_role": "member",
+      "screen_ids_referencing": [
+        "S-022",
+        "S-035"
+      ],
+      "implementation_path": "backend/routers/workspaces.py::post_workspaces_by_id_reports",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": [
+        "artifact:workspace_member_rw"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/system/health",
+      "feature_id": "F-033",
+      "auth_role": "public",
+      "screen_ids_referencing": [
+        "S-044",
+        "S-045",
+        "S-046",
+        "S-047"
+      ],
+      "implementation_path": "backend/routers/system.py::get_system_health",
+      "drift_severity": null,
+      "drift_task_id": null,
+      "access_control_policies": []
+    }
+  ]
+}
