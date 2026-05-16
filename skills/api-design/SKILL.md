@@ -1,6 +1,6 @@
 ---
 name: api-design
-description: API設計スキル。機能分解・アーキテクチャ設計の出力をもとにRESTful APIのエンドポイント・リクエスト/レスポンス型・認証方式・エラーハンドリングを設計する。「APIを設計したい」「エンドポイントを決めたい」「リクエスト/レスポンスの型を定義したい」「OpenAPI仕様を作りたい」「バックエンドとフロントエンドのインターフェースを決めたい」という場面で必ず起動する。5STEPの対話型プロセスで進み、出力はAPI仕様書・OpenAPI(YAML)・型定義(TypeScript)・判断ログの4形式。
+description: API 設計スキル。機能分解・アーキテクチャ設計の出力をもとに RESTful API のエンドポイント・リクエスト/レスポンス型・認証方式・エラーハンドリングを設計する。**v3 採用 (2026-05-15〜)**: functional-breakdown の features.json (api_endpoints 列) と architecture-design の selected-stack.json を pull し、各 endpoint に **auth role / rate_limit / RLS policy 紐付け / outputs_4xx 必須 (401/403/404/409/422/429/500 細分化) / ears_ac_seed (EARS 5 形式 AC ドラフト = 下流 task-decomposition の Tier 2 functional AC source) / implementation_path** を必須付与。lint #18 screens-API (backend FastAPI router 実在性) と verify-rls-coverage の検証対象を明示し、TS 型自動生成 (openapi-typescript) と Pydantic 自動生成 (datamodel-code-generator) の連携を含む。「API を設計したい」「エンドポイントを決めたい」「リクエスト/レスポンスの型を定義したい」「OpenAPI 仕様を作りたい」「バックエンドとフロントエンドのインターフェースを決めたい」「EARS 形式の AC を API ごとに作りたい」「RLS policy を endpoint に紐付けたい」「rate_limit を設計したい」「outputs_4xx を細分化したい」「lint #18 screens-API 用の path 一覧を作りたい」「openapi-typescript で型同期したい」場面で必ず起動する。5STEP の対話型プロセスで進み、出力は API 仕様書 (Markdown) + OpenAPI (YAML) + 型定義 (TypeScript) + 判断ログ JSON + **ears-ac-seed.json** + **lint-mapping.json** の 6 形式。
 tab: 設計
 builtin: true
 ---
@@ -147,6 +147,17 @@ builtin: true
 - **型を必ず定義する** — 「オブジェクト」ではなく具体的なフィールド名・型で出力する
 - **エラーも設計する** — 正常系だけでなく異常系のレスポンスも必ず定義する
 
+## v3 必須ルール (2026-05-15〜)
+
+詳細: `references/v3-extensions.md`
+
+1. **functional-breakdown + architecture-design の出力を必ず pull** — STEP 1 で `features.json` (api_endpoints ドラフト) と `selected-stack.json` (auth library / api framework / ADR-013 AUTH 戦略) の path を確認
+2. **各 endpoint に v3 必須フィールドを全て付与** — auth.role / rate_limit / rls_policies / outputs_4xx[] / ears_ac_seed[] / implementation_path / related_entities。値が無い場合は `[]` または `null` を明示 (欠落不可)
+3. **outputs_4xx[] を必ず細分化** — 401 / 403 / 404 / 409 / 422 / 429 / 500 のうち該当するものを全て列挙。各 4xx に code / body / trigger / ears_form (UNWANTED 形式) を付与
+4. **ears_ac_seed は EARS 5 形式に限定** — UBIQUITOUS / EVENT-DRIVEN / STATE-DRIVEN / OPTIONAL / UNWANTED いずれかで始まる文。各 endpoint に **EVENT-DRIVEN 1 件以上 + UNWANTED 1 件以上** を必ず含める
+5. **implementation_path で lint #18 検証対象を明示** — `backend/routers/<file>.py::<function>` 形式。lint #18 screens-API が backend 実在性を CI で検証
+6. **OpenAPI から TS 型 / Pydantic を自動生成する前提で設計** — openapi-typescript で frontend/src/api/types.ts、datamodel-code-generator で backend/schemas.py を生成。STEP 5 でツール採用方針を出力
+
 ## 深掘りの考え方
 
 API設計で後から「これ決めてなかった」となるパターンがある。各STEPでこれを意識して潰す：
@@ -172,11 +183,26 @@ STEP 4（エンドポイント設計確定）後の最終出力では、openapi-
 
 ---
 
-### ▶ STEP 1：API設計方針の決定
+### ▶ STEP 1：API設計方針の決定 (v3: functional-breakdown + selected-stack pull)
 
-設計の前提を確定する：
+設計の前提を確定する。
+
+**v3 必須**: 起動時に functional-breakdown と architecture-design の出力 path を確認:
 
 ```
+## 入力情報の確認 (v3)
+
+### 上流出力
+- functional-breakdown 出力: docs/functional-breakdown/<date>_v<N>/
+  - features.json: N 機能 / api_endpoints ドラフト合計 N 件
+  - screens.json: N 画面 (related_apis 引き継ぎ用)
+  - entities.json: N 件 (rls_policies 紐付け用)
+- architecture-design 出力: docs/architecture/<date>_v<N>/
+  - selected-stack.json: auth_provider / api_framework / orm
+  - phase_0_gates.json: lint #18 screens-API の存在確認
+  - adrs-to-create.json: ADR-013 AUTH 戦略
+```
+
 ## API設計方針
 
 ### スタイル
@@ -220,6 +246,11 @@ STEP 4（エンドポイント設計確定）後の最終出力では、openapi-
 | サードパーティAPI連携はあるか | 決済（Stripe）・SMS・地図・SNS認証など→ 認証フロー・エラーハンドリングが複雑化する |
 | バッチ・一括操作が必要な機能はないか | 「100件一括更新」「CSV一括インポート」→ 通常のCRUDと設計が異なる |
 | APIを外部公開するか | 外部開発者向けに公開する場合→ レートリミット・APIキー管理・ドキュメント公開が必要 |
+| **v3: features.json の api_endpoints ドラフト総数** | functional-breakdown から N 件 pull 済か確認 |
+| **v3: ears_ac_seed 必須化** | 全 endpoint に EVENT-DRIVEN + UNWANTED 1 件以上を必須にする方針で OK か |
+| **v3: outputs_4xx 細分化** | 401 / 403 / 404 / 409 / 422 / 429 / 500 のうち該当を全列挙する方針で OK か |
+| **v3: implementation_path** | backend/routers/<file>.py::<function> 形式で lint #18 検証用 path を全 endpoint に付与する方針で OK か |
+| **v3: 型自動生成ツール** | openapi-typescript (frontend) + datamodel-code-generator (backend) を採用するか |
 
 **出力後は必ず止まる：**
 ```
@@ -235,26 +266,38 @@ API設計方針を確認してください。
 
 ---
 
-### ▶ STEP 2：エンドポイント一覧設計
+### ▶ STEP 2：エンドポイント一覧設計 (v3: 必須フィールド追加)
 
-確認後、機能分解の出力（F001〜）をもとに全エンドポイントを設計する：
+確認後、機能分解の出力（features.json の api_endpoints）をもとに全エンドポイントを設計する。**v3 必須**: 各 endpoint に v3 フィールド (auth.role / rate_limit / rls_policies / implementation_path / ears_ac_seed プレビュー) を必ず付与:
 
 ```
-## エンドポイント一覧
+## エンドポイント一覧 (v3)
 
 ### [カテゴリ名]（例：認証）
-| メソッド | パス | 説明 | 機能ID | 認証要否 |
-|---------|------|------|--------|---------|
-| POST | /api/v1/auth/register | ユーザー登録 | F001 | 不要 |
-| POST | /api/v1/auth/login | ログイン | F002 | 不要 |
-| POST | /api/v1/auth/logout | ログアウト | F003 | 要 |
-| GET  | /api/v1/auth/me | 自分の情報取得 | F004 | 要 |
+| メソッド | パス | 説明 | feature_id | screen_ids | auth.role | rate_limit | rls_policies | implementation_path |
+|---|---|---|---|---|---|---|---|---|
+| POST | /api/auth/login | ログイン | F-001 | S-001 | public | 5/min/ip | - | backend/routers/auth.py::login |
+| POST | /api/auth/logout | ログアウト | F-001 | S-001 | authenticated | - | auth_sessions:user_own_select | backend/routers/auth.py::logout |
+| GET | /api/auth/me | 自分の情報取得 | F-001 | - | authenticated | 100/min/user | users:self_select | backend/routers/auth.py::me |
+
+### EARS AC seed プレビュー (各 endpoint に最低 EVENT-DRIVEN + UNWANTED 1 件)
+- POST /api/auth/login:
+  - EVENT-DRIVEN: When POST /api/auth/login is called with valid email+password, the system shall return 200 with { access_token, refresh_token, user_id }.
+  - UNWANTED: If credentials are invalid, the system shall return 401 with generic message (no user enumeration).
+  - EVENT-DRIVEN: When 5 failed login attempts occur within 15 min for the same IP, the system shall return 429.
 
 ### [次のカテゴリ]
 （同様の形式で）
 
 ## エンドポイント設計の判断ポイント
 （なぜこのURL設計にしたか・迷った箇所）
+
+## v3 必須フィールド漏れ check
+- [ ] 全 endpoint に auth.role 付与
+- [ ] auth=authenticated なら rls_policies 紐付け済 (空でも `[]` を明示)
+- [ ] 全 endpoint に implementation_path 付与 (lint #18 検証対象)
+- [ ] 全 endpoint に ears_ac_seed プレビュー (EVENT-DRIVEN + UNWANTED 1 件以上)
+- [ ] features.json の api_endpoints ドラフトと 1:1 対応 (機能消失なし)
 ```
 
 **Webリサーチ（STEP 2で実施）：**
@@ -322,11 +365,50 @@ API設計の意思決定に必要な情報を調査する：
 }
 \`\`\`
 
-**エラーレスポンス**
-| ステータス | コード | メッセージ |
-|-----------|--------|---------|
-| 400 | VALIDATION_ERROR | バリデーションエラー詳細 |
-| 409 | EMAIL_ALREADY_EXISTS | このメールアドレスは既に使用されています |
+**エラーレスポンス (v3: outputs_4xx[] を必須細分化)**
+
+各 4xx に `code` / `body` / `trigger` (条件) / `ears_form` (UNWANTED 形式) を必ず付与:
+
+```json
+"outputs_4xx": [
+  {
+    "status": 401,
+    "code": "INVALID_CREDENTIALS",
+    "body": {"error": "invalid_credentials"},
+    "trigger": "credentials don't match",
+    "ears_form": "UNWANTED: If credentials are invalid, the system shall return 401 with generic message (no user enumeration)."
+  },
+  {
+    "status": 422,
+    "code": "VALIDATION_ERROR",
+    "body": {"error": "validation_failed", "details": [...]},
+    "trigger": "email format invalid or password < 8 chars",
+    "ears_form": "UNWANTED: If email format is invalid or password is shorter than 8 characters, the system shall return 422 with field-level errors."
+  },
+  {
+    "status": 429,
+    "code": "RATE_LIMITED",
+    "body": {"error": "rate_limited", "retry_after_sec": 900},
+    "trigger": "5 failed login attempts within 15 min for the same IP",
+    "ears_form": "EVENT-DRIVEN: When 5 failed login attempts occur within 15 min for the same IP, the system shall return 429 with retry_after_sec=900."
+  }
+]
+```
+
+**v3 必須**: 該当する全 4xx を網羅 (401 / 403 / 404 / 409 / 422 / 429 / 500)。「該当しない」は明示的に省略 OK だが、検討した形跡は判断ログに残す。
+
+**ears_ac_seed[] (Tier 2 functional AC source)**:
+
+```json
+"ears_ac_seed": [
+  "EVENT-DRIVEN: When POST /api/auth/login is called with valid email+password, the system shall return 200 with { access_token, refresh_token, user_id }.",
+  "STATE-DRIVEN: While MFA is enabled for the user, the system shall return 200 with mfa_required=true and not issue access_token until POST /api/auth/mfa/verify succeeds.",
+  "UNWANTED: If credentials are invalid, the system shall return 401 with generic message (no user enumeration).",
+  "EVENT-DRIVEN: When 5 failed login attempts occur within 15 min for the same IP, the system shall return 429."
+]
+```
+
+**v3 必須**: EARS 5 形式 (UBIQUITOUS / EVENT-DRIVEN / STATE-DRIVEN / OPTIONAL / UNWANTED) のいずれかで始まる文に限定。task-decomposition の Tier 2 functional AC に逐語コピーされる。
 
 ---
 （他のエンドポイントも同様の形式で）
@@ -405,6 +487,28 @@ API設計の意思決定に必要な情報を調査する：
 | Authorization | Bearer {token} | 認証 |
 | Content-Type | application/json | リクエスト形式 |
 | X-Request-ID | UUID | トレーシング用 |
+
+## v3 必須: lint #18 screens-API 連携
+
+`scripts/lint-screens-api.py` が以下を CI で検証:
+1. screens.json の `related_apis` 各 entry が api-design の endpoints[*] に存在
+2. endpoints[*] の `implementation_path` (例: backend/routers/auth.py::login) が実在する
+3. URL pattern が `/api/<resource>/...` 規約に従う
+
+そのため STEP 5 で `lint-mapping.json` を出力 (各 endpoint × implementation_path × screen_ids_referencing)。
+
+## v3 必須: OpenAPI → 型自動生成チェーン
+
+```
+api-design SKILL → openapi.yaml (OpenAPI 3.0)
+  ↓ openapi-typescript → frontend/src/api/types.ts
+  ↓ datamodel-code-generator → backend/schemas.py (任意)
+  ↓ Schemathesis → contract test (任意)
+```
+
+CI 連携:
+- gate #7 (TypeScript strict) で types.ts 同期不整合なら fail
+- gate #1 (mock lint) の lint #18 で endpoint 実在性検証
 ```
 
 **深掘りチェック（STEP 4で必ず確認すること）：**
@@ -430,7 +534,9 @@ API設計の意思決定に必要な情報を調査する：
 
 ---
 
-### ▶ STEP 5：最終出力（4形式同時出力）
+### ▶ STEP 5：最終出力（v3: 6 形式同時出力）
+
+「STEP 5へ」の指示を受けたら、以下の 6 形式 (4 既存 + 2 v3 新規) を一度に出力する。
 
 ---
 
@@ -567,6 +673,60 @@ export type User = {
   }
 }
 ```
+
+---
+
+#### 【出力⑤】ears-ac-seed.json (v3 新規 / Tier 2 functional AC source)
+
+各 endpoint の `ears_ac_seed[]` を集約。task-decomposition が読んで `acceptance_criteria.functional` に逐語コピー:
+
+```json
+{
+  "version": "v3",
+  "skill": "api-design",
+  "endpoints_count": 24,
+  "ac_seeds": [
+    {
+      "endpoint": "POST /api/auth/login",
+      "feature_id": "F-001",
+      "screen_ids": ["S-001"],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When POST /api/auth/login is called with valid email+password, the system shall return 200 with { access_token, refresh_token, user_id }.",
+        "STATE-DRIVEN: While MFA is enabled for the user, the system shall return 200 with mfa_required=true.",
+        "UNWANTED: If credentials are invalid, the system shall return 401 with generic message.",
+        "EVENT-DRIVEN: When 5 failed login attempts occur within 15 min for the same IP, the system shall return 429."
+      ]
+    }
+  ]
+}
+```
+
+---
+
+#### 【出力⑥】lint-mapping.json (v3 新規 / lint #18 screens-API 検証対象)
+
+```json
+{
+  "version": "v3",
+  "skill": "api-design",
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "implementation_path": "backend/routers/auth.py::login",
+      "screen_ids_referencing": ["S-001"]
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/me",
+      "implementation_path": "backend/routers/auth.py::me",
+      "screen_ids_referencing": []
+    }
+  ]
+}
+```
+
+`scripts/lint-screens-api.py` (lint #18) がこの JSON を読んで backend router 実在性を CI で検証。
 
 ---
 
