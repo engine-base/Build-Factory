@@ -1,0 +1,66 @@
+{
+  "version": "v3",
+  "task_id": "T-V3-C-06",
+  "title": "S-006 10-project overview UI (F-004)",
+  "branch": "claude/T-V3-C-06",
+  "phase": "Phase 1B",
+  "wave": "W4",
+  "group": "C",
+  "deliverable_layer": "ui",
+  "estimate_hours": 4,
+  "session_meta": {
+    "subagent_type": "general-purpose",
+    "isolation": "worktree",
+    "model_preference": "sonnet",
+    "spec_links": [
+      "docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part1.json#T-V3-C-06",
+      "docs/audit/2026-05-16_v3/T-V3-C-06.md",
+      "docs/functional-breakdown/2026-05-16_v3/features.json#F-004",
+      "docs/functional-breakdown/2026-05-16_v3/screens.json#S-006"
+    ],
+    "required_reads": [
+      "docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part1.json",
+      "docs/audit/2026-05-16_v3/T-V3-C-06.md",
+      "docs/functional-breakdown/2026-05-16_v3/features.json",
+      "docs/functional-breakdown/2026-05-16_v3/screens.json"
+    ]
+  },
+  "work_package_boundary": {
+    "editable": [
+      "frontend/app/s-006/page.tsx",
+      "frontend/app/s-006/layout.tsx",
+      "frontend/components/f_004/",
+      "frontend/__tests__/s-006.test.tsx"
+    ],
+    "shared_no_concurrent_edit": [
+      "frontend/app/layout.tsx",
+      "frontend/lib/api-client.ts"
+    ],
+    "readonly": [
+      "docs/mocks/2026-05-09_v1/",
+      "docs/functional-breakdown/2026-05-16_v3/",
+      "backend/app/routers/"
+    ],
+    "forbidden": [
+      "backend/",
+      "scripts/",
+      ".github/workflows/"
+    ]
+  },
+  "depends_on": [
+    "T-V3-B-02"
+  ],
+  "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-06.md",
+  "ci_gates": [
+    "lint-mock",
+    "AC-validator",
+    "RLS-coverage",
+    "audit-md",
+    "pytest-cov-70",
+    "pyright",
+    "tsc",
+    "mock-impl-diff"
+  ],
+  "final_state": "pending",
+  "failure_count": 0
+}

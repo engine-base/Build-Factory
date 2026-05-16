@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "project": "Build-Factory",
+    "phase_target": "Phase 1 (Backend + UI + Drift)",
+    "skill": "distributed-dev",
+    "skill_version": "v3-core 2026-05-15",
+    "profile": "skills/distributed-dev/references/profiles/build-factory.md",
+    "created_at": "2026-05-16",
+    "session_role": "v3 Phase 1 distributed-dev"
+  },
+  "context": {
+    "input_count": 100,
+    "groups": {"B (backend)": 30, "C (UI)": 55, "D (drift)": 15},
+    "waves": {"W1": 21, "W2": 8, "W3": 1, "W4": 25, "W5": 30, "W6": 15},
+    "parallel_capacity_target": "30-50 sessions per Wave (BF profile)",
+    "output_dir": ".claude/branches/",
+    "audit_dir": "docs/audit/2026-05-16_v3/"
+  },
+  "decision_log": [
+    {
+      "decision": "1 task = 1 branch-package.json (flat directory under .claude/branches/)",
+      "reason": "orchestrator picks up files by glob; eliminates index-vs-file drift; matches v3-core SKILL.md output contract",
+      "alternatives": ["all-in-one tickets-with-meta.json", "nested directory by wave"],
+      "tradeoffs": "1-file-per-task increases file count to 100 but simplifies session boot (1 read), atomic updates, and merge conflicts"
+    },
+    {
+      "decision": "Use a Python generator (scripts/_generate_branch_packages.py) instead of static JSON commits",
+      "reason": "100 file machine generation removes copy-paste drift; the generator IS the source of truth and re-runs are idempotent",
+      "alternatives": ["jinja2 templating", "hand-author JSON"],
+      "tradeoffs": "Pure-Python (zero external deps) is portable across CI runners; jinja2 adds a dep without payoff for this shape"
+    },
+    {
+      "decision": "Wave assignment: W1=21 backend, W2=8 backend, W3=1 backend, W4=25 UI, W5=30 UI, W6=15 drift",
+      "reason": "v3-core 'backend-first → UI-second' within Wave is impractical at 30 task-per-Wave scale; instead, separate the layers across Waves and let UI Waves W4/W5 list dependent backend tasks in depends_on. Drift fix runs last (W6) after UI lands.",
+      "alternatives": ["mixed B+C in same Wave", "split UI into 3 Waves of ~18"],
+      "tradeoffs": "Phase 1 timeline becomes longer in wall-clock but each Wave is uniform-layer, simplifying mutex check and parallel boot"
+    },
+    {
+      "decision": "depends_on uses task_id strings (not wave/group fields)",
+      "reason": "Orchestrator's session scheduler is task-id keyed; using string ids lets a dependency cross Waves cleanly (e.g., T-V3-C-01 depends_on T-V3-B-01)",
+      "alternatives": ["depends_on_waves only", "no dependencies (just Wave gate)"],
+      "tradeoffs": "Per-task deps slightly more verbose but enables fine-grained restart"
+    },
+    {
+      "decision": "final_state seeded to 'pending'; mutated by auto-merge job",
+      "reason": "Matches SKILL.md schema; the auto-merge job (integration skill) transitions 'pending' → 'auto-merged' / 'retried' / 'escalated' / 'rolled_back'",
+      "alternatives": ["omit field on creation", "use 'queued'"],
+      "tradeoffs": "Explicit initial state simplifies state-machine verification in CI"
+    },
+    {
+      "decision": "ci_gates list is the BF profile 8-gate set (lint-mock, AC-validator, RLS-coverage, audit-md, pytest-cov-70, pyright, tsc, mock-impl-diff)",
+      "reason": "v3 BF profile fixes N=8; backend / UI / drift all subject to the same gate set (gates self-skip when irrelevant, e.g., tsc on pure-backend PR)",
+      "alternatives": ["per-layer gate subsets", "extensible plug-in gates"],
+      "tradeoffs": "Uniform 8-gate set keeps auto-merge logic stateless"
+    },
+    {
+      "decision": "work_package_boundary patterns: backend slug-by-feature_id, UI slug-by-screen_id, drift category-specific",
+      "reason": "FastAPI modular monolith + Next.js app-router map cleanly to feature- and screen-scoped paths; drift fixes touch a known small set (schema/migration/openapi/screens.json)",
+      "alternatives": ["per-task hand-tuned boundary", "single coarse boundary per group"],
+      "tradeoffs": "Slug patterns are predictable for boundary-lint #16 but may need per-task overrides once tickets-group-*.json land — generator is the override point"
+    },
+    {
+      "decision": "spec_links and required_reads always reference the (not-yet-committed) Phase 1 ticket files",
+      "reason": "branch-package.json is consumed BY orchestrator AFTER tickets land; pinning paths now keeps files self-contained on arrival",
+      "alternatives": ["delay metadata until tickets exist", "embed full task content inline"],
+      "tradeoffs": "Path-pinning lets orchestrator fast-fail with a clear 'missing ticket' error vs. silently degrading"
+    }
+  ],
+  "open_questions": [
+    "tickets-group-b-backend.json / tickets-group-c-ui-part*.json / tickets-group-d-drift.json have not been committed yet; once authored, re-run scripts/_generate_branch_packages.py and diff to detect drift",
+    "wave-schedule.json under docs/schedule-design/2026-05-16_v3/ is not present; orchestrator must treat Wave dependency graph (W1→W2→W3→W4→W5→W6) as implicit from .claude/branches/_index.json until schedule-design lands",
+    "openapi.yaml is not present under docs/api-design/; backend tasks reference docs/api-design/ as readonly placeholder — adjust on api-design output"
+  ],
+  "next_steps": {
+    "immediate": [
+      "commit .claude/branches/ + docs/distributed-dev/2026-05-16_v3_phase1/ + scripts/_generate_branch_packages.py",
+      "PR base main, label distributed-dev",
+      "After merge: orchestrator boots W1 = 21 sessions via .claude/branches/T-V3-B-{01..21}.json"
+    ],
+    "long_term": [
+      "Integration skill consumes final_state transitions",
+      "Phase 1 closeout = all 100 final_state ∈ {auto-merged, escalated} with no retried/rolled_back pending"
+    ]
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "version": "v3",
+  "task_id": "T-V3-D-07",
+  "title": "API drift fix: project / phase endpoints",
+  "branch": "claude/T-V3-D-07",
+  "phase": "Phase 1C",
+  "wave": "W6",
+  "group": "D",
+  "deliverable_layer": "polish",
+  "estimate_hours": 2,
+  "session_meta": {
+    "subagent_type": "general-purpose",
+    "isolation": "worktree",
+    "model_preference": "sonnet",
+    "spec_links": [
+      "docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-d-drift.json#T-V3-D-07",
+      "docs/audit/2026-05-16_v3/T-V3-D-07.md",
+      "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md"
+    ],
+    "required_reads": [
+      "docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-d-drift.json",
+      "docs/audit/2026-05-16_v3/T-V3-D-07.md",
+      "docs/functional-breakdown/2026-05-16_v3/features.json",
+      "docs/functional-breakdown/2026-05-16_v3/entities.json",
+      "docs/functional-breakdown/2026-05-16_v3/screens.json"
+    ]
+  },
+  "work_package_boundary": {
+    "editable": [
+      "docs/api-design/2026-05-16_v3/openapi.yaml",
+      "backend/app/routers/",
+      "backend/app/schemas/"
+    ],
+    "shared_no_concurrent_edit": [
+      "docs/api-design/2026-05-16_v3/openapi.yaml"
+    ],
+    "readonly": [
+      "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md"
+    ],
+    "forbidden": [
+      "frontend/",
+      ".github/workflows/"
+    ]
+  },
+  "depends_on": [],
+  "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-D-07.md",
+  "ci_gates": [
+    "lint-mock",
+    "AC-validator",
+    "RLS-coverage",
+    "audit-md",
+    "pytest-cov-70",
+    "pyright",
+    "tsc",
+    "mock-impl-diff"
+  ],
+  "final_state": "pending",
+  "failure_count": 0
+}
