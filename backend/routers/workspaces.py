@@ -1212,8 +1212,17 @@ def _map_tws_exc(exc: Exception) -> HTTPException:
         return _error("tasks.unauthorized", str(exc), status_code=401)
     if isinstance(exc, tws.Forbidden):
         return _error("tasks.forbidden", str(exc), status_code=403)
+    # T-V3-B-12: TaskNotFound / WorkspaceNotFound 両方を 404 に map.
+    if isinstance(exc, tws.TaskNotFound):
+        return _error("tasks.task_not_found", str(exc), status_code=404)
     if isinstance(exc, tws.WorkspaceNotFound):
         return _error("tasks.workspace_not_found", str(exc), status_code=404)
+    # T-V3-B-12: DependencyConflict / MaxParallelReached → 409.
+    if isinstance(exc, tws.DependencyConflict):
+        return _error("tasks.dependencies_not_satisfied", str(exc),
+                      status_code=409)
+    if isinstance(exc, tws.MaxParallelReached):
+        return _error("tasks.max_parallel_reached", str(exc), status_code=409)
     if isinstance(exc, tws.RateLimited):
         return _error("tasks.rate_limited", str(exc), status_code=429)
     if isinstance(exc, tws.ValidationFailed):
@@ -1309,6 +1318,94 @@ async def get_tasks_dag(
     try:
         result = await tws.get_dag(
             workspace_id, actor_user_id=actor_user_id,
+        )
+    except Exception as e:
+        raise _map_tws_exc(e) from e
+    return result
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# T-V3-B-12 / F-007: workspace-scoped play-all (2 endpoint)
+#
+# spec: docs/api-design/2026-05-16_v3/openapi.yaml#post_workspaces_by_id_tasks_play_all
+#       docs/api-design/2026-05-16_v3/openapi.yaml#post_workspaces_by_id_play_all
+#       docs/functional-breakdown/2026-05-16_v3/features.json#F-007
+#
+# AC マッピング (T-V3-B-12):
+#   AC-F6 EVENT-DRIVEN  : POST /api/workspaces/{id}/tasks/play-all 正常系 → 2xx + queued
+#   AC-F7 UNWANTED      : 同 actor 不在 → 401
+#   AC-F8 EVENT-DRIVEN  : POST /api/workspaces/{id}/play-all 正常系 → 2xx + queued
+#   AC-F9 UNWANTED      : 同 actor 不在 → 401
+#
+# auth: workspace_admin (owner / ws_admin) のみ.
+# ══════════════════════════════════════════════════════════════════════════
+
+
+class PlayAllTasksBody(BaseModel):
+    """POST /api/workspaces/{id}/tasks/play-all request body.
+
+    filter は title / task_id への LIKE 部分一致 (任意).
+    actor_user_id は dev/test 用 (本番では JWT claims).
+    """
+    filter: Optional[str] = Field(None, max_length=200)
+    actor_user_id: Optional[str] = None
+    max_parallel: int = Field(5, ge=1, le=50)
+
+
+class PlayAllWorkspaceBody(BaseModel):
+    """POST /api/workspaces/{id}/play-all request body.
+
+    workspace 単位の全 task spawn (filter 無し相当).
+    """
+    actor_user_id: Optional[str] = None
+    max_parallel: int = Field(5, ge=1, le=50)
+
+
+@router.post("/{workspace_id}/tasks/play-all")
+async def play_all_workspace_tasks(
+    workspace_id: int,
+    body: Optional[PlayAllTasksBody] = None,
+):
+    """T-V3-B-12 AC-F6/F7.
+
+    EVENT-DRIVEN (AC-F6): playable な task を spawn し queued/skipped を返す.
+    UNWANTED   (AC-F7): actor_user_id 不在 → 401.
+    """
+    if workspace_id <= 0:
+        raise _error("tasks.invalid_workspace_id",
+                     "workspace_id must be > 0", status_code=422)
+    b = body or PlayAllTasksBody()
+    try:
+        result = await tws.play_all_in_workspace_tasks(
+            workspace_id,
+            actor_user_id=b.actor_user_id,
+            filter=b.filter,
+            max_parallel=b.max_parallel,
+        )
+    except Exception as e:
+        raise _map_tws_exc(e) from e
+    return result
+
+
+@router.post("/{workspace_id}/play-all")
+async def play_all_workspace_endpoint(
+    workspace_id: int,
+    body: Optional[PlayAllWorkspaceBody] = None,
+):
+    """T-V3-B-12 AC-F8/F9.
+
+    EVENT-DRIVEN (AC-F8): workspace の playable task を spawn し queued を返す.
+    UNWANTED   (AC-F9): actor_user_id 不在 → 401.
+    """
+    if workspace_id <= 0:
+        raise _error("tasks.invalid_workspace_id",
+                     "workspace_id must be > 0", status_code=422)
+    b = body or PlayAllWorkspaceBody()
+    try:
+        result = await tws.play_all_workspace(
+            workspace_id,
+            actor_user_id=b.actor_user_id,
+            max_parallel=b.max_parallel,
         )
     except Exception as e:
         raise _map_tws_exc(e) from e

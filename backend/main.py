@@ -133,6 +133,7 @@ from routers.violations import router as violations_router
 from routers.email import router as email_router
 from routers.mocks import router as mocks_router  # T-V3-B-08 / F-005b
 from routers.onboarding import router as onboarding_router  # T-V3-B-29 / F-027
+from routers.auth import router as auth_router  # pre-existing main.py drift fix (referenced L316 but never imported)
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 

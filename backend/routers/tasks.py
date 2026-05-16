@@ -533,3 +533,117 @@ async def v3_create_task_comment(
         task_id, body.body, actor_user_id=actor,
     )
     return res
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# T-V3-B-12 / F-007: POST /api/tasks/{id}/play (single task)
+#
+# spec: docs/api-design/2026-05-16_v3/openapi.yaml#post_tasks_by_id_play
+#       docs/functional-breakdown/2026-05-16_v3/features.json#F-007
+#
+# AC マッピング (T-V3-B-12):
+#   AC-F1 UNWANTED      : depends_on 未充足 → 409 (DependencyConflict)
+#   AC-F2 EVENT-DRIVEN  : 正常系 → 2xx + session_id
+#   AC-F3 UNWANTED      : actor_user_id 不在 (no auth) → 401
+#   AC-F4 UNWANTED      : path 不正 → 422 (field-level error map)
+#   AC-F5 UNWANTED      : 30/min/user 超 → 429
+#
+# auth: member 以上 (workspace_member). actor_user_id は body 経由 or DEV_BYPASS.
+# rate limit: 30/min/user (in-memory token bucket; task_workspace_service.py 参照).
+# ══════════════════════════════════════════════════════════════════════════
+
+
+class TaskPlayBody(BaseModel):
+    """T-V3-B-12: POST /api/tasks/{id}/play optional request body.
+
+    actor_user_id は dev/test 用. 本番では JWT claims を優先する.
+    """
+    actor_user_id: Optional[str] = None
+
+
+def _v3_play_map_exception(exc: Exception) -> HTTPException:
+    """task_workspace_service の例外を HTTP status に map (T-V3-B-12)."""
+    from services import task_workspace_service as tws
+    if isinstance(exc, tws.Unauthorized):
+        return HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"code": "tasks.unauthorized", "message": str(exc)},
+        )
+    if isinstance(exc, tws.Forbidden):
+        return HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"code": "tasks.forbidden", "message": str(exc)},
+        )
+    if isinstance(exc, tws.TaskNotFound):
+        return HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "tasks.task_not_found", "message": str(exc)},
+        )
+    if isinstance(exc, tws.WorkspaceNotFound):
+        return HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "tasks.workspace_not_found", "message": str(exc)},
+        )
+    if isinstance(exc, tws.DependencyConflict):
+        return HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"code": "tasks.dependencies_not_satisfied",
+                    "message": str(exc)},
+        )
+    if isinstance(exc, tws.MaxParallelReached):
+        return HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"code": "tasks.max_parallel_reached", "message": str(exc)},
+        )
+    if isinstance(exc, tws.RateLimited):
+        return HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail={"code": "tasks.rate_limited", "message": str(exc)},
+        )
+    if isinstance(exc, tws.ValidationFailed):
+        return HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"code": "tasks.validation_failed", "message": str(exc)},
+        )
+    return HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail={"code": "tasks.internal_error", "message": str(exc)},
+    )
+
+
+@router.post(
+    "/tasks/{task_id}/play",
+    status_code=status.HTTP_201_CREATED,
+    response_model=None,
+)
+async def v3_play_task(
+    task_id: int,
+    body: Optional[TaskPlayBody] = None,
+    user: dict = Depends(_v3_require_user),
+) -> dict:
+    """T-V3-B-12 AC-F1〜F5: 単一 task を play.
+
+    Returns: 201 + {"session_id": <uuid str>}
+    """
+    if task_id is None or task_id <= 0:
+        raise _v3_task_validation_error([{
+            "loc": ["path", "id"],
+            "code": "invalid_task_id",
+            "message": "task_id must be a positive integer",
+        }])
+
+    # actor 解決: body.actor_user_id > JWT claims.sub
+    actor: Optional[str] = None
+    if body is not None and body.actor_user_id:
+        actor = body.actor_user_id.strip() or None
+    if not actor and isinstance(user, dict):
+        sub = user.get("sub")
+        if sub:
+            actor = str(sub).strip() or None
+
+    from services import task_workspace_service as tws
+    try:
+        result = await tws.play_task(task_id, actor_user_id=actor)
+    except Exception as e:
+        raise _v3_play_map_exception(e) from e
+    return result
