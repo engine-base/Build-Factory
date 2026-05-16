@@ -591,3 +591,80 @@ async def lookup_invitation(token: str) -> Optional[dict]:
     else:
         d["is_expired"] = False
     return d
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# T-V3-B-06 (F-004): invitation revocation
+# ──────────────────────────────────────────────────────────────────────────
+
+
+class InvitationRevokedError(ValueError):
+    """T-V3-B-06: invitation が既に revoked / accepted / expired で再 revoke 不可."""
+
+
+async def revoke_invitation(
+    workspace_id: int,
+    token: str,
+    *,
+    actor_user_id: Optional[str] = None,
+) -> dict:
+    """T-V3-B-06 AC-F10.
+
+    DELETE /api/workspaces/{workspace_id}/invitations/{token} core.
+
+    挙動:
+      - status='pending' の invitation のみ revoke 可能 (status → 'revoked').
+      - status='accepted' / 'expired' / 'revoked' は InvitationRevokedError.
+      - token 不一致 / workspace_id 不一致 (cross-workspace) → InvitationNotFoundError.
+      - 成功時は revoked_at を返す.
+    """
+    if not token or not token.strip():
+        raise InvitationNotFoundError("token must not be empty")
+    if workspace_id <= 0:
+        raise InvitationNotFoundError(f"invalid workspace_id: {workspace_id}")
+
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        cur = await db.execute(
+            "SELECT id, workspace_id, status, email, role "
+            "FROM workspace_invitations WHERE token = ?",
+            (token,),
+        )
+        row = await cur.fetchone()
+        if not row:
+            raise InvitationNotFoundError(
+                f"invitation not found for token (workspace_id={workspace_id})"
+            )
+        d = dict(row)
+        # cross-workspace 拒否 (workspace_id mismatch は not_found 扱い)
+        if int(d["workspace_id"]) != int(workspace_id):
+            raise InvitationNotFoundError(
+                f"invitation not found in workspace {workspace_id}"
+            )
+        status = d.get("status") or "pending"
+        if status != "pending":
+            raise InvitationRevokedError(
+                f"invitation already in state '{status}' (cannot revoke)"
+            )
+        revoked_at = datetime.now().isoformat(timespec="seconds")
+        await db.execute(
+            "UPDATE workspace_invitations SET status = 'revoked' WHERE id = ?",
+            (d["id"],),
+        )
+        await db.commit()
+
+    await _emit_audit(
+        "workspace.invitation.revoked",
+        user_id=actor_user_id,
+        detail={
+            "workspace_id": workspace_id,
+            "invitation_id": d["id"],
+            "role": d.get("role"),
+            "email_hash": str(hash(d.get("email") or "")),
+        },
+    )
+    return {
+        "workspace_id": workspace_id,
+        "token_prefix": token[:8],
+        "revoked_at": revoked_at,
+    }

@@ -37,6 +37,13 @@ from services import task_workspace_service as tws
 from services import workspace_service as ws
 from services.auth_middleware import require_user
 
+# T-V3-B-06 (F-004): role + invitation revocation schemas
+from schemas.workspaces import (
+    WorkspaceInvitationRevokeResponse,
+    WorkspaceMemberRoleResponse,
+    WorkspaceMemberRoleUpdate,
+)
+
 router = APIRouter(prefix="/api/workspaces", tags=["workspaces"])
 
 
@@ -539,6 +546,144 @@ async def create_invitation(workspace_id: int, body: InvitationCreate):
         },
     )
     return result
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# T-V3-B-06 (F-004): PUT /api/workspaces/{id}/members/{user_id}/role
+# ──────────────────────────────────────────────────────────────────────────
+# - AC-F7  EVENT: valid inputs by authorized caller → 2xx {role, updated_at}
+# - AC-F8  UNWANTED: no auth token → 401
+# - AC-F9  UNWANTED: invalid body → 422 (Pydantic field-level error map)
+# - AC-F3  UNWANTED: would strip the last admin → 409
+#
+# Note: 既存の PATCH /api/workspaces/{id}/members/{user_id} は custom_permissions
+# 含む汎用更新を提供 (T-021-05 由来). 本 PUT endpoint は OpenAPI 仕様 (F-004 /
+# T-V3-DRIFT-F-004-06) に準拠した role 専用のミニマル契約を提供する。
+# ──────────────────────────────────────────────────────────────────────────
+
+@router.put(
+    "/{workspace_id}/members/{user_id}/role",
+    response_model=WorkspaceMemberRoleResponse,
+)
+async def update_member_role_endpoint(
+    workspace_id: int,
+    user_id: str,
+    body: WorkspaceMemberRoleUpdate,
+    user: dict = Depends(require_user),
+) -> WorkspaceMemberRoleResponse:
+    """T-V3-B-06 AC-F7 / AC-F8 / AC-F9.
+
+    OpenAPI 仕様 (F-004) PUT /api/workspaces/{id}/members/{user_id}/role:
+      Response: { role: string, updated_at: ISO8601 }
+    """
+    if workspace_id <= 0:
+        raise _error("workspaces.invalid_id", "workspace_id must be > 0")
+    if not user_id or not user_id.strip():
+        raise _error("workspaces.invalid_user_id", "user_id must not be empty")
+    actor = (body.actor_user_id or user.get("sub") or "").strip() or None
+    try:
+        updated = await ws.update_member_role(
+            workspace_id,
+            user_id.strip(),
+            role=body.role,
+            actor_user_id=actor,
+        )
+    except ws.SelfStripError as e:
+        raise HTTPException(
+            status_code=409,
+            detail={"code": "workspaces.self_strip_blocked", "message": str(e)},
+        )
+    except ws.OwnerProtectedError as e:
+        # AC-F3: would strip the last admin/owner → 409
+        raise HTTPException(
+            status_code=409,
+            detail={"code": "workspaces.owner_protected", "message": str(e)},
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=422,
+            detail={"code": "workspaces.invalid_role", "message": str(e)},
+        )
+    if not updated:
+        raise _error(
+            "workspaces.member_not_found",
+            f"member {user_id} not found in workspace {workspace_id}",
+            status_code=404,
+        )
+    # `updated` は DB 行 (created_at / updated_at 等を含む). updated_at が無い
+    # legacy 行は now() で代替.
+    from datetime import datetime as _dt
+
+    updated_at = (
+        updated.get("updated_at")
+        or updated.get("created_at")
+        or _dt.now().isoformat(timespec="seconds")
+    )
+    await _audit_ws(
+        "workspaces.member.role_updated",
+        user_id=actor,
+        detail={
+            "workspace_id": workspace_id,
+            "target_user_id": user_id,
+            "new_role": updated.get("role") or body.role,
+        },
+    )
+    return WorkspaceMemberRoleResponse(
+        role=updated.get("role") or body.role,
+        updated_at=str(updated_at),
+    )
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# T-V3-B-06 (F-004): DELETE /api/workspaces/{id}/invitations/{token}
+# ──────────────────────────────────────────────────────────────────────────
+# - AC-F10  EVENT: valid revocation → 2xx {revoked_at}
+# - AC-F11  UNWANTED: no auth token → 401
+# - AC-F6   indirect: pending 以外 (accepted/expired/already-revoked) → 409
+# ──────────────────────────────────────────────────────────────────────────
+
+@router.delete(
+    "/{workspace_id}/invitations/{token}",
+    response_model=WorkspaceInvitationRevokeResponse,
+)
+async def revoke_workspace_invitation(
+    workspace_id: int,
+    token: str,
+    user: dict = Depends(require_user),
+) -> WorkspaceInvitationRevokeResponse:
+    """T-V3-B-06 AC-F10 / AC-F11.
+
+    OpenAPI 仕様 (F-004) DELETE /api/workspaces/{id}/invitations/{token}:
+      Response: { revoked_at: ISO8601 }
+    """
+    if workspace_id <= 0:
+        raise _error("workspaces.invalid_id", "workspace_id must be > 0")
+    token = (token or "").strip()
+    if not token:
+        raise _error("invitations.invalid_token", "token must not be empty")
+    if len(token) < 8:
+        raise _error("invitations.invalid_token", "token must be at least 8 chars")
+    if len(token) > 200:
+        raise _error("invitations.token_too_long", "token too long")
+
+    actor = (user.get("sub") or user.get("user_metadata", {}).get("slug") or "").strip()
+    actor_user_id: Optional[str] = actor or None
+
+    try:
+        result = await ws.revoke_invitation(
+            workspace_id, token, actor_user_id=actor_user_id
+        )
+    except ws.InvitationNotFoundError as e:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "invitations.not_found", "message": str(e)},
+        )
+    except ws.InvitationRevokedError as e:
+        raise HTTPException(
+            status_code=409,
+            detail={"code": "invitations.already_finalized", "message": str(e)},
+        )
+    return WorkspaceInvitationRevokeResponse(**result)
 
 
 # ── workspace ↔ project 連携 / タスクサマリ ─────────────

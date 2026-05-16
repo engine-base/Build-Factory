@@ -59,6 +59,10 @@ from routers.swarm import router as swarm_router
 from routers.memory import router as memory_router
 from routers.context import router as context_router
 from routers.oauth import router as oauth_router
+# T-V3-B-01 (F-001): /api/auth/* — login / signup / password reset.
+# T-V3-B-06 hotfix: registration line existed already but import was missing on
+# main, causing a NameError at startup. Added here so the app boots in tests.
+from routers.auth import router as auth_router
 from routers.auth import router as auth_router  # T-V3-B-01 + T-V3-B-02 / F-001
 from routers.auth import router as auth_router  # T-V3-B-01 (restore missing import after merge)
 from routers.user_lifecycle import router as user_lifecycle_router
