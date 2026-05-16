@@ -1,0 +1,5396 @@
+{
+  "version": "v3",
+  "project": "Build-Factory",
+  "created_at": "2026-05-16",
+  "skill": "functional-breakdown",
+  "drift_detection_mode": true,
+  "feature_count": 35,
+  "items": [
+    {
+      "id": "F-001",
+      "name": "認証 (email+pwd / MFA / OAuth)",
+      "category": "auth",
+      "happy_path": [
+        "email/password ログイン",
+        "MFA TOTP 検証",
+        "OAuth (Anthropic/GitHub/Slack/Google) 認証",
+        "session 30 days"
+      ],
+      "error_paths": [
+        "invalid credentials → 401 (generic)",
+        "rate limit → 429",
+        "MFA fail → 401",
+        "OAuth state mismatch → 401"
+      ],
+      "policies": "session 30 days / MFA optional / OAuth state token / rate limit per IP",
+      "notifications": [
+        "login_success_email (suspicious IP)"
+      ],
+      "audit_logs": [
+        "login_success",
+        "login_failed",
+        "mfa_enrolled",
+        "password_reset_requested",
+        "oauth_linked"
+      ],
+      "access_roles": [
+        "public",
+        "authenticated"
+      ],
+      "external_services": [
+        "Anthropic OAuth",
+        "GitHub OAuth",
+        "Slack OAuth",
+        "Google OAuth"
+      ],
+      "related_screens": [
+        "S-001 login",
+        "S-002 signup",
+        "S-003 password_reset",
+        "S-004 mfa_setup",
+        "S-005 oauth_callback"
+      ],
+      "related_entities": [
+        "E-002 User",
+        "E-005 Session",
+        "E-006 ApiKey"
+      ],
+      "api_endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "auth": "public",
+          "inputs": {
+            "email": "string",
+            "password": "string",
+            "mfa_code": "string?"
+          },
+          "outputs_2xx": {
+            "access_token": "string",
+            "refresh_token": "string",
+            "user_id": "uuid",
+            "mfa_required": "boolean"
+          },
+          "outputs_4xx": {
+            "401": "invalid credentials (generic, no user enumeration)",
+            "403": "account locked",
+            "422": "email format invalid or password too short",
+            "429": "rate limit exceeded (5 failed attempts in 15 min)",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-002 User",
+            "E-005 Session"
+          ],
+          "rate_limit": "5/min/ip"
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/signup",
+          "auth": "public",
+          "inputs": {
+            "email": "string",
+            "password": "string",
+            "name": "string",
+            "invitation_token": "string?"
+          },
+          "outputs_2xx": {
+            "user_id": "uuid",
+            "verify_email_sent": "boolean"
+          },
+          "outputs_4xx": {
+            "409": "email already exists",
+            "422": "validation error",
+            "429": "rate limit exceeded",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-002 User",
+            "E-005 Session"
+          ],
+          "rate_limit": "3/hour/ip"
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/password-reset",
+          "auth": "public",
+          "inputs": {
+            "email": "string"
+          },
+          "outputs_2xx": {
+            "status": "email sent if account exists"
+          },
+          "outputs_4xx": {
+            "422": "invalid email format",
+            "429": "rate limit exceeded",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-002 User"
+          ],
+          "rate_limit": "3/hour/ip"
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/mfa/enroll",
+          "auth": "authenticated",
+          "inputs": {
+            "totp_secret": "string"
+          },
+          "outputs_2xx": {
+            "qr_code_url": "string",
+            "backup_codes": "string[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "409": "MFA already enabled",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-002 User"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/mfa/verify",
+          "auth": "public",
+          "inputs": {
+            "user_id": "uuid",
+            "totp_code": "string"
+          },
+          "outputs_2xx": {
+            "access_token": "string",
+            "refresh_token": "string"
+          },
+          "outputs_4xx": {
+            "401": "invalid TOTP code",
+            "404": "user not found",
+            "422": "code format invalid",
+            "429": "rate limit exceeded",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-002 User",
+            "E-005 Session"
+          ],
+          "rate_limit": "5/min/user"
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/oauth/{provider}/callback",
+          "auth": "public",
+          "inputs": {
+            "code": "string",
+            "state": "string",
+            "provider": "anthropic|github|slack|google"
+          },
+          "outputs_2xx": {
+            "access_token": "string",
+            "refresh_token": "string",
+            "user_id": "uuid"
+          },
+          "outputs_4xx": {
+            "401": "OAuth state mismatch or code expired",
+            "404": "provider not configured",
+            "422": "invalid provider",
+            "500": "OAuth handshake failed"
+          },
+          "related_entities": [
+            "E-002 User",
+            "E-005 Session"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When valid email/password is submitted to POST /api/auth/login, the system shall return 200 with access_token + refresh_token + user_id.",
+        "UNWANTED: If invalid credentials are submitted to POST /api/auth/login, the system shall return 401 with a generic message (no user enumeration).",
+        "STATE-DRIVEN: While MFA is enabled for the user, the system shall require POST /api/auth/mfa/verify with a valid TOTP code before issuing access_token.",
+        "UNWANTED: If 5 failed login attempts occur within 15 min from the same IP, the system shall return 429 with retry_after_sec=900.",
+        "EVENT-DRIVEN: When OAuth callback GET /api/auth/oauth/{provider}/callback is invoked with a valid state token, the system shall complete the OAuth handshake and return access_token + refresh_token.",
+        "UNWANTED: If OAuth state token does not match the originating session, the system shall return 401 and reject the callback.",
+        "EVENT-DRIVEN: When POST /api/auth/password-reset is called with an email, the system shall always return 2xx (no account enumeration) and send reset email only if the account exists."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "POST /api/auth/login",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-001-01"
+        },
+        {
+          "spec_endpoint": "POST /api/auth/signup",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-001-02"
+        },
+        {
+          "spec_endpoint": "POST /api/auth/password-reset",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-001-03"
+        },
+        {
+          "spec_endpoint": "POST /api/auth/mfa/enroll",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-001-04"
+        },
+        {
+          "spec_endpoint": "POST /api/auth/mfa/verify",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-001-05"
+        },
+        {
+          "spec_endpoint": "GET /api/auth/oauth/{provider}/callback",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-001-06"
+        }
+      ]
+    },
+    {
+      "id": "F-002",
+      "name": "既存 96 スキル整理 / archive 管理",
+      "category": "management",
+      "happy_path": [
+        "管理画面でラベル付け",
+        "archive 対象を _archived/",
+        "active のみ AI 召喚に表示",
+        "skill_md 編集とテスト実行"
+      ],
+      "error_paths": [
+        "import 経路が壊れる→依存解析で先に修正",
+        "test 実行 fail → retry"
+      ],
+      "policies": "archive は soft delete / physical delete 禁止 / skill_md は account 単位編集可",
+      "audit_logs": [
+        "skill_archive",
+        "skill_restore",
+        "skill_created",
+        "skill_tested"
+      ],
+      "access_roles": [
+        "account_owner",
+        "admin",
+        "member"
+      ],
+      "related_screens": [
+        "S-038 skill_manager"
+      ],
+      "related_entities": [
+        "E-021 Skill"
+      ],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/skills",
+          "auth": "authenticated",
+          "inputs": {
+            "category": "string?",
+            "archived": "boolean?"
+          },
+          "outputs_2xx": {
+            "items": "Skill[]",
+            "total": "int"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-021 Skill"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/skills",
+          "auth": "account_owner",
+          "inputs": {
+            "name": "string",
+            "category": "string",
+            "description": "string",
+            "skill_md": "string"
+          },
+          "outputs_2xx": {
+            "id": "uuid",
+            "name": "string"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden (not account owner)",
+            "409": "skill name conflict",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-021 Skill"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/skills/{id}/test",
+          "auth": "account_owner",
+          "inputs": {
+            "id": "uuid",
+            "test_input": "string"
+          },
+          "outputs_2xx": {
+            "output": "string",
+            "duration_ms": "int"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "skill not found",
+            "422": "validation error",
+            "500": "skill execution failed"
+          },
+          "related_entities": [
+            "E-021 Skill"
+          ],
+          "rate_limit": "10/min/user"
+        },
+        {
+          "method": "POST",
+          "path": "/api/skills/{id}/archive",
+          "auth": "account_owner",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "archived_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "skill not found",
+            "409": "skill already archived",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-021 Skill"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When GET /api/skills is called with category=ai, the system shall return all non-archived skills matching that category.",
+        "EVENT-DRIVEN: When POST /api/skills/{id}/archive is called by an account_owner, the system shall set archived_at and exclude the skill from AI invocation lists.",
+        "UNWANTED: If POST /api/skills is called by a non-owner role, the system shall return 403.",
+        "UNWANTED: If POST /api/skills/{id}/test is invoked more than 10 times per minute per user, the system shall return 429.",
+        "STATE-DRIVEN: While a skill is archived, the system shall not include it in AI employee invocation candidates."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "POST /api/skills/{id}/test",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-002-01"
+        }
+      ]
+    },
+    {
+      "id": "F-003",
+      "name": "AI 社員ハイブリッド統合 (BMAD + Agent Teams + 既存)",
+      "category": "ai",
+      "happy_path": [
+        "召喚→スキル context 注入→BMAD ペルソナ選択→parent 継承→LLM 抽象化呼び出し→artifact + AC 検証"
+      ],
+      "error_paths": [
+        "context 上限→段階読込",
+        "LLM error→retry + provider fallback",
+        "ハルシネーション疑い→F-011 壁打ち"
+      ],
+      "policies": "skill_md は internal-only / hierarchy 循環禁止 / clone は opt-in 必須",
+      "audit_logs": [
+        "ai_employee_invocation",
+        "ai_employee_clone",
+        "ai_employee_updated"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "member"
+      ],
+      "external_services": [
+        "Anthropic API",
+        "LiteLLM"
+      ],
+      "related_screens": [
+        "S-036 ai_employees_org_chart",
+        "S-037 ai_employee_detail",
+        "S-038 skill_manager"
+      ],
+      "related_entities": [
+        "E-008 AIEmployee",
+        "E-021 Skill",
+        "E-022 SkillExecution"
+      ],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/ai-employees/org-chart",
+          "auth": "authenticated",
+          "inputs": {
+            "workspace_id": "uuid?"
+          },
+          "outputs_2xx": {
+            "tree": "AIEmployeeNode[]",
+            "total": "int"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden (wrong workspace)",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-008 AIEmployee",
+            "E-021 Skill"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/ai-employees",
+          "auth": "workspace_admin",
+          "inputs": {
+            "name": "string",
+            "persona": "string",
+            "hierarchy_level": "int",
+            "parent_id": "uuid?",
+            "department": "string"
+          },
+          "outputs_2xx": {
+            "id": "uuid",
+            "name": "string"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "409": "name conflict in workspace",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-008 AIEmployee"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/ai-employees/{id}",
+          "auth": "authenticated",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "employee": "AIEmployee",
+            "skills": "Skill[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "not found",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-008 AIEmployee"
+          ]
+        },
+        {
+          "method": "PUT",
+          "path": "/api/ai-employees/{id}",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "name": "string?",
+            "skill_ids": "uuid[]?",
+            "constitution_version": "int?"
+          },
+          "outputs_2xx": {
+            "id": "uuid",
+            "updated_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "not found",
+            "422": "validation error",
+            "409": "circular hierarchy",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-008 AIEmployee"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/ai-employees/{id}/test",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "input_prompt": "string"
+          },
+          "outputs_2xx": {
+            "output": "string",
+            "tokens_used": "int",
+            "cost_usd": "number"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "not found",
+            "422": "validation error",
+            "429": "rate limit exceeded",
+            "500": "test execution failed"
+          },
+          "related_entities": [
+            "E-008 AIEmployee"
+          ],
+          "rate_limit": "20/min/workspace"
+        },
+        {
+          "method": "POST",
+          "path": "/api/ai-employees/{id}/clone-from-user",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "user_id": "uuid",
+            "opt_in_acknowledged": "boolean"
+          },
+          "outputs_2xx": {
+            "clone_id": "uuid",
+            "namespace": "string"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden (opt_in not granted)",
+            "404": "user not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-008 AIEmployee",
+            "E-018 UserKnowledgeNamespace"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When GET /api/ai-employees/org-chart is called, the system shall return a hierarchical tree of all non-archived employees in the workspace.",
+        "EVENT-DRIVEN: When POST /api/ai-employees is called with a valid persona definition, the system shall create the employee with hierarchy_level enforced (level 1-3).",
+        "UNWANTED: If POST /api/ai-employees would create a circular parent reference, the system shall return 409.",
+        "STATE-DRIVEN: While clone opt-in is FALSE for the source user, the system shall return 403 for POST /api/ai-employees/{id}/clone-from-user.",
+        "UNWANTED: If POST /api/ai-employees/{id}/test is called more than 20 times per minute per workspace, the system shall return 429."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "GET /api/ai-employees/org-chart",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-003-01"
+        },
+        {
+          "spec_endpoint": "PUT /api/ai-employees/{id}",
+          "impl_router": "path exists with methods ['DELETE', 'GET', 'PATCH'], mock expects PUT",
+          "diff_severity": "high",
+          "recommendation": "Group D (Drift fix) で対応",
+          "task_id": "T-V3-DRIFT-F-003-02"
+        },
+        {
+          "spec_endpoint": "POST /api/ai-employees/{id}/test",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-003-03"
+        },
+        {
+          "spec_endpoint": "POST /api/ai-employees/{id}/clone-from-user",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-003-04"
+        }
+      ]
+    },
+    {
+      "id": "F-004",
+      "name": "account / workspace / members 階層管理",
+      "category": "infra",
+      "happy_path": [
+        "account 作成→owner 付与→workspace 作成→admin 自動付与→members 招待"
+      ],
+      "error_paths": [
+        "owner 削除→移譲先必須",
+        "ws 数上限→アップグレード誘導",
+        "last admin strip → 409"
+      ],
+      "policies": "soft_delete / max_workspaces_per_account_by_plan / last admin strip block",
+      "audit_logs": [
+        "account_create",
+        "ws_create",
+        "member_change",
+        "owner_transferred"
+      ],
+      "access_roles": [
+        "owner",
+        "admin",
+        "member",
+        "viewer",
+        "guest"
+      ],
+      "related_screens": [
+        "S-007 account_settings",
+        "S-008 account_members",
+        "S-013 workspace_settings",
+        "S-014 workspace_members",
+        "S-015 workspace_invite"
+      ],
+      "related_entities": [
+        "E-001 Account",
+        "E-003 Workspace",
+        "E-004 WorkspaceMember",
+        "E-002 User"
+      ],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/accounts/{id}",
+          "auth": "authenticated",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "account": "Account",
+            "owner_id": "uuid",
+            "plan": "string"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-001 Account"
+          ]
+        },
+        {
+          "method": "PUT",
+          "path": "/api/accounts/{id}",
+          "auth": "account_owner",
+          "inputs": {
+            "id": "uuid",
+            "name": "string?",
+            "plan": "string?"
+          },
+          "outputs_2xx": {
+            "id": "uuid",
+            "updated_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden (not owner)",
+            "404": "not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-001 Account"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/accounts/{id}/transfer-owner",
+          "auth": "account_owner",
+          "inputs": {
+            "id": "uuid",
+            "new_owner_user_id": "uuid"
+          },
+          "outputs_2xx": {
+            "old_owner_id": "uuid",
+            "new_owner_id": "uuid",
+            "transferred_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "user not found",
+            "409": "new owner not member",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-001 Account",
+            "E-002 User"
+          ]
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/accounts/{id}",
+          "auth": "account_owner",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "deleted_at": "timestamptz",
+            "grace_period_until": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "not found",
+            "409": "active subscriptions exist",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-001 Account"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/accounts/{id}/members",
+          "auth": "authenticated",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "members": "AccountMember[]",
+            "total": "int"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-001 Account",
+            "E-002 User"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/accounts/{id}/invitations",
+          "auth": "account_owner",
+          "inputs": {
+            "id": "uuid",
+            "email": "string",
+            "role": "owner|admin|member|viewer|guest"
+          },
+          "outputs_2xx": {
+            "invitation_token": "string",
+            "expires_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "account not found",
+            "409": "user already member",
+            "422": "validation error",
+            "429": "too many invitations",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-001 Account"
+          ],
+          "rate_limit": "20/hour/account"
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/accounts/{id}/members/{user_id}",
+          "auth": "account_owner",
+          "inputs": {
+            "id": "uuid",
+            "user_id": "uuid"
+          },
+          "outputs_2xx": {
+            "removed_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "member not found",
+            "409": "cannot remove owner",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-001 Account",
+            "E-002 User"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}",
+          "auth": "authenticated",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "workspace": "Workspace"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-003 Workspace"
+          ]
+        },
+        {
+          "method": "PUT",
+          "path": "/api/workspaces/{id}",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "name": "string?",
+            "status": "string?"
+          },
+          "outputs_2xx": {
+            "id": "uuid",
+            "updated_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-003 Workspace"
+          ]
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/workspaces/{id}",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "soft_deleted_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "not found",
+            "409": "active sessions exist",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-003 Workspace"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/members",
+          "auth": "authenticated",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "members": "WorkspaceMember[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-003 Workspace",
+            "E-004 WorkspaceMember"
+          ]
+        },
+        {
+          "method": "PUT",
+          "path": "/api/workspaces/{id}/members/{user_id}/role",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "user_id": "uuid",
+            "role": "owner|admin|member|viewer|guest"
+          },
+          "outputs_2xx": {
+            "role": "string",
+            "updated_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "member not found",
+            "409": "would strip last admin",
+            "422": "invalid role",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-004 WorkspaceMember"
+          ]
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/workspaces/{id}/members/{user_id}",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "user_id": "uuid"
+          },
+          "outputs_2xx": {
+            "removed_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "member not found",
+            "409": "would strip last admin",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-004 WorkspaceMember"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/invitations",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "email": "string",
+            "role": "string"
+          },
+          "outputs_2xx": {
+            "invitation_token": "string",
+            "expires_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "workspace not found",
+            "409": "user already member",
+            "422": "validation error",
+            "429": "too many invitations",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-003 Workspace"
+          ],
+          "rate_limit": "20/hour/workspace"
+        },
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/invitations",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "invitations": "Invitation[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-003 Workspace"
+          ]
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/workspaces/{id}/invitations/{token}",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "token": "string"
+          },
+          "outputs_2xx": {
+            "revoked_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "invitation not found",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-003 Workspace"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/invitations/{token}",
+          "auth": "public",
+          "inputs": {
+            "token": "string"
+          },
+          "outputs_2xx": {
+            "invitation": "Invitation",
+            "workspace_name": "string",
+            "inviter_name": "string"
+          },
+          "outputs_4xx": {
+            "404": "invitation not found",
+            "409": "invitation expired",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-003 Workspace"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When PUT /api/accounts/{id} is called by the owner with a valid plan upgrade, the system shall update plan and emit account_updated audit log.",
+        "UNWANTED: If POST /api/accounts/{id}/transfer-owner is called for a user who is not an account member, the system shall return 409.",
+        "UNWANTED: If DELETE /api/workspaces/{id}/members/{user_id} would leave the workspace with zero admin, the system shall return 409.",
+        "EVENT-DRIVEN: When POST /api/accounts/{id}/invitations is called more than 20 times per hour for the same account, the system shall return 429.",
+        "STATE-DRIVEN: While an account has reached the workspace cap of its plan, the system shall return 409 for POST /api/workspaces.",
+        "UNWANTED: If GET /api/invitations/{token} resolves a token past its expires_at, the system shall return 409 expired."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "PUT /api/accounts/{id}",
+          "impl_router": "path exists with methods ['DELETE', 'GET', 'PATCH'], mock expects PUT",
+          "diff_severity": "high",
+          "recommendation": "Group D (Drift fix) で対応",
+          "task_id": "T-V3-DRIFT-F-004-01"
+        },
+        {
+          "spec_endpoint": "POST /api/accounts/{id}/transfer-owner",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-004-02"
+        },
+        {
+          "spec_endpoint": "POST /api/accounts/{id}/invitations",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-004-03"
+        },
+        {
+          "spec_endpoint": "DELETE /api/accounts/{id}/members/{user_id}",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-004-04"
+        },
+        {
+          "spec_endpoint": "PUT /api/workspaces/{id}",
+          "impl_router": "path exists with methods ['DELETE', 'GET', 'PATCH'], mock expects PUT",
+          "diff_severity": "high",
+          "recommendation": "Group D (Drift fix) で対応",
+          "task_id": "T-V3-DRIFT-F-004-05"
+        },
+        {
+          "spec_endpoint": "PUT /api/workspaces/{id}/members/{user_id}/role",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-004-06"
+        },
+        {
+          "spec_endpoint": "GET /api/workspaces/{id}/invitations",
+          "impl_router": "path exists with methods ['POST'], mock expects GET",
+          "diff_severity": "high",
+          "recommendation": "Group D (Drift fix) で対応",
+          "task_id": "T-V3-DRIFT-F-004-07"
+        },
+        {
+          "spec_endpoint": "DELETE /api/workspaces/{id}/invitations/{token}",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-004-08"
+        },
+        {
+          "spec_endpoint": "GET /api/invitations/{token}",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-004-09"
+        }
+      ]
+    },
+    {
+      "id": "F-005",
+      "name": "ヒアリング → 仕様書 HTML パイプライン",
+      "category": "spec",
+      "happy_path": [
+        "hearing 4STEP → requirements 6STEP → functional-breakdown → mock 自動生成 → Storage upload → 共有リンク"
+      ],
+      "error_paths": [
+        "対話中断→slot_state 永続化で再開",
+        "曖昧発言→複数解釈提示"
+      ],
+      "policies": "HTML + Markdown hybrid / Tailwind CDN / print support",
+      "audit_logs": [
+        "spec_publish",
+        "hearing_saved",
+        "spec_comment_added"
+      ],
+      "access_roles": [
+        "member",
+        "workspace_admin",
+        "viewer"
+      ],
+      "related_screens": [
+        "S-020 hearing_chat",
+        "S-022 spec_viewer"
+      ],
+      "related_entities": [
+        "E-009 Hearing",
+        "E-010 Spec",
+        "E-030 Comment",
+        "E-027 ChatThread"
+      ],
+      "api_endpoints": [
+        {
+          "method": "WS",
+          "path": "/ws/hearing/{session_id}",
+          "auth": "authenticated",
+          "inputs": {
+            "session_id": "uuid"
+          },
+          "outputs_2xx": {
+            "messages_streamed": "ChatMessage[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "session not found",
+            "500": "WS upgrade failed"
+          },
+          "related_entities": [
+            "E-027 ChatThread",
+            "E-028 ChatMessage"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/hearing/save",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid",
+            "slot_state": "object",
+            "transcript": "string"
+          },
+          "outputs_2xx": {
+            "hearing_id": "uuid",
+            "saved_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "workspace not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-009 Hearing"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/specs",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "specs": "Spec[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-010 Spec"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/specs/{spec_id}/comments",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid",
+            "spec_id": "uuid"
+          },
+          "outputs_2xx": {
+            "comments": "Comment[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-010 Spec",
+            "E-030 Comment"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/specs/{spec_id}/comments",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid",
+            "spec_id": "uuid",
+            "body": "string",
+            "anchor": "string?"
+          },
+          "outputs_2xx": {
+            "comment_id": "uuid",
+            "created_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "spec not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-030 Comment"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When a client connects to WS /ws/hearing/{session_id}, the system shall stream chat messages and slot_state updates for that session.",
+        "UNWANTED: If WS /ws/hearing/{session_id} receives a session_id that does not belong to the caller's workspace, the system shall close the connection with 403.",
+        "EVENT-DRIVEN: When POST /api/workspaces/{id}/hearing/save is called, the system shall persist slot_state with a monotonically increasing version.",
+        "STATE-DRIVEN: While a hearing session is in 'paused' state, the system shall accept POST /api/workspaces/{id}/hearing/save to resume from last checkpoint.",
+        "UNWANTED: If POST /api/workspaces/{id}/specs/{spec_id}/comments body exceeds 10000 chars, the system shall return 422."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "WS /ws/hearing/{session_id}",
+          "impl_router": "WebSocket endpoint — backend WS routes not enumerated",
+          "diff_severity": "low",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-005-01"
+        },
+        {
+          "spec_endpoint": "POST /api/workspaces/{id}/hearing/save",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-005-02"
+        },
+        {
+          "spec_endpoint": "GET /api/workspaces/{id}/specs",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-005-03"
+        },
+        {
+          "spec_endpoint": "GET /api/workspaces/{id}/specs/{spec_id}/comments",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-005-04"
+        },
+        {
+          "spec_endpoint": "POST /api/workspaces/{id}/specs/{spec_id}/comments",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-005-05"
+        }
+      ]
+    },
+    {
+      "id": "F-005b",
+      "name": "画面モック自動生成パイプライン (M-5b)",
+      "category": "spec",
+      "happy_path": [
+        "screens.json 取得→デザイントークン読込→ui-mockup HTML 生成→コンポーネントカタログ参照→Storage upload→画面遷移マップ SVG 生成"
+      ],
+      "error_paths": [
+        "デザイントークン未確定→default theme + 警告",
+        "大規模画面→セクション分割"
+      ],
+      "policies": "max_size_per_screen_mb 1 / responsive_threshold md+ / Lucide Icons only",
+      "audit_logs": [
+        "mock_generated",
+        "mock_edited",
+        "mock_ai_edit_invoked"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "member"
+      ],
+      "related_screens": [
+        "S-023 mock_browser",
+        "S-024 component_catalog",
+        "S-025 screen_flow_map",
+        "S-026 mock_editor"
+      ],
+      "related_entities": [
+        "E-011 Screen",
+        "E-012 Component",
+        "E-013 ScreenComponent",
+        "E-014 Artifact"
+      ],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/mocks",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "mocks": "Mock[]",
+            "total": "int"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-011 Screen",
+            "E-012 Component"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/mocks/{screen_id}",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid",
+            "screen_id": "string"
+          },
+          "outputs_2xx": {
+            "screen": "Screen",
+            "html_url": "string",
+            "version": "int"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-011 Screen"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/mocks/{screen_id}/html",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid",
+            "screen_id": "string"
+          },
+          "outputs_2xx": {
+            "html": "string"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "screen not found",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-011 Screen"
+          ]
+        },
+        {
+          "method": "PUT",
+          "path": "/api/workspaces/{id}/mocks/{screen_id}/html",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "screen_id": "string",
+            "html": "string"
+          },
+          "outputs_2xx": {
+            "new_version": "int",
+            "updated_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "screen not found",
+            "422": "html size too large",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-011 Screen"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/mocks/{screen_id}/ai-edit",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid",
+            "screen_id": "string",
+            "prompt": "string"
+          },
+          "outputs_2xx": {
+            "diff": "string",
+            "new_html": "string",
+            "tokens_used": "int"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "screen not found",
+            "422": "prompt validation",
+            "429": "rate limit exceeded",
+            "500": "AI generation failed"
+          },
+          "related_entities": [
+            "E-011 Screen"
+          ],
+          "rate_limit": "30/min/workspace"
+        },
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/components",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "components": "Component[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-012 Component"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/components/{id}/usage",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "usages": "ComponentUsage[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-012 Component"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/screen-flow",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "nodes": "ScreenFlowNode[]",
+            "edges": "ScreenFlowEdge[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-011 Screen"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When GET /api/workspaces/{id}/mocks/{screen_id}/html is called, the system shall return the latest version of the mock HTML.",
+        "EVENT-DRIVEN: When PUT /api/workspaces/{id}/mocks/{screen_id}/html is called with a new HTML body, the system shall increment the version and persist a snapshot.",
+        "UNWANTED: If PUT /api/workspaces/{id}/mocks/{screen_id}/html receives html body > 1MB, the system shall return 422.",
+        "UNWANTED: If POST /api/workspaces/{id}/mocks/{screen_id}/ai-edit is called more than 30 times per minute per workspace, the system shall return 429.",
+        "STATE-DRIVEN: While a mock is locked for editing by another user, the system shall return 409 for PUT /api/workspaces/{id}/mocks/{screen_id}/html."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "GET /api/workspaces/{id}/mocks",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-005b-01"
+        },
+        {
+          "spec_endpoint": "GET /api/workspaces/{id}/mocks/{screen_id}",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-005b-02"
+        },
+        {
+          "spec_endpoint": "GET /api/workspaces/{id}/mocks/{screen_id}/html",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-005b-03"
+        },
+        {
+          "spec_endpoint": "PUT /api/workspaces/{id}/mocks/{screen_id}/html",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-005b-04"
+        },
+        {
+          "spec_endpoint": "POST /api/workspaces/{id}/mocks/{screen_id}/ai-edit",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-005b-05"
+        },
+        {
+          "spec_endpoint": "GET /api/workspaces/{id}/components",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-005b-06"
+        },
+        {
+          "spec_endpoint": "GET /api/workspaces/{id}/components/{id}/usage",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-005b-07"
+        },
+        {
+          "spec_endpoint": "GET /api/workspaces/{id}/screen-flow",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-005b-08"
+        }
+      ]
+    },
+    {
+      "id": "F-006",
+      "name": "機能・タスク分解 + acceptance-criteria (EARS)",
+      "category": "spec",
+      "happy_path": [
+        "functional-breakdown→feature-decomposition→task-decomposition→各タスクに EARS AC 自動生成→DAG 登録"
+      ],
+      "error_paths": [
+        "分解過大→impact-analysis 警告",
+        "AC 曖昧→EARS 書き直し promotion"
+      ],
+      "policies": "acceptance_count_per_task 3-10 推奨 / task_independence_kpi >=90%",
+      "audit_logs": [
+        "task_created",
+        "task_updated",
+        "requirement_versioned"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "member"
+      ],
+      "related_screens": [
+        "S-021 requirements_editor",
+        "S-030 task_detail"
+      ],
+      "related_entities": [
+        "E-015 Requirement",
+        "E-016 Task",
+        "E-017 TaskDependency",
+        "E-019 AcceptanceCriterion"
+      ],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/requirements",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "requirements": "Requirement[]",
+            "version": "int"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-015 Requirement"
+          ]
+        },
+        {
+          "method": "PUT",
+          "path": "/api/workspaces/{id}/requirements",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "items": "RequirementItem[]"
+          },
+          "outputs_2xx": {
+            "id": "uuid",
+            "version": "int"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "workspace not found",
+            "422": "EARS form validation",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-015 Requirement"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/requirements/versions",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "message": "string"
+          },
+          "outputs_2xx": {
+            "version_id": "uuid",
+            "version_number": "int"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "workspace not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-015 Requirement"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/tasks/{id}",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "task": "Task",
+            "acceptance_criteria": "AC[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-016 Task"
+          ]
+        },
+        {
+          "method": "PUT",
+          "path": "/api/tasks/{id}",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid",
+            "title": "string?",
+            "status": "string?",
+            "assignee_id": "uuid?"
+          },
+          "outputs_2xx": {
+            "id": "uuid",
+            "updated_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "not found",
+            "409": "version conflict",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-016 Task"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/tasks/{id}/comments",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid",
+            "body": "string"
+          },
+          "outputs_2xx": {
+            "comment_id": "uuid"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "task not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-016 Task",
+            "E-030 Comment"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When PUT /api/workspaces/{id}/requirements is called with EARS-conformant items, the system shall persist them and return version+1.",
+        "UNWANTED: If PUT /api/workspaces/{id}/requirements is called with items that fail EARS form validation, the system shall return 422 with offending item indices.",
+        "EVENT-DRIVEN: When POST /api/workspaces/{id}/requirements/versions is called, the system shall snapshot the current requirements and return a new version_id.",
+        "UNWANTED: If PUT /api/tasks/{id} version mismatches the server version, the system shall return 409 conflict.",
+        "STATE-DRIVEN: While a task's status is 'done', the system shall return 422 for PUT /api/tasks/{id} status changes back to 'in_progress'."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "GET /api/workspaces/{id}/requirements",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-006-01"
+        },
+        {
+          "spec_endpoint": "PUT /api/workspaces/{id}/requirements",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-006-02"
+        },
+        {
+          "spec_endpoint": "POST /api/workspaces/{id}/requirements/versions",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-006-03"
+        },
+        {
+          "spec_endpoint": "PUT /api/tasks/{id}",
+          "impl_router": "path exists with methods ['GET', 'PATCH'], mock expects PUT",
+          "diff_severity": "high",
+          "recommendation": "Group D (Drift fix) で対応",
+          "task_id": "T-V3-DRIFT-F-006-04"
+        },
+        {
+          "spec_endpoint": "POST /api/tasks/{id}/comments",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-006-05"
+        }
+      ]
+    },
+    {
+      "id": "F-007",
+      "name": "多 view タスク管理 (Kanban / List / DAG)",
+      "category": "ui",
+      "happy_path": [
+        "view 切替→検索/フィルタ→drag&drop 状態変更→一括操作"
+      ],
+      "error_paths": [
+        "大量タスク描画遅延→仮想スクロール",
+        "max_parallel 超過 → 409"
+      ],
+      "policies": "max_comfortable_tasks 1000 / kanban_columns 機能別アコーディオン (Todo/In Progress/Review/Done)",
+      "audit_logs": [
+        "bulk_play_invoked",
+        "bulk_archive_invoked",
+        "task_status_changed"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "member",
+        "viewer"
+      ],
+      "related_screens": [
+        "S-012 workspace_dashboard",
+        "S-027 kanban_accordion",
+        "S-028 task_list",
+        "S-029 dag_view",
+        "S-030 task_detail"
+      ],
+      "related_entities": [
+        "E-016 Task",
+        "E-017 TaskDependency"
+      ],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/tasks",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid",
+            "group_by": "feature|status|assignee?",
+            "filter": "string?"
+          },
+          "outputs_2xx": {
+            "tasks": "Task[]",
+            "groups": "TaskGroup[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-016 Task"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/tasks/bulk-play",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid",
+            "task_ids": "uuid[]"
+          },
+          "outputs_2xx": {
+            "session_ids": "uuid[]",
+            "queued": "int"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "workspace not found",
+            "409": "max_parallel reached",
+            "422": "validation error",
+            "429": "rate limit exceeded",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-016 Task",
+            "E-024 Session"
+          ],
+          "rate_limit": "10/min/workspace"
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/tasks/bulk-archive",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "task_ids": "uuid[]"
+          },
+          "outputs_2xx": {
+            "archived_count": "int"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "workspace not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-016 Task"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/tasks/export.csv",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "csv_body": "string (text/csv)"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "workspace not found",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-016 Task"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/tasks/dag",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "nodes": "TaskNode[]",
+            "edges": "DAGEdge[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "workspace not found",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-016 Task",
+            "E-017 TaskDependency"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/tasks/{id}/play",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "session_id": "uuid"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "task not found",
+            "409": "dependencies not satisfied",
+            "422": "task not playable",
+            "429": "rate limit exceeded",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-016 Task",
+            "E-024 Session"
+          ],
+          "rate_limit": "30/min/user"
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/tasks/play-all",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "filter": "string?"
+          },
+          "outputs_2xx": {
+            "queued": "int",
+            "skipped": "int"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "workspace not found",
+            "409": "max_parallel reached",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-016 Task",
+            "E-024 Session"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/play-all",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "queued": "int"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "workspace not found",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-016 Task",
+            "E-024 Session"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/dashboard",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "kpi": "object",
+            "recent_tasks": "Task[]",
+            "sessions_running": "int"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-003 Workspace",
+            "E-016 Task"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When GET /api/workspaces/{id}/tasks?group_by=feature is called, the system shall return tasks grouped by feature_id with accordion-friendly metadata.",
+        "EVENT-DRIVEN: When POST /api/workspaces/{id}/tasks/bulk-play is called with a list of task_ids, the system shall spawn sessions in dependency order.",
+        "UNWANTED: If POST /api/tasks/{id}/play is called for a task with unsatisfied dependencies, the system shall return 409.",
+        "UNWANTED: If POST /api/workspaces/{id}/tasks/bulk-play exceeds max_parallel_per_ws_default, the system shall queue overflow and return 200 with queued count.",
+        "STATE-DRIVEN: While the workspace has reached max_parallel sessions, the system shall return 409 for additional /play requests."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "POST /api/workspaces/{id}/tasks/bulk-play",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-007-01"
+        },
+        {
+          "spec_endpoint": "POST /api/workspaces/{id}/tasks/bulk-archive",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-007-02"
+        },
+        {
+          "spec_endpoint": "GET /api/workspaces/{id}/tasks/export.csv",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-007-03"
+        },
+        {
+          "spec_endpoint": "GET /api/workspaces/{id}/tasks/dag",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-007-04"
+        },
+        {
+          "spec_endpoint": "POST /api/tasks/{id}/play",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-007-05"
+        },
+        {
+          "spec_endpoint": "POST /api/workspaces/{id}/tasks/play-all",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-007-06"
+        },
+        {
+          "spec_endpoint": "POST /api/workspaces/{id}/play-all",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-007-07"
+        }
+      ]
+    },
+    {
+      "id": "F-008",
+      "name": "プロジェクト・フェーズ管理基盤",
+      "category": "moat",
+      "happy_path": [
+        "案件作成→Phase 1 default→新規 Phase 追加→タスク割当→ゲート条件定義→ゲート達成で次 Phase auto unlock"
+      ],
+      "error_paths": [
+        "ゲート循環→DB 制約",
+        "phase 削除→タスク移動要求"
+      ],
+      "policies": "max_phases_per_workspace 10",
+      "audit_logs": [
+        "phase_created",
+        "phase_gate_passed",
+        "phase_gate_failed"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "member"
+      ],
+      "related_screens": [
+        "S-016 phase_management"
+      ],
+      "related_entities": [
+        "E-020 Phase",
+        "E-016 Task"
+      ],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/phases",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "phases": "Phase[]",
+            "current_phase_id": "uuid"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-020 Phase"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/phases",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "name": "string",
+            "gate_conditions": "string[]"
+          },
+          "outputs_2xx": {
+            "phase_id": "uuid"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "workspace not found",
+            "409": "max phases reached",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-020 Phase"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/phases/{phase_id}/gate",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "phase_id": "uuid",
+            "force": "boolean?"
+          },
+          "outputs_2xx": {
+            "unlocked_phase_id": "uuid",
+            "evaluated_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "phase not found",
+            "409": "gate conditions not met",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-020 Phase"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When POST /api/workspaces/{id}/phases/{phase_id}/gate is called and all gate_conditions evaluate true, the system shall unlock the next phase.",
+        "UNWANTED: If POST /api/workspaces/{id}/phases/{phase_id}/gate is called and gate_conditions are not met, the system shall return 409 with failing conditions listed.",
+        "UNWANTED: If POST /api/workspaces/{id}/phases would create more than 10 phases for the workspace, the system shall return 409.",
+        "STATE-DRIVEN: While a phase is the current phase, the system shall not allow deletion (return 409)."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "GET /api/workspaces/{id}/phases",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-008-01"
+        },
+        {
+          "spec_endpoint": "POST /api/workspaces/{id}/phases",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-008-02"
+        },
+        {
+          "spec_endpoint": "POST /api/workspaces/{id}/phases/{phase_id}/gate",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-008-03"
+        }
+      ]
+    },
+    {
+      "id": "F-009",
+      "name": "依存グラフ + 影響範囲伝搬",
+      "category": "moat",
+      "happy_path": [
+        "タスク追加時に依存選択→DAG 可視化→編集時に AI が影響範囲ハイライト→PM 判断で更新/skip"
+      ],
+      "error_paths": [
+        "循環依存→trigger で block",
+        "大規模 DAG→階層折りたたみ"
+      ],
+      "policies": "cycle prevention via DB trigger / impact-analysis blast_radius cap 100",
+      "audit_logs": [
+        "dependency_added",
+        "dependency_removed",
+        "impact_analyzed"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "member"
+      ],
+      "related_screens": [
+        "S-017 dependency_graph",
+        "S-029 dag_view"
+      ],
+      "related_entities": [
+        "E-017 TaskDependency",
+        "E-016 Task"
+      ],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/dependencies",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "dependencies": "TaskDependency[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-017 TaskDependency"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/dependencies",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid",
+            "from_task_id": "uuid",
+            "to_task_id": "uuid"
+          },
+          "outputs_2xx": {
+            "dependency_id": "uuid"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "task not found",
+            "409": "cycle detected",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-017 TaskDependency"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/dependencies/impact-analysis",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid",
+            "task_id": "uuid"
+          },
+          "outputs_2xx": {
+            "affected_tasks": "Task[]",
+            "blast_radius": "int"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "task not found",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-017 TaskDependency"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When POST /api/workspaces/{id}/dependencies is called with a valid edge, the system shall persist it and return 200.",
+        "UNWANTED: If POST /api/workspaces/{id}/dependencies would create a cycle in the task DAG, the system shall return 409 with cycle path included.",
+        "EVENT-DRIVEN: When POST /api/workspaces/{id}/dependencies/impact-analysis is called for a task, the system shall return all downstream affected tasks within blast_radius.",
+        "STATE-DRIVEN: While the workspace has more than 1000 tasks, the system shall fold DAG output into hierarchical groups (cluster_id)."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "GET /api/workspaces/{id}/dependencies",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-009-01"
+        },
+        {
+          "spec_endpoint": "POST /api/workspaces/{id}/dependencies",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-009-02"
+        },
+        {
+          "spec_endpoint": "POST /api/workspaces/{id}/dependencies/impact-analysis",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-009-03"
+        }
+      ]
+    },
+    {
+      "id": "F-010",
+      "name": "Claude Code セッション・スポナー & swarm マネージャ",
+      "category": "execution",
+      "happy_path": [
+        "▶︎ click→backend POST /sessions/spawn→OAuth で claude-agent-sdk 起動→初期プロンプト構築→Plan/Gen/Eval→WebSocket stream→user_interaction_log 記録"
+      ],
+      "error_paths": [
+        "OAuth 期限切れ→再認証導線",
+        "30 分応答なし→crashed→4 択 (resume / 再実行 / cancel / manual fix)",
+        "連続失敗 N 回→circuit breaker"
+      ],
+      "policies": "max_parallel_per_ws_default 5 / circuit_breaker_threshold 3 / session_timeout_min 30 / resume_supported true / startup_to_first_output_sec 10",
+      "audit_logs": [
+        "session_spawned",
+        "session_killed",
+        "session_paused",
+        "session_resumed",
+        "session_rolled_back",
+        "session_crashed"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "member"
+      ],
+      "related_screens": [
+        "S-031 swarm_grid",
+        "S-032 session_detail"
+      ],
+      "related_entities": [
+        "E-024 Session",
+        "E-025 SessionLog"
+      ],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/sessions",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid",
+            "status": "running|paused|crashed|completed?"
+          },
+          "outputs_2xx": {
+            "sessions": "Session[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-024 Session"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/sessions/{id}",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "session": "Session",
+            "logs_tail_url": "string"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-024 Session"
+          ]
+        },
+        {
+          "method": "WS",
+          "path": "/ws/sessions/{id}/log",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "streamed_log_lines": "string"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "session not found",
+            "500": "WS upgrade failed"
+          },
+          "related_entities": [
+            "E-024 Session",
+            "E-025 SessionLog"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/sessions/{id}/kill",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "killed_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "session not found",
+            "409": "already terminated",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-024 Session"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/sessions/{id}/pause",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "paused_at": "timestamptz",
+            "checkpoint_id": "uuid"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "session not found",
+            "409": "session not running",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-024 Session"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/sessions/{id}/resume",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid",
+            "checkpoint_id": "uuid?"
+          },
+          "outputs_2xx": {
+            "resumed_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "session not found",
+            "409": "not in paused/crashed state",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-024 Session"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/sessions/{id}/rollback",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "checkpoint_id": "uuid"
+          },
+          "outputs_2xx": {
+            "rolled_back_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "session not found",
+            "409": "checkpoint not found",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-024 Session"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/sessions/kill-all",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "killed_count": "int"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "workspace not found",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-024 Session"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When POST /api/sessions/{id}/pause is called for a running session, the system shall save a checkpoint and transition status to 'paused' within 5 seconds.",
+        "UNWANTED: If POST /api/sessions/{id}/resume is called for a session that is not in paused or crashed state, the system shall return 409.",
+        "EVENT-DRIVEN: When a client subscribes to WS /ws/sessions/{id}/log, the system shall stream log lines with latency_target_ms <= 100 (median <= 50).",
+        "STATE-DRIVEN: While a session is in 'crashed' status, the system shall offer 4 recovery options: resume / rerun / cancel / manual_fix.",
+        "UNWANTED: If circuit_breaker_threshold (3 consecutive fails) is reached, the system shall not auto-spawn new sessions for that workspace until manual reset.",
+        "EVENT-DRIVEN: When POST /api/sessions/{id}/rollback is called by workspace_admin, the system shall restore the session state to the given checkpoint and emit audit log."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "GET /api/workspaces/{id}/sessions",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-010-01"
+        },
+        {
+          "spec_endpoint": "GET /api/sessions/{id}",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-010-02"
+        },
+        {
+          "spec_endpoint": "WS /ws/sessions/{id}/log",
+          "impl_router": "WebSocket endpoint — backend WS routes not enumerated",
+          "diff_severity": "low",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-010-03"
+        },
+        {
+          "spec_endpoint": "POST /api/sessions/{id}/kill",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-010-04"
+        },
+        {
+          "spec_endpoint": "POST /api/sessions/{id}/pause",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-010-05"
+        },
+        {
+          "spec_endpoint": "POST /api/sessions/{id}/resume",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-010-06"
+        },
+        {
+          "spec_endpoint": "POST /api/sessions/{id}/rollback",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-010-07"
+        },
+        {
+          "spec_endpoint": "POST /api/workspaces/{id}/sessions/kill-all",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-010-08"
+        }
+      ]
+    },
+    {
+      "id": "F-012",
+      "name": "赤線リスト + 自動停止 (5 項目)",
+      "category": "safety",
+      "happy_path": [
+        "AI action 前にミドルウェアで pattern 検出→該当時 block + slack push + audit log + 承認待ち"
+      ],
+      "error_paths": [
+        "false positive→「これは安全」マークで学習"
+      ],
+      "policies": "default_categories api_key_leak / db_destructive / force_push / infinite_loop / deploy_decision",
+      "audit_logs": [
+        "red_line_triggered",
+        "violation_approved",
+        "violation_rejected"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "member"
+      ],
+      "external_services": [
+        "Slack (notification)"
+      ],
+      "related_screens": [
+        "S-019 red_lines_editor",
+        "S-034 violations_inbox"
+      ],
+      "related_entities": [
+        "E-031 RedLine",
+        "E-032 RedLineViolation"
+      ],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/red-lines",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "red_lines": "RedLine[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-031 RedLine"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/red-lines",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "category": "string",
+            "pattern": "string",
+            "action": "block|warn"
+          },
+          "outputs_2xx": {
+            "red_line_id": "uuid"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "workspace not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-031 RedLine"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/red-lines/test",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid",
+            "sample_text": "string"
+          },
+          "outputs_2xx": {
+            "matched": "RedLine[]",
+            "would_block": "boolean"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "workspace not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-031 RedLine"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/violations",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "status": "pending|approved|rejected?"
+          },
+          "outputs_2xx": {
+            "violations": "RedLineViolation[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-031 RedLine",
+            "E-032 RedLineViolation"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/violations/{id}/approve",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "reason": "string"
+          },
+          "outputs_2xx": {
+            "approved_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "violation not found",
+            "409": "already resolved",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-032 RedLineViolation"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/violations/{id}/reject",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "reason": "string"
+          },
+          "outputs_2xx": {
+            "rejected_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "violation not found",
+            "409": "already resolved",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-032 RedLineViolation"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "UBIQUITOUS: The system shall evaluate every AI-initiated action against active red_line patterns before execution.",
+        "EVENT-DRIVEN: When an action matches a red_line with action='block', the system shall halt execution and create a pending violation record.",
+        "UNWANTED: If a violation is in 'pending' state, the system shall not allow the originating AI session to continue without admin approval.",
+        "EVENT-DRIVEN: When POST /api/violations/{id}/approve is called by a workspace_admin, the system shall resume the originating session.",
+        "UNWANTED: If POST /api/violations/{id}/approve is called for an already-resolved violation, the system shall return 409."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "GET /api/workspaces/{id}/red-lines",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-012-01"
+        },
+        {
+          "spec_endpoint": "POST /api/workspaces/{id}/red-lines",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-012-02"
+        },
+        {
+          "spec_endpoint": "POST /api/workspaces/{id}/red-lines/test",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-012-03"
+        },
+        {
+          "spec_endpoint": "GET /api/workspaces/{id}/violations",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-012-04"
+        },
+        {
+          "spec_endpoint": "POST /api/violations/{id}/approve",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-012-05"
+        },
+        {
+          "spec_endpoint": "POST /api/violations/{id}/reject",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-012-06"
+        }
+      ]
+    },
+    {
+      "id": "F-013",
+      "name": "GitHub 連携 (PR + HTML diff 注釈) / 顧客レビュー",
+      "category": "integration",
+      "happy_path": [
+        "task 完了→Claude Code が commit + push→Build-Factory が PR 自動作成→HTML レビュー資料 PR コメント添付→merge で task done / 顧客は 公開トークン経由でレビュー"
+      ],
+      "error_paths": [
+        "merge conflict→AI 自動解決試行→失敗で人間エスカ",
+        "branch protection→警告 + 別ブランチ"
+      ],
+      "policies": "force_push は red line / 公開トークンは expires_at 必須 / merge_method 選択可",
+      "audit_logs": [
+        "pr_created",
+        "pr_approved",
+        "pr_merged",
+        "delivery_sent_to_client"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "member",
+        "public (token)"
+      ],
+      "external_services": [
+        "GitHub OAuth App",
+        "gh CLI",
+        "GitHub MCP"
+      ],
+      "related_screens": [
+        "S-033 pr_review",
+        "S-035 delivery_pack",
+        "S-042 client_workspace_view",
+        "S-043 client_comment_thread"
+      ],
+      "related_entities": [
+        "E-033 PullRequest",
+        "E-034 Delivery",
+        "E-030 Comment"
+      ],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/prs/{pr_number}",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid",
+            "pr_number": "int"
+          },
+          "outputs_2xx": {
+            "pr": "PullRequest",
+            "html_review_url": "string"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "PR not found",
+            "500": "GitHub API failure"
+          },
+          "related_entities": [
+            "E-033 PullRequest"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/prs/{id}/approve",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "comment": "string?"
+          },
+          "outputs_2xx": {
+            "approved_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "PR not found",
+            "409": "already approved",
+            "500": "GitHub API failure"
+          },
+          "related_entities": [
+            "E-033 PullRequest"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/prs/{id}/comments",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid",
+            "body": "string",
+            "anchor_file": "string?",
+            "anchor_line": "int?"
+          },
+          "outputs_2xx": {
+            "comment_id": "uuid"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "PR not found",
+            "422": "validation error",
+            "500": "GitHub API failure"
+          },
+          "related_entities": [
+            "E-033 PullRequest",
+            "E-030 Comment"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/prs/{id}/merge",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "merge_method": "squash|merge|rebase"
+          },
+          "outputs_2xx": {
+            "merged_at": "timestamptz",
+            "sha": "string"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "PR not found",
+            "409": "conflicts or not approved",
+            "422": "invalid merge_method",
+            "500": "GitHub API failure"
+          },
+          "related_entities": [
+            "E-033 PullRequest"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/client/workspaces/{token}",
+          "auth": "public",
+          "inputs": {
+            "token": "string"
+          },
+          "outputs_2xx": {
+            "workspace": "PublicWorkspaceView"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "404": "token not found",
+            "409": "token expired",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-003 Workspace"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/client/workspaces/{token}/spec",
+          "auth": "public",
+          "inputs": {
+            "token": "string"
+          },
+          "outputs_2xx": {
+            "spec_html_url": "string"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "404": "token not found",
+            "409": "token expired",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-010 Spec"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/client/comments/{thread_id}",
+          "auth": "public",
+          "inputs": {
+            "thread_id": "uuid"
+          },
+          "outputs_2xx": {
+            "comments": "PublicComment[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-030 Comment"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/client/comments",
+          "auth": "public",
+          "inputs": {
+            "token": "string",
+            "body": "string",
+            "anchor": "string?"
+          },
+          "outputs_2xx": {
+            "comment_id": "uuid"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "404": "token not found",
+            "422": "validation error",
+            "429": "rate limit",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-030 Comment"
+          ],
+          "rate_limit": "20/hour/token"
+        },
+        {
+          "method": "POST",
+          "path": "/api/comments/{id}/resolve",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "resolved_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "comment not found",
+            "409": "already resolved",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-030 Comment"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/delivery",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "delivery": "Delivery"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-034 Delivery"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/delivery/approve",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "approved_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "delivery not found",
+            "409": "not ready",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-034 Delivery"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/delivery/send-client",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "client_email": "string"
+          },
+          "outputs_2xx": {
+            "sent_at": "timestamptz",
+            "delivery_token": "string"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "delivery not found",
+            "422": "validation error",
+            "500": "email send failed"
+          },
+          "related_entities": [
+            "E-034 Delivery"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When POST /api/prs/{id}/merge is called by a workspace_admin with valid merge_method, the system shall merge the PR via GitHub API and emit pr_merged audit log.",
+        "UNWANTED: If POST /api/prs/{id}/merge is called for a PR with unresolved conflicts, the system shall return 409.",
+        "EVENT-DRIVEN: When POST /api/workspaces/{id}/delivery/send-client is called, the system shall generate a public token with expires_at and email the client.",
+        "STATE-DRIVEN: While a client token has expired, the system shall return 409 for GET /api/client/workspaces/{token}.",
+        "UNWANTED: If POST /api/client/comments exceeds 20 requests per hour per token, the system shall return 429.",
+        "UBIQUITOUS: The system shall record every PR review HTML attached as artifact for audit retention 7 years."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "GET /api/workspaces/{id}/prs/{pr_number}",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-013-01"
+        },
+        {
+          "spec_endpoint": "POST /api/prs/{id}/approve",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-013-02"
+        },
+        {
+          "spec_endpoint": "POST /api/prs/{id}/comments",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-013-03"
+        },
+        {
+          "spec_endpoint": "POST /api/prs/{id}/merge",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-013-04"
+        },
+        {
+          "spec_endpoint": "GET /api/client/workspaces/{token}",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-013-05"
+        },
+        {
+          "spec_endpoint": "GET /api/client/workspaces/{token}/spec",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-013-06"
+        },
+        {
+          "spec_endpoint": "GET /api/client/comments/{thread_id}",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-013-07"
+        },
+        {
+          "spec_endpoint": "POST /api/client/comments",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-013-08"
+        },
+        {
+          "spec_endpoint": "POST /api/comments/{id}/resolve",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-013-09"
+        },
+        {
+          "spec_endpoint": "GET /api/workspaces/{id}/delivery",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-013-10"
+        },
+        {
+          "spec_endpoint": "POST /api/workspaces/{id}/delivery/approve",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-013-11"
+        },
+        {
+          "spec_endpoint": "POST /api/workspaces/{id}/delivery/send-client",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-013-12"
+        }
+      ]
+    },
+    {
+      "id": "F-016",
+      "name": "Obsidian ナレッジ母艦 (単方向 export)",
+      "category": "integration",
+      "happy_path": [
+        "ws settings で vault パス指定→trigger 選択→artifact MD 化→frontmatter + 構造化フォルダ書込"
+      ],
+      "error_paths": [
+        "パス権限なし→警告 + 別パス提案"
+      ],
+      "policies": "max_per_export 100 / supabase_storage backend",
+      "audit_logs": [
+        "knowledge_exported",
+        "vault_path_changed"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "member"
+      ],
+      "related_screens": [
+        "S-039 knowledge_base"
+      ],
+      "related_entities": [
+        "E-035 KnowledgeItem",
+        "E-036 ObsidianVault"
+      ],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/knowledge",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid",
+            "category": "string?"
+          },
+          "outputs_2xx": {
+            "items": "KnowledgeItem[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-035 KnowledgeItem"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/knowledge/search",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid",
+            "q": "string",
+            "limit": "int?"
+          },
+          "outputs_2xx": {
+            "hits": "KnowledgeHit[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "workspace not found",
+            "422": "query too long",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-035 KnowledgeItem"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When GET /api/workspaces/{id}/knowledge/search is called with q, the system shall combine pgvector + pg_trgm + FTS and return top 50 hits.",
+        "UNWANTED: If the search query q exceeds 500 chars, the system shall return 422.",
+        "STATE-DRIVEN: While obsidian export trigger is 'realtime', the system shall write artifact MD within 5 seconds of artifact creation.",
+        "UBIQUITOUS: The system shall apply RLS so members only see knowledge from workspaces they belong to."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "GET /api/workspaces/{id}/knowledge",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-016-01"
+        },
+        {
+          "spec_endpoint": "GET /api/workspaces/{id}/knowledge/search",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-016-02"
+        }
+      ]
+    },
+    {
+      "id": "F-017",
+      "name": "Langfuse self-host (観測 + コスト)",
+      "category": "ops",
+      "happy_path": [
+        "全 LLM 呼出を Langfuse SDK で trace→ws_id/user_id/cost/tokens tag→workspace 集計→cost dashboard 表示→上限近接で warn"
+      ],
+      "error_paths": [
+        "Langfuse 接続失敗→ローカル buffer + 復旧時 flush"
+      ],
+      "policies": "self-host docker compose / cost cap warn at 80% of monthly limit",
+      "audit_logs": [
+        "cost_limit_updated",
+        "cost_limit_breached"
+      ],
+      "access_roles": [
+        "account_owner",
+        "workspace_admin"
+      ],
+      "related_screens": [
+        "S-040 cost_dashboard"
+      ],
+      "related_entities": [
+        "E-026 CostLog",
+        "E-022 SkillExecution",
+        "E-024 Session"
+      ],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/observability/cost-summary",
+          "auth": "workspace_admin",
+          "inputs": {
+            "workspace_id": "uuid?",
+            "from": "date?",
+            "to": "date?"
+          },
+          "outputs_2xx": {
+            "total_usd": "number",
+            "by_provider": "object",
+            "by_user": "object"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-026 CostLog"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/observability/cost-summary/export.csv",
+          "auth": "workspace_admin",
+          "inputs": {
+            "workspace_id": "uuid?",
+            "from": "date?",
+            "to": "date?"
+          },
+          "outputs_2xx": {
+            "csv_body": "string (text/csv)"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "workspace not found",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-026 CostLog"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/token-limit",
+          "auth": "account_owner",
+          "inputs": {
+            "id": "uuid",
+            "limit_usd_per_month": "number"
+          },
+          "outputs_2xx": {
+            "limit_usd_per_month": "number",
+            "updated_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "workspace not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-003 Workspace"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When GET /api/observability/cost-summary is called with date range, the system shall return total_usd + by_provider + by_user breakdown.",
+        "STATE-DRIVEN: While monthly cost reaches 80% of the workspace limit, the system shall emit cost_limit_warning notification.",
+        "UNWANTED: If monthly cost exceeds the workspace limit, the system shall block new LLM invocations and return 429 with budget_exceeded code.",
+        "UBIQUITOUS: The system shall record every LLM invocation with tokens_used + cost_usd + provider tags within 1 second of completion."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "GET /api/observability/cost-summary/export.csv",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-017-01"
+        },
+        {
+          "spec_endpoint": "POST /api/workspaces/{id}/token-limit",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-017-02"
+        }
+      ]
+    },
+    {
+      "id": "F-018",
+      "name": "監査ログ + 通知 + バックアップ",
+      "category": "ops",
+      "happy_path": [
+        "主要 action を audit_logs trigger で INSERT→検索/export 可→DB 日次/Storage 週次/Obsidian リアルタイム自動 backup / 通知 inbox に push"
+      ],
+      "error_paths": [
+        "バックアップ失敗→admin 通知 + retry"
+      ],
+      "policies": "retention_audit_years 7 / retention_backup_days 90 / partition_strategy pg_partman monthly (P2)",
+      "audit_logs": [
+        "all_user_actions"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "authenticated"
+      ],
+      "related_screens": [
+        "S-010 notifications_inbox",
+        "S-041 audit_log_viewer"
+      ],
+      "related_entities": [
+        "E-037 AuditLog",
+        "E-038 Notification"
+      ],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/audit-logs",
+          "auth": "workspace_admin",
+          "inputs": {
+            "workspace_id": "uuid?",
+            "from": "date?",
+            "to": "date?",
+            "user_id": "uuid?",
+            "action": "string?"
+          },
+          "outputs_2xx": {
+            "items": "AuditLog[]",
+            "total": "int"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-037 AuditLog"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/audit-logs/export.csv",
+          "auth": "workspace_admin",
+          "inputs": {
+            "workspace_id": "uuid?",
+            "from": "date?",
+            "to": "date?"
+          },
+          "outputs_2xx": {
+            "csv_body": "string (text/csv)"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "422": "filter too broad",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-037 AuditLog"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/audit-logs/export.json",
+          "auth": "workspace_admin",
+          "inputs": {
+            "workspace_id": "uuid?",
+            "from": "date?",
+            "to": "date?"
+          },
+          "outputs_2xx": {
+            "json_body": "AuditLog[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "422": "filter too broad",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-037 AuditLog"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/notifications",
+          "auth": "authenticated",
+          "inputs": {
+            "unread_only": "boolean?",
+            "category": "string?"
+          },
+          "outputs_2xx": {
+            "items": "Notification[]",
+            "unread_count": "int"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-038 Notification"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/notifications/{id}/read",
+          "auth": "authenticated",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "read_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "notification not found",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-038 Notification"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/notifications/read-all",
+          "auth": "authenticated",
+          "inputs": {
+            "category": "string?"
+          },
+          "outputs_2xx": {
+            "marked_count": "int"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-038 Notification"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "UBIQUITOUS: The system shall write an audit_log entry for every state-mutating API call within 1 second.",
+        "EVENT-DRIVEN: When GET /api/audit-logs/export.csv is called with a date range >90 days, the system shall return 422 with filter_too_broad.",
+        "STATE-DRIVEN: While a notification is unread, the system shall include it in the unread_count of GET /api/notifications.",
+        "EVENT-DRIVEN: When POST /api/notifications/read-all is called with no category filter, the system shall mark all unread notifications for the user as read.",
+        "UNWANTED: If a backup job fails 3 times consecutively, the system shall alert admins via Slack and email."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "GET /api/audit-logs",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-018-01"
+        },
+        {
+          "spec_endpoint": "GET /api/audit-logs/export.csv",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-018-02"
+        },
+        {
+          "spec_endpoint": "GET /api/audit-logs/export.json",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-018-03"
+        },
+        {
+          "spec_endpoint": "GET /api/notifications",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-018-04"
+        },
+        {
+          "spec_endpoint": "POST /api/notifications/{id}/read",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-018-05"
+        },
+        {
+          "spec_endpoint": "POST /api/notifications/read-all",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-018-06"
+        }
+      ]
+    },
+    {
+      "id": "F-019",
+      "name": "既存 bootstrap 振り分け実行",
+      "category": "management",
+      "happy_path": [
+        "振り分け表に従い 1 ファイルずつ処理→archive→_archived/→modify はチケット化→動作確認"
+      ],
+      "error_paths": [
+        "import 経路破綻→依存解析で先に修正"
+      ],
+      "policies": "physical_delete false / dispositon ticket per file",
+      "audit_logs": [
+        "bootstrap_disposition"
+      ],
+      "access_roles": [
+        "account_owner"
+      ],
+      "related_screens": [],
+      "related_entities": [],
+      "api_endpoints": [],
+      "ears_ac_seed": [
+        "UBIQUITOUS: The system shall not physically delete files from the legacy bootstrap; archival is the only allowed disposition.",
+        "EVENT-DRIVEN: When a bootstrap file is dispositioned, the system shall record bootstrap_disposition audit log with target_path and action."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": null
+    },
+    {
+      "id": "F-020",
+      "name": "LLM プロバイダー抽象化 (LiteLLM)",
+      "category": "ai",
+      "happy_path": [
+        "ws/user 単位で provider+model 設定→request 時に adapter 選択→capability flag で機能差処理→統一 response→cost/tokens を Langfuse 転送"
+      ],
+      "error_paths": [
+        "provider error→統一エラー型変換",
+        "機能未対応→警告 + 別 provider 提案"
+      ],
+      "policies": "LiteLLM self-host docker / 新 provider = adapter 1 ファイル / fallback chain per ADR-012",
+      "audit_logs": [
+        "provider_switched",
+        "llm_invocation"
+      ],
+      "access_roles": [
+        "account_owner",
+        "workspace_admin"
+      ],
+      "external_services": [
+        "Anthropic",
+        "OpenAI",
+        "Google Gemini"
+      ],
+      "related_screens": [
+        "S-009 profile_settings"
+      ],
+      "related_entities": [
+        "E-039 LLMProvider",
+        "E-006 ApiKey",
+        "E-026 CostLog"
+      ],
+      "api_endpoints": [],
+      "ears_ac_seed": [
+        "UBIQUITOUS: The system shall route all LLM calls through the provider abstraction layer; direct provider SDK use is forbidden in the main runner.",
+        "EVENT-DRIVEN: When the primary provider returns 5xx, the system shall fall back to the configured secondary per ADR-012 precedence.",
+        "STATE-DRIVEN: While a workspace has BYOK key configured, the system shall use the BYOK key over the platform default.",
+        "UNWANTED: If a workspace selects a provider lacking the required capability flag (e.g., vision), the system shall return 422 with capability_unsupported."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": null
+    },
+    {
+      "id": "F-021",
+      "name": "ロール custom_permissions UI + monitor ロール",
+      "category": "auth",
+      "happy_path": [
+        "UI でロール選択→default プリチェック→個別 override→保存→RLS / API ガード で OR 評価"
+      ],
+      "error_paths": [
+        "self-strip→他 admin 居なければ block / 居れば警告 modal",
+        "owner strip→絶対 block",
+        "矛盾組合せ→自動補完 option"
+      ],
+      "policies": "role_relationship completely_parallel / self_strip_block_threshold no_other_admin",
+      "audit_logs": [
+        "role_changed",
+        "permission_overridden"
+      ],
+      "access_roles": [
+        "owner",
+        "admin",
+        "member",
+        "viewer",
+        "guest",
+        "monitor"
+      ],
+      "related_screens": [
+        "S-014 workspace_members",
+        "S-008 account_members"
+      ],
+      "related_entities": [
+        "E-004 WorkspaceMember"
+      ],
+      "api_endpoints": [],
+      "ears_ac_seed": [
+        "UBIQUITOUS: The system shall evaluate access via OR across role default_permissions and member custom_permissions.",
+        "UNWANTED: If PUT /api/workspaces/{id}/members/{user_id}/role would leave the workspace without any admin, the system shall return 409.",
+        "UNWANTED: If a user attempts to strip the workspace owner of owner role, the system shall return 403.",
+        "STATE-DRIVEN: While a member has the 'monitor' role, the system shall grant read-only access to all workspace artifacts but deny write operations."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": null
+    },
+    {
+      "id": "F-022",
+      "name": "AI 社員 3 階層対応 + 個人ナレッジ namespace + クローン opt-in",
+      "category": "ai",
+      "happy_path": [
+        "AI 社員に hierarchy/parent/department/cloned_from_user_id 列追加→組織図 UI→ユーザ action を user_interaction_log 記録 (opt-in TRUE 時のみ trigger 経由)"
+      ],
+      "error_paths": [
+        "階層循環→DB 制約",
+        "opt-in OFF で INSERT 試行→trigger で reject"
+      ],
+      "policies": "clone_opt_in_default false / clone_data_deletion always available",
+      "audit_logs": [
+        "clone_opt_in_toggled",
+        "clone_data_deleted"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "member"
+      ],
+      "related_screens": [
+        "S-009 profile_settings",
+        "S-036 ai_employees_org_chart",
+        "S-037 ai_employee_detail"
+      ],
+      "related_entities": [
+        "E-008 AIEmployee",
+        "E-018 UserKnowledgeNamespace",
+        "E-040 UserInteractionLog"
+      ],
+      "api_endpoints": [],
+      "ears_ac_seed": [
+        "STATE-DRIVEN: While clone_opt_in is FALSE for a user, the system shall not INSERT into user_interaction_log for that user (DB trigger enforced).",
+        "EVENT-DRIVEN: When a user opts out of cloning, the system shall offer immediate deletion of user_knowledge_namespace + user_interaction_log.",
+        "UNWANTED: If creating an AI employee would create a circular hierarchy, the system shall return 409."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": null
+    },
+    {
+      "id": "F-023",
+      "name": "アカウント設定 / プロフィール画面",
+      "category": "ui",
+      "happy_path": [
+        "プロフィール編集→user table 更新→通知設定→user_settings→API キー登録→pgsodium 暗号化保管→OAuth 連携"
+      ],
+      "error_paths": [
+        "無効 API キー→検証 endpoint で事前確認",
+        "OAuth 失敗→retry 導線"
+      ],
+      "policies": "key_display masked even for admin",
+      "audit_logs": [
+        "profile_updated",
+        "api_key_added",
+        "api_key_removed",
+        "oauth_linked",
+        "oauth_unlinked"
+      ],
+      "access_roles": [
+        "authenticated"
+      ],
+      "related_screens": [
+        "S-009 profile_settings"
+      ],
+      "related_entities": [
+        "E-002 User",
+        "E-041 UserSettings",
+        "E-006 ApiKey"
+      ],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/me",
+          "auth": "authenticated",
+          "inputs": {},
+          "outputs_2xx": {
+            "user": "User",
+            "settings": "UserSettings"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-002 User",
+            "E-041 UserSettings"
+          ]
+        },
+        {
+          "method": "PUT",
+          "path": "/api/me",
+          "auth": "authenticated",
+          "inputs": {
+            "name": "string?",
+            "avatar_url": "string?",
+            "settings": "object?"
+          },
+          "outputs_2xx": {
+            "updated_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-002 User"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/me/api-keys",
+          "auth": "authenticated",
+          "inputs": {
+            "provider": "string",
+            "key_plaintext": "string"
+          },
+          "outputs_2xx": {
+            "key_id": "uuid",
+            "masked_key": "string"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "409": "key already exists for provider",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-006 ApiKey"
+          ]
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/me/oauth/{provider}",
+          "auth": "authenticated",
+          "inputs": {
+            "provider": "anthropic|github|slack|google"
+          },
+          "outputs_2xx": {
+            "unlinked_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "404": "provider not linked",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-002 User"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When POST /api/me/api-keys is called, the system shall encrypt the key plaintext with pgsodium before persisting.",
+        "UBIQUITOUS: The system shall mask API keys in all API responses (only last 4 chars visible).",
+        "UNWANTED: If POST /api/me/api-keys is called for a provider where a key already exists, the system shall return 409.",
+        "EVENT-DRIVEN: When DELETE /api/me/oauth/{provider} is called, the system shall revoke the OAuth token at the provider and unlink locally."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "GET /api/me",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-023-01"
+        },
+        {
+          "spec_endpoint": "PUT /api/me",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-023-02"
+        },
+        {
+          "spec_endpoint": "POST /api/me/api-keys",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-023-03"
+        },
+        {
+          "spec_endpoint": "DELETE /api/me/oauth/{provider}",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-023-04"
+        }
+      ]
+    },
+    {
+      "id": "F-024",
+      "name": "グローバル検索 (Cmd+K) + アカウントダッシュボード",
+      "category": "ui",
+      "happy_path": [
+        "Cmd+K で modal→query→Postgres FTS + pgvector + pg_trgm→カテゴリ別→RLS で見える範囲のみ→ジャンプ"
+      ],
+      "error_paths": [
+        "query 過大→error",
+        "結果 0→spell suggest"
+      ],
+      "policies": "max_results_per_query 50 / trigger Cmd+K / Ctrl+K",
+      "audit_logs": [
+        "search_invoked"
+      ],
+      "access_roles": [
+        "authenticated"
+      ],
+      "related_screens": [
+        "S-006 account_dashboard",
+        "S-011 global_search"
+      ],
+      "related_entities": [
+        "E-016 Task",
+        "E-014 Artifact",
+        "E-037 AuditLog",
+        "E-035 KnowledgeItem"
+      ],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/search",
+          "auth": "authenticated",
+          "inputs": {
+            "q": "string",
+            "category": "tasks|artifacts|knowledge|audit?",
+            "limit": "int?"
+          },
+          "outputs_2xx": {
+            "hits": "SearchHit[]",
+            "total": "int",
+            "categories": "object"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "422": "query too long or empty",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-016 Task",
+            "E-014 Artifact",
+            "E-035 KnowledgeItem",
+            "E-037 AuditLog"
+          ],
+          "rate_limit": "60/min/user"
+        },
+        {
+          "method": "GET",
+          "path": "/api/accounts/{id}/dashboard",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "workspaces": "WorkspaceSummary[]",
+            "kpi": "object"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-001 Account",
+            "E-003 Workspace"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When GET /api/search is called with a non-empty q, the system shall return hits ranked by combined FTS + vector similarity score.",
+        "UBIQUITOUS: The system shall apply RLS so search hits include only resources visible to the caller.",
+        "UNWANTED: If GET /api/search receives q > 500 chars or empty, the system shall return 422.",
+        "UNWANTED: If GET /api/search exceeds 60 requests per minute per user, the system shall return 429.",
+        "EVENT-DRIVEN: When GET /api/accounts/{id}/dashboard is called, the system shall aggregate KPI across all workspaces the caller belongs to within the account."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "GET /api/search",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-024-01"
+        },
+        {
+          "spec_endpoint": "GET /api/accounts/{id}/dashboard",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-024-02"
+        }
+      ]
+    },
+    {
+      "id": "F-025",
+      "name": "EARS notation 標準 (acceptance-criteria)",
+      "category": "spec",
+      "happy_path": [
+        "PM テキスト入力→AI 形式分類 (5 種)→不適合は書き直し suggest→JSON Schema 検証"
+      ],
+      "error_paths": [
+        "曖昧→複数解釈提示モード"
+      ],
+      "policies": "types ubiquitous/event/state/optional/unwanted / count_per_task_recommended 3-10",
+      "audit_logs": [
+        "ac_validated"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "member"
+      ],
+      "related_screens": [
+        "S-021 requirements_editor",
+        "S-030 task_detail"
+      ],
+      "related_entities": [
+        "E-019 AcceptanceCriterion"
+      ],
+      "api_endpoints": [],
+      "ears_ac_seed": [
+        "UBIQUITOUS: The system shall validate every acceptance_criteria item against one of the 5 EARS forms before persisting.",
+        "UNWANTED: If an acceptance_criteria item does not match any EARS form, the system shall return 422 with the form_violation reason."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": null
+    },
+    {
+      "id": "F-026",
+      "name": "Constitution (プロジェクト不変原則)",
+      "category": "safety",
+      "happy_path": [
+        "ws 作成時 template 生成→admin 編集→version 採番→全 AI session の初期 prompt に注入→違反は赤線エスカ→改訂時は session ごとに version snapshot"
+      ],
+      "error_paths": [
+        "旧 session が旧版参照→version_at_start で動作中継続",
+        "constitution 過大→content_md 上限 10KB warn"
+      ],
+      "policies": "max_size_kb 10 / version_lock session.constitution_version_at_start で記録",
+      "audit_logs": [
+        "constitution_versioned",
+        "constitution_approved"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "member"
+      ],
+      "related_screens": [
+        "S-018 constitution_editor"
+      ],
+      "related_entities": [
+        "E-042 Constitution",
+        "E-031 RedLine"
+      ],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/constitution",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "content_md": "string",
+            "version": "int",
+            "is_active": "boolean"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-042 Constitution"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/constitution/versions",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "content_md": "string",
+            "message": "string"
+          },
+          "outputs_2xx": {
+            "version_id": "uuid",
+            "version_number": "int"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "workspace not found",
+            "422": "content_md too large (>10KB)",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-042 Constitution"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/constitution/versions/{v}/approve",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "v": "int"
+          },
+          "outputs_2xx": {
+            "approved_at": "timestamptz",
+            "active_version": "int"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "version not found",
+            "409": "already active",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-042 Constitution"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When POST /api/workspaces/{id}/constitution/versions is called, the system shall create a new version snapshot without affecting the active version.",
+        "EVENT-DRIVEN: When POST /api/workspaces/{id}/constitution/versions/{v}/approve is called, the system shall mark v as active and inject it into newly spawned sessions.",
+        "UNWANTED: If POST /api/workspaces/{id}/constitution/versions content_md exceeds 10KB, the system shall return 422.",
+        "STATE-DRIVEN: While a session was spawned with constitution_version_at_start=N, the system shall continue using version N for that session even if a newer version is approved."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "GET /api/workspaces/{id}/constitution",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-026-01"
+        },
+        {
+          "spec_endpoint": "POST /api/workspaces/{id}/constitution/versions",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-026-02"
+        },
+        {
+          "spec_endpoint": "POST /api/workspaces/{id}/constitution/versions/{v}/approve",
+          "impl_router": "backend router not implemented",
+          "diff_severity": "critical",
+          "recommendation": "Group B-1 (Vertical Slice / Backend) で対応",
+          "task_id": "T-V3-DRIFT-F-026-03"
+        }
+      ]
+    },
+    {
+      "id": "F-027",
+      "name": "オンボーディング flow (welcome / setup / AI intro)",
+      "category": "onboarding",
+      "happy_path": [
+        "welcome_first_login→workspace_setup_wizard→ai_employee_intro→ダッシュボードへ完了"
+      ],
+      "error_paths": [
+        "途中離脱→onboarding_state 永続化で再開可",
+        "wizard skip→必須 step は skip 不可"
+      ],
+      "policies": "first_login 検出 / onboarding_completed_at 列",
+      "audit_logs": [
+        "onboarding_started",
+        "onboarding_completed",
+        "onboarding_skipped"
+      ],
+      "access_roles": [
+        "authenticated"
+      ],
+      "related_screens": [
+        "S-048 welcome_first_login",
+        "S-049 workspace_setup_wizard",
+        "S-050 ai_employee_intro"
+      ],
+      "related_entities": [
+        "E-002 User",
+        "E-041 UserSettings"
+      ],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/me/onboarding",
+          "auth": "authenticated",
+          "inputs": {},
+          "outputs_2xx": {
+            "state": "object",
+            "current_step": "string",
+            "completed": "boolean"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-041 UserSettings"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/me/onboarding/advance",
+          "auth": "authenticated",
+          "inputs": {
+            "step": "string",
+            "payload": "object"
+          },
+          "outputs_2xx": {
+            "next_step": "string",
+            "completed": "boolean"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "422": "validation error",
+            "409": "step out of order",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-041 UserSettings"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/me/onboarding/skip",
+          "auth": "authenticated",
+          "inputs": {
+            "reason": "string?"
+          },
+          "outputs_2xx": {
+            "skipped_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "409": "cannot skip required step",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-041 UserSettings"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "STATE-DRIVEN: While a user's onboarding is not yet completed, the system shall redirect them to the welcome screen on every login.",
+        "EVENT-DRIVEN: When POST /api/me/onboarding/advance is called with a valid step transition, the system shall persist progress and return the next_step.",
+        "UNWANTED: If POST /api/me/onboarding/skip is called for a step marked required=true, the system shall return 409.",
+        "EVENT-DRIVEN: When onboarding is completed, the system shall set onboarding_completed_at and emit onboarding_completed audit log."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "GET /api/me/onboarding",
+          "impl_router": "missing",
+          "diff_severity": "critical",
+          "recommendation": "task-decomposition Group B-1 で新規実装",
+          "task_id": "T-V3-DRIFT-F-027-01"
+        },
+        {
+          "spec_endpoint": "POST /api/me/onboarding/advance",
+          "impl_router": "missing",
+          "diff_severity": "critical",
+          "recommendation": "task-decomposition Group B-1 で新規実装",
+          "task_id": "T-V3-DRIFT-F-027-02"
+        },
+        {
+          "spec_endpoint": "POST /api/me/onboarding/skip",
+          "impl_router": "missing",
+          "diff_severity": "critical",
+          "recommendation": "task-decomposition Group B-1 で新規実装",
+          "task_id": "T-V3-DRIFT-F-027-03"
+        }
+      ]
+    },
+    {
+      "id": "F-028",
+      "name": "メール配信 (signup verify / password reset / invitation / task notif / weekly summary)",
+      "category": "email",
+      "happy_path": [
+        "イベント trigger→template rendering (locale aware)→provider (Resend/SES) 送信→delivery 状態 tracking"
+      ],
+      "error_paths": [
+        "bounce→retry 3 回 + admin 通知",
+        "rate limit by provider→queue"
+      ],
+      "policies": "provider abstraction / template versioning / unsubscribe per category",
+      "audit_logs": [
+        "email_sent",
+        "email_bounced",
+        "email_unsubscribed"
+      ],
+      "access_roles": [
+        "system",
+        "authenticated"
+      ],
+      "external_services": [
+        "Resend / SES (SMTP fallback)"
+      ],
+      "related_screens": [
+        "S-056 email_signup_verify",
+        "S-057 email_password_reset",
+        "S-058 email_invitation",
+        "S-059 email_task_notification",
+        "S-060 email_weekly_summary"
+      ],
+      "related_entities": [
+        "E-043 EmailTemplate",
+        "E-044 EmailDelivery"
+      ],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/email/templates",
+          "auth": "workspace_admin",
+          "inputs": {},
+          "outputs_2xx": {
+            "templates": "EmailTemplate[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-043 EmailTemplate"
+          ]
+        },
+        {
+          "method": "PUT",
+          "path": "/api/email/templates/{id}",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "subject": "string",
+            "body_md": "string",
+            "locale": "string"
+          },
+          "outputs_2xx": {
+            "version": "int",
+            "updated_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "template not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-043 EmailTemplate"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/email/test-send",
+          "auth": "workspace_admin",
+          "inputs": {
+            "template_id": "uuid",
+            "recipient": "string"
+          },
+          "outputs_2xx": {
+            "delivery_id": "uuid",
+            "queued_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "template not found",
+            "422": "validation error",
+            "429": "rate limit exceeded",
+            "500": "email send failed"
+          },
+          "related_entities": [
+            "E-044 EmailDelivery"
+          ],
+          "rate_limit": "10/hour/workspace"
+        },
+        {
+          "method": "POST",
+          "path": "/api/email/unsubscribe",
+          "auth": "public",
+          "inputs": {
+            "token": "string",
+            "category": "string"
+          },
+          "outputs_2xx": {
+            "unsubscribed_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "invalid token",
+            "404": "token not found",
+            "409": "already unsubscribed",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-002 User"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When a workspace invitation is created, the system shall send the email_invitation template within 60 seconds.",
+        "UNWANTED: If an email bounces, the system shall retry up to 3 times with exponential backoff before alerting admins.",
+        "STATE-DRIVEN: While a user is unsubscribed from category=task_notification, the system shall not send task notification emails to them.",
+        "UNWANTED: If POST /api/email/test-send is called more than 10 times per hour per workspace, the system shall return 429."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "GET /api/email/templates",
+          "impl_router": "missing",
+          "diff_severity": "critical",
+          "recommendation": "task-decomposition Group B-1 で新規実装 + Resend/SES integration",
+          "task_id": "T-V3-DRIFT-F-028-01"
+        },
+        {
+          "spec_endpoint": "POST /api/email/test-send",
+          "impl_router": "missing",
+          "diff_severity": "critical",
+          "recommendation": "task-decomposition Group B-1 で新規実装",
+          "task_id": "T-V3-DRIFT-F-028-02"
+        }
+      ]
+    },
+    {
+      "id": "F-029",
+      "name": "デザインシステム / コンポーネントカタログ",
+      "category": "design-system",
+      "happy_path": [
+        "design tokens 読込→Lucide Icons / shadcn/ui コンポーネント一覧→ENGINE BASE green 確認→使用箇所追跡"
+      ],
+      "error_paths": [
+        "未使用コンポーネント→archive 候補",
+        "絵文字検出→警告"
+      ],
+      "policies": "Lucide Icons only / primary color #1a6648 / Noto Sans JP + JetBrains Mono",
+      "audit_logs": [
+        "component_added",
+        "design_token_changed"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "member",
+        "viewer"
+      ],
+      "related_screens": [
+        "S-024 component_catalog",
+        "S-025 screen_flow_map"
+      ],
+      "related_entities": [
+        "E-012 Component",
+        "E-013 ScreenComponent"
+      ],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/design-system/tokens",
+          "auth": "member",
+          "inputs": {},
+          "outputs_2xx": {
+            "tokens": "DesignToken[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-012 Component"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/design-system/icons",
+          "auth": "member",
+          "inputs": {},
+          "outputs_2xx": {
+            "icons": "string[] (Lucide)"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-012 Component"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "UBIQUITOUS: The system shall reject any component definition that references emoji characters (Lucide Icons only policy).",
+        "EVENT-DRIVEN: When GET /api/design-system/icons is called, the system shall return the curated Lucide Icons subset available for mocks.",
+        "UNWANTED: If a design-token change would alter the primary color away from #1a6648, the system shall require account_owner approval."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "GET /api/design-system/tokens",
+          "impl_router": "missing",
+          "diff_severity": "medium",
+          "recommendation": "Component catalog API: B-1 で新規実装 (low priority)",
+          "task_id": "T-V3-DRIFT-F-029-01"
+        }
+      ]
+    },
+    {
+      "id": "F-030",
+      "name": "API トークン管理 / extras",
+      "category": "extras",
+      "happy_path": [
+        "API トークン発行→scope 選択→使用例コピー→失効まで利用"
+      ],
+      "error_paths": [
+        "scope 超過→403",
+        "失効後利用→401"
+      ],
+      "policies": "token は pgsodium 暗号化 / scope per token / expires_at 必須",
+      "audit_logs": [
+        "api_token_issued",
+        "api_token_revoked",
+        "api_token_used"
+      ],
+      "access_roles": [
+        "workspace_admin"
+      ],
+      "related_screens": [
+        "S-063 search_results",
+        "S-064 api_tokens"
+      ],
+      "related_entities": [
+        "E-006 ApiKey"
+      ],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/me/api-tokens",
+          "auth": "authenticated",
+          "inputs": {},
+          "outputs_2xx": {
+            "tokens": "ApiToken[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-006 ApiKey"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/me/api-tokens",
+          "auth": "authenticated",
+          "inputs": {
+            "name": "string",
+            "scopes": "string[]",
+            "expires_at": "timestamptz"
+          },
+          "outputs_2xx": {
+            "token_id": "uuid",
+            "plaintext_token_shown_once": "string"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "422": "validation error",
+            "429": "too many tokens",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-006 ApiKey"
+          ],
+          "rate_limit": "5/hour/user"
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/me/api-tokens/{id}",
+          "auth": "authenticated",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "revoked_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "404": "not found",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-006 ApiKey"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When POST /api/me/api-tokens is called, the system shall return the plaintext token exactly once and store only the hashed form.",
+        "UNWANTED: If GET /api/me/api-tokens response would expose the plaintext token, the system shall return only the masked form (last 4 chars).",
+        "STATE-DRIVEN: While an API token has expired (expires_at < now), the system shall return 401 for any request using it.",
+        "UNWANTED: If a user already has 10 active API tokens, the system shall return 429 for POST /api/me/api-tokens."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "POST /api/me/api-tokens",
+          "impl_router": "missing",
+          "diff_severity": "high",
+          "recommendation": "B-1 で新規実装、pgsodium 暗号化必須",
+          "task_id": "T-V3-DRIFT-F-030-01"
+        }
+      ]
+    },
+    {
+      "id": "F-031",
+      "name": "Export pipeline (spec PDF / delivery report)",
+      "category": "export",
+      "happy_path": [
+        "export type 選択 (spec_pdf | delivery_report)→artifact aggregate→HTML→PDF (Chromium)→Storage upload→共有リンク"
+      ],
+      "error_paths": [
+        "PDF レンダリング fail → retry",
+        "アーティファクト不足→警告"
+      ],
+      "policies": "PDF rendering via headless Chromium / 共有リンクは expires_at 7d",
+      "audit_logs": [
+        "export_started",
+        "export_completed",
+        "export_downloaded"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "member"
+      ],
+      "related_screens": [
+        "S-061 export_spec_pdf",
+        "S-062 export_delivery_report"
+      ],
+      "related_entities": [
+        "E-014 Artifact"
+      ],
+      "api_endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/exports",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid",
+            "type": "spec_pdf|delivery_report",
+            "options": "object?"
+          },
+          "outputs_2xx": {
+            "export_id": "uuid",
+            "status": "queued"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "workspace not found",
+            "422": "validation error",
+            "429": "rate limit exceeded",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-014 Artifact"
+          ],
+          "rate_limit": "10/hour/workspace"
+        },
+        {
+          "method": "GET",
+          "path": "/api/exports/{id}",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "export": "Export",
+            "download_url": "string?"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-014 Artifact"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When POST /api/workspaces/{id}/exports is called with type=spec_pdf, the system shall queue a PDF generation job and return export_id within 1 second.",
+        "STATE-DRIVEN: While an export status is 'queued' or 'running', the system shall return download_url=null in GET /api/exports/{id}.",
+        "UNWANTED: If POST /api/workspaces/{id}/exports is called more than 10 times per hour per workspace, the system shall return 429.",
+        "EVENT-DRIVEN: When a download_url is generated, the system shall set expires_at = now + 7 days."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": [
+        {
+          "spec_endpoint": "POST /api/workspaces/{id}/exports",
+          "impl_router": "missing",
+          "diff_severity": "high",
+          "recommendation": "Headless Chromium PDF rendering pipeline、B-1 で新規実装",
+          "task_id": "T-V3-DRIFT-F-031-01"
+        }
+      ]
+    },
+    {
+      "id": "F-032",
+      "name": "共通ダイアログパターン (confirm_delete / unsaved_changes / mfa_challenge / session_expired / danger_zone)",
+      "category": "dialog",
+      "happy_path": [
+        "危険な操作直前にダイアログ表示→ユーザ確認→操作実行 or キャンセル"
+      ],
+      "error_paths": [
+        "session_expired 状態で操作→401 自動 modal→再ログイン誘導",
+        "unsaved_changes→navigation 防止"
+      ],
+      "policies": "destructive actions は二段確認必須 / typed-confirmation for delete account",
+      "audit_logs": [
+        "confirm_dialog_shown",
+        "destructive_action_confirmed"
+      ],
+      "access_roles": [
+        "authenticated"
+      ],
+      "related_screens": [
+        "S-051 confirm_delete",
+        "S-052 unsaved_changes",
+        "S-053 mfa_challenge",
+        "S-054 session_expired",
+        "S-055 danger_zone"
+      ],
+      "related_entities": [],
+      "api_endpoints": [],
+      "ears_ac_seed": [
+        "UBIQUITOUS: The system shall require typed-name confirmation for any DELETE on Account or Workspace via UI.",
+        "EVENT-DRIVEN: When a session expires while the user is mid-form, the system shall show the session_expired dialog and preserve form data in localStorage.",
+        "UNWANTED: If a navigation away from a dirty form is attempted, the system shall show the unsaved_changes dialog blocking navigation until confirmed."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": null
+    },
+    {
+      "id": "F-010a",
+      "name": "MCP サーバー (データ流通)",
+      "category": "integration",
+      "happy_path": [
+        "Claude Code/Desktop/Slack から MCP 接続→tool 呼出→FastAPI 応答"
+      ],
+      "error_paths": [
+        "auth 失敗→401",
+        "RLS 違反→403",
+        "timeout→504"
+      ],
+      "policies": "timeout_sec 30 / streaming supported / token scoped per workspace",
+      "audit_logs": [
+        "mcp_token_issued",
+        "mcp_tool_invoked"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "member (via token)"
+      ],
+      "related_screens": [],
+      "related_entities": [
+        "E-016 Task",
+        "E-014 Artifact",
+        "E-024 Session"
+      ],
+      "api_endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/mcp/tokens",
+          "auth": "workspace_admin",
+          "inputs": {
+            "name": "string",
+            "scopes": "string[]",
+            "expires_at": "timestamptz"
+          },
+          "outputs_2xx": {
+            "token_id": "uuid",
+            "plaintext_token_shown_once": "string"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "422": "validation error",
+            "429": "rate limit",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-006 ApiKey"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/mcp/tokens",
+          "auth": "workspace_admin",
+          "inputs": {},
+          "outputs_2xx": {
+            "tokens": "McpToken[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-006 ApiKey"
+          ]
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/mcp/tokens/{token_id}",
+          "auth": "workspace_admin",
+          "inputs": {
+            "token_id": "uuid"
+          },
+          "outputs_2xx": {
+            "revoked_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "token not found",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-006 ApiKey"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When POST /api/mcp/tokens is called by a workspace_admin, the system shall issue a token scoped to the workspace with the requested scopes.",
+        "UNWANTED: If an MCP tool call exceeds scope, the system shall return 403.",
+        "STATE-DRIVEN: While an MCP token is expired, the system shall return 401 for any tool invocation using it.",
+        "UNWANTED: If an MCP tool call exceeds 30 seconds runtime, the system shall return 504 and emit timeout audit log."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": null
+    },
+    {
+      "id": "F-011",
+      "name": "リーダー AI 壁打ちループ (Plan/Gen/Eval)",
+      "category": "quality",
+      "happy_path": [
+        "Evaluator PASS→leader AI 評価 (粒度/依存/コードスタイル/Constitution 遵守)→FAIL なら修正指示→max 3 ターン→3 ターン経過で人間エスカ"
+      ],
+      "error_paths": [
+        "壁打ち継続無限→3 ターンで強制エスカ",
+        "全体統合矛盾→該当タスク Failed 巻き戻し"
+      ],
+      "policies": "max_review_turns 3 / escalation_channels slack_dm + ui_badge",
+      "audit_logs": [
+        "review_started",
+        "review_passed",
+        "review_escalated"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "member"
+      ],
+      "related_screens": [
+        "S-033 pr_review",
+        "S-030 task_detail"
+      ],
+      "related_entities": [
+        "E-024 Session",
+        "E-045 PRReview",
+        "E-016 Task"
+      ],
+      "api_endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/pr-review/start",
+          "auth": "member",
+          "inputs": {
+            "pr_id": "uuid",
+            "leader_persona": "string"
+          },
+          "outputs_2xx": {
+            "review_id": "uuid",
+            "status": "in_progress"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "PR not found",
+            "409": "review already in progress",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-045 PRReview"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/pr-review/{id}",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "review": "PRReview",
+            "turns": "ReviewTurn[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-045 PRReview"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/pr-review/{id}/escalate",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "reason": "string"
+          },
+          "outputs_2xx": {
+            "escalated_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "review not found",
+            "409": "already resolved",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-045 PRReview"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "UBIQUITOUS: The system shall not exceed max_review_turns=3 in any single PR review session.",
+        "EVENT-DRIVEN: When the 3rd review turn finishes without PASS, the system shall set status='escalated' and notify workspace_admin via Slack + ui_badge.",
+        "STATE-DRIVEN: While a PR review is 'in_progress', the system shall return 409 for additional POST /api/pr-review/start on the same PR.",
+        "UNWANTED: If a leader_persona is not registered as a workspace AI employee, the system shall return 422."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": null
+    },
+    {
+      "id": "F-014",
+      "name": "Slack 通知 (片方向)",
+      "category": "integration",
+      "happy_path": [
+        "イベント発生→該当 channel に push→ダイジェスト朝 push (option)"
+      ],
+      "error_paths": [
+        "webhook 失効→再連携導線 + email fallback"
+      ],
+      "policies": "max_per_hour_default 100 / categories red_line/pr/progress/invite/system",
+      "audit_logs": [
+        "slack_webhook_added",
+        "slack_push_sent",
+        "slack_push_failed"
+      ],
+      "access_roles": [
+        "workspace_admin"
+      ],
+      "external_services": [
+        "Slack Bolt SDK / Webhook"
+      ],
+      "related_screens": [],
+      "related_entities": [
+        "E-046 SlackWebhook",
+        "E-038 Notification"
+      ],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/slack/webhooks",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid"
+          },
+          "outputs_2xx": {
+            "webhooks": "SlackWebhook[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-046 SlackWebhook"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/slack/webhooks",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "url": "string",
+            "channel": "string",
+            "categories": "string[]"
+          },
+          "outputs_2xx": {
+            "webhook_id": "uuid"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "workspace not found",
+            "409": "channel already configured",
+            "422": "invalid URL",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-046 SlackWebhook"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/slack/webhooks/{webhook_id}/test",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "webhook_id": "uuid"
+          },
+          "outputs_2xx": {
+            "sent_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "webhook not found",
+            "500": "slack delivery failed"
+          },
+          "related_entities": [
+            "E-046 SlackWebhook"
+          ]
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/workspaces/{id}/slack/webhooks/{webhook_id}",
+          "auth": "workspace_admin",
+          "inputs": {
+            "id": "uuid",
+            "webhook_id": "uuid"
+          },
+          "outputs_2xx": {
+            "removed_at": "timestamptz"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "webhook not found",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-046 SlackWebhook"
+          ]
+        }
+      ],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When a red_line violation occurs, the system shall push a Slack notification to all webhooks configured with category='red_line' within 5 seconds.",
+        "UNWANTED: If a Slack push exceeds 100 per hour per workspace, the system shall queue overflow and emit a rate_limit warning.",
+        "STATE-DRIVEN: While a Slack webhook URL returns 4xx 3 times in a row, the system shall mark it as 'broken' and fallback to email.",
+        "UBIQUITOUS: The system shall be one-way only (no Slack → BF inbound) for Phase 1."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": null
+    },
+    {
+      "id": "F-015",
+      "name": "HTML レポート全種 (7 種)",
+      "category": "spec",
+      "happy_path": [
+        "種別選択→artifact 埋込→SVG 図解自動生成→Storage upload→共有リンク"
+      ],
+      "error_paths": [
+        "大規模アセット → split rendering",
+        "Storage upload fail → retry"
+      ],
+      "policies": "common_css Tailwind CDN / print true / responsive md+ (P3 で full mobile)",
+      "audit_logs": [
+        "report_generated",
+        "report_downloaded"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "member",
+        "viewer"
+      ],
+      "report_types": [
+        "spec",
+        "progress_report",
+        "review_report",
+        "delivery_report",
+        "screen_mock",
+        "component_catalog",
+        "screen_flow_map"
+      ],
+      "related_screens": [
+        "S-022 spec_viewer",
+        "S-035 delivery_pack"
+      ],
+      "related_entities": [
+        "E-014 Artifact"
+      ],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/workspaces/{id}/reports",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid",
+            "type": "string?"
+          },
+          "outputs_2xx": {
+            "reports": "Report[]"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized (missing or invalid token)",
+            "403": "forbidden (insufficient role / RLS violation)",
+            "404": "resource not found",
+            "422": "validation error",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-014 Artifact"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/workspaces/{id}/reports",
+          "auth": "member",
+          "inputs": {
+            "id": "uuid",
+            "type": "string",
+            "options": "object?"
+          },
+          "outputs_2xx": {
+            "report_id": "uuid",
+            "status": "queued"
+          },
+          "outputs_4xx": {
+            "401": "unauthorized",
+            "403": "forbidden",
+            "404": "workspace not found",
+            "422": "invalid report type",
+            "429": "rate limit",
+            "500": "internal server error"
+          },
+          "related_entities": [
+            "E-014 Artifact"
+          ],
+          "rate_limit": "20/hour/workspace"
+        }
+      ],
+      "ears_ac_seed": [
+        "EVENT-DRIVEN: When POST /api/workspaces/{id}/reports is called with type=delivery_report, the system shall queue a report job and return report_id.",
+        "UNWANTED: If POST /api/workspaces/{id}/reports type is not one of the 7 defined types, the system shall return 422.",
+        "UBIQUITOUS: The system shall include Tailwind CDN + print stylesheet in every generated HTML report."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": null
+    },
+    {
+      "id": "F-033",
+      "name": "システムページ (404 / 500 / 403 / maintenance)",
+      "category": "system",
+      "happy_path": [
+        "不在 path→404 / 内部 error→500 / 権限不足→403 / メンテ→503 with maintenance page"
+      ],
+      "error_paths": [
+        "500 中で Sentry 通知 / maintenance 解除タイマー"
+      ],
+      "policies": "500 ページに本番 stack trace は出さない / maintenance は header X-BF-Maintenance で検出",
+      "audit_logs": [
+        "server_error_500",
+        "maintenance_enabled",
+        "maintenance_disabled"
+      ],
+      "access_roles": [
+        "public"
+      ],
+      "external_services": [
+        "Sentry"
+      ],
+      "related_screens": [
+        "S-044 not_found_404",
+        "S-045 server_error_500",
+        "S-046 forbidden_403",
+        "S-047 maintenance"
+      ],
+      "related_entities": [],
+      "api_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/system/health",
+          "auth": "public",
+          "inputs": {},
+          "outputs_2xx": {
+            "status": "ok|maintenance|degraded",
+            "version": "string",
+            "timestamp": "timestamptz"
+          },
+          "outputs_4xx": {
+            "503": "service unavailable (maintenance)"
+          },
+          "related_entities": []
+        }
+      ],
+      "ears_ac_seed": [
+        "UBIQUITOUS: The system shall never expose internal stack traces in production 500 responses.",
+        "EVENT-DRIVEN: When GET /api/system/health returns status=maintenance, the frontend shall display the maintenance page (S-047).",
+        "STATE-DRIVEN: While maintenance mode is enabled, the system shall return 503 for all non-health endpoints."
+      ],
+      "status": "decided",
+      "legacy_drift_notes": null
+    }
+  ],
+  "lineage": {
+    "v1_source": "docs/functional-breakdown/2026-05-09_v1/features.json",
+    "v3_extensions": [
+      "api_endpoints[]",
+      "ears_ac_seed[]",
+      "legacy_drift_notes (vs backend routers)"
+    ],
+    "drift_basis": {
+      "mocks_dir": "docs/mocks/2026-05-15_v3/",
+      "backend_routers_dir": "backend/routers/",
+      "mock_apis_collected": 113,
+      "backend_endpoints_extracted": 453
+    }
+  }
+}
