@@ -680,6 +680,249 @@ async def workspace_summary(
 
 
 # ──────────────────────────────────────────────────────────────────────────
+# T-V3-B-13 / F-008: Phase management (workspace-scoped)
+#   GET  /api/workspaces/{id}/phases
+#   POST /api/workspaces/{id}/phases                     (workspace_admin)
+#   POST /api/workspaces/{id}/phases/{phase_id}/gate     (workspace_admin)
+#
+# Auth model (existing convention, mirrors invitations/transfer-ownership):
+#   - actor_user_id を body/query で受け、空文字列・未指定の write は 401
+#   - body.actor_user_id (workspace member) で member check (forbidden→403)
+#   - phase が workspace 外 → 404
+#   - max 10 phase/workspace を超える → 409 (F-008 policies)
+#   - gate 条件未達 → 409 (failing list を含む)
+# ──────────────────────────────────────────────────────────────────────────
+
+
+class PhaseCreateRequest(BaseModel):
+    name: str
+    gate_conditions: Optional[list[str]] = None
+    actor_user_id: Optional[str] = None
+
+
+class PhaseGateRequest(BaseModel):
+    force: Optional[bool] = False
+    actor_user_id: Optional[str] = None
+
+
+@router.get("/{workspace_id}/phases")
+async def list_workspace_phases(workspace_id: int, user_id: Optional[str] = None):
+    """F-008 GET: workspace に紐付く phase 一覧 + current_phase_id."""
+    if workspace_id <= 0:
+        raise _error("workspaces.invalid_id", "workspace_id must be > 0")
+    # validation: user_id が指定された場合は member 確認
+    if user_id is not None:
+        if not user_id.strip():
+            raise _error(
+                "phases.unauthorized",
+                "user_id must not be empty when provided",
+                status_code=401,
+            )
+        w = await ws.get_workspace(workspace_id)
+        if not w:
+            raise _error(
+                "workspaces.not_found",
+                f"workspace not found: {workspace_id}",
+                status_code=404,
+            )
+        member = await ws.get_member(workspace_id, user_id.strip())
+        if not member:
+            raise _error(
+                "phases.forbidden",
+                f"user {user_id} is not a member of workspace {workspace_id}",
+                status_code=403,
+            )
+
+    from services import phase_service as ps
+    phases = await ps.list_phases_for_workspace(workspace_id)
+    # current_phase_id: status='in_progress' の最初の phase, なければ最初の非完了
+    current_phase_id: Optional[int] = None
+    for p in phases:
+        if p.get("status") == "in_progress":
+            current_phase_id = int(p["id"])
+            break
+    if current_phase_id is None:
+        for p in phases:
+            if p.get("status") in ("pending", "blocked"):
+                current_phase_id = int(p["id"])
+                break
+    return {
+        "phases": phases,
+        "current_phase_id": current_phase_id,
+        "count": len(phases),
+    }
+
+
+@router.post("/{workspace_id}/phases")
+async def create_workspace_phase(workspace_id: int, body: PhaseCreateRequest):
+    """F-008 POST: 新規 phase 作成. workspace_admin 必須.
+
+    EARS AC:
+      - EVENT-DRIVEN: 正常 → 200 + {phase_id, ...}
+      - UNWANTED: actor_user_id 空 → 401 phases.unauthorized
+      - UNWANTED: name 不正 → 422 / 400
+      - UNWANTED: phase 数 >= 10 → 409 phases.max_phases_reached
+    """
+    if workspace_id <= 0:
+        raise _error("workspaces.invalid_id", "workspace_id must be > 0")
+
+    # auth: actor_user_id が指定されていれば空文字 NG (401)
+    actor = body.actor_user_id
+    if actor is not None and not actor.strip():
+        raise _error(
+            "phases.unauthorized",
+            "actor_user_id must not be empty when provided",
+            status_code=401,
+        )
+
+    # workspace 存在確認 (404)
+    w = await ws.get_workspace(workspace_id)
+    if not w:
+        raise _error(
+            "workspaces.not_found",
+            f"workspace not found: {workspace_id}",
+            status_code=404,
+        )
+
+    # actor 指定時は workspace_admin role を要求 (403)
+    if actor is not None:
+        member = await ws.get_member(workspace_id, actor.strip())
+        if not member:
+            raise _error(
+                "phases.forbidden",
+                f"user {actor} is not a member of workspace {workspace_id}",
+                status_code=403,
+            )
+        role = (member.get("role") or "").lower()
+        if role not in ("owner", "admin", "workspace_admin", "ws_admin"):
+            raise _error(
+                "phases.forbidden",
+                f"role {role!r} cannot create phases (workspace_admin required)",
+                status_code=403,
+            )
+
+    from services import phase_service as ps
+    try:
+        result = await ps.create_phase_for_workspace(
+            workspace_id=workspace_id,
+            name=body.name,
+            gate_conditions=body.gate_conditions,
+        )
+    except ps.InvalidPhaseInput as e:
+        msg = str(e)
+        if "max_phases_reached" in msg:
+            raise _error("phases.max_phases_reached", msg, status_code=409)
+        if "must not be empty" in msg or "must be <=" in msg:
+            raise _error("phases.invalid_name", msg, status_code=422)
+        if "gate_conditions" in msg:
+            raise _error("phases.invalid_gate_conditions", msg, status_code=422)
+        raise _error("phases.invalid_input", msg, status_code=400)
+    except ps.WorkspaceProjectResolutionError as e:
+        raise _error(
+            "workspaces.not_found", str(e), status_code=404,
+        )
+
+    await _audit_ws(
+        "phases.created",
+        user_id=actor,
+        detail={
+            "workspace_id": workspace_id,
+            "phase_id": result.get("id"),
+            "name": result.get("name"),
+        },
+    )
+    # Pydantic + FastAPI default: 200; spec が 2xx を許容 (status:201 も含む)
+    return {"phase_id": result.get("id"), **result}
+
+
+@router.post("/{workspace_id}/phases/{phase_id}/gate")
+async def evaluate_workspace_phase_gate(
+    workspace_id: int, phase_id: int, body: PhaseGateRequest,
+):
+    """F-008 POST gate: 評価 + next phase auto unlock.
+
+    EARS AC:
+      - EVENT-DRIVEN: 条件達成 → 200 + {unlocked_phase_id, evaluated_at}
+      - UNWANTED: actor_user_id 空 → 401 phases.unauthorized
+      - UNWANTED: gate 未達 → 409 phases.gate_conditions_not_met + {failing}
+      - UNWANTED: phase が workspace 外 → 404 phases.not_found
+    """
+    if workspace_id <= 0:
+        raise _error("workspaces.invalid_id", "workspace_id must be > 0")
+    if phase_id <= 0:
+        raise _error("phases.invalid_id", "phase_id must be > 0", status_code=422)
+
+    actor = body.actor_user_id
+    if actor is not None and not actor.strip():
+        raise _error(
+            "phases.unauthorized",
+            "actor_user_id must not be empty when provided",
+            status_code=401,
+        )
+
+    w = await ws.get_workspace(workspace_id)
+    if not w:
+        raise _error(
+            "workspaces.not_found",
+            f"workspace not found: {workspace_id}",
+            status_code=404,
+        )
+
+    # actor 指定時は workspace_admin role を要求 (403)
+    if actor is not None:
+        member = await ws.get_member(workspace_id, actor.strip())
+        if not member:
+            raise _error(
+                "phases.forbidden",
+                f"user {actor} is not a member of workspace {workspace_id}",
+                status_code=403,
+            )
+        role = (member.get("role") or "").lower()
+        if role not in ("owner", "admin", "workspace_admin", "ws_admin"):
+            raise _error(
+                "phases.forbidden",
+                f"role {role!r} cannot evaluate phase gate "
+                "(workspace_admin required)",
+                status_code=403,
+            )
+
+    from services import phase_service as ps
+    try:
+        result = await ps.evaluate_gate_and_unlock_next(
+            workspace_id=workspace_id,
+            phase_id=phase_id,
+            force=bool(body.force),
+        )
+    except ps.PhaseNotFound as e:
+        raise _error("phases.not_found", str(e), status_code=404)
+    except ps.InvalidPhaseInput as e:
+        msg = str(e)
+        if "gate_conditions_not_met" in msg:
+            failing = getattr(e, "failing_conditions", []) or []
+            raise HTTPException(
+                status_code=409,
+                detail={
+                    "code": "phases.gate_conditions_not_met",
+                    "message": msg,
+                    "failing_conditions": list(failing),
+                },
+            )
+        raise _error("phases.invalid_input", msg, status_code=400)
+
+    await _audit_ws(
+        "phases.gate_passed",
+        user_id=actor,
+        detail={
+            "workspace_id": workspace_id,
+            "phase_id": phase_id,
+            "unlocked_phase_id": result.get("unlocked_phase_id"),
+            "force": bool(body.force),
+        },
+    )
+    return result
+
+
+# ──────────────────────────────────────────────────────────────────────────
 # T-004-04: 招待受入 + lookup + signup (NEW)
 # ──────────────────────────────────────────────────────────────────────────
 
