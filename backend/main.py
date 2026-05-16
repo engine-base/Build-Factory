@@ -37,6 +37,8 @@ from routers.skill_creator import router as skill_creator_router
 from routers.artifacts import router as artifacts_router
 from routers.accounts import router as accounts_router
 from routers.workspaces import router as workspaces_router, invitations_router
+# T-V3-B-05 (F-004): public GET /api/invitations/{token}
+from routers.invitations import router as public_invitations_router
 from routers.constitution import router as constitution_router
 from routers.hearing import router as hearing_router
 from routers.specs import router as specs_router
@@ -57,13 +59,13 @@ from routers.swarm import router as swarm_router
 from routers.memory import router as memory_router
 from routers.context import router as context_router
 from routers.oauth import router as oauth_router
-from routers.auth import router as auth_router
 from routers.user_lifecycle import router as user_lifecycle_router
 from routers.memory_facts import router as memory_facts_router
 from routers.mem0_bridge import router as mem0_bridge_router
 from routers.anthropic_memory import router as anthropic_memory_router
 from routers.chat_search import router as chat_search_router
 from routers.bf_profile import router as bf_profile_router
+from routers.me import router as me_router
 from routers.ws import router as ws_router
 from routers.admin_fallback import router as admin_fallback_router
 from routers.phases import router as phases_router
@@ -128,6 +130,7 @@ from routers.intent_router import router as intent_router_router
 # T-V3-B-17: Red-lines backend (F-012)
 from routers.red_lines import router as red_lines_router
 from routers.violations import router as violations_router
+from routers.email import router as email_router
 from routers.mocks import router as mocks_router  # T-V3-B-08 / F-005b
 from routers.onboarding import router as onboarding_router  # T-V3-B-29 / F-027
 from scheduler.scheduler import scheduler, load_jobs_from_db
@@ -217,6 +220,7 @@ app.include_router(artifacts_router)
 app.include_router(accounts_router)
 app.include_router(workspaces_router)
 app.include_router(invitations_router)
+app.include_router(public_invitations_router)  # T-V3-B-05 (F-004)
 # T-V3-B-28 / F-026: Constitution backend (get / versions / approve)
 app.include_router(constitution_router)
 app.include_router(hearing_router)
@@ -244,6 +248,7 @@ app.include_router(mem0_bridge_router)
 app.include_router(anthropic_memory_router)
 app.include_router(chat_search_router)
 app.include_router(bf_profile_router)
+app.include_router(me_router)
 app.include_router(ws_router)
 app.include_router(admin_fallback_router)
 app.include_router(phases_router)
@@ -307,6 +312,7 @@ app.include_router(intent_router_router)
 # T-V3-B-17: Red-lines backend (F-012) — workspace-prefixed red_lines + global violations
 app.include_router(red_lines_router)
 app.include_router(violations_router)
+app.include_router(email_router)
 app.include_router(auth_router)
 app.include_router(mocks_router)  # T-V3-B-08 / F-005b
 app.include_router(onboarding_router)  # T-V3-B-29 / F-027
