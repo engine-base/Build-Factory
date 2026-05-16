@@ -355,7 +355,7 @@ def main():
 </html>
 '''
     OUT.write_text(out, encoding="utf-8")
-    print(f"✓ wrote {OUT}")
+    print(f"[OK] wrote {OUT}")
     print(f"  total screens: {total}")
     print(f"  done (mock exists): {done_count}")
     print(f"  todo: {total - done_count}")

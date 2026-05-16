@@ -212,14 +212,14 @@ components:
 
 | 組み合わせ | 比率 | 判定 |
 |---|---:|:---:|
-| primary / on-primary (#1a6648 / #ffffff) | **5.4 : 1** | ✅ AA |
-| surface / on-surface (#ffffff / #0f172a) | **17.4 : 1** | ✅ AAA |
-| surface / on-surface-variant (#ffffff / #475569) | **7.4 : 1** | ✅ AAA |
-| neutral / on-neutral (#f8fafc / #0f172a) | **16.7 : 1** | ✅ AAA |
-| primary-container / on-primary-container | **12.6 : 1** | ✅ AAA |
-| secondary-container / on-secondary-container | **14.8 : 1** | ✅ AAA |
-| tertiary-container / on-tertiary-container | **9.1 : 1** | ✅ AAA |
-| error / on-error (#dc2626 / #ffffff) | **5.9 : 1** | ✅ AA |
+| primary / on-primary (#1a6648 / #ffffff) | **5.4 : 1** | **PASS** AA |
+| surface / on-surface (#ffffff / #0f172a) | **17.4 : 1** | **PASS** AAA |
+| surface / on-surface-variant (#ffffff / #475569) | **7.4 : 1** | **PASS** AAA |
+| neutral / on-neutral (#f8fafc / #0f172a) | **16.7 : 1** | **PASS** AAA |
+| primary-container / on-primary-container | **12.6 : 1** | **PASS** AAA |
+| secondary-container / on-secondary-container | **14.8 : 1** | **PASS** AAA |
+| tertiary-container / on-tertiary-container | **9.1 : 1** | **PASS** AAA |
+| error / on-error (#dc2626 / #ffffff) | **5.9 : 1** | **PASS** AA |
 
 全 critical pair で WCAG AA (4.5:1) 以上を達成。
 
@@ -406,7 +406,7 @@ running / idle / paused / failed / done の 5 状態を色で表現。
 
 ## Do's and Don'ts
 
-### ✅ Do's
+### Do's
 - **Primary 色は CTA + Active state + Brand identity** に限定する (装飾目的禁止)
 - **テキストコントラスト 4.5:1 以上** を全 critical pair で維持する
 - **スペーシングは `spacing` トークンを必ず使う** (xs/sm/md/lg/xl/2xl)
@@ -415,7 +415,7 @@ running / idle / paused / failed / done の 5 状態を色で表現。
 - **数値カラムは `mono tabular-nums`** で桁を揃える
 - **focus-visible で keyboard focus を明示** する (a11y)
 
-### ❌ Don'ts
+### Don'ts
 - **Primary 色を装飾目的で多用しない** (Primary は脇役、情報が主役)
 - **タイポグラフィスケールを飛ばさない** (`headline-display` → `body-md` の直接ジャンプ禁止)
 - **shadow を多用しない** (Linear 流: border 区切り優先)
