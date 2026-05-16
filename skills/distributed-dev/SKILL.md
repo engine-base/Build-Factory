@@ -1,6 +1,6 @@
 ---
 name: distributed-dev
-description: タスク分解スキルで作成したタスクカードを、Claude Code が単独で実装できる「ブランチ実装パッケージ」に変換するスキル。ブランチ名 / CLAUDE.md / 環境設定 / スコープ境界 / Done Criteria を生成し、開発者が「進めて」と言うだけで Claude Code が自走できる状態を作る。**v3 採用 (2026-05-15〜)**: **task-decomposition の tickets.json (3-tier AC + work_package_boundary) と api-design の ears-ac-seed.json と schedule-design の wave-schedule.json を pull** し、CLAUDE.md に **3-tier AC (structural/functional/regression)** + **upstream 成果物 path (mock_path / openapi.yaml / entities.json / EARS AC)** + **Wave ID + 並列起動順 + depends_on_waves + parallel_session_count_target** + **pre-flight audit MD path** を必ず埋め込む。Done Criteria には **8 CI gate auto-merge** (lint-mock / AC validator / RLS coverage / audit MD / pytest cov ≥70% / pyright / tsc / mock-impl-diff 全 pass で PR を Claude が自動 merge / 連続 3 失敗で human エスカ) を必須記載。work-package boundary を **file-level mutex** (editable / shared_no_concurrent_edit / readonly / forbidden の 4 区分) として明示し、Wave 内並列セッション競合を機械的に防ぐ。task 着手前に **pre-flight audit MD** を template から生成して埋めてから実装開始 (事後監査ループを廃止)。Claude Code に実装させたい・ブランチを切って渡したい・実装者に情報を最小限だけ渡したい・監視役として進めたい・30-50 並列で起動したい・3-tier AC を CLAUDE.md に埋めたい・8 CI gate を Done Criteria に含めたい・work-package boundary を file mutex で明示したい・pre-flight audit MD を生成したい・wave-schedule.json から Wave 起動順を継承したい・start-cmd.sh / done-cmd.sh を出したい場面で必ず使うこと。4STEP の対話型プロセスで進み、出力はブランチ作業手順 (Markdown) + CLAUDE.md (Claude Code 指示書) + 管理 JSON + **audit-md-template.md** (pre-flight 監査テンプレ) + **start-cmd.sh / done-cmd.sh** (起動・完了スクリプト) の **5 形式**。
+description: タスク分解スキルで作成したタスクカードを、コーディングエージェント (Claude Code 等) が単独で実装できる「ブランチ実装パッケージ」に変換するスキル。ブランチ名 / CLAUDE.md / 環境設定 / スコープ境界 / Done Criteria を生成し、開発者が「進めて」と言うだけでエージェントが自走できる状態を作る。**v3 (2026-05-15〜)**: **task-decomposition の tickets.json (3-tier AC + work_package_boundary) と api-design の ears-ac-seed.json と schedule-design の wave-schedule.json を pull** し、CLAUDE.md に **3-tier AC (structural/functional/regression)** + **upstream 成果物 path (mock_path / openapi.yaml / entities.json / EARS AC)** + **Wave ID + 並列起動順 + depends_on_waves + parallel_session_count_target** + **pre-flight audit MD path** を必ず埋め込む。Done Criteria には **N CI gate auto-merge (project-defined gate set)** を必須記載。work-package boundary を **file-level mutex** (editable / shared_no_concurrent_edit / readonly / forbidden の 4 区分) として明示し、Wave 内並列セッション競合を機械的に防ぐ。Wave 内も **backend-first → UI-second** の順序を維持する。task 着手前に **pre-flight audit MD** を template から生成して埋めてから実装開始 (事後監査ループを廃止)。コーディングエージェントに実装させたい・ブランチを切って渡したい・実装者に情報を最小限だけ渡したい・監視役として進めたい・並列で起動したい・3-tier AC を CLAUDE.md に埋めたい・N CI gate を Done Criteria に含めたい・work-package boundary を file mutex で明示したい・pre-flight audit MD を生成したい・wave-schedule.json から Wave 起動順を継承したい・start-cmd.sh / done-cmd.sh を出したい場面で必ず使うこと。4STEP の対話型プロセスで進み、出力はブランチ作業手順 (Markdown) + CLAUDE.md (エージェント指示書) + 管理 JSON + **audit-md-template.md** (pre-flight 監査テンプレ) + **start-cmd.sh / done-cmd.sh** (起動・完了スクリプト) の **5 形式**。
 tab: 品質・運用
 builtin: true
 ---
@@ -129,7 +129,7 @@ builtin: true
 
 **このスキルが作るもの：**
 各タスクに対して「ブランチ名 + CLAUDE.md」のセットを生成する。
-開発者はブランチを切り、CLAUDE.mdを置き、Claude Codeを起動して「進めて」と言うだけでよい。
+開発者はブランチを切り、CLAUDE.mdを置き、コーディングエージェント (Claude Code 等) を起動して「進めて」と言うだけでよい。
 
 **前提となる全体フロー：**
 ```
@@ -137,14 +137,14 @@ builtin: true
     ↓
 ⑩ このスキル（タスクごとにブランチ実装パッケージを作成）
     ↓
-各ブランチでClaude Codeが自走実装
+各ブランチでコーディングエージェントが自走実装
     ↓
 開発者が統合・マージ（⑪統合スキル）
 ```
 
 **情報分離の設計思想：**
-各ブランチのClaude Codeは「このファイルを作り、この動作を実現する」ことしか知らない。
-クライアント名・サービス全体像・他タスクの存在・プロジェクト名は渡さない。
+各ブランチのエージェントは「このファイルを作り、この動作を実現する」ことしか知らない。
+クライアント名・サービス全体像・他タスクの存在・プロジェクト名は渡さない (秘匿が必要な場合)。
 「工場の作業員」として、指示された部品だけを正確に作る。
 
 ---
@@ -163,14 +163,16 @@ builtin: true
 
 ## v3 必須ルール (2026-05-15〜)
 
-詳細: `references/v3-extensions.md`
+詳細: `references/v3-core.md`
+プロジェクト固有値の適用例: `references/profiles/build-factory.md` (例として位置づけ。他プロジェクトは独自 profile を作成する)
 
-1. **task-decomposition + api-design + schedule-design + test-verification の出力を必ず pull** — tickets.json (3-tier AC + work_package_boundary) / ears-ac-seed.json + openapi.yaml / wave-schedule.json (wave_id + depends_on_waves + parallel_session_count_target) / gate-config.yml + ears-test-mapping.json
-2. **CLAUDE.md に 3-tier AC を逐語コピー** — Done Criteria を Tier 1 (structural / lint #17) + Tier 2 (functional / EARS + RLS + Schemathesis) + Tier 3 (regression / 8 CI gate) で構成
-3. **work-package boundary を file-level mutex の 4 区分で明示** — editable / shared_no_concurrent_edit (Wave 内排他) / readonly / forbidden。違反は lint #16 で CI 検出
-4. **pre-flight audit MD を着手前に必ず生成** — `docs/audit/<date>_v3/<task_id>.md` を template から作って埋めてから実装開始。事後監査ループは廃止
-5. **8 CI gate auto-merge を Done Criteria に必須記載** — 全 gate green で `gh pr merge --auto --squash`。連続 3 失敗で human エスカ
-6. **Wave 起動順を wave-schedule.json から継承** — wave_id / depends_on_waves / parallel_session_count_target / group (A/B/C/D) を CLAUDE.md 冒頭に必須記載
+1. **task-decomposition + api-design + schedule-design + test-verification + functional-breakdown の出力を必ず pull** — tickets.json (3-tier AC + work_package_boundary) / ears-ac-seed.json + openapi.yaml / wave-schedule.json (wave_id + depends_on_waves + parallel_session_count_target) / gate-config.yml + ears-test-mapping.json / screens.json + entities.json
+2. **CLAUDE.md に 3-tier AC を逐語コピー** — Done Criteria を Tier 1 (structural / mock-impl-diff) + Tier 2 (functional / EARS + access control matrix + contract test) + Tier 3 (regression / N CI gate) で構成
+3. **work-package boundary を file-level mutex の 4 区分で明示** — editable / shared_no_concurrent_edit (Wave 内排他) / readonly / forbidden。違反は <boundary_lint_rule> で CI 検出
+4. **pre-flight audit MD を着手前に必ず生成** — `<audit_dir>/<task_id>.md` を template から作って埋めてから実装開始。事後監査ループは廃止
+5. **N CI gate auto-merge を Done Criteria に必須記載 (project-defined gate set)** — 全 gate green で auto-merge コマンド実行。連続 N 失敗で human エスカ
+6. **Wave 起動順を wave-schedule.json から継承** — wave_id / depends_on_waves / parallel_session_count_target / group (Foundation / Backend / UI / Integration / Polish) を CLAUDE.md 冒頭に必須記載
+7. **Wave 内も backend-first → UI-second 順序維持** — 同一 Wave に backend task と UI task が混在する場合、UI task の `depends_on_tasks` に backend task を含め、backend gate が通ってから UI 着手可能と pre-flight audit MD で確認
 
 ---
 
@@ -185,33 +187,34 @@ builtin: true
 ## 入力情報の確認 (v3)
 
 ### 上流出力
-- task-decomposition: docs/task-decomposition/<date>_v<N>/tickets.json (entry: <task_id>)
-- api-design: docs/api-design/<date>_v<N>/
+- task-decomposition: <task_dir>/tickets.json (entry: <task_id>)
+- api-design: <api_dir>/
   - openapi.yaml (該当 path)
   - ears-ac-seed.json (該当 endpoint AC)
-- functional-breakdown: docs/functional-breakdown/<date>_v<N>/
+- functional-breakdown: <fb_dir>/
   - screens.json (該当 screen_id の mock_path / h1_text)
-  - entities.json (該当 entity の rls_policies)
-- schedule-design: docs/schedule-design/<date>_v<N>/wave-schedule.json (wave_id)
-- test-verification: docs/test-verification/<date>_v<N>/
-  - gate-config.yml (8 gate)
+  - entities.json (該当 entity の access_control_policies)
+- schedule-design: <schedule_dir>/wave-schedule.json (wave_id)
+- test-verification: <test_dir>/
+  - gate-config.yml (N gate)
   - ears-test-mapping.json (test ID 対応)
 
 ### Wave 起動情報 (wave-schedule.json から継承)
 - wave_id: W<N>
 - depends_on_waves: [W<N-1>, ...]
-- parallel_session_count_target: <N>
-- group: A (Foundation) / B (Vertical Slice) / C (Integration) / D (Drift fix)
+- parallel_session_count_target: <N>  (project-defined parallel capacity)
+- group: Foundation / Backend / UI / Integration / Polish (project-defined naming)
+- layer: backend / UI (Wave 内順序判定用)
 
 ### pre-flight audit MD
-- 着手前 path: docs/audit/<date>_v<N>/<task_id>.md
-- template: docs/audit/<date>_v<N>/_template.md
+- 着手前 path: <audit_dir>/<task_id>.md
+- template: <audit_dir>/_template.md
 ```
 
 **確認すること（曖昧なら【仮説】を立てて質問）：**
 
 1. **タスクの内容** — task_id / title / 実装する機能・エンドポイントやコンポーネント名
-2. **ブランチ戦略** — ベースブランチ (main / develop)。命名規則 `claude/<task_id>` を継承
+2. **ブランチ戦略** — ベースブランチ (main / develop)。命名規則 (project-defined、例: `<prefix>/<task_id>`)
 3. **work-package boundary (v3 / 4 区分)**:
    - **editable**: 作成・編集してよいファイル
    - **shared_no_concurrent_edit**: Wave 内で他 task と共有、同時編集禁止 (file mutex)
@@ -220,7 +223,8 @@ builtin: true
 4. **環境設定の状態** — 開発環境は構築済みか
 5. **v3: pre-flight audit MD 採用方針** — 着手前 template 埋込を必須にするか
 6. **v3: Wave 起動情報の継承** — wave-schedule.json から wave_id / depends_on_waves / parallel_session_count を pull できているか
-7. **v3: 情報秘匿レベル** — 内製 dogfood (Phase 1) は緩和 / 外部 SaaS (Phase 2) では再強化
+7. **v3: layer 順序確認** — このタスクは backend layer か UI layer か。UI なら同一 Wave / 上流 Wave の backend task が完了 (gate pass) しているか
+8. **v3: 情報秘匿レベル** — 内製 phase は緩和 / 外部公開 phase では再強化 (project-defined naming)
 
 **出力形式 (v3)：**
 
@@ -231,34 +235,36 @@ builtin: true
 - task_id:
 - title:
 - 実装内容 (1〜2 文):
-- ブランチ名: claude/<task_id>
+- ブランチ名: <prefix>/<task_id>
+- layer: backend / UI
 
 ### Wave 起動情報 (wave-schedule.json から継承)
 - wave_id: W<N>
 - depends_on_waves: [W<N-1>, ...]
 - parallel_session_count_target: <N>
-- group: <A / B / C / D>
+- group: <Foundation / Backend / UI / Integration / Polish>
 
 ### work-package boundary (v3 / 4 区分)
 | 区分 | ファイル / パス | 検証 |
 |-----|--------------|------|
-| editable (作成・編集 OK) | | lint #16 で diff 検証 |
-| shared_no_concurrent_edit (Wave 内排他) | | check-wave-mutex.py で起動時検証 |
-| readonly (読むが変更しない) | | lint #16 で diff 検証 |
-| forbidden (絶対触らない) | | lint #16 で diff 検証 |
+| editable (作成・編集 OK) | | <boundary_lint_rule> で diff 検証 |
+| shared_no_concurrent_edit (Wave 内排他) | | <wave_mutex_check> で起動時検証 |
+| readonly (読むが変更しない) | | <boundary_lint_rule> で diff 検証 |
+| forbidden (絶対触らない) | | <boundary_lint_rule> で diff 検証 |
 
 ### pre-flight audit MD
-- path: docs/audit/<date>_v<N>/<task_id>.md
-- template: docs/audit/<date>_v<N>/_template.md
+- path: <audit_dir>/<task_id>.md
+- template: <audit_dir>/_template.md
 - 着手前埋め込み: 必須 (post-implementation 監査は廃止)
+- layer-aware 項目: foundation prerequisite passed? / backend gate passed? / UI 着手可能?
 
 ### 環境設定
 - 事前構築済み: (はい / 【仮説】確認が必要)
 - このブランチ特有のセットアップ: (なし / ある場合は内容)
 
 ### CLAUDE.md から除外する情報
-- Phase 1 内製 dogfood: 秘匿緩和
-- Phase 2 SaaS: クライアント名・ビジネスロジック秘匿
+- 内製 phase: 秘匿緩和
+- 外部公開 phase: クライアント名・ビジネスロジック秘匿
 ```
 
 ---
@@ -278,18 +284,23 @@ builtin: true
 ## STEP 2: 実装仕様の確定 (v3: EARS AC 逐語コピー + upstream path 埋め込み)
 
 **このSTEPでやること：**
-Claude Code が「何をどう作るか」を迷わないよう、CLAUDE.md の核心部分を組み立てる。
+コーディングエージェントが「何をどう作るか」を迷わないよう、CLAUDE.md の核心部分を組み立てる。
 
 **v3 必須**:
 - **CLAUDE.md '0. 上流出力' に 7 path を必ず列挙** (task / mock / api / ears_ac_seed / entities / wave / pre_flight_audit)
-- **'1. Wave / 起動情報' を冒頭に必ず記載** (wave_id / depends_on_waves / parallel_session_count_target / group)
+- **'1. Wave / 起動情報' を冒頭に必ず記載** (wave_id / depends_on_waves / parallel_session_count_target / group / layer)
 - **'4. 実装仕様 / EARS AC' に api-design の ears-ac-seed.json から逐語コピー** (EVENT-DRIVEN + UNWANTED 1 件以上)
 - **型定義は openapi.yaml から自動生成 (openapi-typescript / datamodel-code-generator) を明示** (人手 edit 禁止)
-- **'5. RLS policy' に entities.json から rls_policies 配列を引用**
+- **'5. access control policy' に entities.json から policies 配列を引用** (RLS / RBAC / policy framework の何れか)
 
 **精緻化の方針：**
 曖昧な仕様は「良い感じの実装」になる。良い感じの実装は統合時に問題を起こす。
 「既存コードと同じパターンで」と言う場合、どのファイルのどのパターンかを明示する。
+
+**Foundation → Backend → UI 順序の徹底**:
+- backend layer の task: API + service + entity + access control + contract test を実装
+- UI layer の task: backend gate pass を pre-flight audit MD で確認してから着手
+- foundation layer (CI/CD / test infra / access control framework) はすべての backend / UI task の prerequisite
 
 **出力形式：**
 
@@ -325,7 +336,8 @@ interface [OutputType] { ... }
 - NG: スコープ外のファイルを変更する（発見したバグはコメントとして記録するだけ）
 - NG: 既存の[XXX]関数の内部を変えるリファクタリング
 - NG: 仕様にない機能の追加（どんなに便利そうでも）
-- NG: コードコメントや変数名にクライアント名・企業名を含める
+- NG: コードコメントや変数名にクライアント名・企業名を含める (秘匿モード時)
+- NG: backend layer 完了前に UI layer の実装着手 (Wave 内順序違反)
 ```
 
 ---
@@ -342,56 +354,60 @@ interface [OutputType] { ... }
 
 ---
 
-## STEP 3: Done Criteria の設計 (v3: 3-tier AC + 8 CI gate + pre-flight audit MD)
+## STEP 3: Done Criteria の設計 (v3: 3-tier AC + N CI gate + pre-flight audit MD)
 
 **このSTEPでやること：**
-Claude Code が「実装完了」と判断するための、観測可能なチェックリストを設計する。
+コーディングエージェントが「実装完了」と判断するための、観測可能なチェックリストを設計する。
 
-**v3 必須**: Done Criteria を **3-tier AC (Tier 1 structural / Tier 2 functional / Tier 3 regression) + 8 CI gate auto-merge + pre-flight audit MD** で構成。
+**v3 必須**: Done Criteria を **3-tier AC (Tier 1 structural / Tier 2 functional / Tier 3 regression) + N CI gate auto-merge + pre-flight audit MD** で構成。
 
 **出力形式 (v3)：**
 
 ```
-## Done Criteria (v3 / 3-tier AC + 8 CI gate)
+## Done Criteria (v3 / 3-tier AC + N CI gate)
 
 ### Tier 1: Structural (mock/spec 一致)
-- [ ] mock_path (<screen_id>.html) の h1_text / kpi_labels / btn_labels が実装と一致
-- [ ] lint #17 mock-impl-diff: 0 件
+- [ ] mock_path (<screen_id>) の h1_text / kpi_labels / btn_labels が実装と一致
+- [ ] <mock_impl_diff> rule: 0 件
 
-### Tier 2: Functional (EARS API + RLS + Contract)
-- [ ] EARS AC seed の全件が ears-test-mapping.json で実装され pytest pass
-- [ ] verify-rls-coverage: 4 ロール (owner/admin/member/guest) × 7 操作 (SELECT own/others, INSERT, UPDATE own/others, DELETE own/others) マトリクス pass
-- [ ] Schemathesis (OpenAPI fuzz) pass
-- [ ] Pact contract verify pass (任意)
+### Tier 2: Functional (EARS API + access control + Contract)
+- [ ] EARS AC seed の全件が ears-test-mapping.json で実装され test pass
+- [ ] <access_control_verifier>: ロール × 操作 マトリクス pass (RLS / RBAC / policy framework)
+- [ ] OpenAPI fuzz (Schemathesis 等) pass
+- [ ] Consumer-driven contract verify (Pact 等) pass (任意)
 
 ### Tier 3: Regression (test / lint / type / coverage / audit MD)
-- [ ] pytest --cov --cov-fail-under=70 全 pass
-- [ ] pyright strict: 0 error
-- [ ] tsc --noEmit strict: 0 error
-- [ ] lint-mock.sh: 19 check 全 pass
-- [ ] validate-tickets.py: 3-tier AC schema pass
-- [ ] pre-flight audit MD (docs/audit/<date>_v3/<task_id>.md) が埋まり、commit に含まれる
+- [ ] backend test --cov --cov-fail-under=<coverage_threshold> 全 pass
+- [ ] backend type checker strict: 0 error
+- [ ] frontend type checker strict: 0 error
+- [ ] <lint_runner>: project-defined check 全 pass
+- [ ] <ac_validator>: 3-tier AC schema pass
+- [ ] pre-flight audit MD (<audit_dir>/<task_id>.md) が埋まり、commit に含まれる
 
-### 8 CI gate auto-merge (v3 必須)
+### Wave 内 layer 順序チェック (v3)
+- [ ] このタスクが UI layer の場合、依存する backend task の gate がすべて green
+- [ ] foundation layer の前提 (CI/CD / test infra / access control framework) が稼働中
+
+### N CI gate auto-merge (v3 必須 / project-defined gate set)
 | # | gate | tool | 結果 |
 |---|------|------|------|
-| #1 | lint-mock | scripts/lint-mock.sh | green |
-| #2 | AC validator | scripts/validate-tickets.py | green |
-| #3 | RLS coverage | scripts/verify-rls-coverage.py | green |
-| #4 | audit MD existence | scripts/audit-md-check.sh | green |
-| #5 | pytest cov ≥70% | pytest --cov --cov-fail-under=70 | green |
-| #6 | pyright strict | pyright | green |
-| #7 | tsc strict | tsc --noEmit | green |
-| #8 | mock-impl-diff | scripts/lint-mock-impl-diff.py | green |
+| #1 | <lint_runner> | (project-defined) | green |
+| #2 | <ac_validator> | (project-defined) | green |
+| #3 | <access_control_verifier> | (project-defined) | green |
+| #4 | <audit_md_check> | (project-defined) | green |
+| #5 | backend test cov ≥ <threshold> | (project-defined) | green |
+| #6 | backend type checker strict | (project-defined) | green |
+| #7 | frontend type checker strict | (project-defined) | green |
+| #N | <mock_impl_diff> | (project-defined) | green |
 
-- 全 gate green で `gh pr merge --auto --squash`
-- 連続 3 失敗で human エスカ
+- 全 gate green で auto-merge コマンド実行
+- 連続 N 失敗で human エスカ
 
 ### work-package boundary 遵守確認
 - [ ] `git diff --name-only` で変更ファイルが editable + shared_no_concurrent_edit の subset
 - [ ] forbidden への変更が 0 件
-- [ ] shared_no_concurrent_edit への変更は Wave mutex 取得済 (check-wave-mutex.py pass)
-- [ ] スコープ外バグ発見時は修正せず `// TODO(drift): <issue>` でコメント (Group D Wave に流す)
+- [ ] shared_no_concurrent_edit への変更は Wave mutex 取得済 (<wave_mutex_check> pass)
+- [ ] スコープ外バグ発見時は修正せず `// TODO(drift): <issue>` でコメント (Drift fix Wave に流す)
 ```
 
 ---
@@ -425,84 +441,83 @@ git checkout -b [branch-name]
 # 2. CLAUDE.mdをプロジェクトルートに配置
 # （以下のCLAUDE.mdをコピー）
 
-# 3. Claude Codeを起動して「進めて」と指示
+# 3. コーディングエージェントを起動して「進めて」と指示
 \`\`\`
 ```
 
-### 出力② CLAUDE.md (v3 / ブランチルートに置く — これが Claude Code への唯一の指示)
+### 出力② CLAUDE.md (v3 / ブランチルートに置く — これがエージェントへの唯一の指示)
 
 ```markdown
 # 実装タスク: <task_id> - <title>
 
 ## 0. 上流出力 (v3 / context を構成する path)
-- task: docs/task-decomposition/<date>_v<N>/tickets.json (entry: <task_id>)
-- mock: docs/mocks/<date>_v<N>/<screen_id>.html
-- api: docs/api-design/<date>_v<N>/openapi.yaml (path: <method> <endpoint>)
-- ears_ac_seed: docs/api-design/<date>_v<N>/ears-ac-seed.json (endpoint: <method> <endpoint>)
-- entities: docs/functional-breakdown/<date>_v<N>/entities.json (entity: <entity_id>)
-- wave: docs/schedule-design/<date>_v<N>/wave-schedule.json (wave_id: <wave_id>)
-- pre_flight_audit: docs/audit/<date>_v<N>/<task_id>.md (着手前に必ず埋める)
+- task: <task_dir>/tickets.json (entry: <task_id>)
+- mock: <mock_dir>/<screen_id>
+- api: <api_dir>/openapi.yaml (path: <method> <endpoint>)
+- ears_ac_seed: <api_dir>/ears-ac-seed.json (endpoint: <method> <endpoint>)
+- entities: <fb_dir>/entities.json (entity: <entity_id>)
+- wave: <schedule_dir>/wave-schedule.json (wave_id: <wave_id>)
+- pre_flight_audit: <audit_dir>/<task_id>.md (着手前に必ず埋める)
 
 ## 1. Wave / 起動情報 (v3 / wave-schedule.json から継承)
 - wave_id: W<N>
 - depends_on_waves: [W<N-1>, ...]
-- parallel_session_count_target: <N>
-- group: <A | B | C | D>
+- parallel_session_count_target: <N>  (project-defined parallel capacity)
+- group: <Foundation | Backend | UI | Integration | Polish>
+- layer: backend / UI
 
 ## 2. あなたの役割
 この CLAUDE.md に書かれた内容だけを実装する。
 スコープ外のコードは参照してよいが、変更しない。
 「良い感じに改善」は一切しない。指示された通りに作る。
+Wave 内 layer 順序: backend layer 完了後に UI layer 着手可能。
 
 ## 3. work-package boundary (v3 / 4 区分の file mutex)
 
 ### editable (作成・編集 OK)
-- backend/routers/auth.py
-- backend/services/auth_service.py
-- backend/tests/test_auth.py
+- (project-defined)
 
 ### shared_no_concurrent_edit (Wave 内排他 / 同時編集禁止)
-- backend/main.py
-- frontend/src/types/api.ts ← openapi-typescript 自動生成、人手 edit 禁止
+- (project-defined) ← 自動生成 file は人手 edit 禁止
 
 ### readonly (読むが変更しない)
-- backend/models/user.py
+- (project-defined)
 
 ### forbidden (絶対触らない)
-- backend/migrations/
-- docs/
+- (project-defined)
 
 ## 4. 実装仕様
 
 ### EARS AC (v3 / api-design ears-ac-seed.json から逐語コピー)
-- EVENT-DRIVEN: When POST /api/auth/login is called with valid email+password, the system shall return 200 with { access_token, refresh_token, user_id }.
-- UNWANTED: If credentials are invalid, the system shall return 401 with generic message (no user enumeration).
+- EVENT-DRIVEN: When <event>, the system shall <response>.
+- UNWANTED: If <unwanted>, the system shall not <unwanted action>.
 - ...
 
 ### 型定義 (openapi.yaml から自動生成済 / 人手 edit 禁止)
 ```typescript
-// frontend/src/api/types.ts (auto-generated by openapi-typescript)
-export type LoginRequest = { email: string; password: string; mfa_code?: string };
-export type LoginResponse = { access_token: string; refresh_token: string; user_id: string; mfa_required: boolean };
+// (auto-generated, do not edit)
+export type RequestType = { ... };
+export type ResponseType = { ... };
 ```
 
 ### 処理フロー
 1. ...
 2. ...
 
-## 5. RLS policy (entities.json から)
-- auth_sessions:user_own_select
-- auth_sessions:user_own_insert
+## 5. access control policy (entities.json から)
+- <entity>:<policy_name>
+- ...
 
-## 6. Done Criteria (v3 / 3-tier AC + 8 CI gate)
+## 6. Done Criteria (v3 / 3-tier AC + N CI gate)
 [STEP 3 のチェックリストをそのまま記載]
 
 ## 7. pre-flight audit MD (着手前に必ず実行)
 
 ```bash
-cp docs/audit/<date>_v<N>/_template.md docs/audit/<date>_v<N>/<task_id>.md
-# audit MD を埋める (既存実装の調査 / 3-tier AC 現状評価 / 触る予定ファイル一覧 / 実装方針)
-git add docs/audit/<date>_v<N>/<task_id>.md
+cp <audit_dir>/_template.md <audit_dir>/<task_id>.md
+# audit MD を埋める (既存実装の調査 / 3-tier AC 現状評価 / 触る予定ファイル一覧 /
+#                    Wave 内 layer 順序確認 / 実装方針)
+git add <audit_dir>/<task_id>.md
 git commit -m "audit(pre-flight): <task_id>"
 ```
 
@@ -510,20 +525,21 @@ git commit -m "audit(pre-flight): <task_id>"
 Done Criteria の全項目について `✅ 確認済み: <確認方法>` の形式で報告する:
 
 ```
-✅ Tier 1: lint #17 mock-impl-diff 0 件
-✅ Tier 2: ears-test-mapping.json 6/6 件 pass
-✅ Tier 2: RLS 4×7 マトリクス pass
-✅ Tier 3: pytest cov 78% / pyright 0 error / tsc 0 error
+✅ Tier 1: <mock_impl_diff> 0 件
+✅ Tier 2: ears-test-mapping.json N/N 件 pass
+✅ Tier 2: access control matrix pass
+✅ Tier 3: backend test cov XX% / type checker 0 error / frontend type checker 0 error
 ✅ Tier 3: audit MD 埋め込み済
+✅ Wave 内順序: backend gate pass 確認済 (UI layer の場合)
 ```
 
 ## 9. 注意事項 (機械的 boundary)
-- スコープ外のファイルを変更しない (lint #16 で CI 自動検出 → reject)
+- スコープ外のファイルを変更しない (<boundary_lint_rule> で CI 自動検出 → reject)
 - 同時編集禁止 file への push は merge conflict 必至 → 先に Wave 内 mutex 取得
-- 既存関数の内部リファクタは forbidden (Phase 1.5 REFACTOR Wave で行う)
+- 既存関数の内部リファクタは forbidden (Polish phase で行う)
 - 仕様にない機能の追加は禁止 (どんなに便利でも)
-- スコープ外バグ発見時: 修正せず `// TODO(drift): <issue>` でコメント (Group D Wave に流す)
-- Phase 2 SaaS 公開時: コードコメント・変数名・ログにクライアント名・企業名・サービス固有の固有名詞を入れない
+- スコープ外バグ発見時: 修正せず `// TODO(drift): <issue>` でコメント (Drift fix Wave に流す)
+- 公開 phase: コードコメント・変数名・ログにクライアント名・企業名・サービス固有の固有名詞を入れない
 ```
 
 ### 出力③ 管理用 JSON (v3 / 機械処理・⑪統合スキルへの引き継ぎ用)
@@ -537,7 +553,8 @@ Done Criteria の全項目について `✅ 確認済み: <確認方法>` の形
   "wave_id": "",
   "depends_on_waves": [],
   "parallel_session_count_target": 0,
-  "group": "B",
+  "group": "Backend",
+  "layer": "backend",
   "work_package_boundary": {
     "editable": [],
     "shared_no_concurrent_edit": [],
@@ -558,7 +575,7 @@ Done Criteria の全項目について `✅ 確認済み: <確認方法>` の形
     "tier2_functional": [],
     "tier3_regression": []
   },
-  "ci_gates": ["lint-mock", "AC-validator", "RLS-coverage", "audit-md", "pytest-cov-70", "pyright", "tsc", "mock-impl-diff"],
+  "ci_gates": [],
   "auto_merge": true,
   "consecutive_failure_threshold": 3,
   "status": "ready",
@@ -582,6 +599,11 @@ Done Criteria の全項目について `✅ 確認済み: <確認方法>` の形
 - Tier 1 structural: 何% 満たされているか
 - Tier 2 functional: 既存 endpoint で何件 pass か
 - Tier 3 regression: cov / lint / type の現状値
+
+### Wave 内 layer 順序チェック (v3)
+- foundation prerequisite passed? (Y/N + 根拠)
+- backend gate passed? (Y/N + 根拠 / UI layer の場合は必須)
+- UI 着手可能? (Y/N / UI layer の場合)
 
 ### 触る予定ファイル
 | file | 区分 (editable/shared/readonly/forbidden) | 理由 | 変更規模 |
@@ -609,14 +631,14 @@ VERSION="v3"
 
 # 1. branch を切る (idempotent)
 git checkout main && git pull
-git checkout -b "claude/${TASK_ID,,}" 2>/dev/null || git checkout "claude/${TASK_ID,,}"
+git checkout -b "<prefix>/${TASK_ID,,}" 2>/dev/null || git checkout "<prefix>/${TASK_ID,,}"
 
 # 2. pre-flight audit MD を生成 (まだ無ければ)
-AUDIT_PATH="docs/audit/${DATE}_${VERSION}/${TASK_ID}.md"
-[ -f "$AUDIT_PATH" ] || cp "docs/audit/${DATE}_${VERSION}/_template.md" "$AUDIT_PATH"
+AUDIT_PATH="<audit_dir>/${TASK_ID}.md"
+[ -f "$AUDIT_PATH" ] || cp "<audit_dir>/_template.md" "$AUDIT_PATH"
 
 # 3. Wave mutex check
-python3 scripts/check-wave-mutex.py --task "$TASK_ID"
+<wave_mutex_check> --task "$TASK_ID"
 
 # 4. CLAUDE.md を表示
 cat ".claude/branches/${TASK_ID}.md"
@@ -628,22 +650,22 @@ cat ".claude/branches/${TASK_ID}.md"
 set -e
 TASK_ID="$1"
 
-# 1. all 8 gates
-bash scripts/lint-mock.sh
-python3 scripts/validate-tickets.py
-python3 scripts/verify-rls-coverage.py
-bash scripts/audit-md-check.sh
-pytest --cov --cov-fail-under=70
-pyright
-tsc --noEmit
-python3 scripts/lint-mock-impl-diff.py
+# 1. all N gates (project-defined gate set)
+<lint_runner>
+<ac_validator>
+<access_control_verifier>
+<audit_md_check>
+<backend_test> --cov --cov-fail-under=<threshold>
+<backend_type_checker>
+<frontend_type_checker>
+<mock_impl_diff>
 
 # 2. work-package boundary check
-python3 scripts/check-work-package-boundary.py --task "$TASK_ID"
+<work_package_boundary_check> --task "$TASK_ID"
 
 # 3. push + PR + auto-merge
 git push -u origin HEAD
-# (GitHub Actions が 8 gate を再実行し、全 pass で auto-merge)
+# (CI runner が N gate を再実行し、全 pass で auto-merge)
 ```
 
 ---

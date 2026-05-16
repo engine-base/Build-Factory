@@ -1,40 +1,44 @@
 {
   "skill_name": "functional-breakdown",
-  "version": "v3-2026-05-15",
-  "description": "要件定義 → 設計分岐の前段で、画面/機能/ロール/エンティティを項目単位で詰めるスキルのテスト (v3: mock linking / RLS / EARS AC seed / API endpoint 拡張)",
+  "version": "v3-2026-05-16-generalized",
+  "description": "要件定義 → 設計分岐の前段で、画面/機能/ロール/エンティティを項目単位で詰めるスキルのテスト (v3 汎用化版: entity → service → API → screen 順 / mock linking / access control / EARS AC seed / API endpoint 拡張 / 3 層 drift)",
   "evals": [
     {
-      "id": "fb-eval-1",
-      "title": "EC サイト要件から自動展開",
+      "id": "fb-generic-1",
+      "title": "汎用 prompt: EC サイト要件から自動展開 (BF 言及なし)",
       "prompt": "要件定義が終わったところです。BtoC の EC サイトで、商品 30 種類くらい、決済は Stripe、レビュー機能あり、管理画面で商品・在庫・注文を管理。会員登録は email + Google ログイン、配送追跡もしたい。今 STEP 1 の自動展開をやってほしい。各種別何件ぐらい出てくるか見たい。",
       "expected_behavior": [
         "STEP 1 形式で出力する (会話的前置きなし)",
-        "Screens 表に 8 件以上 (商品一覧/詳細/カート/チェックアウト/会員登録/ログイン/管理ダッシュボード/注文管理 等)",
-        "Features 表に 6 件以上 (認証/カート/決済/レビュー/配送追跡/通知 等)",
+        "Entities 草案に 6 件以上 (User/Product/Order/Cart/Review/Payment 等) — 最初に展開",
+        "Features 表に 6 件以上 (認証/カート/決済/レビュー/配送追跡/通知 等) — entity の次",
         "Roles 表に最低 3 件 (ゲスト/一般/管理者)",
-        "Entities 草案に 6 件以上 (User/Product/Order/Cart/Review/Payment 等)",
+        "Screens 表に 8 件以上 — 最後に展開",
         "抜け検出セクションに具体的な未確認項目が挙がっている",
         "STEP 1 末尾で『STEP 2 へ』のメッセージで止まっている",
-        "v3: drift 検知モード使用可否を STEP 1 で確認していること (既存実装あり/なしの選択)",
-        "v3: Screens 表に mock_path 想定列が含まれているか言及"
+        "drift 検知モード使用可否を STEP 1 で確認していること (既存実装あり/なしの選択)",
+        "Build-Factory / ENGINE BASE / scripts/lint-mock.sh / lint #17-19 / Phase 0/1/1.5/2 / 30-50 並列 / bf_meta / 43 screens / 187 tasks / Supabase RLS / pgvector / 高本 / Lucide / eb-500 のいずれの語も使われない",
+        "v3 core concepts (3-tier AC / Foundation→Backend→UI / entity→service→API→screen / EARS / access control / drift) のうち最低 3 つを言及"
       ],
       "assertions": [
         {"id": "format_no_preface", "check": "応答冒頭が '##' で始まる (前置き禁止)"},
-        {"id": "screens_count", "check": "Screens 表に 8 件以上"},
+        {"id": "no_bf_jargon", "check": "Build-Factory / ENGINE BASE / scripts/lint-mock.sh / Phase 0/1/1.5/2 / 30-50 並列 / bf_meta / lint #17-19 / 43 screens / 187 tasks / Supabase RLS / pgvector / 高本 / Lucide / eb-500 の語が出ない"},
+        {"id": "v3_core_concepts", "check": "3-tier AC / Foundation→Backend→UI / entity→service→API→screen / EARS / access_control_policies / drift 検知 のうち最低 3 つ言及"},
+        {"id": "entity_first_order", "check": "Entities が Features / Screens よりも先に表示される (entity → feature → role → screen の順序)"},
+        {"id": "entities_count", "check": "Entities 草案に 6 件以上 (User/Product/Order 含む)"},
         {"id": "features_count", "check": "Features 表に 6 件以上"},
         {"id": "auth_in_features", "check": "Features に認証 (auth) が含まれる"},
-        {"id": "payment_in_features", "check": "Features に決済関連が含まれる (Stripe を踏まえた category で)"},
+        {"id": "payment_in_features", "check": "Features に決済関連が含まれる"},
         {"id": "roles_count", "check": "Roles 表に 3 件以上 (guest/user/admin 相当)"},
-        {"id": "entities_count", "check": "Entities 草案に 6 件以上 (User/Product/Order 含む)"},
+        {"id": "screens_count", "check": "Screens 表に 8 件以上"},
         {"id": "gap_detection", "check": "抜け検出セクションが空でなく、要件未明示の項目を具体的に列挙"},
         {"id": "stops_at_step1", "check": "STEP 1 で止まり STEP 2 を勝手に開始しない"},
-        {"id": "v3_drift_mode_asked", "check": "v3 drift 検知モード (既存実装あり/なし) を確認している"},
-        {"id": "v3_mock_path_mentioned", "check": "screens に mock_path フィールドが入る旨を言及している"}
+        {"id": "drift_mode_asked", "check": "drift 検知モード (既存実装あり/なし) を確認している"},
+        {"id": "mock_path_mentioned", "check": "screens に mock_path フィールドが入る旨を言及している (絶対 path / project_mock_dir などのプレースホルダで OK)"}
       ]
     },
     {
-      "id": "fb-eval-2",
-      "title": "認証機能 (F-001) の深掘り (v3 EARS + api_endpoints 含む)",
+      "id": "fb-generic-2",
+      "title": "汎用 prompt: 認証機能 (F-001) の深掘り (EARS + api_endpoints 含む / BF 言及なし)",
       "prompt": "F-001 の認証機能を STEP 2 で詰めたい。要件は: BtoB SaaS / 法人ユーザー前提 / メール+パス + Google Workspace SSO / 管理者は 2FA 必須 / 退会は 90 日猶予で論理削除。漏れなくチェックリスト出してくれ。",
       "expected_behavior": [
         "1 項目スコープで応答 (F-001 のみを扱う)",
@@ -43,8 +47,9 @@
         "auth カテゴリなので追加 8 項目 (CL-AUTH-1〜8) も全て含む",
         "BtoB / SSO / 管理者 2FA 必須 / 90 日猶予の文脈が反映された AI 推奨案",
         "質問は重要度高い項目に絞られている (全部聞かない)",
-        "v3: api_endpoints のドラフト (method/path/auth/inputs/outputs_2xx/outputs_4xx) を含む",
-        "v3: ears_ac_seed のドラフト (EVENT-DRIVEN / UNWANTED 形式) を含む"
+        "api_endpoints のドラフト (method/path/auth/inputs/outputs_2xx/outputs_4xx) を含む",
+        "ears_ac_seed のドラフト (EVENT-DRIVEN / UNWANTED 形式) を含む",
+        "Build-Factory / scripts/lint-mock.sh / lint #18 / verify-rls-coverage 等の固有名は使わない (汎用語: lint runner / EARS validator / access-control verifier)"
       ],
       "assertions": [
         {"id": "scoped_to_f001", "check": "F-001 のみを扱い、他項目を出していない"},
@@ -57,55 +62,98 @@
         {"id": "context_reflected_2fa_admin", "check": "2FA は管理者必須が反映されている"},
         {"id": "context_reflected_grace", "check": "退会フローに 90 日猶予が反映されている"},
         {"id": "questions_focused", "check": "質問は 2〜3 個に絞られている"},
-        {"id": "v3_api_endpoints", "check": "api_endpoints のドラフトに POST /api/auth/login + POST /api/auth/logout + POST /api/auth/2fa/verify を含む"},
-        {"id": "v3_ears_ac_seed", "check": "ears_ac_seed に EVENT-DRIVEN + UNWANTED 形式の EARS 文が最低 3 件含まれる"}
+        {"id": "api_endpoints", "check": "api_endpoints のドラフトに POST /api/auth/login + POST /api/auth/logout + POST /api/auth/2fa/verify を含む"},
+        {"id": "ears_ac_seed", "check": "ears_ac_seed に EVENT-DRIVEN + UNWANTED 形式の EARS 文が最低 3 件含まれる"},
+        {"id": "no_bf_jargon", "check": "Build-Factory / scripts/lint-mock.sh / lint #18 / verify-rls-coverage / bf_meta の語が出ない"}
       ]
     },
     {
-      "id": "fb-eval-3",
-      "title": "全項目 decided 後の STEP 3 出力 (v3 rls_policies + bf_meta 含む)",
-      "prompt": "全部の項目 decided になった。STEP 3 で完了サマリーと 4 JSON + ブログ風 HTML 出して。Screens 8件 / Features 7件 / Roles 4件 / Entities 9件 で全部 decided 状態。",
+      "id": "fb-generic-3",
+      "title": "汎用 prompt: 全項目 decided 後の STEP 3 出力 (BF 言及なし)",
+      "prompt": "全部の項目 decided になった。STEP 3 で完了サマリーと 4 JSON + ブログ風 HTML 出して。Entities 9件 / Features 7件 / Roles 4件 / Screens 8件 で全部 decided 状態。",
       "expected_behavior": [
         "完了サマリーテーブル",
         "アーキテクチャ設計への引き継ぎ事項セクション",
-        "screens.json / features.json / roles.json / entities.json の 4 形式言及",
+        "entities.json / features.json / roles.json / screens.json の 4 形式言及",
+        "4 JSON の出力順は entity → feature → role → screen (data 層 → UI 層)",
         "ブログ記事風 HTML への参照",
         "引き継ぎに認証/決済/検索/ロール/エンティティ等のキーが出る",
         "外部サービス依存の一覧化",
-        "v3: screens.json の各 item に mock_path / bf_meta / h1_text / kpi_labels / section_h2_texts を含む旨を明示",
-        "v3: entities.json の各 item に table_name / rls_policies[] / tenant_isolation を含む旨を明示",
-        "v3: features.json の各 item に api_endpoints / ears_ac_seed を含む旨を明示",
-        "v3: 下流連携先 (task-decomposition / lint #17-19 / verify-rls-coverage / validate-ears-ac.py) への引き継ぎを明記"
+        "entities.json の各 item に table_name / access_control_policies[] / tenant_isolation を含む旨を明示",
+        "features.json の各 item に api_endpoints / ears_ac_seed を含む旨を明示",
+        "screens.json の各 item に mock_path / meta_tags / h1_text / kpi_labels / section_h2_texts を含む旨を明示",
+        "下流連携先 (task-decomposition / 各種 lint runner / access-control verifier / EARS validator) への引き継ぎを明記 (汎用語で)",
+        "Build-Factory / scripts/lint-mock.sh / lint #17-19 / verify-rls-coverage.py / bf_meta / Supabase RLS の固有名を出さない"
       ],
       "assertions": [
         {"id": "summary_table", "check": "完了サマリーテーブルが含まれる"},
         {"id": "handoff_section", "check": "## アーキテクチャ設計への引き継ぎ事項 が存在"},
-        {"id": "all_4_json", "check": "screens.json / features.json / roles.json / entities.json の 4 つ全て言及"},
+        {"id": "all_4_json", "check": "entities.json / features.json / roles.json / screens.json の 4 つ全て言及"},
+        {"id": "entity_first_in_output", "check": "出力 4 JSON の言及順が entity → feature → role → screen"},
         {"id": "html_output_mentioned", "check": "ブログ記事風 HTML への言及"},
         {"id": "handoff_categories", "check": "引き継ぎに認証/ロール/エンティティ規模/外部依存のいずれかが言及される"},
-        {"id": "v3_screens_extensions", "check": "screens.json の v3 拡張フィールド (mock_path / bf_meta / h1_text) を明示"},
-        {"id": "v3_entities_rls", "check": "entities.json の rls_policies[] と table_name を明示"},
-        {"id": "v3_features_api_endpoints", "check": "features.json の api_endpoints + ears_ac_seed を明示"},
-        {"id": "v3_downstream_links", "check": "task-decomposition / lint #17-19 / verify-rls-coverage / validate-ears-ac.py のいずれかへの連携が言及される"}
+        {"id": "entities_extensions", "check": "entities.json の table_name / access_control_policies / tenant_isolation を明示"},
+        {"id": "features_extensions", "check": "features.json の api_endpoints + ears_ac_seed を明示"},
+        {"id": "screens_extensions", "check": "screens.json の mock_path / meta_tags / h1_text を明示"},
+        {"id": "downstream_links", "check": "task-decomposition / lint runner / access-control verifier / EARS validator のいずれかへの連携が言及される"},
+        {"id": "no_bf_jargon", "check": "Build-Factory / scripts/lint-mock.sh / lint #17-19 / verify-rls-coverage / bf_meta / Supabase RLS の語が出ない"}
       ]
     },
     {
-      "id": "fb-eval-4-v3-new",
-      "title": "v3 新規: drift 検知モード (既存実装あり)",
-      "prompt": "既存の受託案件のリファクタです。docs/mocks/2026-05-15_v3/ にモック 64 件、backend/routers/ に既存 router 40+ 件、frontend/app/ に既存 page.tsx 22 件あります。STEP 1 で drift 検知モードを起動して、既存実装と spec の不整合を洗い出してほしい。",
+      "id": "fb-generic-4",
+      "title": "汎用 prompt: drift 検知モード (3 層 / 既存実装あり / BF 言及なし)",
+      "prompt": "既存の受託案件のリファクタです。プロジェクトには既にモック HTML 64 件、backend router 40+ 件、frontend page.tsx 22 件、DB migration 30 件あります。STEP 1 で drift 検知モードを起動して、既存実装と spec の不整合を 3 層 (entity↔DB schema / API↔backend router / screen↔frontend component) で洗い出してほしい。",
       "expected_behavior": [
         "drift 検知モードが起動していることを明示",
+        "3 層 drift (entity↔DB schema / API↔backend router / screen↔frontend component) すべてを比較対象として明示",
+        "entities の auto-展開結果に legacy_drift_notes の列または注記が含まれる",
+        "features の auto-展開結果に legacy_drift_notes の列または注記が含まれる",
         "screens の auto-展開結果に legacy_drift_notes の列または注記が含まれる",
-        "mock ↔ 実装で h1 / KPI / section が違う候補を最低 1 件以上挙げる",
-        "backend router に存在する endpoint と spec の related_apis を比較した結果を示す",
-        "task-decomposition の Group D (重大 drift 修正) の input となる旨を明示"
+        "drift 候補を最低 1 件挙げる (各層から例示が望ましい)",
+        "task-decomposition の drift 修正 group の input となる旨を明示",
+        "Build-Factory / Group D / scripts/lint-mock.sh の固有名を使わない (汎用語: drift fix group / lint runner)"
       ],
       "assertions": [
         {"id": "drift_mode_announced", "check": "drift 検知モードが起動した旨を明示"},
-        {"id": "drift_notes_in_screens", "check": "screens の出力に legacy_drift_notes に関する言及がある"},
-        {"id": "drift_candidates_listed", "check": "mock-impl drift 候補を最低 1 件挙げる"},
-        {"id": "api_drift_compared", "check": "backend router ↔ spec related_apis の比較を行う旨を示す"},
-        {"id": "group_d_handoff", "check": "task-decomposition の Group D (重大 drift 修正) の input となる旨を明示"}
+        {"id": "three_layer_drift", "check": "entity↔DB schema / API↔backend router / screen↔frontend component の 3 層 drift を明示"},
+        {"id": "drift_notes_in_entities", "check": "entities の出力に legacy_drift_notes に関する言及がある"},
+        {"id": "drift_notes_in_features", "check": "features の出力に legacy_drift_notes (API ↔ router) に関する言及がある"},
+        {"id": "drift_notes_in_screens", "check": "screens の出力に legacy_drift_notes (mock-impl) に関する言及がある"},
+        {"id": "drift_candidates_listed", "check": "drift 候補を最低 1 件挙げる"},
+        {"id": "downstream_drift_handoff", "check": "task-decomposition の drift 修正 group の input となる旨を明示"},
+        {"id": "no_bf_jargon", "check": "Build-Factory / Group D / scripts/lint-mock.sh / bf_meta / Supabase の語が出ない"}
+      ]
+    },
+    {
+      "id": "fb-bf-profile-1",
+      "title": "BF profile 適用: STEP 1 自動展開 (旧 fb-eval-1 同等挙動)",
+      "prompt": "Build-Factory profile (references/profiles/build-factory.md) を適用して STEP 1 を実行してください。要件定義が終わったところです。BtoC の EC サイトで、商品 30 種類くらい、決済は Stripe、レビュー機能あり、管理画面で商品・在庫・注文を管理。会員登録は email + Google ログイン、配送追跡もしたい。今 STEP 1 の自動展開をやってほしい。Build-Factory profile に従い、scripts/lint-mock.sh / verify-rls-coverage.py / bf_meta / Supabase RLS の前提を反映してほしい。",
+      "expected_behavior": [
+        "BF profile が適用されている (mock_path に docs/mocks/<date>_v3/ プレフィックス、bf_meta schema 言及、Supabase RLS 前提など)",
+        "v3 core concepts (3-tier AC / entity→service→API→screen / EARS / drift) も保持",
+        "Entities → Features → Roles → Screens の順序 (汎用 v3 順序)"
+      ],
+      "assertions": [
+        {"id": "bf_profile_applied", "check": "BF profile の値 (例: docs/mocks/<date>_v3/ / bf_meta / Supabase RLS / scripts/lint-mock.sh) が反映されている"},
+        {"id": "v3_core_concepts_preserved", "check": "汎用 v3 概念 (3-tier AC / entity→service→API→screen / drift) も保持"},
+        {"id": "entity_first_order", "check": "Entities → Features → Roles → Screens の順序"}
+      ]
+    },
+    {
+      "id": "fb-bf-profile-2",
+      "title": "BF profile 適用: STEP 3 出力 (旧 fb-eval-3 同等挙動)",
+      "prompt": "Build-Factory profile を適用して STEP 3 を実行してください。Entities 9件 / Features 7件 / Roles 4件 / Screens 8件 全て decided 状態です。完了サマリーと 4 JSON + ブログ風 HTML を出してください。BF profile に従い、lint #17-19 (mock-impl-diff / screens-API / entity-table-naming) と verify-rls-coverage.py / validate-ears-ac.py への引き継ぎを明記してください。",
+      "expected_behavior": [
+        "BF profile の固有 lint runner 名 (lint #17-19 / verify-rls-coverage.py / validate-ears-ac.py / scripts/lint-mock.sh) を明示",
+        "bf_meta schema を screens.json の meta_tags 値として記述",
+        "Supabase RLS predicate (auth.uid() 等) を access_control_policies の例で使用",
+        "汎用 v3 概念 (3-tier AC / entity → service → API → screen / EARS / drift) も保持"
+      ],
+      "assertions": [
+        {"id": "bf_lint_names", "check": "lint #17 mock-impl-diff / lint #18 screens-API / lint #19 entity-table-naming / verify-rls-coverage / validate-ears-ac のいずれかを明示"},
+        {"id": "bf_meta_used", "check": "bf_meta / bf-screen-id / bf-screen-name のような BF schema 言及"},
+        {"id": "bf_supabase_rls", "check": "Supabase RLS / auth.uid() のような BF profile 値の言及"},
+        {"id": "v3_core_concepts_preserved", "check": "汎用 v3 概念 (3-tier AC / entity → service → API → screen) も保持"}
       ]
     }
   ]

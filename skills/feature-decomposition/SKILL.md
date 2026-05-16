@@ -1,6 +1,6 @@
 ---
 name: feature-decomposition
-description: システムアーキテクトとして、要件定義や機能一覧をもとに「分散開発が可能なレベルまで機能を分解する」スキル。**v3 採用 (2026-05-15〜)**: Sprint 0 (Foundation = Group A: lint #17-19 / 3-tier AC validator / pyright/coverage gate / ADR 起票) を必ず先行させ、Sprint 1 以降を 30-50 セッション並列で Wave 構成する。functional-breakdown の 4 JSON (screens / features / roles / entities) を input として pull し、各機能に screen_ids / entity_ids / api_endpoints / rls_policies / ears_ac_seed / vertical_slice_components を必須付与。下流の task-decomposition でタスクカードに細分化される。「機能を分解したい」「タスク分割したい」「並列開発できるようにしたい」「エンジニアにタスクを振りたい」「依存関係を整理したい」「機能設計を構造化したい」「Sprint を切りたい」「Foundation 先行で組みたい」「Group A-J で分けたい」「DAG / Wave を作りたい」「CI gate を含めて分解したい」「Vertical Slice で構成したい」場面で必ず起動する。5STEP の対話型プロセスで進み、最終成果物はクライアント向け説明 / 機能 JSON (v3 拡張込み) / 依存関係マップ / DAG.md (Wave 構成) / 判断ログ JSON の 5 形式。分解結果はデータ資産として蓄積し将来の MCP 連携・再利用に対応。
+description: システムアーキテクトとして、要件定義や機能一覧をもとに「分散開発が可能なレベルまで機能を分解する」スキル。**v3 採用 (2026-05-15〜)**: Foundation phase (CI/CD pipeline / lint / type / test infra / access-control framework / pre-flight audit) を必ず先行させ、Backend / UI 分割を Vertical Slice 化して project-defined parallel capacity (例: 10 / 30-50 / 100+) で Wave 構成する。functional-breakdown の 4 JSON (screens / features / roles / entities) を input として pull し、各機能に screen_ids / entity_ids / api_endpoints / access_control_policies / ears_ac_seed / vertical_slice_components を必須付与。下流の task-decomposition でタスクカードに細分化される。「機能を分解したい」「タスク分割したい」「並列開発できるようにしたい」「エンジニアにタスクを振りたい」「依存関係を整理したい」「機能設計を構造化したい」「Sprint を切りたい」「Foundation 先行で組みたい」「Vertical Slice で構成したい」「DAG / Wave を作りたい」「CI gate を含めて分解したい」場面で必ず起動する。5STEP の対話型プロセスで進み、最終成果物はクライアント向け説明 / 機能 JSON (v3 拡張込み) / 依存関係マップ / DAG.md (Wave 構成) / 判断ログ JSON の 5 形式。分解結果はデータ資産として蓄積し将来の MCP 連携・再利用に対応。
 tab: 実装・分解
 builtin: true
 ---
@@ -150,15 +150,17 @@ builtin: true
 
 ## v3 必須ルール (2026-05-15〜)
 
-詳細: `references/v3-extensions.md`
+詳細: `references/v3-core.md`
+プロジェクト固有値の適用例: `references/profiles/build-factory.md` (任意 / profile 例)
 
-1. **Sprint 0 (Foundation = Group A) を必ず最先行** — lint #17-19 / 3-tier AC validator / pyright/coverage gate / ADR 起票が Sprint 0 で完成しないと Sprint 1 以降を解禁してはならない。これを破ると v1 と同じ失敗 (CI gate なしのまま着手 → drift / RLS 漏れ発生)
-2. **Group A-J 命名規約を統一** — task-decomposition と共通の語彙 (A=Infra / B=AUTH / C=DB+RLS / D=drift / E=未実装画面 / F=REFACTOR / G=確定gap / H=audit retrofit / I=cleanup / J=rename)
+1. **Foundation phase を必ず最先行 (Group A)** — CI/CD pipeline / lint / type check / coverage gate / 3-tier AC validator / access-control framework / pre-flight audit MD mechanism / decision record (ADR) 起票 が Foundation で完成しないと Backend phase 以降を解禁してはならない。これを破ると CI gate なしのまま着手 → drift / access-control 漏れが発生する
+2. **Group A-E 命名規約を統一** — task-decomposition と共通の汎用語彙 (A=Foundation / B=Backend / C=UI / D=Integration test / E=Drift fix)。プロジェクト固有 group がある場合は profile で細分化マッピングを定義する
 3. **functional-breakdown の 4 JSON を pull** — STEP 1 で必ず screens/features/roles/entities/(addendum) の path を確認し、各機能の v3 拡張フィールドに逐語コピーする
-4. **Vertical Slice を default に** — 1 機能 = 画面+API+test+RLS の bundle で `vertical_slice_components` を必須付与。例外は Group A (infra) / C-1 (DB schema) / I/J (cleanup)
-5. **30-50 並列前提の Wave 構成** — Sprint = 経営/PM 視点、Wave = Claude Code 並列セッション視点。1 Wave = 30-50 並列 × 2-4h
-6. **CI gate (8 ゲート) を pass する設計責任** — 各機能の `vertical_slice_components` が以下 8 ゲート (lint 1-19 / 3-tier AC validator / RLS coverage / audit MD validator / pytest cov 70% / pyright strict / tsc / mock-impl-diff) を満たすか STEP 2 で検証
-7. **drift 入力を Group D 機能化** — functional-breakdown の `legacy_drift_notes` を pull し、各 drift を F-V3-DRIFT-XX として独立した機能にする
+4. **Vertical Slice を default に** — 1 機能 = 画面 + API + test + access-control policy の bundle で `vertical_slice_components` を必須付与。例外は Group A (Foundation) / Group B 内の DB schema 単独 / Group E の cleanup
+5. **project-defined parallel capacity 前提の Wave 構成** — Sprint = 経営/PM 視点、Wave = 並列セッション視点。1 Wave = N parallel × 2-4h (N は project-defined: 10 / 30-50 / 100+ など)
+6. **CI gate (project-defined gate set) を pass する設計責任** — 各機能の `vertical_slice_components` がプロジェクトで定義された CI gate 全件 (例: lint / 3-tier AC validator / access-control coverage / audit MD validator / pytest / type check / mock-impl-diff など) を満たすか STEP 2 で検証
+7. **drift 入力を Group D / E 機能化** — functional-breakdown の `legacy_drift_notes` を pull し、各 drift を独立した機能 (F-V3-DRIFT-XX 等) にする
+8. **Wave 内も Backend → UI の順序維持** — Vertical Slice 内であっても backend-first → UI-second の順序を保つ (data layer → service → API → component の順)
 
 ## 深掘りの考え方
 
@@ -187,6 +189,52 @@ builtin: true
 
 ---
 
+## Foundation → Backend → UI 汎用フロー (v3 必須順序)
+
+```
+Group A: Foundation phase
+  ├─ CI/CD pipeline (lint / format / type check / coverage gate)
+  ├─ Test infrastructure (unit / integration / e2e)
+  ├─ Access control framework (RLS / RBAC / policy enforcement)
+  ├─ Audit / logging infrastructure
+  └─ Pre-flight checklist mechanism + decision record (ADR) 起票
+
+   ↓ Foundation gate passes (機械判定 OK で Backend 解禁)
+
+Group B: Backend phase (per slice / per feature)
+  ├─ Data layer (entity / migration / access-control policy)
+  ├─ Service layer (business logic)
+  ├─ API layer (REST / GraphQL / gRPC) + OpenAPI / IDL
+  ├─ Contract test (consumer-driven)
+  └─ Backend integration test (access-control matrix / business logic E2E)
+
+   ↓ Backend gate passes
+
+Group C: UI phase (per slice / per feature)
+  ├─ Component implementation (against spec / against mock)
+  ├─ State management (data fetching / cache)
+  ├─ UI integration test (visual regression / interaction)
+  └─ Accessibility check
+
+   ↓ UI gate passes
+
+Group D: Integration test phase (cross-cutting)
+  ├─ E2E across slices
+  ├─ Drift detection across spec / mock / impl
+  └─ Cross-feature regression
+
+Group E: Drift fix / Polish phase (cross-cutting)
+  ├─ Performance optimization
+  ├─ Security audit
+  ├─ Documentation
+  ├─ legacy 整理 / 命名統一
+  └─ Release readiness
+```
+
+各 Wave 内も同じ順序: backend-first → UI-second。
+
+---
+
 ## テンプレートファイル（assets/）
 - `assets/dependency-graph-template.md` — Mermaid依存関係グラフ・機能一覧・並列開発グループ定義テンプレート
 - `assets/github-issues-template.csv` — GitHub Issues CSVインポート用テンプレート（`gh issue create`やGitHub UI インポートに使用）
@@ -197,7 +245,7 @@ STEP 3（機能分解・依存整理）の出力では dependency-graph-template
 
 ---
 
-### ▶ STEP 1：機能の大分類 (v3: functional-breakdown pull + Group A-J マッピング)
+### ▶ STEP 1：機能の大分類 (v3: functional-breakdown pull + Group A-E マッピング)
 
 入力された要件・機能一覧を読み込み、以下を整理して出力する。
 
@@ -209,44 +257,39 @@ STEP 3（機能分解・依存整理）の出力では dependency-graph-template
 ## 入力情報の確認 (v3)
 
 ### functional-breakdown 出力
-- 出力 dir: docs/functional-breakdown/<date>_v<N>/
+- 出力 dir: <functional-breakdown 出力 path>
   - screens.json: N 件
   - features.json: N 件
   - roles.json: R 件
   - entities.json: E 件
   - (任意) addendum.json: 0 or N 件
-- drift 検知出力 (legacy_drift_notes): N 件 → Group D 機能候補
+- drift 検知出力 (legacy_drift_notes): N 件 → Group D/E 機能候補
 
 ### プロジェクト前提
-- Phase 目標: dogfood / public release / cleanup
-- Claude Code 並列セッション上限: 30-50
+- Phase 目標: <project-defined: 例 dogfood / public release / cleanup>
+- 並列セッション上限: N (project-defined parallel capacity / 例: 10 / 30-50 / 100+)
 - 想定総工数 / 納期: N 日
 
-## 機能の大分類 + Group A-J マッピング
+## 機能の大分類 + Group A-E マッピング
 
 | Group | カテゴリ | 含まれる機能群 | 必須先行? | Sprint / Wave / Phase | 機能数 |
 |---|---|---|:---:|---|---:|
-| **A** | Infrastructure | lint #17-19 / 3-tier AC validator / pyright/coverage gate / ADR 起票 | ✅ Foundation | S0 / W0 / P0 | N |
-| **B** | AUTH | login/signup/MFA/OAuth/password-reset (画面+API+test bundle) | | S1 / W1-2 / P1 | N |
-| **C** | DB schema + RLS | entity 新設 + RLS policy 全実装 | | S1 / W1 / P1 | N |
-| **D** | 重大 drift 修正 | functional-breakdown の legacy_drift_notes から | | S1 / W2 / P1 | N |
-| **E** | 未実装画面 (Vertical Slice) | screen+API+test を 1 機能 | | S1-2 / W2 / P1 | N |
-| **F** | 既存画面 REFACTOR | R-1〜R-4 適用 | | S2 / W4 / P1.5 | N |
-| **G** | 確定 gap 修正 | v1 で admit 済 gap | | S1 / W1 / P1 | N |
-| **H** | v1 freeze / audit retrofit | legacy 整理 | | S3 / W5 / P2 | N |
-| **I** | 余剰整理 | dead table / dead router | | S3 / W6 / P2 | N |
-| **J** | 命名 migration | bf_ prefix 廃止 | | S3 / W6 / P2 | N |
+| **A** | Foundation | CI/CD pipeline / lint / type check / coverage gate / 3-tier AC validator / access-control framework / audit infra / pre-flight mechanism / ADR | ✅ 最先行 | S0 / W0 / Foundation | N |
+| **B** | Backend | data layer (entity / migration / access-control policy) / service / API / contract test / backend integration test | | S1 / W1 / Backend | N |
+| **C** | UI | component / state management / UI integration test / accessibility | | S1-2 / W2-3 / UI | N |
+| **D** | Integration test | E2E across slices / drift detection / cross-feature regression | | S2 / W3 / Integration | N |
+| **E** | Drift fix / Polish | drift 修正 / refactor / performance / security audit / docs / cleanup / 命名 migration | | S3 / W4-N / Polish | N |
 
 ## 機能数の概算
 - 総機能数: 〇件
-- Sprint 別: Sprint 0:N / Sprint 1:N / Sprint 2:N / Sprint 3:N
-- Phase 別: Phase 0:N / Phase 1:N / Phase 1.5:N / Phase 2:N
+- Group 別: A:N / B:N / C:N / D:N / E:N
+- Sprint 別 / Phase 別: project-defined naming で集計
 
 ## 確認事項
-- Group A (Foundation) を Sprint 0 で必ず先行させて OK か (推奨: yes)
-- Group B-J のうち本プロジェクトで不要な Group はあるか / 追加 Group はあるか
-- drift 検知出力を Group D 機能化することで OK か
-- 並列度 30-50 で合っているか
+- Group A (Foundation) を最先行させて OK か (推奨: yes)
+- Group A-E のうち本プロジェクトで不要な Group はあるか / 追加 Group はあるか (profile で細分化が必要か)
+- drift 検知出力を Group D / E に取り込みで OK か
+- 並列度 (project-defined parallel capacity) の値で合っているか
 ```
 
 **STEP 1 の深掘りチェック：**
@@ -254,7 +297,7 @@ STEP 3（機能分解・依存整理）の出力では dependency-graph-template
 - 管理者向け機能（一覧・CSV出力・設定変更）が抜けていないか
 - 通知・メール送信が必要な操作はないか
 - 削除・キャンセル・取り消しの処理が必要な機能はないか
-- **v3: Group A の中身 (lint #17-19 / AC validator / pyright/coverage gate / ADR) が漏れていないか**
+- **v3: Group A の中身 (CI/CD pipeline / lint / 3-tier AC validator / type/coverage gate / access-control framework / pre-flight audit / ADR) が漏れていないか**
 - **v3: functional-breakdown の features.json と Group マッピングが 1:1 か (機能消失していないか)**
 
 **出力後は必ず止まる：**
@@ -263,10 +306,10 @@ STEP 3（機能分解・依存整理）の出力では dependency-graph-template
 ---
 📋 **STEP 1 確認**
 
-大分類 + Group A-J マッピングを確認してください。
-- Group 構成 (A-J) に追加・削除はありますか？
+大分類 + Group A-E マッピングを確認してください。
+- Group 構成 (A-E) に追加・削除はありますか？(プロジェクト固有 group があれば profile に細分化を定義)
 - functional-breakdown 出力との対応に漏れはありますか？
-- drift 検知出力の Group D 取り込みで OK ですか？
+- drift 検知出力の Group D / E 取り込みで OK ですか？
 - 問題なければ「STEP 2へ」とお知らせください
 
 ※ 確認後にSTEP 2（機能分解）に進みます
@@ -293,10 +336,9 @@ STEP 3（機能分解・依存整理）の出力では dependency-graph-template
 ### [機能ID = F-V3-<GROUP>-<NN>] [機能名]
 
 #### メタ
-- **group**: A | B | C | D | E | F | G | H | I | J
-- **phase / sprint / wave**: 0 | 1 | 1.5 | 2 / 0 | 1 | 2 | 3 / 0 | 1 | 2 | ...
+- **group**: A | B | C | D | E (or project-defined sub-group)
+- **phase / sprint / wave**: <project-defined naming> (e.g., Foundation / Backend / UI / Integration / Polish)
 - **カテゴリ**: auth / payment / crud / notification / search / admin / infra / cleanup
-- **役割**: この機能が担う唯一の責任（1文で）
 - **役割**: この機能が担う唯一の責任（1文で）
 
 #### 入出力 / 処理
@@ -315,26 +357,27 @@ STEP 3（機能分解・依存整理）の出力では dependency-graph-template
 - **screen_ids**: [S-XXX, ...]
 - **entity_ids**: [E-XXX <Name>, ...]
 - **api_endpoints**: [{method, path, auth, inputs, outputs_2xx, outputs_4xx}]
-- **rls_policies**: [<table>:<policy_name>, ...]
+- **access_control_policies**: [<table>:<policy_name>, ...] (RLS / RBAC / policy enforcement)
 - **ears_ac_seed**: [EVENT-DRIVEN ... / UNWANTED ... / UBIQUITOUS ... 形式の AC ドラフト]
 
-#### v3 必須: Vertical Slice 定義
+#### v3 必須: Vertical Slice 定義 (Backend → UI 順序維持)
 - **vertical_slice_components**:
-  - screens: [...]
-  - api_endpoints: [...]
-  - entities: [...]
-  - rls_policies: [...]
-  - tests: [...]
+  - entities: [...] (Backend: data layer 先)
+  - api_endpoints: [...] (Backend: service / API 層)
+  - access_control_policies: [...] (Backend: policy)
+  - tests: [...] (backend tests + UI tests)
   - middleware: [...] (auth / rate_limit など)
+  - screens: [...] (UI: 最後)
 
 #### v3: drift 入力 (該当する場合)
 - **drift_origin**: null | {source_screen_id, diff_severity, recommendation}
 
 #### CI gate 適合チェック (この機能が下流 task で何 gate を pass する責任を持つか)
-- gate #1 mock lint: ✅ / ⚪
-- gate #4 RLS coverage: ✅ (rls_policies が空でない) / ⚪
-- gate #5 pytest coverage 70%: ✅ (tests が空でない) / ⚪
-- gate #8 mock-impl diff: ✅ (screen_ids あり) / ⚪
+- gate `mock-lint`: ✅ / ⚪
+- gate `access-control-coverage`: ✅ (access_control_policies が空でない) / ⚪
+- gate `test-coverage`: ✅ (tests が空でない) / ⚪
+- gate `mock-impl-diff`: ✅ (screen_ids あり) / ⚪
+(具体的な gate set はプロジェクトで定義 / profile に列挙)
 ```
 
 **STEP 2 の見落としチェック（分解中に自動確認）：**
@@ -347,6 +390,7 @@ STEP 3（機能分解・依存整理）の出力では dependency-graph-template
 | 承認フローがあれば差し戻し・取り消しは？ | 承認 → 否認・保留・取り消しを忘れがち |
 | 決済があれば返金・失敗ハンドリングは？ | 購入 → キャンセル・返金フローを忘れがち |
 | 外部API連携はレートリミット・エラー処理は？ | API呼び出し → タイムアウト・エラー処理を忘れがち |
+| **v3: Backend → UI の順序が Vertical Slice 内で保たれているか？** | UI 先行で API 未定 / data layer 未定だと並列開発が崩壊 |
 
 **出力後は必ず止まる：**
 
@@ -357,15 +401,16 @@ STEP 3（機能分解・依存整理）の出力では dependency-graph-template
 機能分解を確認してください。
 - 機能の追加・削除・粒度の調整はありますか？
 - 独立性・難易度の評価に違和感はありますか？
+- Vertical Slice の Backend → UI 順序が保たれていますか？
 - 問題なければ「STEP 3へ」とお知らせください
 ---
 ```
 
 ---
 
-### ▶ STEP 3：依存 DAG + Wave 構成 (v3: 30-50 並列 / Phase 0 先行固定)
+### ▶ STEP 3：依存 DAG + Wave 構成 (v3: project-defined parallel capacity / Foundation 先行固定)
 
-確認後、機能間の依存関係を整理し、疎結合な設計になっているか検証する。**v3 必須: Phase 0 (Group A) を Wave 0 で固定**。
+確認後、機能間の依存関係を整理し、疎結合な設計になっているか検証する。**v3 必須: Foundation phase (Group A) を Wave 0 で固定**。
 
 **出力する内容：**
 
@@ -373,53 +418,52 @@ STEP 3（機能分解・依存整理）の出力では dependency-graph-template
 ## 依存 DAG (v3)
 
 ### 依存ツリー (Phase 軸)
-[Wave 0: Phase 0 / Foundation]
-  F-V3-INFRA-01 (ADR-XXX) ─┐
-  F-V3-INFRA-02 (lint #17) ─┤
+[Wave 0: Foundation phase / Group A]
+  F-V3-INFRA-01 (ADR 起票) ─┐
+  F-V3-INFRA-02 (lint) ─┤
   F-V3-INFRA-03 (AC validator) ┼─→ [Wave 1 解禁]
-  F-V3-INFRA-04 (pyright) ──┘
+  F-V3-INFRA-04 (type/coverage gate) ──┘
 
-[Wave 1: Phase 1 / DB + AUTH-1 + Fix]
-  Group C: F-V3-DB-XX ──┐
-  Group B-1: F-V3-AUTH-XX (backend) ──┼─→ [Wave 2 解禁]
-  Group G: F-V3-FIX-XX ─┘
+[Wave 1: Backend phase / Group B]
+  F-V3-DB-XX (data layer) ──┐
+  F-V3-API-XX (service / API) ──┼─→ [Wave 2 解禁]
+  F-V3-FIX-XX (gap 修正 backend) ─┘
 
-[Wave 2: Phase 1 / Frontend + Drift + 未実装]
-  Group B-2: F-V3-AUTH-XX (frontend) ──┐
-  Group D: F-V3-DRIFT-XX ──┤
-  Group E: F-V3-SCR-XX (Vertical Slice) ──┘
+[Wave 2: UI phase / Group C]
+  F-V3-SCR-XX (Vertical Slice UI) ──┐
+  F-V3-COMP-XX (component) ──┘
 
-[Wave 4: Phase 1.5 / REFACTOR]
-  Group F: F-V3-RF-XX
+[Wave 3: Integration test phase / Group D]
+  F-V3-DRIFT-XX (drift detection)
+  F-V3-E2E-XX (cross-feature regression)
 
-[Wave 5-6: Phase 2 / Cleanup + Rename]
-  Group H + I + J
+[Wave 4-N: Polish phase / Group E]
+  F-V3-RF-XX (refactor)
+  F-V3-CLEAN-XX (cleanup / rename)
 
-### Wave 構成 (30-50 並列前提)
-| Wave | Phase | Group | 機能数 | 並列度 | 所要 (h) |
+### Wave 構成 (project-defined parallel capacity 前提)
+| Wave | Phase (project-defined naming) | Group | 機能数 | 並列度 | 所要 (h) |
 |---|---|---|---:|---:|---|
-| 0 | 0 | A | N | N (= A 件数) | 2-4 |
-| 1 | 1 | C / B-1 / G | N | <=50 | 4 |
-| 2 | 1 | B-2 / D / E | N | <=50 | 4 |
-| 3 | 1 | (validation) | - | - | 2 |
-| 4 | 1.5 | F | N | <=50 | 3-4 |
-| 5 | 2 | H | N | <=50 | 2-3 |
-| 6 | 2 | I / J | N | <=20 | 3 |
-| 7 | 2 | (final validation) | - | - | 2 |
+| 0 | Foundation | A | N | N (= A 件数) | 2-4 |
+| 1 | Backend | B | N | <= cap | 4 |
+| 2 | UI | C | N | <= cap | 4 |
+| 3 | Integration test | D | N | <= cap | 2-3 |
+| 4 | Polish (1st pass) | E | N | <= cap | 3-4 |
+| ... | ... | ... | ... | ... | ... |
 
-### Sprint ↔ Wave ↔ Phase 対応
+### Sprint ↔ Wave ↔ Phase 対応 (project-defined naming)
 | Sprint | Phase | Wave | 内容 |
 |---|---|---|---|
-| 0 | 0 | 0 | Foundation (Group A) |
-| 1 | 1 | 1-3 | dogfood 必須 (Group B/C/D/E/G) |
-| 2 | 1.5 | 4 | REFACTOR (Group F) |
-| 3 | 2 | 5-7 | Cleanup / Rename / Final (Group H/I/J) |
+| 0 | Foundation | 0 | Foundation (Group A) |
+| 1 | Backend / UI 必須 | 1-2 | dogfood 必須 (Group B / C) |
+| 2 | Integration | 3 | E2E + drift detection (Group D) |
+| 3 | Polish | 4-N | Refactor / Cleanup / Rename (Group E) |
 
 ### 依存が強い箇所（要注意 / ブロッキング機能）
 | 機能 | 依存先 | 問題 | 推奨対策 |
 |-----|--------|------|---------|
-| F-V3-INFRA-02 (lint #17) | (なし) | Sprint 0 完成必須 / Wave 1-2 全機能の merge gate | 最優先 + 2 名アサイン |
-| F-V3-AUTH-01 (login) | F-V3-INFRA-01 ADR-013 | ADR 起票遅延で着手不可 | ADR 起票を Wave 0 で完了 |
+| F-V3-INFRA-02 (lint) | (なし) | Foundation 完成必須 / Wave 1+ 全機能の merge gate | 最優先 + 2 名アサイン |
+| F-V3-AUTH-01 (login) | F-V3-INFRA-01 ADR | ADR 起票遅延で着手不可 | ADR 起票を Wave 0 で完了 |
 
 ### 疎結合化の提案
 （依存を減らすための設計変更案）
@@ -438,6 +482,7 @@ STEP 3（機能分解・依存整理）の出力では dependency-graph-template
 | 機能間の通信はAPI/インターフェース経由か | 「直接DBを参照」する設計は密結合になり並列開発が崩壊する |
 | 「依存している数が多い機能」を先に開発する順序になっているか | 基盤になる認証・共通APIが後回しになっていないか |
 | 将来の拡張を想定した分割になっているか | 「今は1機能だが将来分割する可能性がある」部分を把握しているか |
+| **Wave 内も Backend → UI の順序が保たれているか** | UI が API 未定で着手 → 後から API 変更で UI 再実装 |
 
 **出力後は必ず止まる：**
 
@@ -456,7 +501,7 @@ STEP 3（機能分解・依存整理）の出力では dependency-graph-template
 
 ### ▶ STEP 4：開発単位化 + インターフェース + CI gate 連携 (v3)
 
-確認後、各機能を「1 Claude Code セッション = 1 PR で完結する開発単位」に整理し、接続部分のインターフェース + CI gate 適合を定義する。
+確認後、各機能を「1 並列セッション = 1 PR で完結する開発単位」に整理し、接続部分のインターフェース + CI gate 適合を定義する。
 
 **出力する内容：**
 
@@ -465,8 +510,8 @@ STEP 3（機能分解・依存整理）の出力では dependency-graph-template
 
 | 機能ID | 機能名 | group | 担当想定 | 工数 | 依存 | vertical_slice 完備? |
 |---|---|---|---|---:|---|:---:|
-| F-V3-AUTH-01 | login | B | Claude Code 1 session | 1 day | F-V3-INFRA-01,03 | ✅ (screens+API+test+RLS) |
-| F-V3-DRIFT-01 | S-006 root rewrite | D | Claude Code 1 session | 0.5 day | F-V3-INFRA-02 | ✅ |
+| F-V3-AUTH-01 | login | B | 1 並列 session | 1 day | F-V3-INFRA-01,03 | ✅ (entities+API+test+access-control+screens) |
+| F-V3-DRIFT-01 | S-006 root rewrite | D | 1 並列 session | 0.5 day | F-V3-INFRA-02 | ✅ |
 
 ## インターフェース定義（主要 API / functional-breakdown api_endpoints からコピー）
 
@@ -479,20 +524,21 @@ STEP 3（機能分解・依存整理）の出力では dependency-graph-template
 - **rate_limit**: 5/min/ip
 - **提供する機能**: F-V3-AUTH-01
 - **使用する entity**: E-001 User / E-038 AuthSession
-- **RLS policy**: auth_sessions:user_own_select
+- **access-control policy**: auth_sessions:user_own_select
 
-## CI gate 適合確認 (各機能 × 8 gate)
+## CI gate 適合確認 (各機能 × project-defined gate set)
 
-| 機能 | gate1 lint | gate2 AC | gate3 audit MD | gate4 RLS | gate5 pytest | gate6 pyright | gate7 tsc | gate8 mock-diff |
+| 機能 | mock-lint | AC validator | audit MD | access-control coverage | test coverage | type check (BE) | type check (FE) | mock-impl-diff |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | F-V3-AUTH-01 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | F-V3-INFRA-02 | ✅ | ✅ | ✅ | ⚪ | ✅ | ⚪ | ⚪ | ⚪ |
 | F-V3-DB-01 (entity) | ✅ | ✅ | ✅ | ✅ | ✅ | ⚪ | ⚪ | ⚪ |
 
 (⚪ = 該当しない / structural AC 空 or entity なし)
+(具体的な gate 列はプロジェクト固有 — profile に列挙)
 ```
 
-**v3 必須チェック**: gate5 (pytest) と gate6 (pyright) は **全機能で✅** が前提。⚪ は許可しない (= テストなし / 型なしの実装は merge 不可)。
+**v3 必須チェック**: test-coverage gate と type-check gate は **全機能で✅** が前提。⚪ は許可しない (= テストなし / 型なしの実装は merge 不可)。
 
 **STEP 4 の深掘りチェック（チケット化・インターフェースで必ず確認すること）：**
 
@@ -538,7 +584,7 @@ STEP 3（機能分解・依存整理）の出力では dependency-graph-template
 （カテゴリ別の機能一覧と関係性を平易な文章で）
 
 ## 開発フェーズと順序
-（フェーズ1〜3の内容と理由）
+（Foundation → Backend → UI → Integration → Polish の各フェーズの内容と理由）
 
 ## 並列開発できる組み合わせ
 （同時に進められる機能のセット）
@@ -575,14 +621,15 @@ STEP 3（機能分解・依存整理）の出力では dependency-graph-template
 ## 依存ツリー（最終版）
 （STEP 3の整理を反映した最終形）
 
-## 並列開発可能グループ (v3: Group A-J 命名統一)
-Group A (Wave 0): F-V3-INFRA-01, ..., F-V3-INFRA-08 (互いに独立 / Foundation)
-Group B-1 (Wave 1): F-V3-AUTH-01 backend, F-V3-AUTH-02 backend, ... (Wave 0 完了後)
-Group C (Wave 1): F-V3-DB-01, ..., F-V3-DB-NN (Wave 0 完了後)
-...
+## 並列開発可能グループ (v3: Group A-E 命名統一)
+Group A (Wave 0): F-V3-INFRA-01, ..., F-V3-INFRA-NN (互いに独立 / Foundation)
+Group B (Wave 1): F-V3-DB-XX, F-V3-API-XX, ... (Wave 0 完了後 / Backend)
+Group C (Wave 2): F-V3-SCR-XX, ... (Wave 1 完了後 / UI)
+Group D (Wave 3): F-V3-DRIFT-XX, F-V3-E2E-XX (Integration test)
+Group E (Wave 4-N): F-V3-RF-XX, F-V3-CLEAN-XX (Polish / Drift fix)
 
 ## 推奨開発順序
-Wave 0 → Wave 1 (B-1+C+G) → Wave 2 (B-2+D+E) → Wave 3 (validation) → Wave 4 (F) → Wave 5-7
+Wave 0 (Foundation) → Wave 1 (Backend) → Wave 2 (UI) → Wave 3 (Integration) → Wave 4-N (Polish)
 ```
 
 ---
@@ -598,7 +645,7 @@ Wave 0 → Wave 1 (B-1+C+G) → Wave 2 (B-2+D+E) → Wave 3 (validation) → Wav
 | 総機能数 | N |
 | Sprint 数 | N |
 | Wave 数 | N |
-| 並列度上限 | 30-50 |
+| 並列度上限 | <project-defined parallel capacity> |
 | 推定総工数 | N 日 |
 
 ## Sprint ↔ Wave ↔ Phase 対応
@@ -608,24 +655,27 @@ Wave 0 → Wave 1 (B-1+C+G) → Wave 2 (B-2+D+E) → Wave 3 (validation) → Wav
 (STEP 3 の DAG を最終確定版として出力)
 
 ## Wave 別並列実行プラン
-### Wave 0 (Phase 0 / Group A / N 機能 / 2-4h)
-- F-V3-INFRA-01, ..., F-V3-INFRA-08
+### Wave 0 (Foundation phase / Group A / N 機能 / 2-4h)
+- F-V3-INFRA-01, ..., F-V3-INFRA-NN
 
-### Wave 1 (Phase 1 / Group C/B-1/G / N 機能 / 4h)
+### Wave 1 (Backend phase / Group B / N 機能 / 4h)
 - F-V3-DB-01, ..., F-V3-DB-NN
-- F-V3-AUTH-01 backend, ...
+- F-V3-API-01, ...
 - F-V3-FIX-01, ...
+
+### Wave 2 (UI phase / Group C / N 機能 / 4h)
+- F-V3-SCR-01, ...
 
 ...
 
 ## Risk flags (Bottleneck 候補)
 | 機能 | risk | 影響範囲 | mitigation |
 |---|---|---|---|
-| F-V3-INFRA-03 (lint #17) | ブロッキング | Wave 1-2 全機能の merge gate | Sprint 0 で最優先完成 / 2 人アサイン |
+| F-V3-INFRA-03 (lint) | ブロッキング | Wave 1+ 全機能の merge gate | Foundation で最優先完成 / 2 人アサイン |
 
-## CI gate (8 ゲート)
-references/v3-extensions.md の "CI gate 連携" 参照。
-全 PR で全 8 gate を merge gate に。
+## CI gate (project-defined gate set)
+references/v3-core.md の "CI gate 連携" 参照。
+全 PR で全 gate を merge gate に。プロジェクト固有 gate 集合は profile を参照。
 
 ## 失敗 retry プロトコル
 1. CI が PR コメントに失敗内容貼る
@@ -644,7 +694,7 @@ references/v3-extensions.md の "CI gate 連携" 参照。
   "meta": {
     "project": "プロジェクト名",
     "created_at": "YYYY-MM-DD",
-    "skill_version": "1.0",
+    "skill_version": "v3",
     "total_features": 12,
     "parallel_groups": 3
   },
@@ -690,7 +740,7 @@ PM: 「この分類でOK、STEP 2へ」
 ... 繰り返し ...
 
 PM: 「STEP 5へ」
- → 4形式の最終ドキュメントを出力
+ → 5 形式の最終ドキュメントを出力
 ```
 
 ---
@@ -709,7 +759,7 @@ PM: 「STEP 5へ」
       "use_cases": ["ユースケース1"],
       "dependencies": [],
       "estimated_complexity": "M",
-      "phase": "フェーズ1"
+      "phase": "Foundation | Backend | UI | Integration | Polish (project-defined naming)"
     }
   ],
   "dependency_graph": [

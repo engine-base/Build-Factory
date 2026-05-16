@@ -1,87 +1,129 @@
 {
   "skill_name": "integration",
-  "version": "v3-2026-05-15",
-  "description": "統合設計スキルのテスト (v3: Wave 集計 + Phase gate 機械判定 + drift fix → Group D + 8 CI gate auto-merge 前提)",
+  "version": "v3-2026-05-16-generalized",
+  "description": "統合設計スキルのテスト (v3 汎用化版: Wave 集計 + Phase gate 機械判定 (Foundation→Backend→UI→Polish) + drift fix queue + N CI gate auto-merge 前提)。generic suite (BF 言及ゼロ) + bf-profile suite (Build-Factory profile 適用) の 2 系統。",
   "evals": [
     {
-      "id": "int-eval-1",
-      "title": "STEP 1 で distributed-dev + wave-schedule + gate-config pull + Wave 単位 (W1 / 30 task) 状況把握",
-      "prompt": "STEP 1 で W1 (Slice 0 / 30 task / Group B=21 + C=3 + D=6) の統合状況を整理して。distributed-dev の branch-package.json 30 件と schedule-design の wave-schedule.json と test-verification の gate-config.yml が出てる。",
+      "id": "int-generic-1",
+      "title": "[GENERIC] STEP 1 で上流出力 pull + Wave 単位 + Foundation/Backend/UI カテゴリ別集計",
+      "prompt": "STEP 1 で W1 (Backend Vertical Slice 群を含む / 並列セッション複数) の統合状況を整理して。distributed-dev の branch-package.json と schedule-design の wave-schedule.json と test-verification の gate-config.yml が出てる。",
       "expected_behavior": [
         "STEP 1 形式で出力 (会話的前置きなし)",
-        "v3: 入力情報に branch-package.json 30 件 + wave-schedule.json + gate-config.yml の path を listing",
+        "v3: 入力情報に branch-package.json + wave-schedule.json + gate-config.yml の path placeholder を listing",
         "v3: Wave 単位 (W1) の集計を主軸 (個別ブランチではなく)",
-        "v3: 8 CI gate auto-merge 集計 (auto-merged / retried / escalated / rolled-back の件数)",
+        "v3: auto-merged / retried / escalated / rolled-back の 4 カテゴリ集計",
+        "v3: Foundation/Backend/UI/Polish カテゴリ別の deliverable 件数を分けて集計",
         "v3: work-package boundary (file mutex) 前提 → conflict 発生は仕様違反扱い",
-        "v3: drift 検出 → Group D Wave 流し込みを明示",
+        "v3: drift 検出 → drift fix queue (project-defined group naming) 流し込みを明示",
         "STEP 2 へ で止まる"
       ],
       "assertions": [
         {"id": "format_no_preface", "check": "応答冒頭が '##' で始まる"},
-        {"id": "v3_input_paths_listed", "check": "branch-package.json + wave-schedule.json + gate-config.yml の path"},
+        {"id": "no_bf_jargon", "check": "Build-Factory / ENGINE BASE / scripts/lint-mock.sh / Phase 0/1/1.5/2 / 30-50 並列 / 8 CI gate / bf_meta / lint #17-19 / 43 screens / 187 tasks / Group D の語が出ない"},
+        {"id": "v3_input_paths_listed", "check": "branch-package.json + wave-schedule.json + gate-config.yml への参照"},
         {"id": "v3_wave_unit", "check": "Wave 単位 (W1) の集計を主軸"},
         {"id": "v3_gate_status_categories", "check": "auto-merged / retried / escalated / rolled-back の 4 カテゴリ"},
+        {"id": "foundation_backend_ui_categories", "check": "Foundation / Backend / UI / Polish カテゴリ別の集計"},
         {"id": "v3_boundary_prevent_conflict", "check": "work-package boundary 前提 / conflict 発生は仕様違反"},
-        {"id": "v3_drift_to_group_d", "check": "drift 検出 → Group D Wave 流し込みを明示"},
+        {"id": "v3_drift_to_queue", "check": "drift 検出 → drift fix queue (group naming は project-defined) 流し込みを明示"},
         {"id": "stops_at_step1", "check": "STEP 2 を勝手に開始しない"}
       ]
     },
     {
-      "id": "int-eval-2",
-      "title": "STEP 2 で work-package boundary 前提 + conflict 原因追跡 + drift → Group D 流し込み",
+      "id": "int-generic-2",
+      "title": "[GENERIC] STEP 2 で boundary 前提 + conflict 原因追跡 + drift → fix queue 流し込み",
       "prompt": "STEP 2 へ。マージ戦略と conflict 対応を。",
       "expected_behavior": [
-        "v3: マージ戦略は 8 CI gate auto-merge (squash merge / Claude が `gh pr merge --auto --squash`)",
-        "v3: conflict 発生時の原因追跡フロー (check-wave-mutex.py 漏れ → boundary 設計修正 → revert → drift task 再投入)",
-        "v3: drift 検出フロー (lint #17-19 → generate-drift-tickets.py → 次 Wave Group D)",
+        "v3: マージ戦略は N CI gate auto-merge (squash merge / `gh pr merge --auto --squash`)",
+        "v3: conflict 発生時の原因追跡フロー (mutex checker 漏れ → boundary 設計修正 → revert → drift task 再投入)",
+        "v3: drift 検出フロー (lint 違反 → drift task 自動生成 → 次 Wave drift fix queue)",
         "v3: rollback は task 単位 PR revert (ブランチ単位 reset --hard は禁止)",
         "STEP 3 へ で止まる"
       ],
       "assertions": [
-        {"id": "v3_auto_merge_squash", "check": "8 CI gate auto-merge (squash) を明示"},
+        {"id": "no_bf_jargon", "check": "Build-Factory / scripts/check-wave-mutex.py / scripts/generate-drift-tickets.py / Group D / lint #17-19 / 30-50 並列 / 8 CI gate を直接参照しない (placeholder で記述)"},
+        {"id": "v3_auto_merge_squash", "check": "N CI gate auto-merge (squash) を明示"},
         {"id": "v3_conflict_root_cause_flow", "check": "conflict 原因追跡フロー (mutex 漏れ → boundary 修正 → revert → 再投入)"},
-        {"id": "v3_drift_generate_script", "check": "generate-drift-tickets.py で次 Wave Group D に流し込み"},
+        {"id": "v3_drift_generator_placeholder", "check": "drift task 自動生成 tool で次 Wave drift fix queue に流し込み"},
         {"id": "v3_rollback_pr_revert", "check": "rollback は task 単位 PR revert / ブランチ単位 reset --hard は禁止"},
         {"id": "stops_at_step2", "check": "STEP 3 を勝手に開始しない"}
       ]
     },
     {
-      "id": "int-eval-3",
-      "title": "STEP 3 で Phase gate 判定基準 (Phase 0 → 1 等の mechanical 条件)",
+      "id": "int-generic-3",
+      "title": "[GENERIC] STEP 3 で Foundation→Backend→UI→Polish completion gate の mechanical 判定基準",
       "prompt": "STEP 3 へ。Phase gate 判定を。",
       "expected_behavior": [
-        "v3: Phase 0 → 1 判定基準 (8 CI gate green + lint #1-19 0 件 + AC validator pass)",
-        "v3: Phase 1 → 1.5 判定基準 (dogfood 完走 + 187 task 全 merge)",
-        "v3: Phase 1.5 → 2 判定基準 (lint #17-19 0 件 + REFACTOR 全 done + drift 累積 0)",
-        "v3: Phase 2 release 判定基準 (multi-tenant E2E + billing E2E + SLA 99.9% × 30 日)",
-        "v3: 各判定は mechanical / observable な tool (check-phase-gate.py 等) で検証",
+        "v3: Foundation completion → Backend phase 判定基準 (N CI gate green + lint 違反 0 + AC validator pass)",
+        "v3: Backend completion → UI phase 判定基準 (Backend slice 全 merge + contract test pass + access control matrix pass)",
+        "v3: UI completion → Polish phase 判定基準 (UI slice 全 merge + visual regression + a11y + drift 累積 0)",
+        "v3: Polish completion → Release 判定基準 (performance budget + security audit + SLA + docs)",
+        "v3: 各判定は mechanical / observable な tool (placeholder) で検証",
         "STEP 4 へ で止まる"
       ],
       "assertions": [
-        {"id": "v3_phase_0_to_1_criteria", "check": "Phase 0 → 1 判定 (8 gate + lint + AC validator)"},
-        {"id": "v3_phase_1_to_1_5_criteria", "check": "Phase 1 → 1.5 判定 (dogfood + 187 task merge)"},
-        {"id": "v3_phase_1_5_to_2_criteria", "check": "Phase 1.5 → 2 判定 (lint #17-19 + REFACTOR + drift 0)"},
-        {"id": "v3_phase_2_release_criteria", "check": "Phase 2 release (multi-tenant + billing + SLA)"},
-        {"id": "v3_mechanical_tool", "check": "check-phase-gate.py 等の mechanical tool で検証"},
+        {"id": "no_bf_jargon", "check": "Phase 0 → 1 / Phase 1 → 1.5 / Phase 1.5 → 2 / dogfood / 187 task / multi-tenant E2E / SLA 99.9% × 30 日 を直接参照しない"},
+        {"id": "foundation_completion_criteria", "check": "Foundation completion 判定 (N CI gate + lint + AC validator)"},
+        {"id": "backend_completion_criteria", "check": "Backend completion 判定 (slice merge + contract test + access control matrix)"},
+        {"id": "ui_completion_criteria", "check": "UI completion 判定 (slice merge + visual regression + a11y + drift 0)"},
+        {"id": "polish_release_criteria", "check": "Polish/Release 判定 (perf + security + SLA + docs)"},
+        {"id": "v3_mechanical_tool", "check": "mechanical tool (phase_gate_checker 等の placeholder) で検証"},
         {"id": "stops_at_step3", "check": "STEP 4 を勝手に開始しない"}
       ]
     },
     {
-      "id": "int-eval-4-v3-new",
-      "title": "v3 新規: STEP 4 で 4 形式出力 (wave-integration-report.md + phase-gate-decision.json 追加)",
+      "id": "int-generic-4",
+      "title": "[GENERIC] STEP 4 で 4 形式出力 (wave-integration-report.md + phase-gate-decision.json 含む)",
       "prompt": "STEP 4 へ。最終出力を。",
       "expected_behavior": [
         "出力① 統合計画書 (Markdown)",
         "出力② 統合管理 JSON",
-        "v3 出力③ wave-integration-report.md (Wave 完了集計レポート)",
-        "v3 出力④ phase-gate-decision.json (Phase ゲート判定)",
-        "v3: wave-integration-report.md に auto-merged / retried / escalated / rolled-back / drift 件数 / 連続失敗の原因分析",
+        "v3 出力③ wave-integration-report.md (Wave 完了集計レポート / Foundation・Backend・UI・Polish カテゴリ別)",
+        "v3 出力④ phase-gate-decision.json (Phase ゲート判定 / Foundation→Backend→UI→Polish)",
+        "v3: wave-integration-report.md に 4 カテゴリ集計 + drift 件数 + 連続失敗の原因分析",
         "v3: phase-gate-decision.json に phase_transition / criteria / decision (OPEN_GATE/PENDING/BLOCKED) / next_wave"
       ],
       "assertions": [
-        {"id": "output_count_4", "check": "出力 4 形式 (既存 2 + wave-integration-report.md + phase-gate-decision.json) すべて言及"},
-        {"id": "v3_wave_report_categories", "check": "wave-integration-report.md に 4 カテゴリ集計 + drift + 失敗原因"},
+        {"id": "no_bf_jargon", "check": "Build-Factory 関連語句 (lint #17-19 / Group D / Phase 0-2 等) を直接出さない"},
+        {"id": "output_count_4", "check": "出力 4 形式すべて言及"},
+        {"id": "v3_wave_report_categories", "check": "wave-integration-report.md に 4 カテゴリ集計 + Foundation/Backend/UI/Polish 内訳"},
         {"id": "v3_phase_gate_json_schema", "check": "phase-gate-decision.json に phase_transition/criteria/decision/next_wave"}
+      ]
+    },
+    {
+      "id": "int-bf-profile-1",
+      "title": "[BF PROFILE] STEP 1 で Build-Factory profile 適用 (W1 / 30 task / Group B+C+D / scripts/lint-mock.sh / 8 gate)",
+      "prompt": "Build-Factory profile (references/profiles/build-factory.md) を適用して、STEP 1 で W1 (Slice 0 / 30 task / Group B=21 + C=3 + D=6) の統合状況を整理して。distributed-dev の .claude/branches/*.json 30 件と schedule-design の wave-schedule.json と test-verification の gate-config.yml が出てる。",
+      "expected_behavior": [
+        "BF profile 適用 (.claude/branches/*.json / 30 task / Group A/B/C/D / 8 CI gate / scripts/lint-mock.sh 等)",
+        "v3: Wave 単位 (W1) 集計を主軸",
+        "v3: Foundation/Backend/UI/Polish カテゴリと Group A/B/C/D の対応も明示"
+      ],
+      "assertions": [
+        {"id": "profile_applied_paths", "check": ".claude/branches/*.json / wave-schedule.json / gate-config.yml の BF path"},
+        {"id": "profile_applied_groups", "check": "Group B=21 / Group C=3 / Group D=6 の BF group naming"},
+        {"id": "profile_applied_8_gate", "check": "8 CI gate の BF 数値"},
+        {"id": "v3_core_concepts_kept", "check": "汎用 v3 概念 (Wave 集計 / 4 カテゴリ / boundary 前提 / drift queue) も保持"}
+      ]
+    },
+    {
+      "id": "int-bf-profile-2",
+      "title": "[BF PROFILE] STEP 3 で Build-Factory の Phase 0/1/1.5/2 判定基準",
+      "prompt": "Build-Factory profile を適用して STEP 3 へ。Phase gate 判定を。",
+      "expected_behavior": [
+        "BF profile 適用: Phase 0 → 1 (8 CI gate + lint #1-19 0 件 + AC validator)",
+        "BF profile 適用: Phase 1 → 1.5 (dogfood 完走 + 187 task 全 merge)",
+        "BF profile 適用: Phase 1.5 → 2 (lint #17-19 0 + REFACTOR 全 done + drift 累積 0)",
+        "BF profile 適用: Phase 2 release (multi-tenant E2E + billing E2E + SLA 99.9% × 30 日)",
+        "BF tool: scripts/check-phase-gate.py / scripts/check-dogfood-completion.py / scripts/check-saas-readiness.py"
+      ],
+      "assertions": [
+        {"id": "bf_phase_0_to_1", "check": "Phase 0 → 1 (8 gate + lint #1-19 + AC validator)"},
+        {"id": "bf_phase_1_to_1_5", "check": "Phase 1 → 1.5 (dogfood + 187 task)"},
+        {"id": "bf_phase_1_5_to_2", "check": "Phase 1.5 → 2 (lint #17-19 + REFACTOR + drift 0)"},
+        {"id": "bf_phase_2_release", "check": "Phase 2 release (multi-tenant + billing + SLA)"},
+        {"id": "bf_tool_paths", "check": "check-phase-gate.py / check-dogfood-completion.py / check-saas-readiness.py の BF path"},
+        {"id": "v3_core_concepts_kept", "check": "Foundation/Backend/UI/Polish の汎用 transition も併記"}
       ]
     }
   ]

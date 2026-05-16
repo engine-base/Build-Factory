@@ -1,6 +1,6 @@
 ---
 name: api-design
-description: API 設計スキル。機能分解・アーキテクチャ設計の出力をもとに RESTful API のエンドポイント・リクエスト/レスポンス型・認証方式・エラーハンドリングを設計する。**v3 採用 (2026-05-15〜)**: functional-breakdown の features.json (api_endpoints 列) と architecture-design の selected-stack.json を pull し、各 endpoint に **auth role / rate_limit / RLS policy 紐付け / outputs_4xx 必須 (401/403/404/409/422/429/500 細分化) / ears_ac_seed (EARS 5 形式 AC ドラフト = 下流 task-decomposition の Tier 2 functional AC source) / implementation_path** を必須付与。lint #18 screens-API (backend FastAPI router 実在性) と verify-rls-coverage の検証対象を明示し、TS 型自動生成 (openapi-typescript) と Pydantic 自動生成 (datamodel-code-generator) の連携を含む。「API を設計したい」「エンドポイントを決めたい」「リクエスト/レスポンスの型を定義したい」「OpenAPI 仕様を作りたい」「バックエンドとフロントエンドのインターフェースを決めたい」「EARS 形式の AC を API ごとに作りたい」「RLS policy を endpoint に紐付けたい」「rate_limit を設計したい」「outputs_4xx を細分化したい」「lint #18 screens-API 用の path 一覧を作りたい」「openapi-typescript で型同期したい」場面で必ず起動する。5STEP の対話型プロセスで進み、出力は API 仕様書 (Markdown) + OpenAPI (YAML) + 型定義 (TypeScript) + 判断ログ JSON + **ears-ac-seed.json** + **lint-mapping.json** の 6 形式。
+description: API 設計スキル。機能分解・アーキテクチャ設計の出力をもとに RESTful API のエンドポイント・リクエスト/レスポンス型・認証方式・エラーハンドリングを設計する。**v3 採用**: 上流の features.json (api_endpoints 列) と selected-stack.json を pull し、各 endpoint に **auth role / rate_limit / access control policy 紐付け (row-level access control or role-based access control, if adopted) / outputs_4xx 必須 (401/403/404/409/422/429/500 細分化) / ears_ac_seed (EARS 5 形式 AC ドラフト = 下流 task-decomposition の Tier 2 functional AC source) / implementation_path** を必須付与。**API ↦ UI の依存方向を Foundation phase で固定**し、contract test (consumer-driven contract / OpenAPI-driven fuzz 等、project-defined) を Foundation phase の CI gate に組み込んで API spec を信頼源化。endpoint-implementation-existence check と access control verifier の検証対象を明示し、TS 型自動生成と server-side schema 自動生成の連携を含む (具体ツール名は project profile で選択)。「API を設計したい」「エンドポイントを決めたい」「リクエスト/レスポンスの型を定義したい」「OpenAPI 仕様を作りたい」「バックエンドとフロントエンドのインターフェースを決めたい」「EARS 形式の AC を API ごとに作りたい」「access control policy を endpoint に紐付けたい」「rate_limit を設計したい」「outputs_4xx を細分化したい」「endpoint の実在性を CI で検証したい」「OpenAPI から型を同期したい」「contract test を Foundation phase に組み込みたい」場面で必ず起動する。5STEP の対話型プロセスで進み、出力は API 仕様書 (Markdown) + OpenAPI (YAML) + 型定義 (TypeScript) + 判断ログ JSON + **ears-ac-seed.json** + **lint-mapping.json** の 6 形式。
 tab: 設計
 builtin: true
 ---
@@ -135,6 +135,7 @@ builtin: true
 - APIの設計が曖昧だとフロント・バックが独立して作れない（統合時に破綻する）
 - 一度決めた仕様は変更コストが高い。最初に正しく設計することが最重要
 - 出力はそのままコードに使える形式（TypeScript型定義・OpenAPI YAML）にする
+- **API は UI より先に決まる必要がある**。frontend が backend API を消費する依存方向を逆転させない (UI が決まってから API を後付けする逆転を排除)
 
 ---
 
@@ -147,16 +148,18 @@ builtin: true
 - **型を必ず定義する** — 「オブジェクト」ではなく具体的なフィールド名・型で出力する
 - **エラーも設計する** — 正常系だけでなく異常系のレスポンスも必ず定義する
 
-## v3 必須ルール (2026-05-15〜)
+## v3 必須ルール
 
-詳細: `references/v3-extensions.md`
+詳細: `references/v3-core.md`
+プロジェクト固有値の適用例: `references/profiles/build-factory.md` (他プロジェクトは独自 profile を作成)
 
-1. **functional-breakdown + architecture-design の出力を必ず pull** — STEP 1 で `features.json` (api_endpoints ドラフト) と `selected-stack.json` (auth library / api framework / ADR-013 AUTH 戦略) の path を確認
-2. **各 endpoint に v3 必須フィールドを全て付与** — auth.role / rate_limit / rls_policies / outputs_4xx[] / ears_ac_seed[] / implementation_path / related_entities。値が無い場合は `[]` または `null` を明示 (欠落不可)
+1. **functional-breakdown + architecture-design の出力を必ず pull** — STEP 1 で `features.json` (api_endpoints ドラフト) と `selected-stack.json` (auth library / api framework / AUTH 戦略 ADR) の path を確認
+2. **各 endpoint に v3 必須フィールドを全て付与** — auth.role / rate_limit / access_control_policies / outputs_4xx[] / ears_ac_seed[] / implementation_path / related_entities。値が無い場合は `[]` または `null` を明示 (欠落不可)
 3. **outputs_4xx[] を必ず細分化** — 401 / 403 / 404 / 409 / 422 / 429 / 500 のうち該当するものを全て列挙。各 4xx に code / body / trigger / ears_form (UNWANTED 形式) を付与
 4. **ears_ac_seed は EARS 5 形式に限定** — UBIQUITOUS / EVENT-DRIVEN / STATE-DRIVEN / OPTIONAL / UNWANTED いずれかで始まる文。各 endpoint に **EVENT-DRIVEN 1 件以上 + UNWANTED 1 件以上** を必ず含める
-5. **implementation_path で lint #18 検証対象を明示** — `backend/routers/<file>.py::<function>` 形式。lint #18 screens-API が backend 実在性を CI で検証
-6. **OpenAPI から TS 型 / Pydantic を自動生成する前提で設計** — openapi-typescript で frontend/src/api/types.ts、datamodel-code-generator で backend/schemas.py を生成。STEP 5 でツール採用方針を出力
+5. **implementation_path で endpoint-implementation-existence check の検証対象を明示** — `<backend_router_path>::<function>` 形式 (具体 path 規約は project profile で定義)。CI で backend 実在性を検証
+6. **API↦UI 依存方向を Foundation phase で固定** — contract test (`<contract_test>`) を Foundation phase の CI gate に組込。API spec が変更されたら型生成 + endpoint 実在性 + contract test の 3 gate が破綻する設定にして、frontend / backend が spec から離れないように強制 (具体ツール名は project profile で選択)
+7. **OpenAPI から TS 型 / server-side schema を自動生成する前提で設計** — TS client generator (`<ts_client_generator>`) で frontend types、server-side schema generator (`<server_schema_generator>`) で backend schemas を生成 (具体ツール名は project profile で選択)。STEP 5 で採用方針を出力
 
 ## 深掘りの考え方
 
@@ -193,14 +196,14 @@ STEP 4（エンドポイント設計確定）後の最終出力では、openapi-
 ## 入力情報の確認 (v3)
 
 ### 上流出力
-- functional-breakdown 出力: docs/functional-breakdown/<date>_v<N>/
+- functional-breakdown 出力: <project-defined path, e.g., docs/functional-breakdown/<date>_v<N>/>
   - features.json: N 機能 / api_endpoints ドラフト合計 N 件
   - screens.json: N 画面 (related_apis 引き継ぎ用)
-  - entities.json: N 件 (rls_policies 紐付け用)
-- architecture-design 出力: docs/architecture/<date>_v<N>/
+  - entities.json: N 件 (access_control_policies 紐付け用、if adopted)
+- architecture-design 出力: <project-defined path, e.g., docs/architecture/<date>_v<N>/>
   - selected-stack.json: auth_provider / api_framework / orm
-  - phase_0_gates.json: lint #18 screens-API の存在確認
-  - adrs-to-create.json: ADR-013 AUTH 戦略
+  - foundation_gates.json: endpoint-implementation-existence check の存在確認
+  - adrs-to-create.json: AUTH 戦略 ADR
 ```
 
 ## API設計方針
@@ -232,6 +235,11 @@ STEP 4（エンドポイント設計確定）後の最終出力では、openapi-
 - オフセット方式（page, limit）
 - カーソル方式（cursor, limit）
 
+### Foundation phase の CI gate (API↦UI 依存方向の固定)
+- contract test (`<contract_test>`) の採用
+- 型生成同期 check (`<ts_client_generator>` の出力が drift していないか)
+- endpoint-implementation-existence check (project の lint runner で実装)
+
 ## 確認事項
 （不明・曖昧な部分の質問）
 ```
@@ -241,7 +249,7 @@ STEP 4（エンドポイント設計確定）後の最終出力では、openapi-
 | チェック項目 | 確認ポイント |
 |------------|------------|
 | リアルタイム通信が必要な機能はないか | チャット・通知・ライブ更新など→ WebSocket/SSEが必要になりREST設計が変わる |
-| Webhook（外部へのイベント通知）は必要か | 決済完了・外部サービス連携など「Claudeから外部に通知する」フローがないか |
+| Webhook（外部へのイベント通知）は必要か | 決済完了・外部サービス連携など「外部に通知する」フローがないか |
 | ファイルアップロードはあるか | 形式（画像/PDF/CSV）・サイズ上限・保存先（S3等）・ウイルスチェック要否を最初に決める |
 | サードパーティAPI連携はあるか | 決済（Stripe）・SMS・地図・SNS認証など→ 認証フロー・エラーハンドリングが複雑化する |
 | バッチ・一括操作が必要な機能はないか | 「100件一括更新」「CSV一括インポート」→ 通常のCRUDと設計が異なる |
@@ -249,8 +257,9 @@ STEP 4（エンドポイント設計確定）後の最終出力では、openapi-
 | **v3: features.json の api_endpoints ドラフト総数** | functional-breakdown から N 件 pull 済か確認 |
 | **v3: ears_ac_seed 必須化** | 全 endpoint に EVENT-DRIVEN + UNWANTED 1 件以上を必須にする方針で OK か |
 | **v3: outputs_4xx 細分化** | 401 / 403 / 404 / 409 / 422 / 429 / 500 のうち該当を全列挙する方針で OK か |
-| **v3: implementation_path** | backend/routers/<file>.py::<function> 形式で lint #18 検証用 path を全 endpoint に付与する方針で OK か |
-| **v3: 型自動生成ツール** | openapi-typescript (frontend) + datamodel-code-generator (backend) を採用するか |
+| **v3: implementation_path** | `<backend_router_path>::<function>` 形式で endpoint-implementation-existence check 用 path を全 endpoint に付与する方針で OK か |
+| **v3: 型自動生成ツール** | TS client generator (`<ts_client_generator>`) + server-side schema generator (`<server_schema_generator>`) を採用するか (具体ツール名は project profile で選択) |
+| **v3: contract test (Foundation gate)** | `<contract_test>` (consumer-driven contract / OpenAPI-driven fuzz 等) のいずれを Foundation phase の CI gate に組み込むか |
 
 **出力後は必ず止まる：**
 ```
@@ -268,17 +277,17 @@ API設計方針を確認してください。
 
 ### ▶ STEP 2：エンドポイント一覧設計 (v3: 必須フィールド追加)
 
-確認後、機能分解の出力（features.json の api_endpoints）をもとに全エンドポイントを設計する。**v3 必須**: 各 endpoint に v3 フィールド (auth.role / rate_limit / rls_policies / implementation_path / ears_ac_seed プレビュー) を必ず付与:
+確認後、機能分解の出力（features.json の api_endpoints）をもとに全エンドポイントを設計する。**v3 必須**: 各 endpoint に v3 フィールド (auth.role / rate_limit / access_control_policies / implementation_path / ears_ac_seed プレビュー) を必ず付与:
 
 ```
 ## エンドポイント一覧 (v3)
 
 ### [カテゴリ名]（例：認証）
-| メソッド | パス | 説明 | feature_id | screen_ids | auth.role | rate_limit | rls_policies | implementation_path |
+| メソッド | パス | 説明 | feature_id | screen_ids | auth.role | rate_limit | access_control_policies | implementation_path |
 |---|---|---|---|---|---|---|---|---|
-| POST | /api/auth/login | ログイン | F-001 | S-001 | public | 5/min/ip | - | backend/routers/auth.py::login |
-| POST | /api/auth/logout | ログアウト | F-001 | S-001 | authenticated | - | auth_sessions:user_own_select | backend/routers/auth.py::logout |
-| GET | /api/auth/me | 自分の情報取得 | F-001 | - | authenticated | 100/min/user | users:self_select | backend/routers/auth.py::me |
+| POST | /api/auth/login | ログイン | F-001 | S-001 | public | 5/min/ip | - | <backend_router_path>/auth.py::login |
+| POST | /api/auth/logout | ログアウト | F-001 | S-001 | authenticated | - | auth_sessions:user_own_select | <backend_router_path>/auth.py::logout |
+| GET | /api/auth/me | 自分の情報取得 | F-001 | - | authenticated | 100/min/user | users:self_select | <backend_router_path>/auth.py::me |
 
 ### EARS AC seed プレビュー (各 endpoint に最低 EVENT-DRIVEN + UNWANTED 1 件)
 - POST /api/auth/login:
@@ -294,8 +303,8 @@ API設計方針を確認してください。
 
 ## v3 必須フィールド漏れ check
 - [ ] 全 endpoint に auth.role 付与
-- [ ] auth=authenticated なら rls_policies 紐付け済 (空でも `[]` を明示)
-- [ ] 全 endpoint に implementation_path 付与 (lint #18 検証対象)
+- [ ] auth=authenticated なら access_control_policies 紐付け済 (空でも `[]` を明示)
+- [ ] 全 endpoint に implementation_path 付与 (endpoint-implementation-existence check の検証対象)
 - [ ] 全 endpoint に ears_ac_seed プレビュー (EVENT-DRIVEN + UNWANTED 1 件以上)
 - [ ] features.json の api_endpoints ドラフトと 1:1 対応 (機能消失なし)
 ```
@@ -304,7 +313,7 @@ API設計方針を確認してください。
 API設計の意思決定に必要な情報を調査する：
 - 採用する認証方式（JWT/OAuth2/Session）のベストプラクティス・セキュリティ注意点
 - 同業界の公開APIの設計パターン（Stripe / GitHub / Twilio など類似サービスのAPI仕様）
-- 使用するフレームワーク（Hono / Express / FastAPI等）の推奨ルーティングパターン
+- 使用するフレームワーク（Hono / Express / FastAPI 等）の推奨ルーティングパターン
 - Rate limiting・API versioning の業界標準
 
 調査結果はデータ蓄積JSONの `research` フィールドに保存。
@@ -488,27 +497,30 @@ API設計の意思決定に必要な情報を調査する：
 | Content-Type | application/json | リクエスト形式 |
 | X-Request-ID | UUID | トレーシング用 |
 
-## v3 必須: lint #18 screens-API 連携
+## v3 必須: endpoint-implementation-existence check 連携
 
-`scripts/lint-screens-api.py` が以下を CI で検証:
+project の lint runner (project profile で具体化、例: `<lint_runner>` 内の lint rule) が以下を CI で検証:
 1. screens.json の `related_apis` 各 entry が api-design の endpoints[*] に存在
-2. endpoints[*] の `implementation_path` (例: backend/routers/auth.py::login) が実在する
-3. URL pattern が `/api/<resource>/...` 規約に従う
+2. endpoints[*] の `implementation_path` (例: `<backend_router_path>/auth.py::login`) が実在する
+3. URL pattern が project-defined naming convention に従う (例: `/api/<resource>/...`)
 
 そのため STEP 5 で `lint-mapping.json` を出力 (各 endpoint × implementation_path × screen_ids_referencing)。
 
-## v3 必須: OpenAPI → 型自動生成チェーン
+## v3 必須: API ↦ UI 依存方向 (Foundation phase の CI gate)
 
 ```
-api-design SKILL → openapi.yaml (OpenAPI 3.0)
-  ↓ openapi-typescript → frontend/src/api/types.ts
-  ↓ datamodel-code-generator → backend/schemas.py (任意)
-  ↓ Schemathesis → contract test (任意)
+api-design SKILL → openapi.yaml (OpenAPI 3.0)  ← 信頼源
+  ↓ TS client generator (`<ts_client_generator>`) → <frontend>/api/types.ts (生成物 / 編集禁止)
+  ↓ server-side schema generator (`<server_schema_generator>`) → <backend>/schemas (任意)
+  ↓ contract test (`<contract_test>`) → contract regression
 ```
 
-CI 連携:
-- gate #7 (TypeScript strict) で types.ts 同期不整合なら fail
-- gate #1 (mock lint) の lint #18 で endpoint 実在性検証
+CI 連携 (Foundation phase の CI gate に最低 1 つ必須):
+- **型生成同期 check**: 再生成した型と現在のリポジトリ内の型が一致 (drift 検出)
+- **endpoint-implementation-existence check**: 全 endpoint に backend 実装が存在
+- **contract test**: 実 backend が OpenAPI spec の挙動を満たす
+
+これにより API spec を信頼源化し、frontend / backend が独立して spec から離れないように強制 (= API ↦ UI の依存方向を固定)。
 ```
 
 **深掘りチェック（STEP 4で必ず確認すること）：**
@@ -520,6 +532,7 @@ CI 連携:
 | APIドキュメントはどこでホストするか | Swagger UI / Redoc / Notion など。フロントエンドチームが参照する場所を決める |
 | 認証エラーと認可エラーを区別しているか | 「ログインしていない（401）」と「権限がない（403）」は別のエラーコードで返す |
 | 本番で絶対に出してはいけない情報はないか | スタックトレース・DBのカラム名・内部IDなどをエラーレスポンスに含めていないか |
+| Foundation phase に contract test を組込めるか | `<contract_test>` (consumer-driven / OpenAPI-driven fuzz 等) のいずれを採用し、CI gate にいつ組み込むか (具体ツール名は project profile で選択) |
 
 **出力後は必ず止まる：**
 ```
@@ -643,13 +656,14 @@ export type User = {
   "meta": {
     "project": "プロジェクト名",
     "created_at": "YYYY-MM-DD",
-    "skill_version": "1.0",
+    "skill_version": "v3",
     "total_endpoints": 24
   },
   "context": {
     "api_style": "REST",
     "auth_method": "JWT",
-    "versioning": "url-versioning"
+    "versioning": "url-versioning",
+    "contract_test_framework": "<contract_test>"
   },
   "decision_log": [
     {
@@ -668,7 +682,7 @@ export type User = {
   ],
   "research": {
     "sources": [{"url": "", "title": "", "accessed_at": "YYYY-MM-DD"}],
-    "findings": ["UIトレンド調査結果", "競合デザインシステムの特徴"],
+    "findings": ["業界標準 API 設計の調査結果", "競合 API 仕様の特徴"],
     "research_date": "YYYY-MM-DD"
   }
 }
@@ -703,7 +717,7 @@ export type User = {
 
 ---
 
-#### 【出力⑥】lint-mapping.json (v3 新規 / lint #18 screens-API 検証対象)
+#### 【出力⑥】lint-mapping.json (v3 新規 / endpoint-implementation-existence check の検証対象)
 
 ```json
 {
@@ -713,20 +727,20 @@ export type User = {
     {
       "method": "POST",
       "path": "/api/auth/login",
-      "implementation_path": "backend/routers/auth.py::login",
+      "implementation_path": "<backend_router_path>/auth.py::login",
       "screen_ids_referencing": ["S-001"]
     },
     {
       "method": "GET",
       "path": "/api/auth/me",
-      "implementation_path": "backend/routers/auth.py::me",
+      "implementation_path": "<backend_router_path>/auth.py::me",
       "screen_ids_referencing": []
     }
   ]
 }
 ```
 
-`scripts/lint-screens-api.py` (lint #18) がこの JSON を読んで backend router 実在性を CI で検証。
+project の lint runner (project profile で具体化) がこの JSON を読んで backend router 実在性を CI で検証。
 
 ---
 
