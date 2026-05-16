@@ -59,6 +59,7 @@ from routers.swarm import router as swarm_router
 from routers.memory import router as memory_router
 from routers.context import router as context_router
 from routers.oauth import router as oauth_router
+from routers.auth import router as auth_router  # T-V3-B-01 + T-V3-B-02 / F-001
 from routers.auth import router as auth_router  # T-V3-B-01 (restore missing import after merge)
 from routers.user_lifecycle import router as user_lifecycle_router
 from routers.memory_facts import router as memory_facts_router
