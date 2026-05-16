@@ -63,7 +63,7 @@
       <i data-lucide="sparkles" class="w-4 h-4 text-blue-600 mt-0.5"></i>
       <div class="flex-1 text-xs">
         <div class="font-bold text-blue-700 mb-1">AI レビュー要約 (reviewer)</div>
-        <p class="text-slate-700">EARS notation parser は 5 形式全部対応 ✓ / lint #17-19 全 PASS / coverage 84% ✓ / structural AC 5/5 一致 ✓ / 1 件懸念: <strong>large component (320 行)</strong> を 2 つに分割推奨</p>
+        <p class="text-slate-700">EARS notation parser は 5 形式全部対応 <i data-lucide="check" class="w-3 h-3 inline text-emerald-600"></i> / lint #17-19 全 PASS / coverage 84% <i data-lucide="check" class="w-3 h-3 inline text-emerald-600"></i> / structural AC 5/5 一致 <i data-lucide="check" class="w-3 h-3 inline text-emerald-600"></i> / 1 件懸念: <strong>large component (320 行)</strong> を 2 つに分割推奨</p>
       </div>
     </div>
   </div>
@@ -72,7 +72,7 @@
   <div class="border-b border-slate-200 bg-white px-6 flex items-center gap-0">
     <button class="px-4 py-2 text-sm font-medium border-b-2 border-eb-500 text-slate-900">Files Changed (8)</button>
     <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500">Conversation (3)</button>
-    <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500">Checks <span class="ml-1 text-[10px] bg-emerald-100 text-emerald-700 px-1.5 rounded">19/19 ✓</span></button>
+    <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500">Checks <span class="ml-1 text-[10px] bg-emerald-100 text-emerald-700 px-1.5 rounded inline-flex items-center gap-0.5">19/19 <i data-lucide="check" class="w-2.5 h-2.5"></i></span></button>
     <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500">HTML Preview</button>
     <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500">Audit MD</button>
   </div>
@@ -81,15 +81,15 @@
     <!-- File tree -->
     <aside class="bg-white border border-slate-200 rounded-lg p-3 text-xs space-y-1 sticky top-4 self-start">
       <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">Changed (8)</div>
-      <div class="text-slate-500">📂 frontend/</div>
-      <div class="pl-3 mono">📄 page.tsx <span class="text-emerald-600">+42</span></div>
-      <div class="pl-3 mono bg-eb-50 text-eb-700 rounded px-1">📄 EarsParser.tsx <span class="text-emerald-600">+128</span></div>
-      <div class="pl-3 mono">📄 RequirementsEditor.tsx <span class="text-emerald-600">+78</span></div>
-      <div class="text-slate-500 mt-2">📂 backend/</div>
-      <div class="pl-3 mono">📄 routers/req.py <span class="text-emerald-600">+34</span></div>
-      <div class="pl-3 mono">📄 services/ears.py <span class="text-emerald-600">+86</span></div>
-      <div class="text-slate-500 mt-2">📂 tests/</div>
-      <div class="pl-3 mono">📄 test_ears.py <span class="text-emerald-600">+92</span></div>
+      <div class="text-slate-500 flex items-center gap-1"><i data-lucide="folder" class="w-3 h-3"></i>frontend/</div>
+      <div class="pl-3 mono flex items-center gap-1"><i data-lucide="file-text" class="w-3 h-3"></i>page.tsx <span class="text-emerald-600">+42</span></div>
+      <div class="pl-3 mono bg-eb-50 text-eb-700 rounded px-1 flex items-center gap-1"><i data-lucide="file-text" class="w-3 h-3"></i>EarsParser.tsx <span class="text-emerald-600">+128</span></div>
+      <div class="pl-3 mono flex items-center gap-1"><i data-lucide="file-text" class="w-3 h-3"></i>RequirementsEditor.tsx <span class="text-emerald-600">+78</span></div>
+      <div class="text-slate-500 mt-2 flex items-center gap-1"><i data-lucide="folder" class="w-3 h-3"></i>backend/</div>
+      <div class="pl-3 mono flex items-center gap-1"><i data-lucide="file-text" class="w-3 h-3"></i>routers/req.py <span class="text-emerald-600">+34</span></div>
+      <div class="pl-3 mono flex items-center gap-1"><i data-lucide="file-text" class="w-3 h-3"></i>services/ears.py <span class="text-emerald-600">+86</span></div>
+      <div class="text-slate-500 mt-2 flex items-center gap-1"><i data-lucide="folder" class="w-3 h-3"></i>tests/</div>
+      <div class="pl-3 mono flex items-center gap-1"><i data-lucide="file-text" class="w-3 h-3"></i>test_ears.py <span class="text-emerald-600">+92</span></div>
     </aside>
 
     <!-- Diff view -->
