@@ -28,6 +28,7 @@ from routers.secretary import router as secretary_router
 from routers.secretary_stream import router as secretary_stream_router
 from routers.llm_providers import router as llm_providers_router
 from routers.knowledge_actions import router as knowledge_actions_router
+from routers.knowledge import router as knowledge_router
 from routers.threads import router as threads_router
 from routers.browser_use import router as browser_use_router
 from routers.staff import router as staff_router
@@ -192,6 +193,7 @@ app.include_router(secretary_router)
 app.include_router(secretary_stream_router)
 app.include_router(llm_providers_router)
 app.include_router(knowledge_actions_router)
+app.include_router(knowledge_router)
 app.include_router(threads_router)
 app.include_router(browser_use_router)
 app.include_router(staff_router)
