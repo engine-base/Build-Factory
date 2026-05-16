@@ -1,13 +1,21 @@
-"""T-022-03: AI 社員 CRUD store (M-22 schema; existing employees.py 拡張).
+"""T-022-03 / T-V3-B-04: AI 社員 CRUD store (M-22 schema; existing employees.py 拡張).
 
 既存の legacy routers/employees.py (company-os, employees + chat) は不変.
 Build-Factory M-22 schema (ai_employees + ai_personas,
 supabase migration 20260512200000) に対応する CRUD store を追加する.
 
+T-V3-B-04 (F-003) で以下を追加:
+  - parent_id (self-reference for org-chart hierarchy)
+  - build_org_chart(workspace_id) — hierarchical tree
+  - test_employee(id, prompt) — sandbox 出力 (mock 経路)
+  - clone_from_user(id, user_id, opt_in_acknowledged) — opt-in 必須
+  - RateLimiter (20/min/workspace) for test endpoint
+
 設計:
   - ai_employees: (workspace_id, employee_key) UNIQUE
   - role_level: secretary / leader / member (CHECK 制約)
   - persona は別エンティティで FK SET NULL (delete 時)
+  - parent_employee_id は self-reference (org-chart 構築用)
   - is_active = false + retired_at で論理削除 (BMAD 10 ペルソナの引き継ぎ
     と整合)
   - thread-safe in-memory; production は Supabase Postgres
@@ -17,6 +25,8 @@ from __future__ import annotations
 import logging
 import threading
 import time
+import uuid
+from collections import deque
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -27,6 +37,14 @@ class AIEmployeeError(RuntimeError):
     pass
 
 
+class RateLimitError(AIEmployeeError):
+    """T-V3-B-04 AC-F3/AC-F9: rate limit を超過したことを表す."""
+
+
+class CloneOptInError(AIEmployeeError):
+    """T-V3-B-04 AC-F2: source user が clone opt-in を承諾していない."""
+
+
 VALID_ROLE_LEVELS = ("secretary", "leader", "member")
 MAX_KEY_LEN = 64
 MAX_NAME_LEN = 200
@@ -34,6 +52,9 @@ MAX_PERSONA_LEN = 500
 MAX_EMPLOYEES_PER_WORKSPACE = 200
 MAX_EMPLOYEES_TOTAL = 100_000
 MAX_PERSONAS_TOTAL = 10_000
+MAX_TEST_PROMPT_LEN = 8_000
+TEST_RATE_LIMIT_PER_MIN = 20  # T-V3-B-04 AC-F3/AC-F9: 20/min/workspace
+TEST_RATE_WINDOW_SEC = 60.0
 
 
 @dataclass
@@ -79,6 +100,8 @@ class AIEmployee:
     retire_reason: Optional[str] = None
     created_at: float = 0.0
     updated_at: float = 0.0
+    # T-V3-B-04: org-chart 用 self-reference (E-007 AIEmployee.parent_employee_id)
+    parent_employee_id: Optional[int] = None
 
     def to_dict(self) -> dict:
         return {
@@ -93,6 +116,40 @@ class AIEmployee:
             "retire_reason": self.retire_reason,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
+            "parent_employee_id": self.parent_employee_id,
+        }
+
+
+@dataclass
+class CloneRecord:
+    """T-V3-B-04: ai_clones table 対応 (workspace 内のクローン身元).
+
+    supabase/migrations/20260512200000_ai_hierarchy_clone_tables.sql の
+    ai_clones (user_id UNIQUE, is_opted_in, base_employee_id, ...) と整合.
+    """
+    id: int
+    clone_uuid: str
+    user_id: str
+    base_employee_id: int
+    workspace_id: Optional[int]
+    namespace: str
+    is_opted_in: bool = False
+    opted_in_at: Optional[float] = None
+    consent_version: Optional[str] = None
+    created_at: float = 0.0
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "clone_id": self.clone_uuid,
+            "user_id": self.user_id,
+            "base_employee_id": self.base_employee_id,
+            "workspace_id": self.workspace_id,
+            "namespace": self.namespace,
+            "is_opted_in": self.is_opted_in,
+            "opted_in_at": self.opted_in_at,
+            "consent_version": self.consent_version,
+            "created_at": self.created_at,
         }
 
 
@@ -157,6 +214,14 @@ class AIEmployeeStore:
         self._by_ws_key: dict[tuple[Optional[int], str], int] = {}
         self._next_employee_id = 1
         self._next_persona_id = 1
+        # T-V3-B-04: clone-from-user state (ai_clones table 対応)
+        self._clones: dict[int, CloneRecord] = {}
+        self._clones_by_user: dict[str, int] = {}
+        self._user_opt_in: dict[str, bool] = {}
+        self._next_clone_id = 1
+        # T-V3-B-04: rate limit window per workspace for /test endpoint
+        # window_id (workspace_id or 0 for None) → deque of float timestamps
+        self._test_calls: dict[int, deque[float]] = {}
 
     # ── persona CRUD ────────────────────────────────────────────────────
 
@@ -267,6 +332,7 @@ class AIEmployeeStore:
         workspace_id: Optional[int] = None,
         persona_id: Optional[int] = None,
         role_level: str = "leader",
+        parent_employee_id: Optional[int] = None,
     ) -> AIEmployee:
         employee_key = _validate_key(employee_key, field_name="employee_key")
         display_name = _validate_required_str(
@@ -279,9 +345,23 @@ class AIEmployeeStore:
             persona_id, field_name="persona_id",
         )
         role_level = _validate_role_level(role_level)
+        parent_employee_id = _validate_optional_positive(
+            parent_employee_id, field_name="parent_employee_id",
+        )
         with self._lock:
             if persona_id is not None and persona_id not in self._personas:
                 raise AIEmployeeError(f"persona_id not found: {persona_id}")
+            if parent_employee_id is not None:
+                parent = self._employees.get(parent_employee_id)
+                if parent is None:
+                    raise AIEmployeeError(
+                        f"parent_employee_id not found: {parent_employee_id}"
+                    )
+                # 同一 workspace 制約 (F-003 policy: 跨ぎ親禁止)
+                if parent.workspace_id != workspace_id:
+                    raise AIEmployeeError(
+                        "parent_employee_id must belong to the same workspace"
+                    )
             key = (workspace_id, employee_key)
             if key in self._by_ws_key:
                 raise AIEmployeeError(
@@ -308,6 +388,7 @@ class AIEmployeeStore:
                 is_active=True,
                 created_at=now,
                 updated_at=now,
+                parent_employee_id=parent_employee_id,
             )
             self._employees[eid] = e
             self._by_workspace.setdefault(workspace_id, []).append(eid)
@@ -446,7 +527,218 @@ class AIEmployeeStore:
             ids = self._by_workspace.get(e.workspace_id, [])
             if employee_id in ids:
                 ids.remove(employee_id)
+            # parent 削除時は子の parent_employee_id を None に (FK SET NULL 相当)
+            for child in self._employees.values():
+                if child.parent_employee_id == employee_id:
+                    child.parent_employee_id = None
+                    child.updated_at = time.time()
             return True
+
+    # ── T-V3-B-04: org-chart / test / clone-from-user ──────────────────
+
+    def build_org_chart(
+        self,
+        *,
+        workspace_id: Optional[int] = None,
+        include_inactive: bool = False,
+    ) -> dict:
+        """T-V3-B-04 AC-F1/AC-F4: workspace 内の非 archived 社員を木構造で返す.
+
+        Returns:
+          {"tree": [<node>...], "total": int}
+          node = { ...employee.to_dict(), "children": [<node>...] }
+        """
+        if workspace_id is not None:
+            workspace_id = _validate_optional_positive(
+                workspace_id, field_name="workspace_id",
+            )
+        with self._lock:
+            if workspace_id is not None:
+                ids = list(self._by_workspace.get(workspace_id, []))
+                items = [self._employees[i] for i in ids if i in self._employees]
+            else:
+                items = list(self._employees.values())
+            if not include_inactive:
+                items = [e for e in items if e.is_active]
+            by_id = {e.id: e for e in items}
+            children_map: dict[Optional[int], list[AIEmployee]] = {}
+            for e in items:
+                parent = (
+                    e.parent_employee_id
+                    if e.parent_employee_id in by_id
+                    else None
+                )
+                children_map.setdefault(parent, []).append(e)
+            for k in children_map:
+                children_map[k].sort(key=lambda e: e.id)
+
+            def build_node(emp: AIEmployee) -> dict:
+                d = emp.to_dict()
+                d["children"] = [
+                    build_node(c) for c in children_map.get(emp.id, [])
+                ]
+                return d
+
+            roots = children_map.get(None, [])
+            tree = [build_node(r) for r in roots]
+            return {"tree": tree, "total": len(items)}
+
+    def _consume_rate_limit(self, workspace_id: Optional[int]) -> None:
+        """T-V3-B-04 AC-F3/AC-F9: 20/min/workspace を超えたら RateLimitError.
+
+        thread-safe; caller は _lock 不要 (内部で取得).
+        """
+        key = workspace_id if workspace_id is not None else 0
+        now = time.time()
+        with self._lock:
+            dq = self._test_calls.setdefault(key, deque())
+            # 1 分超過した entries は破棄
+            cutoff = now - TEST_RATE_WINDOW_SEC
+            while dq and dq[0] < cutoff:
+                dq.popleft()
+            if len(dq) >= TEST_RATE_LIMIT_PER_MIN:
+                raise RateLimitError(
+                    f"rate limit exceeded: {TEST_RATE_LIMIT_PER_MIN}/min/workspace"
+                )
+            dq.append(now)
+
+    def test_employee(
+        self,
+        employee_id: int,
+        *,
+        input_prompt: str,
+    ) -> dict:
+        """T-V3-B-04 AC-F6/AC-F8: sandbox test 実行 (mock 出力).
+
+        実 LLM は呼ばず deterministic な mock 出力を返す.
+        実際の Anthropic 呼び出しは別 task (T-AI-08 fallback + LiteLLM router)
+        が integration する.
+
+        Returns:
+          {"output": str, "tokens_used": int, "cost_usd": float}
+        """
+        if not isinstance(employee_id, int) or employee_id <= 0:
+            raise AIEmployeeError("employee_id must be > 0")
+        if not isinstance(input_prompt, str) or not input_prompt.strip():
+            raise AIEmployeeError("input_prompt must not be empty")
+        if len(input_prompt) > MAX_TEST_PROMPT_LEN:
+            raise AIEmployeeError(
+                f"input_prompt must be <= {MAX_TEST_PROMPT_LEN} chars"
+            )
+        with self._lock:
+            e = self._employees.get(employee_id)
+            if e is None:
+                raise AIEmployeeError(f"employee not found: {employee_id}")
+            if not e.is_active:
+                raise AIEmployeeError(
+                    f"employee is inactive (retired): {employee_id}"
+                )
+            workspace_id = e.workspace_id
+            display_name = e.display_name
+        # rate limit 判定 (lock 外で取得)
+        self._consume_rate_limit(workspace_id)
+        # deterministic mock 出力 (token 数 = prompt 文字数 / 4 切り上げ)
+        tokens = max(1, (len(input_prompt) + 3) // 4)
+        cost_usd = round(tokens * 0.000003, 6)  # ~$3 / 1M token (Sonnet 相当)
+        out = f"[ai-employee-test:{display_name}] echo: {input_prompt[:200]}"
+        return {
+            "output": out,
+            "tokens_used": tokens,
+            "cost_usd": cost_usd,
+        }
+
+    def set_user_clone_opt_in(
+        self,
+        user_id: str,
+        *,
+        opted_in: bool,
+        consent_version: Optional[str] = None,
+    ) -> bool:
+        """T-V3-B-04 AC-F2: user の clone opt-in を設定する (test fixture).
+
+        本番は user_settings / GDPR consent flow から source. ここでは
+        opt-in の registry を持つ.
+        """
+        if not isinstance(user_id, str) or not user_id.strip():
+            raise AIEmployeeError("user_id must not be empty")
+        with self._lock:
+            self._user_opt_in[user_id] = bool(opted_in)
+            return True
+
+    def get_user_clone_opt_in(self, user_id: str) -> bool:
+        if not isinstance(user_id, str) or not user_id.strip():
+            raise AIEmployeeError("user_id must not be empty")
+        with self._lock:
+            return self._user_opt_in.get(user_id, False)
+
+    def clone_from_user(
+        self,
+        employee_id: int,
+        *,
+        user_id: str,
+        opt_in_acknowledged: bool,
+    ) -> CloneRecord:
+        """T-V3-B-04 AC-F10/AC-F11/AC-F12 + AC-F2: 個人クローン作成.
+
+        要件:
+          - source user が is_opted_in = TRUE を事前に承諾していること
+          - request body の opt_in_acknowledged = TRUE
+          - base employee が存在し is_active であること
+        """
+        if not isinstance(employee_id, int) or employee_id <= 0:
+            raise AIEmployeeError("employee_id must be > 0")
+        if not isinstance(user_id, str) or not user_id.strip():
+            raise AIEmployeeError("user_id must not be empty")
+        user_id = user_id.strip()
+        if not isinstance(opt_in_acknowledged, bool):
+            raise AIEmployeeError("opt_in_acknowledged must be boolean")
+        if not opt_in_acknowledged:
+            raise CloneOptInError(
+                "clone opt-in not acknowledged in request body"
+            )
+        with self._lock:
+            base = self._employees.get(employee_id)
+            if base is None:
+                raise AIEmployeeError(f"employee not found: {employee_id}")
+            if not base.is_active:
+                raise AIEmployeeError(
+                    f"employee is inactive: {employee_id}"
+                )
+            if not self._user_opt_in.get(user_id, False):
+                raise CloneOptInError(
+                    f"user has not opted in to clone training: user_id={user_id}"
+                )
+            # 既存 clone がある場合は (user_id UNIQUE) 409 相当
+            if user_id in self._clones_by_user:
+                raise AIEmployeeError(
+                    f"clone already exists for user_id: {user_id}"
+                )
+            cid = self._next_clone_id
+            self._next_clone_id += 1
+            now = time.time()
+            namespace = f"user-clones/{base.workspace_id or 0}/{user_id}"
+            rec = CloneRecord(
+                id=cid,
+                clone_uuid=str(uuid.uuid4()),
+                user_id=user_id,
+                base_employee_id=employee_id,
+                workspace_id=base.workspace_id,
+                namespace=namespace,
+                is_opted_in=True,
+                opted_in_at=now,
+                consent_version="v1.0",
+                created_at=now,
+            )
+            self._clones[cid] = rec
+            self._clones_by_user[user_id] = cid
+            return rec
+
+    def get_clone_by_user(self, user_id: str) -> Optional[CloneRecord]:
+        if not isinstance(user_id, str) or not user_id.strip():
+            raise AIEmployeeError("user_id must not be empty")
+        with self._lock:
+            cid = self._clones_by_user.get(user_id)
+            return self._clones.get(cid) if cid else None
 
 
 # ──────────────────────────────────────────────────────────────────────
