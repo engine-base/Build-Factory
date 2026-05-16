@@ -1,0 +1,3223 @@
+{
+  "version": "v3",
+  "project": "Build-Factory",
+  "phase": "Phase 1A: Backend",
+  "group": "B",
+  "profile": "skills/task-decomposition/references/profiles/build-factory.md",
+  "created_at": "2026-05-16",
+  "source_drift_summary": "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+  "source_features": "docs/functional-breakdown/2026-05-16_v3/features.json",
+  "summary": {
+    "total_tasks": 30,
+    "by_group": {
+      "B": 30
+    },
+    "by_category": {
+      "backend": 30
+    },
+    "by_label": {
+      "NEW": 30
+    },
+    "by_deliverable_layer": {
+      "backend": 30
+    },
+    "by_phase": {
+      "Phase 1A": 30
+    },
+    "by_wave": {
+      "1": 21,
+      "2": 8,
+      "3": 1
+    },
+    "total_estimate_hours": 148.9,
+    "total_estimate_sessions": 54,
+    "total_endpoint_count": 94
+  },
+  "tasks": [
+    {
+      "id": "T-V3-B-01",
+      "title": "Backend: Auth backend (login/signup/password-reset) (F-001)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-001",
+      "screen_ids": [
+        "S-001 login",
+        "S-002 signup",
+        "S-003 password_reset",
+        "S-004 mfa_setup",
+        "S-005 oauth_callback"
+      ],
+      "entity_ids": [
+        "E-002 User",
+        "E-005 Session",
+        "E-006 ApiKey"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 4.9,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "backend/app/routers/auth.py (modify)",
+        "backend/app/services/auth.py (modify)",
+        "backend/app/schemas/auth.py (modify)",
+        "backend/tests/routers/test_auth.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/auth.py",
+          "backend/app/services/auth.py",
+          "backend/app/schemas/auth.py",
+          "backend/tests/routers/test_auth.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When valid email/password is submitted to POST /api/auth/login, the system shall return 200 with access_token + refresh_token + user_id.",
+          "UNWANTED: If invalid credentials are submitted to POST /api/auth/login, the system shall return 401 with a generic message (no user enumeration).",
+          "EVENT-DRIVEN: When POST /api/auth/password-reset is called with an email, the system shall always return 2xx (no account enumeration) and send reset email only if the account exists.",
+          "EVENT-DRIVEN: When POST /api/auth/login is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-001 (incl. access_token).",
+          "UNWANTED: If POST /api/auth/login is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/auth/login receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "UNWANTED: If POST /api/auth/login is called above the rate limit (5/min/ip), the system shall return 429.",
+          "EVENT-DRIVEN: When POST /api/auth/signup is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-001 (incl. user_id).",
+          "UNWANTED: If POST /api/auth/signup receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "UNWANTED: If POST /api/auth/signup is called above the rate limit (3/hour/ip), the system shall return 429.",
+          "EVENT-DRIVEN: When POST /api/auth/password-reset is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-001 (incl. status).",
+          "UNWANTED: If POST /api/auth/password-reset receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "UNWANTED: If POST /api/auth/password-reset is called above the rate limit (3/hour/ip), the system shall return 429."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-01",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-01.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-002/E-005/E-006",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-01, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-01 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-01",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "users:user_own_select",
+        "sessions:user_own_select",
+        "api_keys:user_own_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-001",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-01.md",
+      "branch": "claude/T-V3-B-01",
+      "risk_flags": [],
+      "endpoint_count": 3,
+      "endpoint_paths": [
+        "POST /api/auth/login",
+        "POST /api/auth/signup",
+        "POST /api/auth/password-reset"
+      ]
+    },
+    {
+      "id": "T-V3-B-02",
+      "title": "Backend: Auth backend (MFA + OAuth callback) (F-001)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-001",
+      "screen_ids": [
+        "S-001 login",
+        "S-002 signup",
+        "S-003 password_reset",
+        "S-004 mfa_setup",
+        "S-005 oauth_callback"
+      ],
+      "entity_ids": [
+        "E-002 User",
+        "E-005 Session",
+        "E-006 ApiKey"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "2",
+      "wave_priority": "Second",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 4.9,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-B-01"
+      ],
+      "files_changed": [
+        "backend/app/routers/auth.py (modify)",
+        "backend/app/services/auth.py (modify)",
+        "backend/app/schemas/auth.py (modify)",
+        "backend/tests/routers/test_auth.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/auth.py",
+          "backend/app/services/auth.py",
+          "backend/app/schemas/auth.py",
+          "backend/tests/routers/test_auth.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "STATE-DRIVEN: While MFA is enabled for the user, the system shall require POST /api/auth/mfa/verify with a valid TOTP code before issuing access_token.",
+          "EVENT-DRIVEN: When OAuth callback GET /api/auth/oauth/{provider}/callback is invoked with a valid state token, the system shall complete the OAuth handshake and return access_token + refresh_token.",
+          "EVENT-DRIVEN: When POST /api/auth/mfa/enroll is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-001 (incl. qr_code_url).",
+          "UNWANTED: If POST /api/auth/mfa/enroll is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/auth/mfa/enroll receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When POST /api/auth/mfa/verify is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-001 (incl. access_token).",
+          "UNWANTED: If POST /api/auth/mfa/verify is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/auth/mfa/verify receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "UNWANTED: If POST /api/auth/mfa/verify is called above the rate limit (5/min/user), the system shall return 429.",
+          "EVENT-DRIVEN: When GET /api/auth/oauth/{provider}/callback is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-001 (incl. access_token).",
+          "UNWANTED: If GET /api/auth/oauth/{provider}/callback is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/auth/oauth/{provider}/callback receives a request body failing validation, the system shall return 422 with a field-level error map."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-02",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-02.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-002/E-005/E-006",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-02, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-02 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-02",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "users:user_own_select",
+        "sessions:user_own_select",
+        "api_keys:user_own_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-001",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-02.md",
+      "branch": "claude/T-V3-B-02",
+      "risk_flags": [],
+      "endpoint_count": 3,
+      "endpoint_paths": [
+        "POST /api/auth/mfa/enroll",
+        "POST /api/auth/mfa/verify",
+        "GET /api/auth/oauth/{provider}/callback"
+      ]
+    },
+    {
+      "id": "T-V3-B-03",
+      "title": "Backend: Skill manager backend (test endpoint) (F-002)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-002",
+      "screen_ids": [
+        "S-038 skill_manager"
+      ],
+      "entity_ids": [
+        "E-021 Skill"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 2.3,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "backend/app/routers/skills.py (modify)",
+        "backend/app/services/skills.py (modify)",
+        "backend/app/schemas/skills.py (modify)",
+        "backend/tests/routers/test_skills.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/skills.py",
+          "backend/app/services/skills.py",
+          "backend/app/schemas/skills.py",
+          "backend/tests/routers/test_skills.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UNWANTED: If POST /api/skills/{id}/test is invoked more than 10 times per minute per user, the system shall return 429.",
+          "EVENT-DRIVEN: When POST /api/skills/{id}/test is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-002 (incl. output).",
+          "UNWANTED: If POST /api/skills/{id}/test is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/skills/{id}/test receives a request body failing validation, the system shall return 422 with a field-level error map."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-03",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-03.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-021",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-03, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-03 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-03",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "skills:workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-002",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-03.md",
+      "branch": "claude/T-V3-B-03",
+      "risk_flags": [],
+      "endpoint_count": 1,
+      "endpoint_paths": [
+        "POST /api/skills/{id}/test"
+      ]
+    },
+    {
+      "id": "T-V3-B-04",
+      "title": "Backend: AI employees backend (org-chart / test / clone-from-user) (F-003)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-003",
+      "screen_ids": [
+        "S-036 ai_employees_org_chart",
+        "S-037 ai_employee_detail",
+        "S-038 skill_manager"
+      ],
+      "entity_ids": [
+        "E-008 AIEmployee",
+        "E-021 Skill",
+        "E-022 SkillExecution"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 4.9,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "backend/app/routers/ai_employees.py (modify)",
+        "backend/app/services/ai_employees.py (modify)",
+        "backend/app/schemas/ai_employees.py (modify)",
+        "backend/tests/routers/test_ai_employees.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/ai_employees.py",
+          "backend/app/services/ai_employees.py",
+          "backend/app/schemas/ai_employees.py",
+          "backend/tests/routers/test_ai_employees.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When GET /api/ai-employees/org-chart is called, the system shall return a hierarchical tree of all non-archived employees in the workspace.",
+          "STATE-DRIVEN: While clone opt-in is FALSE for the source user, the system shall return 403 for POST /api/ai-employees/{id}/clone-from-user.",
+          "UNWANTED: If POST /api/ai-employees/{id}/test is called more than 20 times per minute per workspace, the system shall return 429.",
+          "EVENT-DRIVEN: When GET /api/ai-employees/org-chart is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-003 (incl. tree).",
+          "UNWANTED: If GET /api/ai-employees/org-chart is called without a valid auth token, the system shall return 401.",
+          "EVENT-DRIVEN: When POST /api/ai-employees/{id}/test is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-003 (incl. output).",
+          "UNWANTED: If POST /api/ai-employees/{id}/test is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/ai-employees/{id}/test receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "UNWANTED: If POST /api/ai-employees/{id}/test is called above the rate limit (20/min/workspace), the system shall return 429.",
+          "EVENT-DRIVEN: When POST /api/ai-employees/{id}/clone-from-user is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-003 (incl. clone_id).",
+          "UNWANTED: If POST /api/ai-employees/{id}/clone-from-user is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/ai-employees/{id}/clone-from-user receives a request body failing validation, the system shall return 422 with a field-level error map."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-04",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-04.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-008/E-021/E-022",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-04, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-04 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-04",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "a_i_employees:workspace_member_select",
+        "skills:workspace_member_select",
+        "skill_executions:workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-003",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-04.md",
+      "branch": "claude/T-V3-B-04",
+      "risk_flags": [],
+      "endpoint_count": 3,
+      "endpoint_paths": [
+        "GET /api/ai-employees/org-chart",
+        "POST /api/ai-employees/{id}/test",
+        "POST /api/ai-employees/{id}/clone-from-user"
+      ]
+    },
+    {
+      "id": "T-V3-B-05",
+      "title": "Backend: Account/workspace backend (transfer-owner / invitations CRUD) (F-004)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-004",
+      "screen_ids": [
+        "S-007 account_settings",
+        "S-008 account_members",
+        "S-013 workspace_settings",
+        "S-014 workspace_members",
+        "S-015 workspace_invite"
+      ],
+      "entity_ids": [
+        "E-001 Account",
+        "E-003 Workspace",
+        "E-004 WorkspaceMember",
+        "E-002 User"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 6.0,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "backend/app/routers/accounts.py (modify)",
+        "backend/app/services/accounts.py (modify)",
+        "backend/app/schemas/accounts.py (modify)",
+        "backend/tests/routers/test_accounts.py (new)",
+        "backend/app/routers/invitations.py (modify)",
+        "backend/app/services/invitations.py (modify)",
+        "backend/app/schemas/invitations.py (modify)",
+        "backend/tests/routers/test_invitations.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/accounts.py",
+          "backend/app/services/accounts.py",
+          "backend/app/schemas/accounts.py",
+          "backend/tests/routers/test_accounts.py",
+          "backend/app/routers/invitations.py",
+          "backend/app/services/invitations.py",
+          "backend/app/schemas/invitations.py",
+          "backend/tests/routers/test_invitations.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UNWANTED: If POST /api/accounts/{id}/transfer-owner is called for a user who is not an account member, the system shall return 409.",
+          "EVENT-DRIVEN: When POST /api/accounts/{id}/invitations is called more than 20 times per hour for the same account, the system shall return 429.",
+          "UNWANTED: If GET /api/invitations/{token} resolves a token past its expires_at, the system shall return 409 expired.",
+          "EVENT-DRIVEN: When POST /api/accounts/{id}/transfer-owner is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-004 (incl. old_owner_id).",
+          "UNWANTED: If POST /api/accounts/{id}/transfer-owner is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/accounts/{id}/transfer-owner receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When POST /api/accounts/{id}/invitations is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-004 (incl. invitation_token).",
+          "UNWANTED: If POST /api/accounts/{id}/invitations is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/accounts/{id}/invitations receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "UNWANTED: If POST /api/accounts/{id}/invitations is called above the rate limit (20/hour/account), the system shall return 429.",
+          "EVENT-DRIVEN: When DELETE /api/accounts/{id}/members/{user_id} is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-004 (incl. removed_at).",
+          "UNWANTED: If DELETE /api/accounts/{id}/members/{user_id} is called without a valid auth token, the system shall return 401.",
+          "EVENT-DRIVEN: When GET /api/invitations/{token} is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-004 (incl. invitation)."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-05",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-05.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-001/E-003/E-004/E-002",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-05, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-05 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-05",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "accounts:workspace_member_select",
+        "workspaces:workspace_member_select",
+        "workspace_members:workspace_member_select",
+        "users:workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-004",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-05.md",
+      "branch": "claude/T-V3-B-05",
+      "risk_flags": [],
+      "endpoint_count": 4,
+      "endpoint_paths": [
+        "POST /api/accounts/{id}/transfer-owner",
+        "POST /api/accounts/{id}/invitations",
+        "DELETE /api/accounts/{id}/members/{user_id}",
+        "GET /api/invitations/{token}"
+      ]
+    },
+    {
+      "id": "T-V3-B-06",
+      "title": "Backend: Workspace member role + invitation revocation backend (F-004)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-004",
+      "screen_ids": [
+        "S-007 account_settings",
+        "S-008 account_members",
+        "S-013 workspace_settings",
+        "S-014 workspace_members",
+        "S-015 workspace_invite"
+      ],
+      "entity_ids": [
+        "E-001 Account",
+        "E-003 Workspace",
+        "E-004 WorkspaceMember",
+        "E-002 User"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "2",
+      "wave_priority": "Second",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 3.6,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-05"
+      ],
+      "files_changed": [
+        "backend/app/routers/workspaces.py (modify)",
+        "backend/app/services/workspaces.py (modify)",
+        "backend/app/schemas/workspaces.py (modify)",
+        "backend/tests/routers/test_workspaces.py (new)",
+        "backend/app/routers/invitations.py (modify)",
+        "backend/app/services/invitations.py (modify)",
+        "backend/app/schemas/invitations.py (modify)",
+        "backend/tests/routers/test_invitations.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/workspaces.py",
+          "backend/app/services/workspaces.py",
+          "backend/app/schemas/workspaces.py",
+          "backend/tests/routers/test_workspaces.py",
+          "backend/app/routers/invitations.py",
+          "backend/app/services/invitations.py",
+          "backend/app/schemas/invitations.py",
+          "backend/tests/routers/test_invitations.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When PUT /api/accounts/{id} is called by the owner with a valid plan upgrade, the system shall update plan and emit account_updated audit log.",
+          "UNWANTED: If POST /api/accounts/{id}/transfer-owner is called for a user who is not an account member, the system shall return 409.",
+          "UNWANTED: If DELETE /api/workspaces/{id}/members/{user_id} would leave the workspace with zero admin, the system shall return 409.",
+          "EVENT-DRIVEN: When POST /api/accounts/{id}/invitations is called more than 20 times per hour for the same account, the system shall return 429.",
+          "STATE-DRIVEN: While an account has reached the workspace cap of its plan, the system shall return 409 for POST /api/workspaces.",
+          "UNWANTED: If GET /api/invitations/{token} resolves a token past its expires_at, the system shall return 409 expired.",
+          "EVENT-DRIVEN: When PUT /api/workspaces/{id}/members/{user_id}/role is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-004 (incl. role).",
+          "UNWANTED: If PUT /api/workspaces/{id}/members/{user_id}/role is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If PUT /api/workspaces/{id}/members/{user_id}/role receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When DELETE /api/workspaces/{id}/invitations/{token} is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-004 (incl. revoked_at).",
+          "UNWANTED: If DELETE /api/workspaces/{id}/invitations/{token} is called without a valid auth token, the system shall return 401."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-06",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-06.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-001/E-003/E-004/E-002",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-06, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-06 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-06",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "accounts:workspace_member_select",
+        "workspaces:workspace_member_select",
+        "workspace_members:workspace_member_select",
+        "users:workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-004",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-06.md",
+      "branch": "claude/T-V3-B-06",
+      "risk_flags": [],
+      "endpoint_count": 2,
+      "endpoint_paths": [
+        "PUT /api/workspaces/{id}/members/{user_id}/role",
+        "DELETE /api/workspaces/{id}/invitations/{token}"
+      ]
+    },
+    {
+      "id": "T-V3-B-07",
+      "title": "Backend: Hearing → spec backend (save / specs CRUD + comments) (F-005)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-005",
+      "screen_ids": [
+        "S-020 hearing_chat",
+        "S-022 spec_viewer"
+      ],
+      "entity_ids": [
+        "E-009 Hearing",
+        "E-010 Spec",
+        "E-030 Comment",
+        "E-027 ChatThread"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 6.0,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "backend/app/routers/hearing.py (modify)",
+        "backend/app/services/hearing.py (modify)",
+        "backend/app/schemas/hearing.py (modify)",
+        "backend/tests/routers/test_hearing.py (new)",
+        "backend/app/routers/specs.py (modify)",
+        "backend/app/services/specs.py (modify)",
+        "backend/app/schemas/specs.py (modify)",
+        "backend/tests/routers/test_specs.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/hearing.py",
+          "backend/app/services/hearing.py",
+          "backend/app/schemas/hearing.py",
+          "backend/tests/routers/test_hearing.py",
+          "backend/app/routers/specs.py",
+          "backend/app/services/specs.py",
+          "backend/app/schemas/specs.py",
+          "backend/tests/routers/test_specs.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/hearing/save is called, the system shall persist slot_state with a monotonically increasing version.",
+          "STATE-DRIVEN: While a hearing session is in 'paused' state, the system shall accept POST /api/workspaces/{id}/hearing/save to resume from last checkpoint.",
+          "UNWANTED: If POST /api/workspaces/{id}/specs/{spec_id}/comments body exceeds 10000 chars, the system shall return 422.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/hearing/save is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-005 (incl. hearing_id).",
+          "UNWANTED: If POST /api/workspaces/{id}/hearing/save is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/workspaces/{id}/hearing/save receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/specs is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-005 (incl. specs).",
+          "UNWANTED: If GET /api/workspaces/{id}/specs is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/workspaces/{id}/specs receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/specs/{spec_id}/comments is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-005 (incl. comments).",
+          "UNWANTED: If GET /api/workspaces/{id}/specs/{spec_id}/comments is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/workspaces/{id}/specs/{spec_id}/comments receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/specs/{spec_id}/comments is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-005 (incl. comment_id).",
+          "UNWANTED: If POST /api/workspaces/{id}/specs/{spec_id}/comments is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/workspaces/{id}/specs/{spec_id}/comments receives a request body failing validation, the system shall return 422 with a field-level error map."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-07",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-07.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-009/E-010/E-030/E-027",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-07, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-07 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-07",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "hearings:workspace_member_select",
+        "specs:workspace_member_select",
+        "comments:workspace_member_select_insert",
+        "chat_threads:workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-005",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-07.md",
+      "branch": "claude/T-V3-B-07",
+      "risk_flags": [],
+      "endpoint_count": 4,
+      "endpoint_paths": [
+        "POST /api/workspaces/{id}/hearing/save",
+        "GET /api/workspaces/{id}/specs",
+        "GET /api/workspaces/{id}/specs/{spec_id}/comments",
+        "POST /api/workspaces/{id}/specs/{spec_id}/comments"
+      ]
+    },
+    {
+      "id": "T-V3-B-08",
+      "title": "Backend: Mocks backend (mocks list / detail / html GET/PUT) (F-005b)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-005b",
+      "screen_ids": [
+        "S-023 mock_browser",
+        "S-024 component_catalog",
+        "S-025 screen_flow_map",
+        "S-026 mock_editor"
+      ],
+      "entity_ids": [
+        "E-011 Screen",
+        "E-012 Component",
+        "E-013 ScreenComponent",
+        "E-014 Artifact"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 6.0,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "backend/app/routers/mocks.py (modify)",
+        "backend/app/services/mocks.py (modify)",
+        "backend/app/schemas/mocks.py (modify)",
+        "backend/tests/routers/test_mocks.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/mocks.py",
+          "backend/app/services/mocks.py",
+          "backend/app/schemas/mocks.py",
+          "backend/tests/routers/test_mocks.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/mocks/{screen_id}/html is called, the system shall return the latest version of the mock HTML.",
+          "EVENT-DRIVEN: When PUT /api/workspaces/{id}/mocks/{screen_id}/html is called with a new HTML body, the system shall increment the version and persist a snapshot.",
+          "UNWANTED: If PUT /api/workspaces/{id}/mocks/{screen_id}/html receives html body > 1MB, the system shall return 422.",
+          "UNWANTED: If POST /api/workspaces/{id}/mocks/{screen_id}/ai-edit is called more than 30 times per minute per workspace, the system shall return 429.",
+          "STATE-DRIVEN: While a mock is locked for editing by another user, the system shall return 409 for PUT /api/workspaces/{id}/mocks/{screen_id}/html.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/mocks is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-005b (incl. mocks).",
+          "UNWANTED: If GET /api/workspaces/{id}/mocks is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/workspaces/{id}/mocks receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/mocks/{screen_id} is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-005b (incl. screen).",
+          "UNWANTED: If GET /api/workspaces/{id}/mocks/{screen_id} is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/workspaces/{id}/mocks/{screen_id} receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/mocks/{screen_id}/html is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-005b (incl. html).",
+          "UNWANTED: If GET /api/workspaces/{id}/mocks/{screen_id}/html is called without a valid auth token, the system shall return 401.",
+          "EVENT-DRIVEN: When PUT /api/workspaces/{id}/mocks/{screen_id}/html is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-005b (incl. new_version).",
+          "UNWANTED: If PUT /api/workspaces/{id}/mocks/{screen_id}/html is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If PUT /api/workspaces/{id}/mocks/{screen_id}/html receives a request body failing validation, the system shall return 422 with a field-level error map."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-08",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-08.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-011/E-012/E-013/E-014",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-08, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-08 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-08",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "screens:workspace_member_select",
+        "components:workspace_member_select",
+        "screen_components:workspace_member_select",
+        "artifacts:workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-005b",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-08.md",
+      "branch": "claude/T-V3-B-08",
+      "risk_flags": [],
+      "endpoint_count": 4,
+      "endpoint_paths": [
+        "GET /api/workspaces/{id}/mocks",
+        "GET /api/workspaces/{id}/mocks/{screen_id}",
+        "GET /api/workspaces/{id}/mocks/{screen_id}/html",
+        "PUT /api/workspaces/{id}/mocks/{screen_id}/html"
+      ]
+    },
+    {
+      "id": "T-V3-B-09",
+      "title": "Backend: Mocks backend (ai-edit / components / screen-flow) (F-005b)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-005b",
+      "screen_ids": [
+        "S-023 mock_browser",
+        "S-024 component_catalog",
+        "S-025 screen_flow_map",
+        "S-026 mock_editor"
+      ],
+      "entity_ids": [
+        "E-011 Screen",
+        "E-012 Component",
+        "E-013 ScreenComponent",
+        "E-014 Artifact"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "2",
+      "wave_priority": "Second",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 6.0,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-B-08"
+      ],
+      "files_changed": [
+        "backend/app/routers/mocks.py (modify)",
+        "backend/app/services/mocks.py (modify)",
+        "backend/app/schemas/mocks.py (modify)",
+        "backend/tests/routers/test_mocks.py (new)",
+        "backend/app/routers/components.py (modify)",
+        "backend/app/services/components.py (modify)",
+        "backend/app/schemas/components.py (modify)",
+        "backend/tests/routers/test_components.py (new)",
+        "backend/app/routers/screen_flow.py (modify)",
+        "backend/app/services/screen_flow.py (modify)",
+        "backend/app/schemas/screen_flow.py (modify)",
+        "backend/tests/routers/test_screen_flow.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/mocks.py",
+          "backend/app/services/mocks.py",
+          "backend/app/schemas/mocks.py",
+          "backend/tests/routers/test_mocks.py",
+          "backend/app/routers/components.py",
+          "backend/app/services/components.py",
+          "backend/app/schemas/components.py",
+          "backend/tests/routers/test_components.py",
+          "backend/app/routers/screen_flow.py",
+          "backend/app/services/screen_flow.py",
+          "backend/app/schemas/screen_flow.py",
+          "backend/tests/routers/test_screen_flow.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UNWANTED: If POST /api/workspaces/{id}/mocks/{screen_id}/ai-edit is called more than 30 times per minute per workspace, the system shall return 429.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/mocks/{screen_id}/ai-edit is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-005b (incl. diff).",
+          "UNWANTED: If POST /api/workspaces/{id}/mocks/{screen_id}/ai-edit is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/workspaces/{id}/mocks/{screen_id}/ai-edit receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "UNWANTED: If POST /api/workspaces/{id}/mocks/{screen_id}/ai-edit is called above the rate limit (30/min/workspace), the system shall return 429.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/components is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-005b (incl. components).",
+          "UNWANTED: If GET /api/workspaces/{id}/components is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/workspaces/{id}/components receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/components/{id}/usage is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-005b (incl. usages).",
+          "UNWANTED: If GET /api/workspaces/{id}/components/{id}/usage is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/workspaces/{id}/components/{id}/usage receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/screen-flow is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-005b (incl. nodes).",
+          "UNWANTED: If GET /api/workspaces/{id}/screen-flow is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/workspaces/{id}/screen-flow receives a request body failing validation, the system shall return 422 with a field-level error map."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-09",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-09.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-011/E-012/E-013/E-014",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-09, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-09 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-09",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "screens:workspace_member_select",
+        "components:workspace_member_select",
+        "screen_components:workspace_member_select",
+        "artifacts:workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-005b",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-09.md",
+      "branch": "claude/T-V3-B-09",
+      "risk_flags": [],
+      "endpoint_count": 4,
+      "endpoint_paths": [
+        "POST /api/workspaces/{id}/mocks/{screen_id}/ai-edit",
+        "GET /api/workspaces/{id}/components",
+        "GET /api/workspaces/{id}/components/{id}/usage",
+        "GET /api/workspaces/{id}/screen-flow"
+      ]
+    },
+    {
+      "id": "T-V3-B-10",
+      "title": "Backend: Requirements backend (CRUD / versions / task comments) (F-006)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-006",
+      "screen_ids": [
+        "S-021 requirements_editor",
+        "S-030 task_detail"
+      ],
+      "entity_ids": [
+        "E-015 Requirement",
+        "E-016 Task",
+        "E-017 TaskDependency",
+        "E-019 AcceptanceCriterion"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 6.0,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "backend/app/routers/requirements.py (modify)",
+        "backend/app/services/requirements.py (modify)",
+        "backend/app/schemas/requirements.py (modify)",
+        "backend/tests/routers/test_requirements.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/requirements.py",
+          "backend/app/services/requirements.py",
+          "backend/app/schemas/requirements.py",
+          "backend/tests/routers/test_requirements.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When PUT /api/workspaces/{id}/requirements is called with EARS-conformant items, the system shall persist them and return version+1.",
+          "UNWANTED: If PUT /api/workspaces/{id}/requirements is called with items that fail EARS form validation, the system shall return 422 with offending item indices.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/requirements/versions is called, the system shall snapshot the current requirements and return a new version_id.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/requirements is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-006 (incl. requirements).",
+          "UNWANTED: If GET /api/workspaces/{id}/requirements is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/workspaces/{id}/requirements receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When PUT /api/workspaces/{id}/requirements is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-006 (incl. id).",
+          "UNWANTED: If PUT /api/workspaces/{id}/requirements is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If PUT /api/workspaces/{id}/requirements receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/requirements/versions is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-006 (incl. version_id).",
+          "UNWANTED: If POST /api/workspaces/{id}/requirements/versions is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/workspaces/{id}/requirements/versions receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When POST /api/tasks/{id}/comments is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-006 (incl. comment_id).",
+          "UNWANTED: If POST /api/tasks/{id}/comments is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/tasks/{id}/comments receives a request body failing validation, the system shall return 422 with a field-level error map."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-10",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-10.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-015/E-016/E-017/E-019",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-10, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-10 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-10",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "requirements:workspace_member_select",
+        "tasks:workspace_member_select",
+        "task_dependencies:workspace_member_select",
+        "acceptance_criterions:workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-006",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-10.md",
+      "branch": "claude/T-V3-B-10",
+      "risk_flags": [],
+      "endpoint_count": 4,
+      "endpoint_paths": [
+        "GET /api/workspaces/{id}/requirements",
+        "PUT /api/workspaces/{id}/requirements",
+        "POST /api/workspaces/{id}/requirements/versions",
+        "POST /api/tasks/{id}/comments"
+      ]
+    },
+    {
+      "id": "T-V3-B-11",
+      "title": "Backend: Tasks backend (bulk-play / bulk-archive / export.csv / dag) (F-007)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-007",
+      "screen_ids": [
+        "S-012 workspace_dashboard",
+        "S-027 kanban_accordion",
+        "S-028 task_list",
+        "S-029 dag_view",
+        "S-030 task_detail"
+      ],
+      "entity_ids": [
+        "E-016 Task",
+        "E-017 TaskDependency"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 6.0,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "backend/app/routers/tasks.py (modify)",
+        "backend/app/services/tasks.py (modify)",
+        "backend/app/schemas/tasks.py (modify)",
+        "backend/tests/routers/test_tasks.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/tasks.py",
+          "backend/app/services/tasks.py",
+          "backend/app/schemas/tasks.py",
+          "backend/tests/routers/test_tasks.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/tasks/bulk-play is called with a list of task_ids, the system shall spawn sessions in dependency order.",
+          "UNWANTED: If POST /api/workspaces/{id}/tasks/bulk-play exceeds max_parallel_per_ws_default, the system shall queue overflow and return 200 with queued count.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/tasks/bulk-play is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-007 (incl. session_ids).",
+          "UNWANTED: If POST /api/workspaces/{id}/tasks/bulk-play is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/workspaces/{id}/tasks/bulk-play receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "UNWANTED: If POST /api/workspaces/{id}/tasks/bulk-play is called above the rate limit (10/min/workspace), the system shall return 429.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/tasks/bulk-archive is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-007 (incl. archived_count).",
+          "UNWANTED: If POST /api/workspaces/{id}/tasks/bulk-archive is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/workspaces/{id}/tasks/bulk-archive receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/tasks/export.csv is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-007 (incl. csv_body).",
+          "UNWANTED: If GET /api/workspaces/{id}/tasks/export.csv is called without a valid auth token, the system shall return 401.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/tasks/dag is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-007 (incl. nodes).",
+          "UNWANTED: If GET /api/workspaces/{id}/tasks/dag is called without a valid auth token, the system shall return 401."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-11",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-11.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-016/E-017",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-11, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-11 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-11",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "tasks:workspace_member_select",
+        "task_dependencies:workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-007",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-11.md",
+      "branch": "claude/T-V3-B-11",
+      "risk_flags": [],
+      "endpoint_count": 4,
+      "endpoint_paths": [
+        "POST /api/workspaces/{id}/tasks/bulk-play",
+        "POST /api/workspaces/{id}/tasks/bulk-archive",
+        "GET /api/workspaces/{id}/tasks/export.csv",
+        "GET /api/workspaces/{id}/tasks/dag"
+      ]
+    },
+    {
+      "id": "T-V3-B-12",
+      "title": "Backend: Tasks backend (play single / play-all) (F-007)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-007",
+      "screen_ids": [
+        "S-012 workspace_dashboard",
+        "S-027 kanban_accordion",
+        "S-028 task_list",
+        "S-029 dag_view",
+        "S-030 task_detail"
+      ],
+      "entity_ids": [
+        "E-016 Task",
+        "E-017 TaskDependency"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "2",
+      "wave_priority": "Second",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 4.9,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-B-11"
+      ],
+      "files_changed": [
+        "backend/app/routers/tasks.py (modify)",
+        "backend/app/services/tasks.py (modify)",
+        "backend/app/schemas/tasks.py (modify)",
+        "backend/tests/routers/test_tasks.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/tasks.py",
+          "backend/app/services/tasks.py",
+          "backend/app/schemas/tasks.py",
+          "backend/tests/routers/test_tasks.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UNWANTED: If POST /api/tasks/{id}/play is called for a task with unsatisfied dependencies, the system shall return 409.",
+          "EVENT-DRIVEN: When POST /api/tasks/{id}/play is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-007 (incl. session_id).",
+          "UNWANTED: If POST /api/tasks/{id}/play is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/tasks/{id}/play receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "UNWANTED: If POST /api/tasks/{id}/play is called above the rate limit (30/min/user), the system shall return 429.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/tasks/play-all is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-007 (incl. queued).",
+          "UNWANTED: If POST /api/workspaces/{id}/tasks/play-all is called without a valid auth token, the system shall return 401.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/play-all is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-007 (incl. queued).",
+          "UNWANTED: If POST /api/workspaces/{id}/play-all is called without a valid auth token, the system shall return 401."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-12",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-12.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-016/E-017",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-12, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-12 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-12",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "tasks:workspace_member_select",
+        "task_dependencies:workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-007",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-12.md",
+      "branch": "claude/T-V3-B-12",
+      "risk_flags": [],
+      "endpoint_count": 3,
+      "endpoint_paths": [
+        "POST /api/tasks/{id}/play",
+        "POST /api/workspaces/{id}/tasks/play-all",
+        "POST /api/workspaces/{id}/play-all"
+      ]
+    },
+    {
+      "id": "T-V3-B-13",
+      "title": "Backend: Phase management backend (phases list/create/gate) (F-008)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-008",
+      "screen_ids": [
+        "S-016 phase_management"
+      ],
+      "entity_ids": [
+        "E-020 Phase",
+        "E-016 Task"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 4.9,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "backend/app/routers/phases.py (modify)",
+        "backend/app/services/phases.py (modify)",
+        "backend/app/schemas/phases.py (modify)",
+        "backend/tests/routers/test_phases.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/phases.py",
+          "backend/app/services/phases.py",
+          "backend/app/schemas/phases.py",
+          "backend/tests/routers/test_phases.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/phases/{phase_id}/gate is called and all gate_conditions evaluate true, the system shall unlock the next phase.",
+          "UNWANTED: If POST /api/workspaces/{id}/phases/{phase_id}/gate is called and gate_conditions are not met, the system shall return 409 with failing conditions listed.",
+          "UNWANTED: If POST /api/workspaces/{id}/phases would create more than 10 phases for the workspace, the system shall return 409.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/phases is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-008 (incl. phases).",
+          "UNWANTED: If GET /api/workspaces/{id}/phases is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/workspaces/{id}/phases receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/phases is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-008 (incl. phase_id).",
+          "UNWANTED: If POST /api/workspaces/{id}/phases is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/workspaces/{id}/phases receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/phases/{phase_id}/gate is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-008 (incl. unlocked_phase_id).",
+          "UNWANTED: If POST /api/workspaces/{id}/phases/{phase_id}/gate is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/workspaces/{id}/phases/{phase_id}/gate receives a request body failing validation, the system shall return 422 with a field-level error map."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-13",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-13.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-020/E-016",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-13, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-13 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-13",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "phases:workspace_member_select",
+        "tasks:workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-008",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-13.md",
+      "branch": "claude/T-V3-B-13",
+      "risk_flags": [],
+      "endpoint_count": 3,
+      "endpoint_paths": [
+        "GET /api/workspaces/{id}/phases",
+        "POST /api/workspaces/{id}/phases",
+        "POST /api/workspaces/{id}/phases/{phase_id}/gate"
+      ]
+    },
+    {
+      "id": "T-V3-B-14",
+      "title": "Backend: Dependency graph backend (edges + impact-analysis) (F-009)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-009",
+      "screen_ids": [
+        "S-017 dependency_graph",
+        "S-029 dag_view"
+      ],
+      "entity_ids": [
+        "E-017 TaskDependency",
+        "E-016 Task"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 4.9,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "backend/app/routers/dependencies.py (modify)",
+        "backend/app/services/dependencies.py (modify)",
+        "backend/app/schemas/dependencies.py (modify)",
+        "backend/tests/routers/test_dependencies.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/dependencies.py",
+          "backend/app/services/dependencies.py",
+          "backend/app/schemas/dependencies.py",
+          "backend/tests/routers/test_dependencies.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/dependencies is called with a valid edge, the system shall persist it and return 200.",
+          "UNWANTED: If POST /api/workspaces/{id}/dependencies would create a cycle in the task DAG, the system shall return 409 with cycle path included.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/dependencies/impact-analysis is called for a task, the system shall return all downstream affected tasks within blast_radius.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/dependencies is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-009 (incl. dependencies).",
+          "UNWANTED: If GET /api/workspaces/{id}/dependencies is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/workspaces/{id}/dependencies receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/dependencies is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-009 (incl. dependency_id).",
+          "UNWANTED: If POST /api/workspaces/{id}/dependencies is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/workspaces/{id}/dependencies receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/dependencies/impact-analysis is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-009 (incl. affected_tasks).",
+          "UNWANTED: If POST /api/workspaces/{id}/dependencies/impact-analysis is called without a valid auth token, the system shall return 401."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-14",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-14.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-017/E-016",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-14, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-14 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-14",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "task_dependencies:workspace_member_select",
+        "tasks:workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-009",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-14.md",
+      "branch": "claude/T-V3-B-14",
+      "risk_flags": [],
+      "endpoint_count": 3,
+      "endpoint_paths": [
+        "GET /api/workspaces/{id}/dependencies",
+        "POST /api/workspaces/{id}/dependencies",
+        "POST /api/workspaces/{id}/dependencies/impact-analysis"
+      ]
+    },
+    {
+      "id": "T-V3-B-15",
+      "title": "Backend: Sessions backend (list / detail / kill / kill-all) (F-010)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-010",
+      "screen_ids": [
+        "S-031 swarm_grid",
+        "S-032 session_detail"
+      ],
+      "entity_ids": [
+        "E-024 Session",
+        "E-025 SessionLog"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 6.0,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "backend/app/routers/sessions.py (modify)",
+        "backend/app/services/sessions.py (modify)",
+        "backend/app/schemas/sessions.py (modify)",
+        "backend/tests/routers/test_sessions.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/sessions.py",
+          "backend/app/services/sessions.py",
+          "backend/app/schemas/sessions.py",
+          "backend/tests/routers/test_sessions.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When POST /api/sessions/{id}/pause is called for a running session, the system shall save a checkpoint and transition status to 'paused' within 5 seconds.",
+          "UNWANTED: If POST /api/sessions/{id}/resume is called for a session that is not in paused or crashed state, the system shall return 409.",
+          "EVENT-DRIVEN: When POST /api/sessions/{id}/rollback is called by workspace_admin, the system shall restore the session state to the given checkpoint and emit audit log.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/sessions is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-010 (incl. sessions).",
+          "UNWANTED: If GET /api/workspaces/{id}/sessions is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/workspaces/{id}/sessions receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When GET /api/sessions/{id} is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-010 (incl. session).",
+          "UNWANTED: If GET /api/sessions/{id} is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/sessions/{id} receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When POST /api/sessions/{id}/kill is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-010 (incl. killed_at).",
+          "UNWANTED: If POST /api/sessions/{id}/kill is called without a valid auth token, the system shall return 401.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/sessions/kill-all is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-010 (incl. killed_count).",
+          "UNWANTED: If POST /api/workspaces/{id}/sessions/kill-all is called without a valid auth token, the system shall return 401."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-15",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-15.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-024/E-025",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-15, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-15 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-15",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "sessions:workspace_member_select",
+        "session_logs:workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-010",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-15.md",
+      "branch": "claude/T-V3-B-15",
+      "risk_flags": [],
+      "endpoint_count": 4,
+      "endpoint_paths": [
+        "GET /api/workspaces/{id}/sessions",
+        "GET /api/sessions/{id}",
+        "POST /api/sessions/{id}/kill",
+        "POST /api/workspaces/{id}/sessions/kill-all"
+      ]
+    },
+    {
+      "id": "T-V3-B-16",
+      "title": "Backend: Sessions backend (pause / resume / rollback) (F-010)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-010",
+      "screen_ids": [
+        "S-031 swarm_grid",
+        "S-032 session_detail"
+      ],
+      "entity_ids": [
+        "E-024 Session",
+        "E-025 SessionLog"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "2",
+      "wave_priority": "Second",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 4.9,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-B-15"
+      ],
+      "files_changed": [
+        "backend/app/routers/sessions.py (modify)",
+        "backend/app/services/sessions.py (modify)",
+        "backend/app/schemas/sessions.py (modify)",
+        "backend/tests/routers/test_sessions.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/sessions.py",
+          "backend/app/services/sessions.py",
+          "backend/app/schemas/sessions.py",
+          "backend/tests/routers/test_sessions.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When POST /api/sessions/{id}/pause is called for a running session, the system shall save a checkpoint and transition status to 'paused' within 5 seconds.",
+          "UNWANTED: If POST /api/sessions/{id}/resume is called for a session that is not in paused or crashed state, the system shall return 409.",
+          "EVENT-DRIVEN: When POST /api/sessions/{id}/rollback is called by workspace_admin, the system shall restore the session state to the given checkpoint and emit audit log.",
+          "EVENT-DRIVEN: When POST /api/sessions/{id}/pause is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-010 (incl. paused_at).",
+          "UNWANTED: If POST /api/sessions/{id}/pause is called without a valid auth token, the system shall return 401.",
+          "EVENT-DRIVEN: When POST /api/sessions/{id}/resume is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-010 (incl. resumed_at).",
+          "UNWANTED: If POST /api/sessions/{id}/resume is called without a valid auth token, the system shall return 401.",
+          "EVENT-DRIVEN: When POST /api/sessions/{id}/rollback is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-010 (incl. rolled_back_at).",
+          "UNWANTED: If POST /api/sessions/{id}/rollback is called without a valid auth token, the system shall return 401."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-16",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-16.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-024/E-025",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-16, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-16 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-16",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "sessions:workspace_member_select",
+        "session_logs:workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-010",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-16.md",
+      "branch": "claude/T-V3-B-16",
+      "risk_flags": [],
+      "endpoint_count": 3,
+      "endpoint_paths": [
+        "POST /api/sessions/{id}/pause",
+        "POST /api/sessions/{id}/resume",
+        "POST /api/sessions/{id}/rollback"
+      ]
+    },
+    {
+      "id": "T-V3-B-17",
+      "title": "Backend: Red-lines backend (CRUD + test) (F-012)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-012",
+      "screen_ids": [
+        "S-019 red_lines_editor",
+        "S-034 violations_inbox"
+      ],
+      "entity_ids": [
+        "E-031 RedLine",
+        "E-032 RedLineViolation"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 4.9,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "backend/app/routers/red_lines.py (modify)",
+        "backend/app/services/red_lines.py (modify)",
+        "backend/app/schemas/red_lines.py (modify)",
+        "backend/tests/routers/test_red_lines.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/red_lines.py",
+          "backend/app/services/red_lines.py",
+          "backend/app/schemas/red_lines.py",
+          "backend/tests/routers/test_red_lines.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The system shall evaluate every AI-initiated action against active red_line patterns before execution.",
+          "EVENT-DRIVEN: When an action matches a red_line with action='block', the system shall halt execution and create a pending violation record.",
+          "UNWANTED: If a violation is in 'pending' state, the system shall not allow the originating AI session to continue without admin approval.",
+          "EVENT-DRIVEN: When POST /api/violations/{id}/approve is called by a workspace_admin, the system shall resume the originating session.",
+          "UNWANTED: If POST /api/violations/{id}/approve is called for an already-resolved violation, the system shall return 409.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/red-lines is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-012 (incl. red_lines).",
+          "UNWANTED: If GET /api/workspaces/{id}/red-lines is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/workspaces/{id}/red-lines receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/red-lines is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-012 (incl. red_line_id).",
+          "UNWANTED: If POST /api/workspaces/{id}/red-lines is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/workspaces/{id}/red-lines receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/red-lines/test is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-012 (incl. matched).",
+          "UNWANTED: If POST /api/workspaces/{id}/red-lines/test is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/workspaces/{id}/red-lines/test receives a request body failing validation, the system shall return 422 with a field-level error map."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-17",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-17.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-031/E-032",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-17, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-17 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-17",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "red_lines:workspace_member_select",
+        "red_line_violations:workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-012",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-17.md",
+      "branch": "claude/T-V3-B-17",
+      "risk_flags": [],
+      "endpoint_count": 3,
+      "endpoint_paths": [
+        "GET /api/workspaces/{id}/red-lines",
+        "POST /api/workspaces/{id}/red-lines",
+        "POST /api/workspaces/{id}/red-lines/test"
+      ]
+    },
+    {
+      "id": "T-V3-B-18",
+      "title": "Backend: Violations backend (list / approve / reject) (F-012)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-012",
+      "screen_ids": [
+        "S-019 red_lines_editor",
+        "S-034 violations_inbox"
+      ],
+      "entity_ids": [
+        "E-031 RedLine",
+        "E-032 RedLineViolation"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "2",
+      "wave_priority": "Second",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 4.9,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-B-17"
+      ],
+      "files_changed": [
+        "backend/app/routers/violations.py (modify)",
+        "backend/app/services/violations.py (modify)",
+        "backend/app/schemas/violations.py (modify)",
+        "backend/tests/routers/test_violations.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/violations.py",
+          "backend/app/services/violations.py",
+          "backend/app/schemas/violations.py",
+          "backend/tests/routers/test_violations.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When POST /api/violations/{id}/approve is called by a workspace_admin, the system shall resume the originating session.",
+          "UNWANTED: If POST /api/violations/{id}/approve is called for an already-resolved violation, the system shall return 409.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/violations is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-012 (incl. violations).",
+          "UNWANTED: If GET /api/workspaces/{id}/violations is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/workspaces/{id}/violations receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When POST /api/violations/{id}/approve is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-012 (incl. approved_at).",
+          "UNWANTED: If POST /api/violations/{id}/approve is called without a valid auth token, the system shall return 401.",
+          "EVENT-DRIVEN: When POST /api/violations/{id}/reject is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-012 (incl. rejected_at).",
+          "UNWANTED: If POST /api/violations/{id}/reject is called without a valid auth token, the system shall return 401."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-18",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-18.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-031/E-032",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-18, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-18 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-18",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "red_lines:workspace_member_select",
+        "red_line_violations:workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-012",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-18.md",
+      "branch": "claude/T-V3-B-18",
+      "risk_flags": [],
+      "endpoint_count": 3,
+      "endpoint_paths": [
+        "GET /api/workspaces/{id}/violations",
+        "POST /api/violations/{id}/approve",
+        "POST /api/violations/{id}/reject"
+      ]
+    },
+    {
+      "id": "T-V3-B-19",
+      "title": "Backend: PR review backend (get / approve / comments / merge) (F-013)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-013",
+      "screen_ids": [
+        "S-033 pr_review",
+        "S-035 delivery_pack",
+        "S-042 client_workspace_view",
+        "S-043 client_comment_thread"
+      ],
+      "entity_ids": [
+        "E-033 PullRequest",
+        "E-034 Delivery",
+        "E-030 Comment"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 6.0,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "backend/app/routers/comments.py (modify)",
+        "backend/app/services/comments.py (modify)",
+        "backend/app/schemas/comments.py (modify)",
+        "backend/tests/routers/test_comments.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/comments.py",
+          "backend/app/services/comments.py",
+          "backend/app/schemas/comments.py",
+          "backend/tests/routers/test_comments.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When POST /api/prs/{id}/merge is called by a workspace_admin with valid merge_method, the system shall merge the PR via GitHub API and emit pr_merged audit log.",
+          "UNWANTED: If POST /api/prs/{id}/merge is called for a PR with unresolved conflicts, the system shall return 409.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/prs/{pr_number} is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-013 (incl. pr).",
+          "UNWANTED: If GET /api/workspaces/{id}/prs/{pr_number} is called without a valid auth token, the system shall return 401.",
+          "EVENT-DRIVEN: When POST /api/prs/{id}/approve is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-013 (incl. approved_at).",
+          "UNWANTED: If POST /api/prs/{id}/approve is called without a valid auth token, the system shall return 401.",
+          "EVENT-DRIVEN: When POST /api/prs/{id}/comments is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-013 (incl. comment_id).",
+          "UNWANTED: If POST /api/prs/{id}/comments is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/prs/{id}/comments receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When POST /api/prs/{id}/merge is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-013 (incl. merged_at).",
+          "UNWANTED: If POST /api/prs/{id}/merge is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/prs/{id}/merge receives a request body failing validation, the system shall return 422 with a field-level error map."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-19",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-19.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-033/E-034/E-030",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-19, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-19 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-19",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "pull_requests:workspace_member_select",
+        "deliveries:workspace_owner_select",
+        "comments:workspace_member_select_insert"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-013",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-19.md",
+      "branch": "claude/T-V3-B-19",
+      "risk_flags": [],
+      "endpoint_count": 4,
+      "endpoint_paths": [
+        "GET /api/workspaces/{id}/prs/{pr_number}",
+        "POST /api/prs/{id}/approve",
+        "POST /api/prs/{id}/comments",
+        "POST /api/prs/{id}/merge"
+      ]
+    },
+    {
+      "id": "T-V3-B-20",
+      "title": "Backend: Client portal backend (workspaces / spec / comments) (F-013)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-013",
+      "screen_ids": [
+        "S-033 pr_review",
+        "S-035 delivery_pack",
+        "S-042 client_workspace_view",
+        "S-043 client_comment_thread"
+      ],
+      "entity_ids": [
+        "E-033 PullRequest",
+        "E-034 Delivery",
+        "E-030 Comment"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "2",
+      "wave_priority": "Second",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 6.0,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-B-19"
+      ],
+      "files_changed": [
+        "backend/app/routers/comments.py (modify)",
+        "backend/app/services/comments.py (modify)",
+        "backend/app/schemas/comments.py (modify)",
+        "backend/tests/routers/test_comments.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/comments.py",
+          "backend/app/services/comments.py",
+          "backend/app/schemas/comments.py",
+          "backend/tests/routers/test_comments.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "STATE-DRIVEN: While a client token has expired, the system shall return 409 for GET /api/client/workspaces/{token}.",
+          "UNWANTED: If POST /api/client/comments exceeds 20 requests per hour per token, the system shall return 429.",
+          "EVENT-DRIVEN: When GET /api/client/workspaces/{token} is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-013 (incl. workspace).",
+          "UNWANTED: If GET /api/client/workspaces/{token} is called without a valid auth token, the system shall return 401.",
+          "EVENT-DRIVEN: When GET /api/client/workspaces/{token}/spec is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-013 (incl. spec_html_url).",
+          "UNWANTED: If GET /api/client/workspaces/{token}/spec is called without a valid auth token, the system shall return 401.",
+          "EVENT-DRIVEN: When GET /api/client/comments/{thread_id} is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-013 (incl. comments).",
+          "UNWANTED: If GET /api/client/comments/{thread_id} is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/client/comments/{thread_id} receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When POST /api/client/comments is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-013 (incl. comment_id).",
+          "UNWANTED: If POST /api/client/comments is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/client/comments receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "UNWANTED: If POST /api/client/comments is called above the rate limit (20/hour/token), the system shall return 429.",
+          "EVENT-DRIVEN: When POST /api/comments/{id}/resolve is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-013 (incl. resolved_at).",
+          "UNWANTED: If POST /api/comments/{id}/resolve is called without a valid auth token, the system shall return 401."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-20",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-20.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-033/E-034/E-030",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-20, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-20 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-20",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "pull_requests:workspace_member_select",
+        "deliveries:workspace_owner_select",
+        "comments:workspace_member_select_insert"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-013",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-20.md",
+      "branch": "claude/T-V3-B-20",
+      "risk_flags": [],
+      "endpoint_count": 5,
+      "endpoint_paths": [
+        "GET /api/client/workspaces/{token}",
+        "GET /api/client/workspaces/{token}/spec",
+        "GET /api/client/comments/{thread_id}",
+        "POST /api/client/comments",
+        "POST /api/comments/{id}/resolve"
+      ]
+    },
+    {
+      "id": "T-V3-B-21",
+      "title": "Backend: Delivery backend (delivery pack / approve / send-client) (F-013)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-013",
+      "screen_ids": [
+        "S-033 pr_review",
+        "S-035 delivery_pack",
+        "S-042 client_workspace_view",
+        "S-043 client_comment_thread"
+      ],
+      "entity_ids": [
+        "E-033 PullRequest",
+        "E-034 Delivery",
+        "E-030 Comment"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "3",
+      "wave_priority": "Second",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 4.9,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-B-20"
+      ],
+      "files_changed": [
+        "backend/app/routers/delivery.py (modify)",
+        "backend/app/services/delivery.py (modify)",
+        "backend/app/schemas/delivery.py (modify)",
+        "backend/tests/routers/test_delivery.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/delivery.py",
+          "backend/app/services/delivery.py",
+          "backend/app/schemas/delivery.py",
+          "backend/tests/routers/test_delivery.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/delivery/send-client is called, the system shall generate a public token with expires_at and email the client.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/delivery is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-013 (incl. delivery).",
+          "UNWANTED: If GET /api/workspaces/{id}/delivery is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/workspaces/{id}/delivery receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/delivery/approve is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-013 (incl. approved_at).",
+          "UNWANTED: If POST /api/workspaces/{id}/delivery/approve is called without a valid auth token, the system shall return 401.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/delivery/send-client is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-013 (incl. sent_at).",
+          "UNWANTED: If POST /api/workspaces/{id}/delivery/send-client is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/workspaces/{id}/delivery/send-client receives a request body failing validation, the system shall return 422 with a field-level error map."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-21",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-21.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-033/E-034/E-030",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-21, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-21 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-21",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "pull_requests:workspace_member_select",
+        "deliveries:workspace_owner_select",
+        "comments:workspace_member_select_insert"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-013",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-21.md",
+      "branch": "claude/T-V3-B-21",
+      "risk_flags": [],
+      "endpoint_count": 3,
+      "endpoint_paths": [
+        "GET /api/workspaces/{id}/delivery",
+        "POST /api/workspaces/{id}/delivery/approve",
+        "POST /api/workspaces/{id}/delivery/send-client"
+      ]
+    },
+    {
+      "id": "T-V3-B-22",
+      "title": "Backend: Knowledge base backend (list + search) (F-016)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-016",
+      "screen_ids": [
+        "S-039 knowledge_base"
+      ],
+      "entity_ids": [
+        "E-035 KnowledgeItem",
+        "E-036 ObsidianVault"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 3.6,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "backend/app/routers/knowledge.py (modify)",
+        "backend/app/services/knowledge.py (modify)",
+        "backend/app/schemas/knowledge.py (modify)",
+        "backend/tests/routers/test_knowledge.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/knowledge.py",
+          "backend/app/services/knowledge.py",
+          "backend/app/schemas/knowledge.py",
+          "backend/tests/routers/test_knowledge.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/knowledge/search is called with q, the system shall combine pgvector + pg_trgm + FTS and return top 50 hits.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/knowledge is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-016 (incl. items).",
+          "UNWANTED: If GET /api/workspaces/{id}/knowledge is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/workspaces/{id}/knowledge receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/knowledge/search is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-016 (incl. hits).",
+          "UNWANTED: If GET /api/workspaces/{id}/knowledge/search is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/workspaces/{id}/knowledge/search receives a request body failing validation, the system shall return 422 with a field-level error map."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-22",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-22.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-035/E-036",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-22, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-22 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-22",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "knowledge_items:workspace_member_select",
+        "obsidian_vaults:workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-016",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-22.md",
+      "branch": "claude/T-V3-B-22",
+      "risk_flags": [],
+      "endpoint_count": 2,
+      "endpoint_paths": [
+        "GET /api/workspaces/{id}/knowledge",
+        "GET /api/workspaces/{id}/knowledge/search"
+      ]
+    },
+    {
+      "id": "T-V3-B-23",
+      "title": "Backend: Observability backend (cost-summary export + token-limit) (F-017)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-017",
+      "screen_ids": [
+        "S-040 cost_dashboard"
+      ],
+      "entity_ids": [
+        "E-026 CostLog",
+        "E-022 SkillExecution",
+        "E-024 Session"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 3.6,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "backend/app/routers/observability.py (modify)",
+        "backend/app/services/observability.py (modify)",
+        "backend/app/schemas/observability.py (modify)",
+        "backend/tests/routers/test_observability.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/observability.py",
+          "backend/app/services/observability.py",
+          "backend/app/schemas/observability.py",
+          "backend/tests/routers/test_observability.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When GET /api/observability/cost-summary is called with date range, the system shall return total_usd + by_provider + by_user breakdown.",
+          "STATE-DRIVEN: While monthly cost reaches 80% of the workspace limit, the system shall emit cost_limit_warning notification.",
+          "UNWANTED: If monthly cost exceeds the workspace limit, the system shall block new LLM invocations and return 429 with budget_exceeded code.",
+          "UBIQUITOUS: The system shall record every LLM invocation with tokens_used + cost_usd + provider tags within 1 second of completion.",
+          "EVENT-DRIVEN: When GET /api/observability/cost-summary/export.csv is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-017 (incl. csv_body).",
+          "UNWANTED: If GET /api/observability/cost-summary/export.csv is called without a valid auth token, the system shall return 401.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/token-limit is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-017 (incl. limit_usd_per_month).",
+          "UNWANTED: If POST /api/workspaces/{id}/token-limit is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/workspaces/{id}/token-limit receives a request body failing validation, the system shall return 422 with a field-level error map."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-23",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-23.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-026/E-022/E-024",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-23, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-23 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-23",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "cost_logs:workspace_member_select",
+        "skill_executions:workspace_member_select",
+        "sessions:workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-017",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-23.md",
+      "branch": "claude/T-V3-B-23",
+      "risk_flags": [],
+      "endpoint_count": 2,
+      "endpoint_paths": [
+        "GET /api/observability/cost-summary/export.csv",
+        "POST /api/workspaces/{id}/token-limit"
+      ]
+    },
+    {
+      "id": "T-V3-B-24",
+      "title": "Backend: Audit logs backend (list / export.csv / export.json) (F-018)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-018",
+      "screen_ids": [
+        "S-010 notifications_inbox",
+        "S-041 audit_log_viewer"
+      ],
+      "entity_ids": [
+        "E-037 AuditLog",
+        "E-038 Notification"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 4.9,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "backend/app/routers/audit_logs.py (modify)",
+        "backend/app/services/audit_logs.py (modify)",
+        "backend/app/schemas/audit_logs.py (modify)",
+        "backend/tests/routers/test_audit_logs.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/audit_logs.py",
+          "backend/app/services/audit_logs.py",
+          "backend/app/schemas/audit_logs.py",
+          "backend/tests/routers/test_audit_logs.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When GET /api/audit-logs/export.csv is called with a date range >90 days, the system shall return 422 with filter_too_broad.",
+          "EVENT-DRIVEN: When GET /api/audit-logs is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-018 (incl. items).",
+          "UNWANTED: If GET /api/audit-logs is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/audit-logs receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When GET /api/audit-logs/export.csv is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-018 (incl. csv_body).",
+          "UNWANTED: If GET /api/audit-logs/export.csv is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/audit-logs/export.csv receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When GET /api/audit-logs/export.json is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-018 (incl. json_body).",
+          "UNWANTED: If GET /api/audit-logs/export.json is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/audit-logs/export.json receives a request body failing validation, the system shall return 422 with a field-level error map."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-24",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-24.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-037/E-038",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-24, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-24 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-24",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "audit_logs:workspace_admin_select",
+        "notifications:workspace_admin_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-018",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-24.md",
+      "branch": "claude/T-V3-B-24",
+      "risk_flags": [],
+      "endpoint_count": 3,
+      "endpoint_paths": [
+        "GET /api/audit-logs",
+        "GET /api/audit-logs/export.csv",
+        "GET /api/audit-logs/export.json"
+      ]
+    },
+    {
+      "id": "T-V3-B-25",
+      "title": "Backend: Notifications backend (list / read / read-all) (F-018)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-018",
+      "screen_ids": [
+        "S-010 notifications_inbox",
+        "S-041 audit_log_viewer"
+      ],
+      "entity_ids": [
+        "E-037 AuditLog",
+        "E-038 Notification"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "2",
+      "wave_priority": "Second",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 4.9,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-B-24"
+      ],
+      "files_changed": [
+        "backend/app/routers/notifications.py (modify)",
+        "backend/app/services/notifications.py (modify)",
+        "backend/app/schemas/notifications.py (modify)",
+        "backend/tests/routers/test_notifications.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/notifications.py",
+          "backend/app/services/notifications.py",
+          "backend/app/schemas/notifications.py",
+          "backend/tests/routers/test_notifications.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "STATE-DRIVEN: While a notification is unread, the system shall include it in the unread_count of GET /api/notifications.",
+          "EVENT-DRIVEN: When POST /api/notifications/read-all is called with no category filter, the system shall mark all unread notifications for the user as read.",
+          "EVENT-DRIVEN: When GET /api/notifications is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-018 (incl. items).",
+          "UNWANTED: If GET /api/notifications is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/notifications receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When POST /api/notifications/{id}/read is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-018 (incl. read_at).",
+          "UNWANTED: If POST /api/notifications/{id}/read is called without a valid auth token, the system shall return 401.",
+          "EVENT-DRIVEN: When POST /api/notifications/read-all is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-018 (incl. marked_count).",
+          "UNWANTED: If POST /api/notifications/read-all is called without a valid auth token, the system shall return 401."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-25",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-25.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-037/E-038",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-25, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-25 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-25",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "audit_logs:workspace_admin_select",
+        "notifications:workspace_admin_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-018",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-25.md",
+      "branch": "claude/T-V3-B-25",
+      "risk_flags": [],
+      "endpoint_count": 3,
+      "endpoint_paths": [
+        "GET /api/notifications",
+        "POST /api/notifications/{id}/read",
+        "POST /api/notifications/read-all"
+      ]
+    },
+    {
+      "id": "T-V3-B-26",
+      "title": "Backend: Account profile backend (/me CRUD / api-keys / oauth unlink) (F-023)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-023",
+      "screen_ids": [
+        "S-009 profile_settings"
+      ],
+      "entity_ids": [
+        "E-002 User",
+        "E-041 UserSettings",
+        "E-006 ApiKey"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 6.0,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "backend/app/routers/me.py (modify)",
+        "backend/app/services/me.py (modify)",
+        "backend/app/schemas/me.py (modify)",
+        "backend/tests/routers/test_me.py (new)",
+        "backend/app/routers/api_keys.py (modify)",
+        "backend/app/services/api_keys.py (modify)",
+        "backend/app/schemas/api_keys.py (modify)",
+        "backend/tests/routers/test_api_keys.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/me.py",
+          "backend/app/services/me.py",
+          "backend/app/schemas/me.py",
+          "backend/tests/routers/test_me.py",
+          "backend/app/routers/api_keys.py",
+          "backend/app/services/api_keys.py",
+          "backend/app/schemas/api_keys.py",
+          "backend/tests/routers/test_api_keys.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When POST /api/me/api-keys is called, the system shall encrypt the key plaintext with pgsodium before persisting.",
+          "UNWANTED: If POST /api/me/api-keys is called for a provider where a key already exists, the system shall return 409.",
+          "EVENT-DRIVEN: When DELETE /api/me/oauth/{provider} is called, the system shall revoke the OAuth token at the provider and unlink locally.",
+          "EVENT-DRIVEN: When GET /api/me is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-023 (incl. user).",
+          "UNWANTED: If GET /api/me is called without a valid auth token, the system shall return 401.",
+          "EVENT-DRIVEN: When PUT /api/me is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-023 (incl. updated_at).",
+          "UNWANTED: If PUT /api/me is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If PUT /api/me receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When POST /api/me/api-keys is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-023 (incl. key_id).",
+          "UNWANTED: If POST /api/me/api-keys is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/me/api-keys receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When DELETE /api/me/oauth/{provider} is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-023 (incl. unlinked_at).",
+          "UNWANTED: If DELETE /api/me/oauth/{provider} is called without a valid auth token, the system shall return 401."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-26",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-26.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-002/E-041/E-006",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-26, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-26 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-26",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "users:workspace_member_select",
+        "user_settings:workspace_member_select",
+        "api_keys:workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-023",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-26.md",
+      "branch": "claude/T-V3-B-26",
+      "risk_flags": [],
+      "endpoint_count": 4,
+      "endpoint_paths": [
+        "GET /api/me",
+        "PUT /api/me",
+        "POST /api/me/api-keys",
+        "DELETE /api/me/oauth/{provider}"
+      ]
+    },
+    {
+      "id": "T-V3-B-27",
+      "title": "Backend: Global search + account dashboard backend (F-024)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-024",
+      "screen_ids": [
+        "S-006 account_dashboard",
+        "S-011 global_search"
+      ],
+      "entity_ids": [
+        "E-016 Task",
+        "E-014 Artifact",
+        "E-037 AuditLog",
+        "E-035 KnowledgeItem"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 3.6,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "backend/app/routers/search.py (modify)",
+        "backend/app/services/search.py (modify)",
+        "backend/app/schemas/search.py (modify)",
+        "backend/tests/routers/test_search.py (new)",
+        "backend/app/routers/dashboard.py (modify)",
+        "backend/app/services/dashboard.py (modify)",
+        "backend/app/schemas/dashboard.py (modify)",
+        "backend/tests/routers/test_dashboard.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/search.py",
+          "backend/app/services/search.py",
+          "backend/app/schemas/search.py",
+          "backend/tests/routers/test_search.py",
+          "backend/app/routers/dashboard.py",
+          "backend/app/services/dashboard.py",
+          "backend/app/schemas/dashboard.py",
+          "backend/tests/routers/test_dashboard.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When GET /api/search is called with a non-empty q, the system shall return hits ranked by combined FTS + vector similarity score.",
+          "UNWANTED: If GET /api/search receives q > 500 chars or empty, the system shall return 422.",
+          "UNWANTED: If GET /api/search exceeds 60 requests per minute per user, the system shall return 429.",
+          "EVENT-DRIVEN: When GET /api/accounts/{id}/dashboard is called, the system shall aggregate KPI across all workspaces the caller belongs to within the account.",
+          "EVENT-DRIVEN: When GET /api/search is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-024 (incl. hits).",
+          "UNWANTED: If GET /api/search is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/search receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When GET /api/accounts/{id}/dashboard is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-024 (incl. workspaces).",
+          "UNWANTED: If GET /api/accounts/{id}/dashboard is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/accounts/{id}/dashboard receives a request body failing validation, the system shall return 422 with a field-level error map."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-27",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-27.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-016/E-014/E-037/E-035",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-27, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-27 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-27",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "tasks:workspace_member_select",
+        "artifacts:workspace_member_select",
+        "audit_logs:workspace_member_select",
+        "knowledge_items:workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-024",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-27.md",
+      "branch": "claude/T-V3-B-27",
+      "risk_flags": [],
+      "endpoint_count": 2,
+      "endpoint_paths": [
+        "GET /api/search",
+        "GET /api/accounts/{id}/dashboard"
+      ]
+    },
+    {
+      "id": "T-V3-B-28",
+      "title": "Backend: Constitution backend (get / versions / approve) (F-026)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-026",
+      "screen_ids": [
+        "S-018 constitution_editor"
+      ],
+      "entity_ids": [
+        "E-042 Constitution",
+        "E-031 RedLine"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 4.9,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "backend/app/routers/constitution.py (modify)",
+        "backend/app/services/constitution.py (modify)",
+        "backend/app/schemas/constitution.py (modify)",
+        "backend/tests/routers/test_constitution.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/constitution.py",
+          "backend/app/services/constitution.py",
+          "backend/app/schemas/constitution.py",
+          "backend/tests/routers/test_constitution.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/constitution/versions is called, the system shall create a new version snapshot without affecting the active version.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/constitution/versions/{v}/approve is called, the system shall mark v as active and inject it into newly spawned sessions.",
+          "UNWANTED: If POST /api/workspaces/{id}/constitution/versions content_md exceeds 10KB, the system shall return 422.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/constitution is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-026 (incl. content_md).",
+          "UNWANTED: If GET /api/workspaces/{id}/constitution is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/workspaces/{id}/constitution receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/constitution/versions is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-026 (incl. version_id).",
+          "UNWANTED: If POST /api/workspaces/{id}/constitution/versions is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/workspaces/{id}/constitution/versions receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/constitution/versions/{v}/approve is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-026 (incl. approved_at).",
+          "UNWANTED: If POST /api/workspaces/{id}/constitution/versions/{v}/approve is called without a valid auth token, the system shall return 401."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-28",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-28.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-042/E-031",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-28, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-28 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-28",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "constitutions:workspace_member_select",
+        "red_lines:workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-026",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-28.md",
+      "branch": "claude/T-V3-B-28",
+      "risk_flags": [],
+      "endpoint_count": 3,
+      "endpoint_paths": [
+        "GET /api/workspaces/{id}/constitution",
+        "POST /api/workspaces/{id}/constitution/versions",
+        "POST /api/workspaces/{id}/constitution/versions/{v}/approve"
+      ]
+    },
+    {
+      "id": "T-V3-B-29",
+      "title": "Backend: Onboarding backend (get / advance / skip) (F-027)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-027",
+      "screen_ids": [
+        "S-048 welcome_first_login",
+        "S-049 workspace_setup_wizard",
+        "S-050 ai_employee_intro"
+      ],
+      "entity_ids": [
+        "E-002 User",
+        "E-041 UserSettings"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 4.9,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "backend/app/routers/onboarding.py (modify)",
+        "backend/app/services/onboarding.py (modify)",
+        "backend/app/schemas/onboarding.py (modify)",
+        "backend/tests/routers/test_onboarding.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/onboarding.py",
+          "backend/app/services/onboarding.py",
+          "backend/app/schemas/onboarding.py",
+          "backend/tests/routers/test_onboarding.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When POST /api/me/onboarding/advance is called with a valid step transition, the system shall persist progress and return the next_step.",
+          "UNWANTED: If POST /api/me/onboarding/skip is called for a step marked required=true, the system shall return 409.",
+          "EVENT-DRIVEN: When GET /api/me/onboarding is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-027 (incl. state).",
+          "UNWANTED: If GET /api/me/onboarding is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/me/onboarding receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When POST /api/me/onboarding/advance is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-027 (incl. next_step).",
+          "UNWANTED: If POST /api/me/onboarding/advance is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/me/onboarding/advance receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When POST /api/me/onboarding/skip is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-027 (incl. skipped_at).",
+          "UNWANTED: If POST /api/me/onboarding/skip is called without a valid auth token, the system shall return 401."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-29",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-29.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-002/E-041",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-29, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-29 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-29",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "users:workspace_member_select",
+        "user_settings:workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-027",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-29.md",
+      "branch": "claude/T-V3-B-29",
+      "risk_flags": [],
+      "endpoint_count": 3,
+      "endpoint_paths": [
+        "GET /api/me/onboarding",
+        "POST /api/me/onboarding/advance",
+        "POST /api/me/onboarding/skip"
+      ]
+    },
+    {
+      "id": "T-V3-B-30",
+      "title": "Backend: Email backend (templates list + test-send) (F-028)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_id": "F-028",
+      "screen_ids": [
+        "S-056 email_signup_verify",
+        "S-057 email_password_reset",
+        "S-058 email_invitation",
+        "S-059 email_task_notification",
+        "S-060 email_weekly_summary"
+      ],
+      "entity_ids": [
+        "E-043 EmailTemplate",
+        "E-044 EmailDelivery"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1A",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "B",
+      "deliverable_layer": "backend",
+      "estimate_hours": 3.6,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "backend/app/routers/email.py (modify)",
+        "backend/app/services/email.py (modify)",
+        "backend/app/schemas/email.py (modify)",
+        "backend/tests/routers/test_email.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/email.py",
+          "backend/app/services/email.py",
+          "backend/app/schemas/email.py",
+          "backend/tests/routers/test_email.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "backend/app/main.py",
+          "backend/app/dependencies.py"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/",
+          "supabase/migrations/",
+          "docs/mocks/2026-05-15_v3/"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh",
+          "scripts/validate-tickets.py",
+          "docs/decisions/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UNWANTED: If POST /api/email/test-send is called more than 10 times per hour per workspace, the system shall return 429.",
+          "EVENT-DRIVEN: When GET /api/email/templates is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-028 (incl. templates).",
+          "UNWANTED: If GET /api/email/templates is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If GET /api/email/templates receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "EVENT-DRIVEN: When POST /api/email/test-send is called with valid inputs by an authorized caller, the system shall return 2xx with the contract defined in features.json#F-028 (incl. delivery_id).",
+          "UNWANTED: If POST /api/email/test-send is called without a valid auth token, the system shall return 401.",
+          "UNWANTED: If POST /api/email/test-send receives a request body failing validation, the system shall return 422 with a field-level error map.",
+          "UNWANTED: If POST /api/email/test-send is called above the rate limit (10/hour/workspace), the system shall return 429."
+        ],
+        "regression": [
+          "Gate 1 (mock lint): bash scripts/lint-mock.sh 16/16 OK (rule_id 1-19, includes mock-impl-diff #17 / screens-API #18 / entity-table-naming #19)",
+          "Gate 2 (3-tier AC validator): python3 scripts/validate-ears-ac.py docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-30",
+          "Gate 3 (audit MD validator): python3 scripts/validate-audit-md.py docs/audit/2026-05-16_v3/T-V3-B-30.md PASS (no generic phrase, 3-tier present, impl line ranges recorded)",
+          "Gate 4 (RLS coverage): python3 scripts/verify-rls-coverage.py PASS for E-043/E-044",
+          "Gate 5 (pytest + coverage): pytest backend/tests/ --cov --cov-fail-under=70 PASS (>= 10 new tests for T-V3-B-30, coverage on touched modified files >= 70%)",
+          "Gate 6 (pyright strict): pyright --strict backend/app/ 0 errors on touched files",
+          "Gate 7 (TS strict / N/A for backend): skip — this task does not touch frontend/",
+          "Gate 8 (mock-impl diff): N/A — backend-only task, structural AC is empty",
+          "bash scripts/audit-md-check.sh T-V3-B-30 PASS",
+          "python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json PASS for T-V3-B-30",
+          "ruff check backend/app/ 0 warnings on touched files"
+        ]
+      },
+      "access_policies_required": [
+        "email_templates:workspace_member_select",
+        "email_deliveries:workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-028",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-30.md",
+      "branch": "claude/T-V3-B-30",
+      "risk_flags": [],
+      "endpoint_count": 2,
+      "endpoint_paths": [
+        "GET /api/email/templates",
+        "POST /api/email/test-send"
+      ]
+    }
+  ]
+}
