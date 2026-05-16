@@ -1,0 +1,284 @@
+# Build-Factory v3 Phase 1 — gate-config.yml
+#
+# Reference: skills/test-verification/references/profiles/build-factory.md (8 gate)
+#            .github/workflows/ci-v3.yml (current implementation)
+#
+# This file is the **logical CI gate contract**. .github/workflows/ci-v3.yml
+# implements it as actionable GitHub Actions jobs. The two MUST stay in sync;
+# this file is the source of truth for what Phase 1 ships, what is optional,
+# and what is deferred to Phase 1B / Polish.
+#
+# Stage semantics (block-chain): Foundation -> Backend -> UI -> Polish
+#   - any required gate fail in a stage causes downstream stage skip
+#   - auto-merge requires ALL required gates to pass
+#
+# Profile values (overridable per project):
+#   roles                = [owner, admin, member, guest]               (4 roles)
+#   operations           = [SELECT own, SELECT others, INSERT,         (7 ops)
+#                           UPDATE own, UPDATE others,
+#                           DELETE own, DELETE others]
+#   matrix_cells / role  = roles * operations = 4 * 7 = 28
+#   matrix_cells (BF profile target) = 6 roles * 7 ops = 42   (Phase 1.5)
+#                                       (4 roles * 7 ops = 28 in Phase 1)
+#   coverage_threshold   = 70
+#   max_consecutive_fail = 3
+#   escalation_target    = Slack #engineering + masato@engine-base.com
+
+version: v3
+project: Build-Factory
+phase: Phase 1
+profile: skills/test-verification/references/profiles/build-factory.md
+created_at: 2026-05-16
+ci_workflow: .github/workflows/ci-v3.yml
+
+# ---------------------------------------------------------------------------
+# Gates by stage (block-chain order)
+# ---------------------------------------------------------------------------
+gates:
+
+  # ===== Foundation stage =====
+  foundation:
+    - id: gate-1-lint-mock
+      label: lint-mock
+      description: |
+        16+ rule lint bundle (emoji ban / AGPL / ARCHIVE residue / tickets.json
+        meta / secrets / langgraph / litellm-in-runner / domain-boundaries /
+        self-provider-routing / template-skeleton / constitution-inject /
+        mock-impl-diff [#17] / screens-API [#18] / entity-table-naming [#19]).
+      tool_command: bash scripts/lint-mock.sh
+      timeout_min: 5
+      required: true
+      block_downstream_on_fail: true
+
+    - id: gate-2-ac-validator
+      label: 3-tier AC validator + EARS schema
+      description: |
+        tickets.json schema validator (3-tier AC presence + EARS form check).
+        Runs against all 4 Phase 1 ticket files.
+      tool_command: python3 scripts/validate-tickets.py
+      timeout_min: 3
+      required: true
+      block_downstream_on_fail: true
+      inputs:
+        - docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json
+        - docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part1.json
+        - docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json
+        - docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-d-drift.json
+
+    - id: gate-4-audit-md
+      label: audit MD existence (pre-flight)
+      description: |
+        Phase 1 enforces pre-flight audit MDs (docs/audit/2026-05-16_v3/<TASK-ID>.md).
+        ci-v3.yml runs --all in Foundation. Per-task post-merge check is also
+        wired via scripts/audit-md-check.sh <TASK-ID>.
+      tool_command: bash scripts/audit-md-check.sh --all
+      timeout_min: 5
+      required: true
+      block_downstream_on_fail: true
+
+    - id: gate-6-pyright
+      label: pyright strict
+      description: |
+        backend Python strict type check on touched files. Phase 1 baseline
+        runs pyright on backend/; full --strict baseline still being filled in
+        (warning-only in ci-v3.yml until Polish phase).
+      tool_command: cd backend && pyright --warnings
+      timeout_min: 5
+      required: true
+      block_downstream_on_fail: false   # warning-only in Phase 1 (per ci-v3.yml)
+
+  # ===== Backend stage =====
+  backend:
+    - id: gate-3-rls-coverage
+      label: RLS coverage (role x operation matrix)
+      description: |
+        Static + runtime RLS coverage check.
+        roles    = [owner, admin, member, guest]
+        ops      = [SELECT own, SELECT others, INSERT, UPDATE own,
+                    UPDATE others, DELETE own, DELETE others]
+        matrix   = 4 * 7 = 28 cells / entity (Phase 1)
+        Phase 1.5: extend roles to 6 (add service_role + account_owner)
+                   -> 6 * 7 = 42 cells / entity per BF profile.
+      tool_command: python3 scripts/verify-rls-coverage.py
+      timeout_min: 5
+      required: true
+      block_downstream_on_fail: true
+      matrix:
+        roles:
+          - owner
+          - admin
+          - member
+          - guest
+        operations:
+          - select_own
+          - select_others
+          - insert
+          - update_own
+          - update_others
+          - delete_own
+          - delete_others
+        cells_per_entity: 28
+        # Phase 1.5 target (BF profile expansion to 6x7=42)
+        phase_1_5_target:
+          additional_roles:
+            - service_role
+            - account_owner
+          cells_per_entity: 42
+
+    - id: gate-5-pytest-cov
+      label: pytest + coverage >= 70%
+      description: |
+        Backend test run with coverage gate. EARS-derived tests
+        (~622 functional test IDs from ears-test-mapping.json) feed this gate.
+      tool_command: bash scripts/check-coverage.sh --gate
+      timeout_min: 15
+      required: true
+      coverage_threshold: 70
+      block_downstream_on_fail: true
+
+    - id: gate-backend-contract-schemathesis
+      label: contract test (Schemathesis OpenAPI fuzz)
+      description: |
+        Schemathesis-based property test over the OpenAPI spec.
+        Phase 1 後半 (Wave 3 onwards) で有効化予定。Phase 1 前半は
+        required=false で警告のみ。
+      tool_command: schemathesis run docs/api-design/2026-05-16_v3/openapi.yaml --base-url http://localhost:8000 --checks all
+      timeout_min: 10
+      required: false   # Phase 1 後半で required:true へ昇格
+      enable_in: Phase 1B Wave 3
+      block_downstream_on_fail: false
+
+    - id: gate-backend-contract-pact
+      label: contract test (Pact consumer/provider)
+      description: |
+        Frontend が consumer pact を生成 -> backend が provider verify。
+        Phase 1.5 で broker 接続を整え、required:true へ昇格予定。
+      tool_command: pact-broker verify
+      timeout_min: 10
+      required: false
+      enable_in: Phase 1.5
+      block_downstream_on_fail: false
+
+  # ===== UI stage =====
+  ui:
+    - id: gate-7-tsc-strict
+      label: tsc --noEmit (frontend strict)
+      description: |
+        Next.js 15 + TypeScript strict. tsc --noEmit on touched modules.
+      tool_command: cd frontend && npx tsc --noEmit
+      timeout_min: 5
+      required: true
+      block_downstream_on_fail: true
+
+    - id: gate-8-mock-impl-diff
+      label: mock-impl drift lint (--strict)
+      description: |
+        Tier-1 structural AC enforcement. 134 structural test IDs from
+        ears-test-mapping.json feed this gate. Detects mock <-> impl drift
+        on data-screen-id / h1_text / data-feature-id / data-test-id.
+      tool_command: python3 scripts/lint-mock-impl-diff.py --mock-dir docs/mocks/2026-05-15_v3/ --impl-dir frontend/src --strict
+      timeout_min: 5
+      required: true
+      block_downstream_on_fail: true
+
+    - id: gate-ui-vitest
+      label: vitest (frontend unit + integration)
+      description: |
+        Frontend unit/integration tests (Vitest + RTL). Coverage report fed
+        to coverage_threshold gate (shared 70%).
+      tool_command: cd frontend && pnpm run test:ci
+      timeout_min: 10
+      required: true
+      coverage_threshold: 70
+      block_downstream_on_fail: true
+
+    - id: gate-ui-playwright-e2e
+      label: E2E smoke (Playwright)
+      description: |
+        Critical-path E2E (login / workspace dashboard / project create).
+        Phase 1 では smoke 3 本のみ。Phase 1.5 で本格運用。
+      tool_command: cd frontend && pnpm run e2e:smoke
+      timeout_min: 10
+      required: false
+      enable_in: Phase 1B Wave 3
+      block_downstream_on_fail: false
+
+  # ===== Polish stage =====
+  polish:
+    - id: check-phase-gate
+      label: phase-gate decision (mechanical)
+      description: |
+        Mechanically decide whether a phase can close (Foundation -> Backend
+        -> UI -> Polish). Implemented in scripts/check-phase-gate.py.
+      tool_command: python3 scripts/check-phase-gate.py --phase polish
+      timeout_min: 3
+      required: true
+      block_downstream_on_fail: true
+
+    - id: gate-polish-security-scan
+      label: security scan (pip-audit + npm audit)
+      description: |
+        Detect HIGH/CRITICAL CVEs in production deps.
+      tool_command: bash scripts/security-scan.sh
+      timeout_min: 5
+      required: false
+      enable_in: Phase 1.5
+      block_downstream_on_fail: false
+
+# ---------------------------------------------------------------------------
+# Auto-merge
+# ---------------------------------------------------------------------------
+auto_merge:
+  required_gates:
+    - gate-1-lint-mock
+    - gate-2-ac-validator
+    - gate-4-audit-md
+    - gate-3-rls-coverage
+    - gate-5-pytest-cov
+    - gate-7-tsc-strict
+    - gate-8-mock-impl-diff
+    - gate-ui-vitest
+    - check-phase-gate
+  command: gh pr merge --auto --squash
+
+# ---------------------------------------------------------------------------
+# Retry / escalation
+# ---------------------------------------------------------------------------
+retry_policy:
+  max_consecutive_failures: 3
+  per_failure_action:
+    - rerun_gate
+    - read_gate_log
+    - patch_minimal_diff
+  on_max_failures:
+    - escalation_label: needs-human-review
+    - notify_slack_channel: '#engineering'
+    - notify_email: masato@engine-base.com
+
+# ---------------------------------------------------------------------------
+# Access control matrix expansion (Phase 1.5 -> 6 x 7 = 42 cells)
+# ---------------------------------------------------------------------------
+access_control_matrix:
+  current:
+    roles: [owner, admin, member, guest]
+    operations: [select_own, select_others, insert, update_own, update_others, delete_own, delete_others]
+    cells_per_entity: 28
+  expansion_target:
+    roles: [owner, admin, member, guest, service_role, account_owner]
+    operations: [select_own, select_others, insert, update_own, update_others, delete_own, delete_others]
+    cells_per_entity: 42
+    enable_in: Phase 1.5
+
+# ---------------------------------------------------------------------------
+# Contract test rollout plan
+# ---------------------------------------------------------------------------
+contract_test_rollout:
+  phase_1_a:
+    schemathesis: optional   # warning-only
+    pact:         disabled
+  phase_1_b_wave_3:
+    schemathesis: required   # block_downstream_on_fail = true
+    pact:         optional
+  phase_1_5:
+    schemathesis: required
+    pact:         required

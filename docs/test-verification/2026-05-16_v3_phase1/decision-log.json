@@ -1,0 +1,143 @@
+{
+  "version": "v3",
+  "skill": "test-verification",
+  "project": "Build-Factory",
+  "phase": "Phase 1",
+  "created_at": "2026-05-16",
+  "profile": "skills/test-verification/references/profiles/build-factory.md",
+  "decisions": [
+    {
+      "id": "DEC-TV-01",
+      "topic": "3-tier AC ↔ test レベル 1:1 マッピング",
+      "decision": "structural -> mock-impl-diff lint (gate-8) / functional -> pytest+contract+access-control (gate-3,5) / regression -> CI gate (gate-1..8) で機械的に紐付ける",
+      "rationale": "v3-core.md の方針に従い、AC が必ず CI で機械検証される状態を保証する。100 task × 平均 ~16 AC で 1576 test ID を生成。",
+      "alternatives_considered": [
+        "AC をリスクベースで一部だけ test 化 (v1/v2 方式)",
+        "AC を全て property test に統一"
+      ],
+      "outcome": "ears-test-mapping.json として 1576 test ID 完全列挙"
+    },
+    {
+      "id": "DEC-TV-02",
+      "topic": "test ID の総数 (~800 → 1576)",
+      "decision": "当初 ~800 想定だったが、AC を省略せず 1:1 で生成した結果 1576 になった。これを承認する。",
+      "rationale": "Group B (backend) は task あたり functional ~11 + regression ~11 件と密。regression は CI gate の機械検証なので 1 件 = 1 mapping。Group D の migration 系も AC が密。全件 mapping することで漏れ検出が容易になる。",
+      "alternatives_considered": [
+        "regression を 1 task = 1 entry に集約 (gate 別 8 entry のみ)",
+        "重複 AC を統合"
+      ],
+      "outcome": "1576 test ID で確定。tier_counts = {structural:134, functional:622, regression:820}"
+    },
+    {
+      "id": "DEC-TV-03",
+      "topic": "Access control matrix を 6 role × 7 op = 42 cell に拡張するタイミング",
+      "decision": "Phase 1 は 4 role × 7 op = 28 cell / entity を継続。Phase 1.5 で service_role + account_owner を追加し 42 cell / entity に拡張する",
+      "rationale": "Supabase service-role JWT (バッチ処理 / cron) と account_owner (workspace 横断オーナー) はアーキ上既に必要だが、Phase 1 では RLS 検証コスト (43 entity × 14 extra cell = 602 new test case) を Wave 中盤に投入する余地がない",
+      "alternatives_considered": [
+        "Phase 1 で一気に 42 cell 化",
+        "service_role のみ Phase 1 で追加 (5 role × 7 op = 35 cell)"
+      ],
+      "outcome": "gate-config.yml の access_control_matrix.expansion_target に Phase 1.5 で 42 cell へ昇格と明記"
+    },
+    {
+      "id": "DEC-TV-04",
+      "topic": "Contract test (Schemathesis) の Phase 1 後半有効化",
+      "decision": "Phase 1A は warning-only (required:false)。Phase 1B Wave 3 で required:true に昇格",
+      "rationale": "openapi.yaml が Wave 1-2 で integrated になるため、それ以前は fuzz test が誤検知だらけになる。Wave 3 で API spec が信頼源として固まったタイミングで gate-backend-contract-schemathesis を block-downstream 化する",
+      "alternatives_considered": [
+        "Phase 1A から required",
+        "Phase 1.5 まで導入を遅延"
+      ],
+      "outcome": "gate-config.yml の gate-backend-contract-schemathesis に enable_in: 'Phase 1B Wave 3' と明記"
+    },
+    {
+      "id": "DEC-TV-05",
+      "topic": "Contract test (Pact) の採用と運用主体",
+      "decision": "Pact (consumer/provider) は Phase 1.5 で導入。broker は self-hosted (Oracle Cloud Free Tier)",
+      "rationale": "Schemathesis は 'spec通り動くか' を検証するが、consumer (frontend) が実際にどう使うかは別問題。Pact で frontend ↔ backend lockstep を取りたい。SaaS pact broker は無料枠に収まらない可能性があるため self-host が安全",
+      "alternatives_considered": [
+        "Phase 1 から SaaS Pact Broker (PactFlow) を採用",
+        "Pact を採用せず Schemathesis のみ"
+      ],
+      "outcome": "gate-config.yml の gate-backend-contract-pact に enable_in: 'Phase 1.5' / Pact broker self-hosted と明記"
+    },
+    {
+      "id": "DEC-TV-06",
+      "topic": "coverage 閾値 70% の段階引き上げ",
+      "decision": "Phase 1 = 70%, Phase 1.5 = 75%, Phase 2 = 80% で段階引き上げる",
+      "rationale": "現状 Phase 9 完走時で既に backend test 8000 pass / coverage ~75% 達成しているが、新規実装の安定性確保のため Phase 1 では 70% 据え置き。Phase 1.5 で REFACTOR が落ち着いたタイミングで引き上げる",
+      "alternatives_considered": [
+        "最初から 80% (Phase 9 実績ベース)",
+        "Phase 1 80%, Phase 1.5 85%"
+      ],
+      "outcome": "gate-config.yml の gate-5-pytest-cov に coverage_threshold: 70 と明記"
+    },
+    {
+      "id": "DEC-TV-07",
+      "topic": "pyright を warning-only にする件",
+      "decision": "Phase 1 は warning-only (block_downstream_on_fail: false)、Phase 1.5 (Polish phase) で required",
+      "rationale": "現状 pyright --strict のベースライン未整備 (legacy code に Any が多数)。baseline 整備後に gate fail 化する。これは ci-v3.yml の既存方針と一致",
+      "alternatives_considered": [
+        "Phase 1 から required",
+        "pyright を放棄して mypy へ切替"
+      ],
+      "outcome": "gate-config.yml の gate-6-pyright に block_downstream_on_fail: false と明記"
+    },
+    {
+      "id": "DEC-TV-08",
+      "topic": "EARS form → test 種別 自動変換ルール",
+      "decision": "EVENT-DRIVEN -> 正常系 / UNWANTED -> 異常系 / STATE-DRIVEN -> parametrize / UBIQUITOUS -> property / OPTIONAL -> conditional に固定",
+      "rationale": "v3-core.md の自動生成ルールに準拠。ears-test-mapping.json の test_type フィールドに反映",
+      "alternatives_considered": [
+        "全 AC を generic unit test として扱う",
+        "EARS form を無視して test_type は test_layer のみで決定"
+      ],
+      "outcome": "_generate_mapping.py の classify_test_layer() で実装。生成結果 EVENT-DRIVEN 276 / UNWANTED 293 / STATE-DRIVEN 129 / UBIQUITOUS 874 / OPTIONAL 4"
+    },
+    {
+      "id": "DEC-TV-09",
+      "topic": "regression AC の gate 自動推定",
+      "decision": "regression AC text に含まれるキーワード ('lint-mock', 'verify-rls-coverage', 'pytest', 'pyright', 'tsc', 'audit-md-check' etc.) から該当 gate を mechanical に推定",
+      "rationale": "tickets.json の regression 行は CI gate 実行コマンドそのものなので、自然に gate と 1:1 対応する。手動 mapping は不要",
+      "alternatives_considered": [
+        "全 regression を gate-1-lint-mock に集約",
+        "tickets.json に gate_id フィールドを追加して明示"
+      ],
+      "outcome": "regression 820 件のうち 8 gate に分散割当 (gate-1=217, gate-2=115, gate-3=多, gate-5=558 一部)"
+    },
+    {
+      "id": "DEC-TV-10",
+      "topic": "連続失敗時のエスカ閾値 (3 fail)",
+      "decision": "max_consecutive_failures = 3 で human エスカ。Slack #engineering + masato メール",
+      "rationale": "v3-core.md / build-factory profile の標準値に準拠。1-2 fail は transient flake 含むため retry、3 fail で人間介入",
+      "alternatives_considered": [
+        "1 fail で即エスカ (厳しすぎ)",
+        "5 fail でエスカ (放置されるリスク)"
+      ],
+      "outcome": "gate-config.yml の retry_policy.max_consecutive_failures = 3"
+    }
+  ],
+  "open_questions": [
+    {
+      "id": "Q-TV-01",
+      "question": "EARS auto-generator (scripts/generate-tests-from-ears.py) を Phase 1A で導入すべきか",
+      "owner": "test-verification",
+      "deadline": "Phase 1B Wave 2 開始時",
+      "default": "Phase 1A は手動。Phase 1B Wave 2 で導入判断"
+    },
+    {
+      "id": "Q-TV-02",
+      "question": "Pact broker を self-hosted (Oracle Cloud) で運用するか PactFlow SaaS を採用するか",
+      "owner": "高本まさと",
+      "deadline": "Phase 1.5 開始時",
+      "default": "self-hosted (Phase 1 ¥0/月 原則を維持)"
+    },
+    {
+      "id": "Q-TV-03",
+      "question": "Playwright E2E の smoke test を 3 本でいいか (login / workspace dashboard / project create)",
+      "owner": "test-verification + masato",
+      "deadline": "Phase 1B Wave 3 開始時",
+      "default": "smoke 3 本で開始、Phase 1.5 で 10 本へ拡張"
+    }
+  ]
+}
