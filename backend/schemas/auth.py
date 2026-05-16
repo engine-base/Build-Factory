@@ -108,3 +108,114 @@ class PasswordResetResponse(BaseModel):
         default="email sent if account exists",
         description="generic message — must not leak account existence",
     )
+
+
+# ──────────────────────────────────────────────────────────────────────
+# T-V3-B-02: MFA + OAuth callback (F-001 extension)
+#
+# Endpoints added in T-V3-B-02:
+#   - POST /api/auth/mfa/enroll          (auth: authenticated)
+#   - POST /api/auth/mfa/verify          (auth: public, rate_limit 5/min/user)
+#   - GET  /api/auth/oauth/{provider}/callback (auth: public)
+#
+# 仕様の出典: features.json#F-001 / openapi.yaml (paths: /api/auth/mfa/*,
+# /api/auth/oauth/{provider}/callback)
+# ──────────────────────────────────────────────────────────────────────
+
+
+# TOTP code: ASCII numeric only (6-8 digits). totp_secret は Base32-ish (RFC 4648
+# 互換) で 16-128 桁を許容. これは Pydantic 層で構造的に正規化する.
+_TOTP_CODE_PATTERN = r"^[0-9]{6,8}$"
+_TOTP_SECRET_PATTERN = r"^[A-Z2-7=]{16,128}$"  # Base32 alphabet
+# UUID v4 のみ受け付ける. provider 側で発行された user_id を expect.
+_UUID_PATTERN = (
+    r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+)
+# OAuth provider: features.json#F-001 oauth/callback inputs.provider enum.
+# anthropic|github|slack|google. case-insensitive 入力でも受けるが小文字に
+# 正規化される.
+_OAUTH_PROVIDERS = frozenset({"anthropic", "github", "slack", "google"})
+
+
+class MfaEnrollRequest(BaseModel):
+    """features.json#F-001 endpoint POST /api/auth/mfa/enroll の inputs.
+
+    inputs (features.json):
+      - totp_secret: string (required)
+
+    Validation:
+      - Base32 alphabet (A-Z2-7=) で 16-128 桁.
+      - 422 if not matching.
+    """
+
+    totp_secret: str = Field(
+        ...,
+        pattern=_TOTP_SECRET_PATTERN,
+        description="Base32-encoded TOTP secret (RFC 4648 alphabet, 16-128 chars)",
+    )
+
+
+class MfaEnrollResponse(BaseModel):
+    """features.json#F-001 endpoint POST /api/auth/mfa/enroll の outputs_2xx.
+
+    outputs_2xx (features.json):
+      - qr_code_url: string
+      - backup_codes: string[]
+    """
+
+    qr_code_url: str = Field(..., description="otpauth:// URL or QR image URL")
+    backup_codes: list[str] = Field(
+        default_factory=list,
+        description="single-use backup codes (8 hex chars each, count >= 8)",
+    )
+
+
+class MfaVerifyRequest(BaseModel):
+    """features.json#F-001 endpoint POST /api/auth/mfa/verify の inputs.
+
+    inputs (features.json):
+      - user_id: uuid
+      - totp_code: string
+
+    Validation:
+      - user_id must be a UUID
+      - totp_code must be 6-8 numeric digits
+    """
+
+    user_id: str = Field(
+        ...,
+        pattern=_UUID_PATTERN,
+        description="user id (UUID v4) issued at signup / mfa enroll",
+    )
+    totp_code: str = Field(
+        ...,
+        pattern=_TOTP_CODE_PATTERN,
+        description="6-8 digit numeric TOTP code (current 30s window)",
+    )
+
+
+class MfaVerifyResponse(BaseModel):
+    """features.json#F-001 endpoint POST /api/auth/mfa/verify の outputs_2xx.
+
+    outputs_2xx (features.json):
+      - access_token: string
+      - refresh_token: string
+    """
+
+    access_token: str
+    refresh_token: str
+
+
+class OAuthCallbackResponse(BaseModel):
+    """features.json#F-001 endpoint GET /api/auth/oauth/{provider}/callback の
+    outputs_2xx.
+
+    outputs_2xx (features.json):
+      - access_token: string
+      - refresh_token: string
+      - user_id: uuid
+    """
+
+    access_token: str
+    refresh_token: str
+    user_id: str
