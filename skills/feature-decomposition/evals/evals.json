@@ -1,0 +1,98 @@
+{
+  "skill_name": "feature-decomposition",
+  "version": "v3-2026-05-15",
+  "description": "並列開発のための機能分解 + Sprint/Wave 設計スキルのテスト (v3: Foundation先行 / Group A-J / Vertical Slice / functional-breakdown pull / CI gate 連携)",
+  "evals": [
+    {
+      "id": "fd-eval-1",
+      "title": "EC サイト要件 → STEP 1 大分類 + Group A-J マッピング",
+      "prompt": "functional-breakdown が終わったところです (docs/functional-breakdown/2026-05-16_v1/ に screens.json 11件 / features.json 8件 / roles.json 3件 / entities.json 9件)。BtoC EC サイト構築、3 ヶ月で Phase 1 dogfood リリース目標。Claude Code 30 並列で並列開発したい。STEP 1 の大分類をお願いします。",
+      "expected_behavior": [
+        "STEP 1 形式で出力 (会話的前置きなし)",
+        "functional-breakdown の 4 JSON path を入力情報として明示",
+        "大分類カテゴリ表に含まれる機能数",
+        "v3: Group A-J マッピングが含まれる (Group A Foundation 必須先行を明記)",
+        "v3: Sprint 0 = Phase 0 = Wave 0 = Group A の対応を示す",
+        "v3: drift 検知出力の取り込み有無を確認",
+        "STEP 2 へ で止まる"
+      ],
+      "assertions": [
+        {"id": "format_no_preface", "check": "応答冒頭が '##' で始まる"},
+        {"id": "input_paths_listed", "check": "functional-breakdown の 4 JSON path を listing"},
+        {"id": "v3_group_a_j_mapping", "check": "Group A-J マッピング表または列挙が含まれる"},
+        {"id": "v3_sprint0_foundation", "check": "Sprint 0 / Phase 0 / Wave 0 / Group A の対応関係を明示"},
+        {"id": "v3_drift_intake_asked", "check": "drift 検知出力の取り込み有無を確認している"},
+        {"id": "stops_at_step1", "check": "STEP 1 で止まり STEP 2 を勝手に開始しない"}
+      ]
+    },
+    {
+      "id": "fd-eval-2",
+      "title": "認証機能 (F-V3-AUTH) を STEP 2 で分解 + Vertical Slice",
+      "prompt": "STEP 2 で Group B の認証機能を分解してほしい。functional-breakdown の features.json から F-001 認証の api_endpoints (login/logout/signup/mfa/oauth/password-reset 6 件) と ears_ac_seed が来ています。screens S-001〜S-005 5件 + entities E-001 User / E-038 AuthSession 紐付き。",
+      "expected_behavior": [
+        "F-V3-AUTH-XX 形式で命名 (Group B)",
+        "vertical_slice_components が必須 (screens/api_endpoints/entities/rls_policies/tests)",
+        "各機能に screen_ids / entity_ids / api_endpoints / rls_policies / ears_ac_seed を必須付与",
+        "1 機能の estimated_days が 0.5-2 day 程度 (Vertical Slice なら 1 機能で完結)",
+        "依存関係に Group A (Foundation) の機能が depends_on に含まれる",
+        "Risk flags が明示",
+        "STEP 3 へ で止まる"
+      ],
+      "assertions": [
+        {"id": "v3_naming_convention", "check": "F-V3-AUTH-XX 形式の命名"},
+        {"id": "v3_vertical_slice_components", "check": "vertical_slice_components が各機能に存在 (screens/api_endpoints/entities/rls_policies/tests)"},
+        {"id": "v3_pull_from_fb", "check": "screen_ids / entity_ids / api_endpoints / rls_policies / ears_ac_seed を必須付与"},
+        {"id": "v3_estimate_size", "check": "estimated_days が 0.5-2 day 程度"},
+        {"id": "v3_depends_on_group_a", "check": "depends_on に Group A 機能 (lint/AC validator/CI gate) が含まれる"},
+        {"id": "risk_flags", "check": "risk フィールドが空でない"},
+        {"id": "stops_at_step2", "check": "STEP 3 を勝手に開始しない"}
+      ]
+    },
+    {
+      "id": "fd-eval-3",
+      "title": "STEP 3 依存 DAG + 50 並列 Wave 構成",
+      "prompt": "STEP 3 で依存マップと Wave 構成お願いします。今 Group A 8件 / B 6件 / C 9件 / D 3件 / E 8件 / F 5件 全部分解済み。Claude Code 30 並列 / 2 日で完走したい。",
+      "expected_behavior": [
+        "Phase 0 (Group A) を Wave 0 で固定",
+        "Group B/C/D/E/F の依存解禁順序を明示",
+        "並列度 30 を超えないこと",
+        "各 Wave の所要時間目安",
+        "DAG 図 (ASCII or Mermaid)",
+        "Sprint 0/1/2/3 と Wave の対応",
+        "Risk flags (ボトルネック機能 / 3 回連続失敗時の retry プロトコル)",
+        "STEP 4 へ で止まる"
+      ],
+      "assertions": [
+        {"id": "v3_wave0_foundation_fixed", "check": "Wave 0 = Phase 0 = Group A 固定"},
+        {"id": "v3_dependency_unlock_order", "check": "Group B/C/D/E/F の依存解禁順序を明示"},
+        {"id": "v3_parallel_30_limit", "check": "各 Wave の並列数が 30 以下"},
+        {"id": "v3_wave_duration", "check": "各 Wave の所要時間目安 (h/day) 表示"},
+        {"id": "v3_dag_diagram", "check": "DAG 図が含まれる"},
+        {"id": "v3_sprint_wave_phase_map", "check": "Sprint 0/1/2/3 と Wave / Phase の対応表"},
+        {"id": "v3_risk_flags", "check": "Risk flags + retry プロトコル言及"},
+        {"id": "stops_at_step3", "check": "STEP 4 を勝手に開始しない"}
+      ]
+    },
+    {
+      "id": "fd-eval-4-v3-new",
+      "title": "v3 新規: drift 入力 → Group D 機能化",
+      "prompt": "functional-breakdown の drift 検知モードで legacy_drift_notes 5 件出てきた: S-006 h1 mismatch / S-040 section drift / POST /api/auth/login 不在 / users table 命名違反 (bf_users) / E-007 RLS policy 不足。これを v3 機能分解の Group D に取り込みたい。STEP 2 を Group D のみスコープでお願いします。",
+      "expected_behavior": [
+        "Group D スコープで F-V3-DRIFT-XX 命名",
+        "5 件の drift それぞれが 1 機能になる",
+        "各機能の drift_origin フィールドが埋まる (source_screen_id / diff_severity / recommendation)",
+        "vertical_slice_components が drift 修正に必要なコンポーネントを含む",
+        "Group D 機能は Wave 2 (Phase 1) に配置される旨を明示",
+        "下流 task-decomposition で T-V3-DRIFT-XX に展開される旨を明示"
+      ],
+      "assertions": [
+        {"id": "v3_drift_naming", "check": "F-V3-DRIFT-XX 形式の命名"},
+        {"id": "v3_drift_origin_populated", "check": "各機能の drift_origin フィールド (source_screen_id / diff_severity) が埋まる"},
+        {"id": "v3_drift_count_5", "check": "drift 5 件に対応する機能が出力される"},
+        {"id": "v3_drift_vertical_slice", "check": "各 drift 機能に vertical_slice_components が定義"},
+        {"id": "v3_drift_wave_2_phase_1", "check": "Group D は Wave 2 / Phase 1 配置を明示"},
+        {"id": "v3_drift_handoff_task_dec", "check": "下流 task-decomposition で T-V3-DRIFT-XX に展開される旨を明示"}
+      ]
+    }
+  ]
+}
