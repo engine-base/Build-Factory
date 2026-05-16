@@ -59,6 +59,7 @@ from routers.swarm import router as swarm_router
 from routers.memory import router as memory_router
 from routers.context import router as context_router
 from routers.oauth import router as oauth_router
+from routers.auth import router as auth_router  # T-V3-B-09: restore missing import
 # T-V3-B-01 (F-001): /api/auth/* — login / signup / password reset.
 # T-V3-B-06 hotfix: registration line existed already but import was missing on
 # main, causing a NameError at startup. Added here so the app boots in tests.
@@ -145,6 +146,12 @@ from routers.auth import router as auth_router  # F-001 / shared auth router
 # `app.include_router(auth_router)` call below references the symbol.
 from routers.auth import router as auth_router
 from routers.mocks import router as mocks_router  # T-V3-B-08 / F-005b
+from routers.components import (  # T-V3-B-09 / F-005b
+    router as components_router,
+)
+from routers.screen_flow import (  # T-V3-B-09 / F-005b
+    router as screen_flow_router,
+)
 from routers.onboarding import router as onboarding_router  # T-V3-B-29 / F-027
 from routers.auth import router as auth_router  # pre-existing main.py drift fix (referenced L316 but never imported)
 from scheduler.scheduler import scheduler, load_jobs_from_db
@@ -331,6 +338,8 @@ app.include_router(violations_router)
 app.include_router(email_router)
 app.include_router(auth_router)
 app.include_router(mocks_router)  # T-V3-B-08 / F-005b
+app.include_router(components_router)  # T-V3-B-09 / F-005b
+app.include_router(screen_flow_router)  # T-V3-B-09 / F-005b
 app.include_router(onboarding_router)  # T-V3-B-29 / F-027
 
 
