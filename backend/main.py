@@ -37,6 +37,8 @@ from routers.skill_creator import router as skill_creator_router
 from routers.artifacts import router as artifacts_router
 from routers.accounts import router as accounts_router
 from routers.workspaces import router as workspaces_router, invitations_router
+# T-V3-B-05 (F-004): public GET /api/invitations/{token}
+from routers.invitations import router as public_invitations_router
 from routers.constitution import router as constitution_router
 from routers.hearing import router as hearing_router
 from routers.specs import router as specs_router
@@ -215,6 +217,7 @@ app.include_router(artifacts_router)
 app.include_router(accounts_router)
 app.include_router(workspaces_router)
 app.include_router(invitations_router)
+app.include_router(public_invitations_router)  # T-V3-B-05 (F-004)
 # T-V3-B-28 / F-026: Constitution backend (get / versions / approve)
 app.include_router(constitution_router)
 app.include_router(hearing_router)
