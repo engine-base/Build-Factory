@@ -60,6 +60,12 @@ from routers.memory import router as memory_router
 from routers.context import router as context_router
 from routers.oauth import router as oauth_router
 from routers.auth import router as auth_router  # T-V3-B-09: restore missing import
+# T-V3-B-01 (F-001): /api/auth/* — login / signup / password reset.
+# T-V3-B-06 hotfix: registration line existed already but import was missing on
+# main, causing a NameError at startup. Added here so the app boots in tests.
+from routers.auth import router as auth_router
+from routers.auth import router as auth_router  # T-V3-B-01 + T-V3-B-02 / F-001
+from routers.auth import router as auth_router  # T-V3-B-01 (restore missing import after merge)
 from routers.user_lifecycle import router as user_lifecycle_router
 from routers.memory_facts import router as memory_facts_router
 from routers.mem0_bridge import router as mem0_bridge_router
@@ -96,8 +102,11 @@ from routers.category_push import router as category_push_router
 from routers.git_wrap import router as git_wrap_router
 from routers.pr_review import router as pr_review_router
 from routers.pr_review import prs_router as prs_router  # T-V3-B-19 / F-013
+from routers.client_portal import router as client_portal_router  # T-V3-B-20 / F-013
+from routers.auth import router as auth_router  # T-V3-B-01 / F-001 (pre-existing wiring fix)
 from routers.audit_trigger import router as audit_trigger_router
 from routers.audit_logs import router as audit_logs_router  # T-V3-B-24 / F-018
+from routers.notifications import router as notifications_router  # T-V3-B-25 / F-018
 from routers.observability import router as observability_router
 from routers.artifact_md import router as artifact_md_router
 from routers.export_trigger import router as export_trigger_router
@@ -132,6 +141,10 @@ from routers.intent_router import router as intent_router_router
 from routers.red_lines import router as red_lines_router
 from routers.violations import router as violations_router
 from routers.email import router as email_router
+from routers.auth import router as auth_router  # F-001 / shared auth router
+# T-V3-B-01 (F-001) auth router — import was lost during a prior merge but the
+# `app.include_router(auth_router)` call below references the symbol.
+from routers.auth import router as auth_router
 from routers.mocks import router as mocks_router  # T-V3-B-08 / F-005b
 from routers.components import (  # T-V3-B-09 / F-005b
     router as components_router,
@@ -140,6 +153,7 @@ from routers.screen_flow import (  # T-V3-B-09 / F-005b
     router as screen_flow_router,
 )
 from routers.onboarding import router as onboarding_router  # T-V3-B-29 / F-027
+from routers.auth import router as auth_router  # pre-existing main.py drift fix (referenced L316 but never imported)
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 
@@ -283,8 +297,10 @@ app.include_router(category_push_router)
 app.include_router(git_wrap_router)
 app.include_router(pr_review_router)
 app.include_router(prs_router)  # T-V3-B-19 / F-013
+app.include_router(client_portal_router)  # T-V3-B-20 / F-013
 app.include_router(audit_trigger_router)
 app.include_router(audit_logs_router)  # T-V3-B-24 / F-018
+app.include_router(notifications_router)  # T-V3-B-25 / F-018
 app.include_router(observability_router)
 app.include_router(artifact_md_router)
 app.include_router(export_trigger_router)

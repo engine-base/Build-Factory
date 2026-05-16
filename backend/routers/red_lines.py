@@ -256,22 +256,7 @@ async def post_red_lines_test(
     return result
 
 
-@router.get(
-    "/{workspace_id}/violations",
-    summary="List red_line violations (F-012 / admin)",
-)
-async def get_violations(
-    workspace_id: str,
-    status: Optional[str] = None,
-    authorization: Optional[str] = Header(default=None),
-    x_user_id: Optional[str] = Header(default=None),
-    x_user_role: Optional[str] = Header(default=None),
-) -> dict[str, Any]:
-    """workspace_admin only."""
-    _validate_auth(authorization, x_user_id)
-    _require_admin(x_user_role)
-    try:
-        items = svc.list_violations(workspace_id, status=status)
-    except svc.RedLineServiceError as e:
-        raise _map_service_error(e) from None
-    return {"violations": items, "count": len(items)}
+# T-V3-B-18: GET /api/workspaces/{id}/violations moved to
+# backend/routers/violations.py to consolidate the violations endpoint surface
+# (list / approve / reject) into a single router. Tests for the list endpoint
+# now live in backend/tests/routers/test_violations.py.
