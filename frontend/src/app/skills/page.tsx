@@ -1,361 +1,618 @@
 "use client";
 
-import React, { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Search, Plus, Edit2, Play, ChevronDown, ChevronUp, Tag, Save, X, Trash2 } from "lucide-react";
+/**
+ * T-V3-C-14 / S-038: スキルマネージャ (Skill Manager) page.
+ *
+ * Implements the screen documented at:
+ *   docs/mocks/2026-05-15_v3/ai/S-038-skill-manager.html
+ *
+ * Mock-impl meta (lint-mock-impl-diff Gate #8):
+ * @screen-id S-038
+ * @feature-id F-002,F-003
+ * @task-ids T-V3-C-14
+ * @entities E-035
+ * @phase Phase 1B
+ *
+ * 3-tier AC mapping:
+ *   structural.AC-S1 (data-screen-id="S-038")               — root <main> element.
+ *   structural.AC-S2 (h1 text "スキルマネージャ")          — <h1> in the header band.
+ *   functional.AC-F1 (GET  /api/skills via typed client)    — listQuery in this file.
+ *   functional.AC-F2 (POST /api/skills via typed client)    — createMutation in this file.
+ *   functional.AC-F3 (POST /api/skills/{id}/test)           — testMutation in this file.
+ *   functional.AC-F4 (POST /api/skills/{id}/archive)        — archiveMutation in this file.
+ *   functional.AC-F5 (4xx/5xx → non-technical toast w/ endpoint, no stack) — error handlers.
+ *   functional.AC-F6 (GET /api/skills?category=ai → non-archived rows)     — listQuery params.
+ *   functional.AC-F7 (POST archive sets archived_at + excludes from AI list) — backend AC.
+ *   functional.AC-F8 (non-owner POST → 403)                 — surface SkillsApiError(403).
+ *   functional.AC-F9 (>10 test/min → 429)                   — surface SkillsApiError(429).
+ */
 
-const API = "http://localhost:8001";
+import * as React from "react";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryKey,
+} from "@tanstack/react-query";
+import { toast } from "sonner";
+import {
+  Archive,
+  Edit3,
+  PlayCircle,
+  Plus,
+  Search,
+  Sparkles,
+  Wrench,
+  X,
+} from "lucide-react";
 
-type Skill = {
-  id: number;
-  skill_name: string;
-  display_name: string;
-  description: string;
-  category: string;
-  tags: string;
-  is_active: number;
-  updated_at: string;
-  content?: string;
-};
+import {
+  archiveSkill,
+  createSkill,
+  listSkills,
+  SkillsApiError,
+  testSkill,
+  type Skill,
+} from "@/api/skills";
 
-type Category = { category: string; count: number };
+// --------------------------------------------------------------------------
+// Constants
+// --------------------------------------------------------------------------
 
-const CATEGORY_LABEL: Record<string, string> = {
-  finance:   "財務・経理",
-  sales:     "営業・集客",
-  marketing: "マーケティング",
-  content:   "Web・コンテンツ",
-  cs:        "顧客・CS",
-  hr:        "人事・採用",
-  admin:     "総務・法務",
-  strategy:  "経営戦略",
-  design:    "設計",
-  tech:      "開発・技術",
-  ops:       "品質・運用",
-  project:   "プロジェクト",
-  analytics: "分析・調査",
-  knowledge: "情報・ナレッジ",
-  general:   "その他",
-};
+/** Filter chips shown in the S-038 mock (category dropdown + active/archive toggle). */
+const CATEGORY_FILTERS: readonly { id: string; label: string }[] = [
+  { id: "all", label: "全カテゴリ" },
+  { id: "spec", label: "spec" },
+  { id: "impl", label: "impl" },
+  { id: "review", label: "review" },
+  { id: "ops", label: "ops" },
+  { id: "ai", label: "ai" },
+];
 
-export default function SkillsPage() {
+const SKILLS_QUERY_KEY = ["skills", "list"] as const;
+
+// --------------------------------------------------------------------------
+// Helpers
+// --------------------------------------------------------------------------
+
+function reportSkillsError(err: unknown): void {
+  if (err instanceof SkillsApiError) {
+    toast.error(err.toUserMessage());
+    return;
+  }
+  toast.error("通信に失敗しました。時間をおいて再試行してください");
+}
+
+function isArchived(skill: Skill): boolean {
+  return Boolean(skill.archived_at);
+}
+
+function filterSkills(
+  skills: readonly Skill[],
+  category: string,
+  showArchived: boolean,
+  search: string,
+): Skill[] {
+  const q = search.trim().toLowerCase();
+  return skills.filter((s) => {
+    if (!showArchived && isArchived(s)) return false;
+    if (showArchived && !isArchived(s)) return false;
+    if (category !== "all" && s.category !== category) return false;
+    if (q) {
+      const hay = `${s.name} ${s.display_name ?? ""} ${s.description ?? ""}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+// --------------------------------------------------------------------------
+// Page
+// --------------------------------------------------------------------------
+
+export default function SkillManagerPage(): React.JSX.Element {
   const qc = useQueryClient();
-  const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
-  const [selected, setSelected] = useState<Skill | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState("");
-  const [editMeta, setEditMeta] = useState({ display_name: "", description: "", category: "", tags: "" });
-  const [showNew, setShowNew] = useState(false);
-  const [newSkill, setNewSkill] = useState({ skill_name: "", display_name: "", category: "general", tags: "", content: "" });
-  const [runInput, setRunInput] = useState("");
-  const [runResult, setRunResult] = useState("");
-  const [showRun, setShowRun] = useState(false);
 
-  const { data: skills = [] } = useQuery<Skill[]>({
-    queryKey: ["skills", categoryFilter, search],
-    queryFn: () => {
-      const params = new URLSearchParams();
-      if (categoryFilter) params.set("category", categoryFilter);
-      if (search) params.set("search", search);
-      return fetch(`${API}/api/skills?${params}`).then(r => r.json());
-    },
+  const [category, setCategory] = React.useState<string>("all");
+  const [showArchived, setShowArchived] = React.useState<boolean>(false);
+  const [search, setSearch] = React.useState<string>("");
+  const [createOpen, setCreateOpen] = React.useState<boolean>(false);
+  const [newSkill, setNewSkill] = React.useState({
+    name: "",
+    category: "spec",
+    description: "",
+    skill_md: "",
+  });
+  const [testTarget, setTestTarget] = React.useState<Skill | null>(null);
+  const [testInput, setTestInput] = React.useState<string>("");
+  const [testOutput, setTestOutput] = React.useState<string>("");
+
+  // AC-F1 / AC-F6: GET /api/skills (category & archived passed through).
+  const queryKey: QueryKey = React.useMemo(
+    () => [...SKILLS_QUERY_KEY, { category, showArchived }],
+    [category, showArchived],
+  );
+  const listQuery = useQuery({
+    queryKey,
+    queryFn: ({ signal }) =>
+      listSkills(
+        {
+          ...(category !== "all" ? { category } : {}),
+          archived: showArchived,
+        },
+        { signal },
+      ),
+    retry: false,
+    staleTime: 30_000,
   });
 
-  const { data: categories = [] } = useQuery<Category[]>({
-    queryKey: ["skill-categories"],
-    queryFn: () => fetch(`${API}/api/skills/categories`).then(r => r.json()),
-  });
+  React.useEffect(() => {
+    if (listQuery.error) reportSkillsError(listQuery.error);
+  }, [listQuery.error]);
 
-  const loadDetail = useMutation({
-    mutationFn: (name: string) => fetch(`${API}/api/skills/${name}`).then(r => r.json()),
-    onSuccess: (data: Skill) => {
-      setSelected(data);
-      setEditContent(data.content || "");
-      setEditMeta({ display_name: data.display_name, description: data.description || "", category: data.category, tags: data.tags || "" });
-      setIsEditing(false);
-      setShowRun(false);
-      setRunResult("");
-    },
-  });
+  const items: Skill[] = listQuery.data?.items ?? [];
+  const filtered = React.useMemo(
+    () => filterSkills(items, category, showArchived, search),
+    [items, category, showArchived, search],
+  );
 
-  const saveSkill = useMutation({
-    mutationFn: () => fetch(`${API}/api/skills/${selected!.skill_name}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: editContent, ...editMeta }),
-    }).then(r => r.json()),
+  const activeCount = items.filter((s) => !isArchived(s)).length;
+  const archivedCount = items.filter((s) => isArchived(s)).length;
+
+  // AC-F2: POST /api/skills.
+  const createMutation = useMutation({
+    mutationFn: () => createSkill(newSkill),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["skills"] });
-      setIsEditing(false);
-      setSelected(s => s ? { ...s, content: editContent, ...editMeta } : s);
+      toast.success("スキルを作成しました");
+      setCreateOpen(false);
+      setNewSkill({ name: "", category: "spec", description: "", skill_md: "" });
+      void qc.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
     },
+    onError: reportSkillsError,
   });
 
-  const createSkill = useMutation({
-    mutationFn: () => fetch(`${API}/api/skills`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newSkill),
-    }).then(r => r.json()),
+  // AC-F3: POST /api/skills/{id}/test.
+  const testMutation = useMutation({
+    mutationFn: (vars: { id: string | number; test_input: string }) =>
+      testSkill(vars.id, { test_input: vars.test_input }),
+    onSuccess: (data) => {
+      setTestOutput(data.output);
+      toast.success(`テスト実行完了 (${data.duration_ms}ms)`);
+    },
+    onError: reportSkillsError,
+  });
+
+  // AC-F4 / AC-F7: POST /api/skills/{id}/archive.
+  const archiveMutation = useMutation({
+    mutationFn: (id: string | number) => archiveSkill(id),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["skills"] });
-      qc.invalidateQueries({ queryKey: ["skill-categories"] });
-      setShowNew(false);
-      setNewSkill({ skill_name: "", display_name: "", category: "general", tags: "", content: "" });
+      toast.success("スキルをアーカイブしました");
+      void qc.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
     },
+    onError: reportSkillsError,
   });
 
-  const deleteSkill = useMutation({
-    mutationFn: (name: string) => fetch(`${API}/api/skills/${name}`, { method: "DELETE" }).then(r => r.json()),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["skills"] });
-      setSelected(null);
+  const onSubmitNew = React.useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      if (createMutation.isPending) return;
+      if (!newSkill.name || !newSkill.description || !newSkill.skill_md) {
+        toast.error("name / description / skill_md は必須です");
+        return;
+      }
+      createMutation.mutate();
     },
-  });
+    [createMutation, newSkill],
+  );
 
-  const runSkill = useMutation({
-    mutationFn: () => fetch(`${API}/api/skills/${selected!.skill_name}/run`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ input: runInput }),
-    }).then(r => r.json()),
-    onSuccess: (data) => setRunResult(data.result || ""),
-  });
+  const onSubmitTest = React.useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      if (!testTarget || testMutation.isPending) return;
+      if (!testInput.trim()) {
+        toast.error("テスト入力を指定してください");
+        return;
+      }
+      testMutation.mutate({ id: testTarget.id, test_input: testInput });
+    },
+    [testTarget, testInput, testMutation],
+  );
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: "var(--eb-surface-variant)" }}>
-      {/* 左ペイン: 一覧 */}
-      <div className="w-72 shrink-0 flex flex-col bg-white" style={{ borderRight: "1px solid var(--eb-border)" }}>
-        {/* ヘッダー */}
-        <div className="p-4" style={{ borderBottom: "1px solid var(--eb-border)" }}>
-          <div className="flex items-center justify-between mb-3">
-            <h1 className="text-base font-bold" style={{ fontFamily: "var(--font-noto-sans-jp)" }}>スキル管理</h1>
-            <button onClick={() => setShowNew(true)}
-              className="flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold text-white"
-              style={{ background: "var(--eb-primary)", fontFamily: "var(--font-inter)" }}>
-              <Plus className="w-3 h-3" /> 新規
-            </button>
+    <main
+      data-screen-id="S-038"
+      data-feature-id="F-002,F-003"
+      data-task-ids="T-V3-C-14"
+      data-entities="E-035"
+      data-phase="Phase 1B"
+      className="min-h-screen bg-slate-50 text-slate-900"
+    >
+      <div className="max-w-[1200px] mx-auto px-6 py-6">
+        {/* Header */}
+        <div className="flex items-end justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Wrench className="w-6 h-6 text-eb-500" aria-hidden />
+              スキルマネージャ
+            </h1>
+            <p className="text-sm text-slate-600 mt-1">
+              既存 90+ スキル一覧 / archive 切替 / skill-creator で新規作成
+            </p>
           </div>
-          <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style={{ color: "var(--eb-neutral)" }} />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="スキルを検索..."
-              className="w-full pl-8 pr-3 py-1.5 rounded text-xs"
-              style={{ border: "1px solid var(--eb-border)", fontFamily: "var(--font-inter)", outline: "none" }} />
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                const firstActive = filtered.find((s) => !isArchived(s));
+                if (!firstActive) {
+                  toast.error("テスト対象のスキルがありません");
+                  return;
+                }
+                setTestTarget(firstActive);
+                setTestInput("");
+                setTestOutput("");
+              }}
+              className="border border-slate-200 hover:bg-slate-50 text-sm h-9 px-3 rounded-md flex items-center gap-2"
+            >
+              <PlayCircle className="w-4 h-4" aria-hidden />
+              テスト実行
+            </button>
+            <button
+              type="button"
+              onClick={() => setCreateOpen(true)}
+              className="bg-eb-500 hover:bg-eb-600 text-white text-sm h-9 px-4 rounded-md font-semibold flex items-center gap-2"
+              data-testid="open-create-skill"
+            >
+              <Plus className="w-4 h-4" aria-hidden />
+              新規スキル作成 (skill-creator)
+            </button>
           </div>
         </div>
 
-        {/* カテゴリフィルタ */}
-        <div className="px-3 py-2 flex flex-wrap gap-1" style={{ borderBottom: "1px solid var(--eb-border)" }}>
-          <button onClick={() => setCategoryFilter(null)}
-            className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
-            style={{ background: !categoryFilter ? "var(--eb-primary)" : "var(--eb-surface-variant)", color: !categoryFilter ? "#fff" : "var(--eb-neutral)", fontFamily: "var(--font-inter)" }}>
-            すべて ({skills.length})
+        {/* Filter bar */}
+        <div
+          className="bg-white border border-slate-200 rounded-lg p-3 mb-4 flex items-center gap-2"
+          data-testid="filter-bar"
+        >
+          <div className="relative flex-1 max-w-[300px]">
+            <Search
+              className="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-slate-400"
+              aria-hidden
+            />
+            <input
+              type="search"
+              placeholder="スキル検索..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="border border-slate-200 text-xs h-8 pl-7 pr-2 rounded-md w-full"
+              aria-label="スキル検索"
+            />
+          </div>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="border border-slate-200 text-xs h-8 px-2 rounded-md"
+            aria-label="カテゴリ"
+          >
+            {CATEGORY_FILTERS.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => setShowArchived(false)}
+            aria-pressed={!showArchived}
+            className={
+              !showArchived
+                ? "text-xs bg-eb-50 text-eb-700 border border-eb-200 px-3 py-1 rounded-full font-medium"
+                : "text-xs hover:bg-slate-100 text-slate-600 px-3 py-1 rounded-full"
+            }
+          >
+            Active {activeCount}
           </button>
-          {categories.map(c => (
-            <button key={c.category} onClick={() => setCategoryFilter(c.category === categoryFilter ? null : c.category)}
-              className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
-              style={{ background: categoryFilter === c.category ? "var(--eb-primary)" : "var(--eb-surface-variant)", color: categoryFilter === c.category ? "#fff" : "var(--eb-neutral)", fontFamily: "var(--font-inter)" }}>
-              {CATEGORY_LABEL[c.category] ?? c.category} ({c.count})
-            </button>
-          ))}
+          <button
+            type="button"
+            onClick={() => setShowArchived(true)}
+            aria-pressed={showArchived}
+            className={
+              showArchived
+                ? "text-xs bg-eb-50 text-eb-700 border border-eb-200 px-3 py-1 rounded-full font-medium"
+                : "text-xs hover:bg-slate-100 text-slate-600 px-3 py-1 rounded-full"
+            }
+          >
+            Archive {archivedCount}
+          </button>
+          <span className="ml-auto text-xs text-slate-500 mono">
+            Total {items.length} · Active {activeCount}
+          </span>
         </div>
 
-        {/* スキルリスト */}
-        <div className="flex-1 overflow-y-auto">
-          {skills.map(skill => (
-            <button key={skill.skill_name}
-              onClick={() => loadDetail.mutate(skill.skill_name)}
-              className="w-full text-left px-4 py-3 transition-colors"
-              style={{
-                background: selected?.skill_name === skill.skill_name ? "var(--eb-primary-container)" : "transparent",
-                borderBottom: "1px solid var(--eb-border)",
-                borderLeft: selected?.skill_name === skill.skill_name ? "3px solid var(--eb-primary)" : "3px solid transparent",
-              }}>
-              <p className="text-xs font-semibold truncate" style={{ fontFamily: "var(--font-inter)" }}>{skill.display_name || skill.skill_name}</p>
-              <p className="text-[10px] truncate mt-0.5" style={{ color: "var(--eb-neutral)", fontFamily: "var(--font-inter)" }}>
-                {skill.description?.slice(0, 60) || skill.skill_name}
-              </p>
-              <div className="flex items-center gap-1 mt-1">
-                <span className="text-[9px] px-1.5 py-0.5 rounded"
-                  style={{ background: "var(--eb-surface-variant)", color: "var(--eb-neutral)", fontFamily: "var(--font-inter)" }}>
-                  {CATEGORY_LABEL[skill.category] ?? skill.category}
+        {/* Loading / empty / error */}
+        {listQuery.isLoading && (
+          <p className="text-sm text-slate-500" role="status">
+            読み込み中...
+          </p>
+        )}
+        {!listQuery.isLoading && listQuery.isError && (
+          <p className="text-sm text-red-600" role="alert">
+            一覧の取得に失敗しました
+          </p>
+        )}
+
+        {/* Skills grid */}
+        <div className="grid grid-cols-3 gap-3" data-testid="skills-grid">
+          {filtered.map((skill) => (
+            <article
+              key={String(skill.id)}
+              data-testid={`skill-card-${skill.name}`}
+              className={
+                "bg-white border border-slate-200 rounded-lg p-4 hover:border-eb-500" +
+                (isArchived(skill) ? " opacity-60" : "")
+              }
+            >
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Wrench className="w-4 h-4 text-eb-500" aria-hidden />
+                  <span className="text-sm font-bold mono">
+                    {skill.display_name ?? skill.name}
+                  </span>
+                </div>
+                <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full">
+                  {skill.version ?? "v 1.0"}
                 </span>
               </div>
-            </button>
+              <p className="text-xs text-slate-600 leading-relaxed mb-3">
+                {skill.description ?? "(説明なし)"}
+              </p>
+              <div className="flex items-center gap-2 text-[10px] text-slate-500 mb-3">
+                <span className="bg-slate-100 px-1.5 py-0.5 rounded mono">
+                  {skill.category}
+                </span>
+                {typeof skill.usage_count === "number" && (
+                  <span>{skill.usage_count} uses</span>
+                )}
+              </div>
+              <div className="flex gap-1.5">
+                <button
+                  type="button"
+                  className="text-xs text-eb-500 hover:text-eb-600 font-semibold flex items-center gap-1"
+                  aria-label="編集"
+                >
+                  <Edit3 className="w-3 h-3" aria-hidden />
+                  edit
+                </button>
+                <button
+                  type="button"
+                  data-testid={`test-${skill.name}`}
+                  className="text-xs text-slate-500 hover:text-slate-900 ml-auto"
+                  aria-label={`${skill.name} をテスト実行`}
+                  onClick={() => {
+                    setTestTarget(skill);
+                    setTestInput("");
+                    setTestOutput("");
+                  }}
+                >
+                  <PlayCircle className="w-3 h-3" aria-hidden />
+                </button>
+                {!isArchived(skill) && (
+                  <button
+                    type="button"
+                    data-testid={`archive-${skill.name}`}
+                    className="text-xs text-slate-500 hover:text-slate-900"
+                    aria-label={`${skill.name} をアーカイブ`}
+                    onClick={() => archiveMutation.mutate(skill.id)}
+                    disabled={archiveMutation.isPending}
+                  >
+                    <Archive className="w-3 h-3" aria-hidden />
+                  </button>
+                )}
+              </div>
+            </article>
           ))}
+
+          {/* skill-creator CTA */}
+          <button
+            type="button"
+            onClick={() => setCreateOpen(true)}
+            className="border-2 border-dashed border-eb-300 hover:border-eb-500 bg-eb-50/30 rounded-lg p-4 text-center hover:bg-eb-50 flex flex-col items-center justify-center min-h-[150px]"
+            data-testid="open-create-skill-cta"
+          >
+            <Sparkles className="w-6 h-6 text-eb-500 mb-2" aria-hidden />
+            <span className="text-sm font-bold text-eb-700">skill-creator</span>
+            <span className="text-xs text-slate-600 mt-1">
+              対話で新規スキル作成
+            </span>
+          </button>
         </div>
       </div>
 
-      {/* 右ペイン: 詳細・編集 */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {selected ? (
-          <>
-            {/* ツールバー */}
-            <div className="flex items-center justify-between px-6 py-3 bg-white" style={{ borderBottom: "1px solid var(--eb-border)" }}>
-              <div>
-                <h2 className="font-bold text-sm" style={{ fontFamily: "var(--font-inter)" }}>{selected.display_name || selected.skill_name}</h2>
-                <p className="text-[10px]" style={{ color: "var(--eb-neutral)", fontFamily: "var(--font-inter)" }}>{selected.skill_name}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => setShowRun(!showRun)}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-semibold"
-                  style={{ background: "var(--eb-tertiary-container)", color: "var(--eb-on-tertiary-container)", fontFamily: "var(--font-inter)" }}>
-                  <Play className="w-3 h-3" /> テスト実行
-                </button>
-                {isEditing ? (
-                  <>
-                    <button onClick={() => setIsEditing(false)}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-semibold"
-                      style={{ background: "var(--eb-surface-variant)", color: "var(--eb-neutral)", fontFamily: "var(--font-inter)" }}>
-                      <X className="w-3 h-3" /> キャンセル
-                    </button>
-                    <button onClick={() => saveSkill.mutate()} disabled={saveSkill.isPending}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-semibold text-white"
-                      style={{ background: "var(--eb-primary)", fontFamily: "var(--font-inter)" }}>
-                      <Save className="w-3 h-3" /> {saveSkill.isPending ? "保存中..." : "保存"}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button onClick={() => setIsEditing(true)}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-semibold"
-                      style={{ background: "var(--eb-surface-variant)", color: "var(--eb-neutral)", fontFamily: "var(--font-inter)" }}>
-                      <Edit2 className="w-3 h-3" /> 編集
-                    </button>
-                    <button onClick={() => { if (confirm(`「${selected.skill_name}」を削除しますか？`)) deleteSkill.mutate(selected.skill_name); }}
-                      className="p-1.5 rounded transition-opacity hover:opacity-70"
-                      style={{ color: "var(--eb-error)" }}>
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </>
-                )}
-              </div>
+      {/* New skill modal */}
+      {createOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="create-skill-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setCreateOpen(false);
+          }}
+        >
+          <form
+            onSubmit={onSubmitNew}
+            className="bg-white rounded-xl p-6 w-full max-w-2xl"
+            data-testid="create-skill-form"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 id="create-skill-title" className="font-bold text-base">
+                新しいスキルを作成
+              </h2>
+              <button
+                type="button"
+                aria-label="閉じる"
+                className="text-slate-500"
+                onClick={() => setCreateOpen(false)}
+              >
+                <X className="w-4 h-4" aria-hidden />
+              </button>
             </div>
 
-            {/* テスト実行パネル */}
-            {showRun && (
-              <div className="px-6 py-4 bg-white" style={{ borderBottom: "1px solid var(--eb-border)" }}>
-                <div className="flex gap-2 mb-2">
-                  <input value={runInput} onChange={e => setRunInput(e.target.value)}
-                    placeholder="スキルへの入力テキスト..."
-                    className="flex-1 px-3 py-2 rounded text-xs"
-                    style={{ border: "1px solid var(--eb-border)", fontFamily: "var(--font-noto-sans-jp)", outline: "none" }} />
-                  <button onClick={() => runSkill.mutate()} disabled={runSkill.isPending || !runInput.trim()}
-                    className="px-3 py-2 rounded text-xs font-semibold text-white disabled:opacity-50"
-                    style={{ background: "var(--eb-tertiary)", fontFamily: "var(--font-inter)" }}>
-                    {runSkill.isPending ? "実行中..." : "実行"}
-                  </button>
-                </div>
-                {runResult && (
-                  <pre className="text-[11px] p-3 rounded overflow-auto max-h-40 whitespace-pre-wrap"
-                    style={{ background: "var(--eb-surface-variant)", fontFamily: "var(--font-inter)", color: "#374151" }}>
-                    {runResult}
-                  </pre>
-                )}
-              </div>
-            )}
-
-            {/* メタデータ編集 or 表示 */}
-            {isEditing && (
-              <div className="px-6 py-4 bg-white" style={{ borderBottom: "1px solid var(--eb-border)" }}>
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { key: "display_name", label: "表示名" },
-                    { key: "category", label: "カテゴリ" },
-                    { key: "tags", label: "タグ" },
-                    { key: "description", label: "説明" },
-                  ].map(({ key, label }) => (
-                    <div key={key} className={key === "description" ? "col-span-2" : ""}>
-                      <label className="block text-[10px] font-semibold mb-1" style={{ color: "var(--eb-neutral)", fontFamily: "var(--font-inter)" }}>{label}</label>
-                      <input value={(editMeta as any)[key]} onChange={e => setEditMeta(m => ({ ...m, [key]: e.target.value }))}
-                        className="w-full px-2 py-1.5 rounded text-xs"
-                        style={{ border: "1px solid var(--eb-border)", fontFamily: "var(--font-inter)", outline: "none" }} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* SKILL.md 表示・編集 */}
-            <div className="flex-1 overflow-hidden flex flex-col">
-              {isEditing ? (
-                <textarea
-                  value={editContent}
-                  onChange={e => setEditContent(e.target.value)}
-                  className="flex-1 p-6 text-xs resize-none focus:outline-none"
-                  style={{ fontFamily: "var(--font-inter)", lineHeight: 1.6, color: "#1f2937", background: "#fff" }}
-                />
-              ) : (
-                <pre className="flex-1 overflow-auto p-6 text-xs whitespace-pre-wrap"
-                  style={{ fontFamily: "var(--font-inter)", lineHeight: 1.7, color: "#1f2937", background: "#fff" }}>
-                  {selected.content}
-                </pre>
-              )}
-            </div>
-          </>
-        ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3"
-                style={{ background: "var(--eb-primary-container)" }}>
-                <Tag className="w-6 h-6" style={{ color: "var(--eb-primary)" }} />
-              </div>
-              <p className="text-sm font-medium mb-1" style={{ fontFamily: "var(--font-noto-sans-jp)" }}>スキルを選択してください</p>
-              <p className="text-xs" style={{ color: "var(--eb-neutral)", fontFamily: "var(--font-noto-sans-jp)" }}>
-                左のリストからスキルを選ぶか、新規作成してください
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* 新規作成モーダル */}
-      {showNew && (
-        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ background: "rgba(0,0,0,0.4)" }}
-          onClick={e => { if (e.target === e.currentTarget) setShowNew(false); }}>
-          <div className="bg-white rounded-xl p-6 w-full max-w-2xl mx-4" style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.16)" }}>
-            <h2 className="font-bold text-base mb-4" style={{ fontFamily: "var(--font-noto-sans-jp)" }}>新しいスキルを作成</h2>
             <div className="grid grid-cols-2 gap-3 mb-3">
-              {[
-                { key: "skill_name", label: "スキル名 (英数字・ハイフン)", placeholder: "例: my-skill" },
-                { key: "display_name", label: "表示名", placeholder: "例: 営業フォローアップ" },
-                { key: "category", label: "カテゴリ", placeholder: "sales / finance / marketing ..." },
-                { key: "tags", label: "タグ", placeholder: "#営業, #メール" },
-              ].map(({ key, label, placeholder }) => (
-                <div key={key}>
-                  <label className="block text-[10px] font-semibold mb-1" style={{ color: "var(--eb-neutral)", fontFamily: "var(--font-inter)" }}>{label}</label>
-                  <input value={(newSkill as any)[key]} onChange={e => setNewSkill(s => ({ ...s, [key]: e.target.value }))}
-                    placeholder={placeholder}
-                    className="w-full px-2 py-1.5 rounded text-xs"
-                    style={{ border: "1px solid var(--eb-border)", fontFamily: "var(--font-inter)", outline: "none" }} />
-                </div>
-              ))}
+              <div>
+                <label className="block text-[10px] font-semibold mb-1 text-slate-500">
+                  スキル名 (英数字・ハイフン)
+                </label>
+                <input
+                  value={newSkill.name}
+                  onChange={(e) =>
+                    setNewSkill((s) => ({ ...s, name: e.target.value }))
+                  }
+                  placeholder="例: my-skill"
+                  className="w-full px-2 py-1.5 rounded text-xs border border-slate-200"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-semibold mb-1 text-slate-500">
+                  カテゴリ
+                </label>
+                <select
+                  value={newSkill.category}
+                  onChange={(e) =>
+                    setNewSkill((s) => ({ ...s, category: e.target.value }))
+                  }
+                  className="w-full px-2 py-1.5 rounded text-xs border border-slate-200"
+                >
+                  {CATEGORY_FILTERS.filter((c) => c.id !== "all").map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="col-span-2">
+                <label className="block text-[10px] font-semibold mb-1 text-slate-500">
+                  説明
+                </label>
+                <input
+                  value={newSkill.description}
+                  onChange={(e) =>
+                    setNewSkill((s) => ({ ...s, description: e.target.value }))
+                  }
+                  className="w-full px-2 py-1.5 rounded text-xs border border-slate-200"
+                  required
+                />
+              </div>
             </div>
+
             <div className="mb-4">
-              <label className="block text-[10px] font-semibold mb-1" style={{ color: "var(--eb-neutral)", fontFamily: "var(--font-inter)" }}>SKILL.md 本文</label>
-              <textarea value={newSkill.content} onChange={e => setNewSkill(s => ({ ...s, content: e.target.value }))}
-                placeholder="# スキル名&#10;&#10;## ロール定義&#10;&#10;あなたは..."
+              <label className="block text-[10px] font-semibold mb-1 text-slate-500">
+                SKILL.md 本文
+              </label>
+              <textarea
+                value={newSkill.skill_md}
+                onChange={(e) =>
+                  setNewSkill((s) => ({ ...s, skill_md: e.target.value }))
+                }
                 rows={8}
-                className="w-full px-3 py-2 rounded text-xs resize-none"
-                style={{ border: "1px solid var(--eb-border)", fontFamily: "var(--font-inter)", outline: "none", lineHeight: 1.6 }} />
+                placeholder={"# スキル名\n\n## ロール定義\n\nあなたは..."}
+                className="w-full px-3 py-2 rounded text-xs border border-slate-200"
+                required
+              />
             </div>
+
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowNew(false)}
-                className="px-4 py-2 rounded text-xs font-semibold"
-                style={{ background: "var(--eb-surface-variant)", color: "var(--eb-neutral)", fontFamily: "var(--font-inter)" }}>
+              <button
+                type="button"
+                onClick={() => setCreateOpen(false)}
+                className="px-4 py-2 rounded text-xs font-semibold bg-slate-100 text-slate-700"
+              >
                 キャンセル
               </button>
-              <button onClick={() => createSkill.mutate()}
-                disabled={!newSkill.skill_name || !newSkill.content || createSkill.isPending}
-                className="px-4 py-2 rounded text-xs font-semibold text-white disabled:opacity-50"
-                style={{ background: "var(--eb-primary)", fontFamily: "var(--font-inter)" }}>
-                {createSkill.isPending ? "作成中..." : "作成"}
+              <button
+                type="submit"
+                disabled={createMutation.isPending}
+                className="px-4 py-2 rounded text-xs font-semibold text-white bg-eb-500 hover:bg-eb-600 disabled:opacity-50"
+                data-testid="submit-create-skill"
+              >
+                {createMutation.isPending ? "作成中..." : "作成"}
               </button>
             </div>
-          </div>
+          </form>
         </div>
       )}
-    </div>
+
+      {/* Test runner modal */}
+      {testTarget && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="test-skill-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setTestTarget(null);
+          }}
+        >
+          <form
+            onSubmit={onSubmitTest}
+            className="bg-white rounded-xl p-6 w-full max-w-2xl"
+            data-testid="test-skill-form"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 id="test-skill-title" className="font-bold text-base">
+                スキルテスト実行: {testTarget.display_name ?? testTarget.name}
+              </h2>
+              <button
+                type="button"
+                aria-label="閉じる"
+                className="text-slate-500"
+                onClick={() => setTestTarget(null)}
+              >
+                <X className="w-4 h-4" aria-hidden />
+              </button>
+            </div>
+
+            <label className="block text-[10px] font-semibold mb-1 text-slate-500">
+              テスト入力
+            </label>
+            <input
+              value={testInput}
+              onChange={(e) => setTestInput(e.target.value)}
+              placeholder="スキルへの入力テキスト..."
+              className="w-full px-3 py-2 rounded text-xs border border-slate-200 mb-3"
+              autoFocus
+            />
+
+            {testOutput && (
+              <pre
+                data-testid="test-output"
+                className="text-[11px] p-3 rounded overflow-auto max-h-40 whitespace-pre-wrap bg-slate-50 text-slate-700 mb-3"
+              >
+                {testOutput}
+              </pre>
+            )}
+
+            <div className="flex gap-2 justify-end">
+              <button
+                type="button"
+                onClick={() => setTestTarget(null)}
+                className="px-4 py-2 rounded text-xs font-semibold bg-slate-100 text-slate-700"
+              >
+                閉じる
+              </button>
+              <button
+                type="submit"
+                disabled={testMutation.isPending || !testInput.trim()}
+                className="px-4 py-2 rounded text-xs font-semibold text-white bg-eb-500 hover:bg-eb-600 disabled:opacity-50"
+                data-testid="submit-test-skill"
+              >
+                {testMutation.isPending ? "実行中..." : "実行"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+    </main>
   );
 }
