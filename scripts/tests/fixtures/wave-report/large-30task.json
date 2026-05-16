@@ -1,0 +1,216 @@
+{
+  "wave_id": "W1",
+  "phase_id": "Backend",
+  "period_start": "2026-05-20",
+  "period_end": "2026-05-21",
+  "parallel_sessions": 10,
+  "next_wave": "W2",
+  "branch_packages": [
+    {
+      "task_id": "T-B-01",
+      "final_state": "auto-merged",
+      "failure_count": 0,
+      "deliverable_layer": "backend"
+    },
+    {
+      "task_id": "T-B-02",
+      "final_state": "auto-merged",
+      "failure_count": 0,
+      "deliverable_layer": "backend"
+    },
+    {
+      "task_id": "T-B-03",
+      "final_state": "auto-merged",
+      "failure_count": 1,
+      "deliverable_layer": "backend"
+    },
+    {
+      "task_id": "T-B-04",
+      "final_state": "auto-merged",
+      "failure_count": 0,
+      "deliverable_layer": "backend"
+    },
+    {
+      "task_id": "T-B-05",
+      "final_state": "retried",
+      "failure_count": 2,
+      "deliverable_layer": "backend",
+      "last_gate_failure": "gate-3-contract",
+      "last_failure_reason": "schema mismatch fixed in retry"
+    },
+    {
+      "task_id": "T-B-06",
+      "final_state": "retried",
+      "failure_count": 1,
+      "deliverable_layer": "backend"
+    },
+    {
+      "task_id": "T-B-07",
+      "final_state": "auto-merged",
+      "failure_count": 0,
+      "deliverable_layer": "backend"
+    },
+    {
+      "task_id": "T-B-08",
+      "final_state": "escalated",
+      "failure_count": 4,
+      "deliverable_layer": "backend",
+      "last_gate_failure": "gate-5-access-control",
+      "last_failure_reason": "RLS policy gap - human review required"
+    },
+    {
+      "task_id": "T-B-09",
+      "final_state": "auto-merged",
+      "failure_count": 0,
+      "deliverable_layer": "backend"
+    },
+    {
+      "task_id": "T-B-10",
+      "final_state": "auto-merged",
+      "failure_count": 0,
+      "deliverable_layer": "backend"
+    },
+    {
+      "task_id": "T-U-01",
+      "final_state": "auto-merged",
+      "failure_count": 0,
+      "deliverable_layer": "ui"
+    },
+    {
+      "task_id": "T-U-02",
+      "final_state": "auto-merged",
+      "failure_count": 1,
+      "deliverable_layer": "ui"
+    },
+    {
+      "task_id": "T-U-03",
+      "final_state": "retried",
+      "failure_count": 2,
+      "deliverable_layer": "ui",
+      "last_gate_failure": "gate-7-visual-regression",
+      "last_failure_reason": "snapshot delta within threshold after rerun"
+    },
+    {
+      "task_id": "T-U-04",
+      "final_state": "auto-merged",
+      "failure_count": 0,
+      "deliverable_layer": "ui"
+    },
+    {
+      "task_id": "T-U-05",
+      "final_state": "auto-merged",
+      "failure_count": 0,
+      "deliverable_layer": "ui"
+    },
+    {
+      "task_id": "T-U-06",
+      "final_state": "rolled-back",
+      "failure_count": 3,
+      "deliverable_layer": "ui",
+      "last_gate_failure": "post-merge-runtime",
+      "last_failure_reason": "production runtime regression - reverted"
+    },
+    {
+      "task_id": "T-U-07",
+      "final_state": "auto-merged",
+      "failure_count": 0,
+      "deliverable_layer": "ui"
+    },
+    {
+      "task_id": "T-U-08",
+      "final_state": "auto-merged",
+      "failure_count": 0,
+      "deliverable_layer": "ui"
+    },
+    {
+      "task_id": "T-F-01",
+      "final_state": "auto-merged",
+      "failure_count": 0,
+      "deliverable_layer": "foundation"
+    },
+    {
+      "task_id": "T-F-02",
+      "final_state": "auto-merged",
+      "failure_count": 0,
+      "deliverable_layer": "foundation"
+    },
+    {
+      "task_id": "T-P-01",
+      "final_state": "auto-merged",
+      "failure_count": 0,
+      "deliverable_layer": "polish"
+    },
+    {
+      "task_id": "T-P-02",
+      "final_state": "retried",
+      "failure_count": 1,
+      "deliverable_layer": "polish"
+    },
+    {
+      "task_id": "T-P-03",
+      "final_state": "auto-merged",
+      "failure_count": 0,
+      "deliverable_layer": "polish"
+    },
+    {
+      "task_id": "T-DRIFT-W0a-01",
+      "final_state": "auto-merged",
+      "failure_count": 0,
+      "deliverable_layer": "drift_fix"
+    },
+    {
+      "task_id": "T-DRIFT-W0a-02",
+      "final_state": "auto-merged",
+      "failure_count": 0,
+      "deliverable_layer": "drift_fix"
+    },
+    {
+      "task_id": "T-B-11",
+      "final_state": "escalated",
+      "failure_count": 5,
+      "deliverable_layer": "backend",
+      "last_gate_failure": "gate-2-pyright-strict",
+      "last_failure_reason": "type inference failure on generic - needs human"
+    },
+    {
+      "task_id": "T-B-12",
+      "final_state": "auto-merged",
+      "failure_count": 0,
+      "deliverable_layer": "backend"
+    },
+    {
+      "task_id": "T-U-09",
+      "final_state": "auto-merged",
+      "failure_count": 0,
+      "deliverable_layer": "ui"
+    },
+    {
+      "task_id": "T-U-10",
+      "final_state": "auto-merged",
+      "failure_count": 2,
+      "deliverable_layer": "ui"
+    },
+    {
+      "task_id": "T-P-04",
+      "final_state": "auto-merged",
+      "failure_count": 0,
+      "deliverable_layer": "polish"
+    }
+  ],
+  "drift": {
+    "entries": [
+      {"rule_id": "lint-mock-1-emoji", "fix_task": "T-DRIFT-W2-01"},
+      {"rule_id": "lint-mock-1-emoji", "fix_task": "T-DRIFT-W2-01"},
+      {"rule_id": "lint-mock-1-emoji", "fix_task": "T-DRIFT-W2-02"},
+      {"rule_id": "lint-mock-8-domain-boundaries", "fix_task": "T-DRIFT-W2-03"},
+      {"rule_id": "ears-ac-missing-unwanted"}
+    ]
+  },
+  "git_state": {
+    "main_ahead": 30,
+    "main_head": "ab12cd3",
+    "backend_test_coverage": "85%",
+    "frontend_type_check": "0 error",
+    "all_gates_status": "green"
+  }
+}

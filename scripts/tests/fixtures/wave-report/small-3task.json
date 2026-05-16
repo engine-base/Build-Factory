@@ -1,0 +1,41 @@
+{
+  "wave_id": "W0a",
+  "phase_id": "Foundation",
+  "period_start": "2026-05-16",
+  "period_end": "2026-05-16",
+  "parallel_sessions": 3,
+  "branch_packages": [
+    {
+      "task_id": "T-FOUNDATION-01",
+      "final_state": "auto-merged",
+      "failure_count": 0,
+      "deliverable_layer": "foundation",
+      "last_gate_failure": null,
+      "last_failure_reason": null
+    },
+    {
+      "task_id": "T-FOUNDATION-02",
+      "final_state": "auto-merged",
+      "failure_count": 1,
+      "deliverable_layer": "foundation",
+      "last_gate_failure": null,
+      "last_failure_reason": null
+    },
+    {
+      "task_id": "T-FOUNDATION-06",
+      "final_state": "retried",
+      "failure_count": 2,
+      "deliverable_layer": "foundation",
+      "last_gate_failure": "gate-8-lint-mock",
+      "last_failure_reason": "ruff lint warning recovered after fix"
+    }
+  ],
+  "drift": null,
+  "git_state": {
+    "main_ahead": 3,
+    "main_head": "08d7df3",
+    "backend_test_coverage": "92%",
+    "frontend_type_check": "0 error",
+    "all_gates_status": "green"
+  }
+}
