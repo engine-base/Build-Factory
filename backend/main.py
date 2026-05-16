@@ -89,6 +89,7 @@ from routers.git_wrap import router as git_wrap_router
 from routers.pr_review import router as pr_review_router
 from routers.pr_review import prs_router as prs_router  # T-V3-B-19 / F-013
 from routers.audit_trigger import router as audit_trigger_router
+from routers.audit_logs import router as audit_logs_router  # T-V3-B-24 / F-018
 from routers.observability import router as observability_router
 from routers.artifact_md import router as artifact_md_router
 from routers.export_trigger import router as export_trigger_router
@@ -258,6 +259,7 @@ app.include_router(git_wrap_router)
 app.include_router(pr_review_router)
 app.include_router(prs_router)  # T-V3-B-19 / F-013
 app.include_router(audit_trigger_router)
+app.include_router(audit_logs_router)  # T-V3-B-24 / F-018
 app.include_router(observability_router)
 app.include_router(artifact_md_router)
 app.include_router(export_trigger_router)
