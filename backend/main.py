@@ -59,6 +59,7 @@ from routers.swarm import router as swarm_router
 from routers.memory import router as memory_router
 from routers.context import router as context_router
 from routers.oauth import router as oauth_router
+from routers.auth import router as auth_router  # T-V3-B-09: restore missing import
 from routers.user_lifecycle import router as user_lifecycle_router
 from routers.memory_facts import router as memory_facts_router
 from routers.mem0_bridge import router as mem0_bridge_router
@@ -132,6 +133,12 @@ from routers.red_lines import router as red_lines_router
 from routers.violations import router as violations_router
 from routers.email import router as email_router
 from routers.mocks import router as mocks_router  # T-V3-B-08 / F-005b
+from routers.components import (  # T-V3-B-09 / F-005b
+    router as components_router,
+)
+from routers.screen_flow import (  # T-V3-B-09 / F-005b
+    router as screen_flow_router,
+)
 from routers.onboarding import router as onboarding_router  # T-V3-B-29 / F-027
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
@@ -315,6 +322,8 @@ app.include_router(violations_router)
 app.include_router(email_router)
 app.include_router(auth_router)
 app.include_router(mocks_router)  # T-V3-B-08 / F-005b
+app.include_router(components_router)  # T-V3-B-09 / F-005b
+app.include_router(screen_flow_router)  # T-V3-B-09 / F-005b
 app.include_router(onboarding_router)  # T-V3-B-29 / F-027
 
 

@@ -97,3 +97,29 @@ class MockHtmlPutResponse(BaseModel):
 
     new_version: int = Field(..., ge=1)
     updated_at: str
+
+
+# ──────────────────────────────────────────────────────────────────────
+# T-V3-B-09: ai-edit
+# ──────────────────────────────────────────────────────────────────────
+
+
+class MockAiEditRequest(BaseModel):
+    """POST /api/workspaces/{id}/mocks/{screen_id}/ai-edit request body."""
+
+    prompt: str = Field(..., min_length=1, max_length=8000)
+
+    @field_validator("prompt")
+    @classmethod
+    def _prompt_not_blank(cls, v: str) -> str:
+        if not isinstance(v, str) or not v.strip():
+            raise ValueError("prompt must not be blank")
+        return v
+
+
+class MockAiEditResponse(BaseModel):
+    """POST /api/workspaces/{id}/mocks/{screen_id}/ai-edit response."""
+
+    diff: str
+    new_html: str
+    tokens_used: int = Field(..., ge=0)

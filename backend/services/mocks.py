@@ -31,6 +31,8 @@ from __future__ import annotations
 import logging
 import re
 import threading
+import time
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Optional
@@ -45,6 +47,11 @@ logger = logging.getLogger(__name__)
 MAX_HTML_BYTES = 1 * 1024 * 1024  # 1MB per F-005b policy
 LOCK_TTL_SECONDS = 5 * 60  # 5 minutes
 SCREEN_ID_PATTERN = re.compile(r"^[A-Za-z0-9_\-:.]{1,64}$")
+
+# T-V3-B-09 AC-F1 / AC-F5: ai-edit rate limit (per workspace, sliding 60s window)
+AI_EDIT_RATE_LIMIT_PER_MIN = 30
+AI_EDIT_RATE_WINDOW_SEC = 60
+MAX_PROMPT_LEN = 8000
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -70,6 +77,10 @@ class MockHtmlTooLargeError(MockValidationError):
 
 class MockLockedError(MockError):
     """mock is locked by another actor (mapped to 409)."""
+
+
+class MockRateLimitedError(MockError):
+    """T-V3-B-09 AC-F1 / AC-F5: ai-edit rate limit exceeded (mapped to 429)."""
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -112,11 +123,16 @@ _lock = threading.Lock()
 # key = (workspace_id, screen_id)
 _store: dict[tuple[int, str], _MockRecord] = {}
 
+# T-V3-B-09: ai-edit rate limit windows per workspace
+# key = workspace_id, value = deque of epoch timestamps (last 60s)
+_ai_edit_calls: dict[int, deque[float]] = {}
+
 
 def reset_store() -> None:
     """test 用 reset. workspace 横断で in-memory store を初期化."""
     with _lock:
         _store.clear()
+        _ai_edit_calls.clear()
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -299,3 +315,89 @@ def _build_html_url(rec: _MockRecord) -> str:
     return (
         f"/api/workspaces/{rec.workspace_id}/mocks/{rec.screen_id}/html"
     )
+
+
+# ──────────────────────────────────────────────────────────────────────
+# T-V3-B-09: ai-edit (rate-limited POST endpoint)
+# ──────────────────────────────────────────────────────────────────────
+
+
+def _validate_prompt(value: object) -> str:
+    if not isinstance(value, str):
+        raise MockValidationError("prompt must be string")
+    s = value.strip()
+    if not s:
+        raise MockValidationError("prompt must not be empty")
+    if len(value) > MAX_PROMPT_LEN:
+        raise MockValidationError(
+            f"prompt must be <= {MAX_PROMPT_LEN} chars",
+        )
+    return value
+
+
+def _consume_ai_edit_rate_limit(workspace_id: int) -> None:
+    """AC-F1 / AC-F5: 30/min/workspace を超えたら MockRateLimitedError.
+
+    thread-safe; caller は _lock 不要 (内部で取得).
+    """
+    now = time.time()
+    cutoff = now - AI_EDIT_RATE_WINDOW_SEC
+    with _lock:
+        dq = _ai_edit_calls.setdefault(workspace_id, deque())
+        while dq and dq[0] < cutoff:
+            dq.popleft()
+        if len(dq) >= AI_EDIT_RATE_LIMIT_PER_MIN:
+            raise MockRateLimitedError(
+                f"ai-edit rate limit exceeded: "
+                f"{AI_EDIT_RATE_LIMIT_PER_MIN}/min/workspace",
+            )
+        dq.append(now)
+
+
+def ai_edit_mock(
+    workspace_id: int,
+    screen_id: str,
+    prompt: str,
+    *,
+    actor_user_id: Optional[str] = None,
+) -> dict:
+    """AI による画面モック編集 (M-5b パイプライン).
+
+    AC マッピング:
+      AC-F1  UNWANTED  : > 30/min/workspace → MockRateLimitedError (429)
+      AC-F2  EVENT     : valid input → 2xx {diff, new_html, tokens_used}
+      AC-F5  UNWANTED  : 上記同等 (rate limit)
+
+    Note: 実 LLM 呼び出しは T-AI-08 fallback router 経由 (本 task は scope 外).
+          本実装は deterministic な mock 出力を返す (test compat).
+    """
+    ws = _validate_workspace_id(workspace_id)
+    sid = _validate_screen_id(screen_id)
+    p = _validate_prompt(prompt)
+
+    # rate limit (workspace 単位、user 識別前に消費)
+    _consume_ai_edit_rate_limit(ws)
+
+    # 取得済 mock の最新 html を base に
+    with _lock:
+        rec = _store.get((ws, sid))
+        base_html = rec.latest_html if rec else ""
+        base_version = rec.latest_version if rec else 0
+
+    # deterministic mock diff (実 LLM 統合は T-AI-08 経路)
+    snippet = p[:120]
+    new_html = (
+        f"<!-- ai-edit:v{base_version + 1} prompt={snippet!r} -->\n"
+        f"{base_html}"
+    )
+    diff = (
+        f"--- screen:{sid}\n+++ screen:{sid} (ai-edit)\n"
+        f"@@ prompt: {snippet} @@\n"
+        f"+ <!-- ai-edit:v{base_version + 1} -->"
+    )
+    tokens = max(1, (len(p) + 3) // 4)
+    return {
+        "diff": diff,
+        "new_html": new_html,
+        "tokens_used": tokens,
+    }
