@@ -24,15 +24,11 @@ GET    /api/accounts/{id}/dashboard    account ダッシュボード (T-V3-B-27 
 import re as _re
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
 from services import account_service as acc
 from services import invitation_service as inv_svc
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel
-
-from services import account_service as acc
 from services import account_dashboard as acc_dash
 from services.auth_middleware import require_user
 

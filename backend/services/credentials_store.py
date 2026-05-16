@@ -14,7 +14,6 @@ from typing import Optional
 
 from cryptography.fernet import Fernet
 
-import os
 # プロジェクト個別の credentials store。company-dashboard と分離。
 _default_dir = Path.home() / ".build-factory"
 CONFIG_DIR  = Path(os.environ.get("BF_CREDENTIALS_DIR") or _default_dir)
