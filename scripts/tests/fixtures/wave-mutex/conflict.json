@@ -1,0 +1,71 @@
+{
+  "version": "v3",
+  "fixture_id": "wave-mutex/conflict",
+  "description": "Wave 0a 内の 2 task が同 file を editable に宣言する mutex_violation ケース + 別 task の forbidden_violation ケース。violation 2 件 / exit 1 (--strict) を期待する。",
+  "tasks": [
+    {
+      "id": "T-CONFLICT-01",
+      "wave": "0a",
+      "work_package_boundary": {
+        "editable": [
+          "scripts/shared-file.py",
+          "scripts/conflict-a.py"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": [],
+        "forbidden": []
+      }
+    },
+    {
+      "id": "T-CONFLICT-02",
+      "wave": "0a",
+      "work_package_boundary": {
+        "editable": [
+          "scripts/shared-file.py",
+          "scripts/conflict-b.py"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": [],
+        "forbidden": []
+      }
+    },
+    {
+      "id": "T-CONFLICT-03",
+      "wave": "0a",
+      "work_package_boundary": {
+        "editable": [
+          ".github/workflows/ci.yml"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": [],
+        "forbidden": []
+      }
+    },
+    {
+      "id": "T-CONFLICT-04",
+      "wave": "0a",
+      "work_package_boundary": {
+        "editable": [
+          "scripts/conflict-d.py"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": [],
+        "forbidden": [
+          ".github/workflows/ci.yml"
+        ]
+      }
+    },
+    {
+      "id": "T-CONFLICT-OTHER-WAVE",
+      "wave": "0b",
+      "work_package_boundary": {
+        "editable": [
+          "scripts/shared-file.py"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": [],
+        "forbidden": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+# Wave Integration Report: {{ wave_id }}
+
+## 概要
+- wave_id: {{ wave_id }}
+- phase_id: {{ phase_id }}
+- 期間: {{ period_start }} 〜 {{ period_end }}
+- 並列セッション数: {{ parallel_sessions }}
+- task 件数: {{ task_total }}
+- カテゴリ内訳: Foundation={{ layer_counts.foundation }} / Backend={{ layer_counts.backend }} / UI={{ layer_counts.ui }} / Polish={{ layer_counts.polish }} / Drift fix={{ layer_counts.drift_fix }}
+
+## auto-merge 集計 (4 カテゴリ × deliverable category)
+| 状態 | Foundation | Backend | UI | Polish | Drift fix | 合計 |
+|------|-----------|---------|----|----|--------|-----|
+| auto-merged (N gate green) | {{ state_layer.auto_merged.foundation }} | {{ state_layer.auto_merged.backend }} | {{ state_layer.auto_merged.ui }} | {{ state_layer.auto_merged.polish }} | {{ state_layer.auto_merged.drift_fix }} | {{ state_layer.auto_merged.total }} |
+| retried (1 〜 2 失敗で recovery) | {{ state_layer.retried.foundation }} | {{ state_layer.retried.backend }} | {{ state_layer.retried.ui }} | {{ state_layer.retried.polish }} | {{ state_layer.retried.drift_fix }} | {{ state_layer.retried.total }} |
+| escalated (連続 N 失敗 → human) | {{ state_layer.escalated.foundation }} | {{ state_layer.escalated.backend }} | {{ state_layer.escalated.ui }} | {{ state_layer.escalated.polish }} | {{ state_layer.escalated.drift_fix }} | {{ state_layer.escalated.total }} |
+| rolled back (post-merge 問題) | {{ state_layer.rolled_back.foundation }} | {{ state_layer.rolled_back.backend }} | {{ state_layer.rolled_back.ui }} | {{ state_layer.rolled_back.polish }} | {{ state_layer.rolled_back.drift_fix }} | {{ state_layer.rolled_back.total }} |
+
+## 連続失敗の原因分析
+{%- if failure_analysis %}
+{%- for entry in failure_analysis %}
+- {{ entry.task_id }}: gate {{ entry.last_gate_failure or 'unknown' }} で {{ entry.failure_count }} 連続失敗 → {{ entry.last_failure_reason or '原因未記録' }}
+  - 対応: pre-flight audit MD に追記、distributed-dev で再起動
+{%- endfor %}
+{%- else %}
+- 連続失敗 (failure_count >= 3) の task は無し
+{%- endif %}
+
+## drift 検出 (drift fix queue 行き)
+{%- if drift_present %}
+| rule_id | 件数 | 修正 task |
+|---------|------|----------|
+{%- for row in drift_rows %}
+| {{ row.rule_id }} | {{ row.count }} | {{ row.fix_tasks }} |
+{%- endfor %}
+
+→ 次 Wave ({{ next_wave }}) の drift fix queue に追加。
+{%- else %}
+- drift 検出無し (drift = 0)
+{%- endif %}
+
+## 統合先 git state
+- main ahead: {{ git_state.main_ahead }} commit
+- main HEAD: {{ git_state.main_head }}
+- backend test cov: {{ git_state.backend_test_coverage }}
+- frontend type check: {{ git_state.frontend_type_check }}
+- 全 N gate (project-defined): {{ git_state.all_gates_status }}

@@ -1,0 +1,55 @@
+{
+  "version": "v3",
+  "fixture_id": "wave-mutex/clean",
+  "description": "Wave 0a 内の 3 task が editable boundary を disjoint に宣言する clean ケース。violation 0 件 / exit 0 を期待する。",
+  "tasks": [
+    {
+      "id": "T-CLEAN-01",
+      "wave": "0a",
+      "work_package_boundary": {
+        "editable": [
+          "scripts/clean-a.py",
+          "scripts/tests/fixtures/clean-a/case.json"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": ["docs/task-decomposition/"],
+        "forbidden": []
+      }
+    },
+    {
+      "id": "T-CLEAN-02",
+      "wave": "0a",
+      "work_package_boundary": {
+        "editable": [
+          "scripts/clean-b.py",
+          "scripts/tests/fixtures/clean-b/case.json"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": ["docs/task-decomposition/"],
+        "forbidden": []
+      }
+    },
+    {
+      "id": "T-CLEAN-03",
+      "wave": "0a",
+      "work_package_boundary": {
+        "editable": [
+          ".github/workflows/clean-c.yml"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": [],
+        "forbidden": [".github/workflows/ci.yml"]
+      }
+    },
+    {
+      "id": "T-CLEAN-OTHER-WAVE",
+      "wave": "0b",
+      "work_package_boundary": {
+        "editable": ["scripts/clean-a.py"],
+        "shared_no_concurrent_edit": [],
+        "readonly": [],
+        "forbidden": []
+      }
+    }
+  ]
+}
