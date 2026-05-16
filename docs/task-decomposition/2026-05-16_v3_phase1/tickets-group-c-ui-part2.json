@@ -1,0 +1,2491 @@
+{
+  "version": "v3",
+  "project": "Build-Factory",
+  "profile": "build-factory",
+  "phase_target": "Phase 1",
+  "group": "C (UI / Vertical Slice) — Part 2",
+  "categories": [
+    "moat",
+    "onboarding",
+    "ops",
+    "review",
+    "spec",
+    "system",
+    "task",
+    "workspace"
+  ],
+  "created_at": "2026-05-16",
+  "summary": {
+    "mock_count": 28,
+    "task_count": 30,
+    "s027_split": 3,
+    "id_range": "T-V3-C-37..T-V3-C-64"
+  },
+  "tasks": [
+    {
+      "id": "T-V3-C-37",
+      "title": "S-016 フェーズ管理 — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-008",
+      "screen_ids": [
+        "S-016"
+      ],
+      "entity_ids": [
+        "E-013",
+        "E-014"
+      ],
+      "legacy_task_id": "T-V3-NEW-016",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-008"
+      ],
+      "files_changed": [
+        "frontend/app/s-016-phase-management/page.tsx (new)",
+        "frontend/app/s-016-phase-management/page.test.tsx (new)",
+        "frontend/lib/hooks/use-phase-management.ts (new)",
+        "frontend/lib/api/phase-management.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-016-phase-management/page.tsx",
+          "frontend/app/s-016-phase-management/page.test.tsx",
+          "frontend/lib/hooks/use-phase-management.ts",
+          "frontend/lib/api/phase-management.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/moat/S-016-phase-management.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the phase_management page is rendered, the system shall display an h1 element with the exact text \"フェーズ管理\" (matching docs/mocks/2026-05-15_v3/moat/S-016-phase-management.html h1).",
+          "STATE-DRIVEN: While the page is rendered, the system shall display section h2 headings whose set equals {Phase Timeline} (matching mock section_h2_texts).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts for an authenticated workspace member, the system shall call GET /api/workspaces/{id}/phases and render its 2xx body into the page; on 4xx the system shall render an inline error toast and an empty state.",
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/phases/{phase_id}/gate is called and all gate_conditions evaluate true, the system shall unlock the next phase."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-016` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-016` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-37` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/moat/S-016-phase-management.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-016",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-008"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-37.md",
+      "branch": "claude/T-V3-C-37",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-38",
+      "title": "S-017 依存グラフ — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-009",
+      "screen_ids": [
+        "S-017"
+      ],
+      "entity_ids": [
+        "E-019",
+        "E-018"
+      ],
+      "legacy_task_id": "T-V3-NEW-017",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-009"
+      ],
+      "files_changed": [
+        "frontend/app/s-017-dependency-graph/page.tsx (new)",
+        "frontend/app/s-017-dependency-graph/page.test.tsx (new)",
+        "frontend/lib/hooks/use-dependency-graph.ts (new)",
+        "frontend/lib/api/dependency-graph.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-017-dependency-graph/page.tsx",
+          "frontend/app/s-017-dependency-graph/page.test.tsx",
+          "frontend/lib/hooks/use-dependency-graph.ts",
+          "frontend/lib/api/dependency-graph.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/moat/S-017-dependency-graph.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the dependency_graph page is rendered, the system shall display an h1 element with the exact text \"依存グラフ (DAG)\" (matching docs/mocks/2026-05-15_v3/moat/S-017-dependency-graph.html h1).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts for an authenticated workspace member, the system shall call GET /api/workspaces/{id}/dependencies and render its 2xx body into the page; on 4xx the system shall render an inline error toast and an empty state.",
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/dependencies is called with a valid edge, the system shall persist it and return 200."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-017` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-017` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-38` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/moat/S-017-dependency-graph.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-017",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-009"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-38.md",
+      "branch": "claude/T-V3-C-38",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-39",
+      "title": "S-048 ようこそ — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": null,
+      "screen_ids": [
+        "S-048"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "T-V3-NEW-048",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "frontend/app/s-048-welcome-first-login/page.tsx (new)",
+        "frontend/app/s-048-welcome-first-login/page.test.tsx (new)",
+        "frontend/lib/hooks/use-welcome-first-login.ts (new)",
+        "frontend/lib/api/welcome-first-login.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-048-welcome-first-login/page.tsx",
+          "frontend/app/s-048-welcome-first-login/page.test.tsx",
+          "frontend/lib/hooks/use-welcome-first-login.ts",
+          "frontend/lib/api/welcome-first-login.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/onboarding/S-048-welcome-first-login.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the welcome_first_login page is rendered, the system shall display an h1 element with the exact text \"Build-Factory へようこそ\" (matching docs/mocks/2026-05-15_v3/onboarding/S-048-welcome-first-login.html h1).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "STATE-DRIVEN: While data is being fetched, the system shall render a skeleton loader with role=\"status\" aria-live=\"polite\"; once data arrives the skeleton shall be replaced atomically."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-048` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-048` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-39` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/onboarding/S-048-welcome-first-login.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-048"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-39.md",
+      "branch": "claude/T-V3-C-39",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-40",
+      "title": "S-049 案件セットアップ — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": null,
+      "screen_ids": [
+        "S-049"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "T-V3-NEW-049",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "frontend/app/s-049-workspace-setup-wizard/page.tsx (new)",
+        "frontend/app/s-049-workspace-setup-wizard/page.test.tsx (new)",
+        "frontend/lib/hooks/use-workspace-setup-wizard.ts (new)",
+        "frontend/lib/api/workspace-setup-wizard.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-049-workspace-setup-wizard/page.tsx",
+          "frontend/app/s-049-workspace-setup-wizard/page.test.tsx",
+          "frontend/lib/hooks/use-workspace-setup-wizard.ts",
+          "frontend/lib/api/workspace-setup-wizard.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/onboarding/S-049-workspace-setup-wizard.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the workspace_setup_wizard page is rendered, the system shall display an h1 element with the exact text \"最初の案件を作成\" (matching docs/mocks/2026-05-15_v3/onboarding/S-049-workspace-setup-wizard.html h1).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "STATE-DRIVEN: While data is being fetched, the system shall render a skeleton loader with role=\"status\" aria-live=\"polite\"; once data arrives the skeleton shall be replaced atomically."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-049` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-049` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-40` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/onboarding/S-049-workspace-setup-wizard.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-049"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-40.md",
+      "branch": "claude/T-V3-C-40",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-41",
+      "title": "S-050 AI 社員紹介 — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": null,
+      "screen_ids": [
+        "S-050"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "T-V3-NEW-050",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "frontend/app/s-050-ai-employee-intro/page.tsx (new)",
+        "frontend/app/s-050-ai-employee-intro/page.test.tsx (new)",
+        "frontend/lib/hooks/use-ai-employee-intro.ts (new)",
+        "frontend/lib/api/ai-employee-intro.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-050-ai-employee-intro/page.tsx",
+          "frontend/app/s-050-ai-employee-intro/page.test.tsx",
+          "frontend/lib/hooks/use-ai-employee-intro.ts",
+          "frontend/lib/api/ai-employee-intro.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/onboarding/S-050-ai-employee-intro.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the ai_employee_intro page is rendered, the system shall display an h1 element with the exact text \"AI 社員チームと一緒に\" (matching docs/mocks/2026-05-15_v3/onboarding/S-050-ai-employee-intro.html h1).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "STATE-DRIVEN: While data is being fetched, the system shall render a skeleton loader with role=\"status\" aria-live=\"polite\"; once data arrives the skeleton shall be replaced atomically."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-050` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-050` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-41` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/onboarding/S-050-ai-employee-intro.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-050"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-41.md",
+      "branch": "claude/T-V3-C-41",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-42",
+      "title": "S-040 コスト ダッシュボード — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_id": "F-017",
+      "screen_ids": [
+        "S-040"
+      ],
+      "entity_ids": [
+        "E-027",
+        "E-028"
+      ],
+      "legacy_task_id": "T-V3-DRIFT-040",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-017"
+      ],
+      "files_changed": [
+        "frontend/app/s-040-cost-dashboard/page.tsx (new)",
+        "frontend/app/s-040-cost-dashboard/page.test.tsx (new)",
+        "frontend/lib/hooks/use-cost-dashboard.ts (new)",
+        "frontend/lib/api/cost-dashboard.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-040-cost-dashboard/page.tsx",
+          "frontend/app/s-040-cost-dashboard/page.test.tsx",
+          "frontend/lib/hooks/use-cost-dashboard.ts",
+          "frontend/lib/api/cost-dashboard.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/ops/S-040-cost-dashboard.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the cost_dashboard page is rendered, the system shall display an h1 element with the exact text \"コスト ダッシュボード\" (matching docs/mocks/2026-05-15_v3/ops/S-040-cost-dashboard.html h1).",
+          "STATE-DRIVEN: While the page hero is rendered, the system shall display KPI components whose labels equal the set {Ops / 今月コスト / トークン (今月) / セッション平均} (matching mock kpi_labels).",
+          "STATE-DRIVEN: While the page is rendered, the system shall display section h2 headings whose set equals {案件別コスト / AI 社員別コスト / 日別コスト推移 (15 日)} (matching mock section_h2_texts).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts for an authenticated workspace member, the system shall call GET /api/observability/cost-summary and render its 2xx body into the page; on 4xx the system shall render an inline error toast and an empty state.",
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "EVENT-DRIVEN: When GET /api/observability/cost-summary is called with date range, the system shall return total_usd + by_provider + by_user breakdown."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-040` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-040` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-42` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/ops/S-040-cost-dashboard.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-040",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-017"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-42.md",
+      "branch": "claude/T-V3-C-42",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-43",
+      "title": "S-041 監査ログ — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_id": "F-018",
+      "screen_ids": [
+        "S-041"
+      ],
+      "entity_ids": [
+        "E-029"
+      ],
+      "legacy_task_id": "T-V3-DRIFT-041",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-018"
+      ],
+      "files_changed": [
+        "frontend/app/s-041-audit-log-viewer/page.tsx (new)",
+        "frontend/app/s-041-audit-log-viewer/page.test.tsx (new)",
+        "frontend/lib/hooks/use-audit-log-viewer.ts (new)",
+        "frontend/lib/api/audit-log-viewer.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-041-audit-log-viewer/page.tsx",
+          "frontend/app/s-041-audit-log-viewer/page.test.tsx",
+          "frontend/lib/hooks/use-audit-log-viewer.ts",
+          "frontend/lib/api/audit-log-viewer.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/ops/S-041-audit-log-viewer.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the audit_log_viewer page is rendered, the system shall display an h1 element with the exact text \"監査ログ\" (matching docs/mocks/2026-05-15_v3/ops/S-041-audit-log-viewer.html h1).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts for an authenticated workspace member, the system shall call GET /api/audit-logs and render its 2xx body into the page; on 4xx the system shall render an inline error toast and an empty state.",
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "UBIQUITOUS: The system shall write an audit_log entry for every state-mutating API call within 1 second."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-041` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-041` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-43` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/ops/S-041-audit-log-viewer.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-041",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-018"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-43.md",
+      "branch": "claude/T-V3-C-43",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-44",
+      "title": "S-033 PR レビュー — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-013",
+      "screen_ids": [
+        "S-033"
+      ],
+      "entity_ids": [
+        "E-018"
+      ],
+      "legacy_task_id": "T-V3-NEW-033",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-013"
+      ],
+      "files_changed": [
+        "frontend/app/s-033-pr-review/page.tsx (new)",
+        "frontend/app/s-033-pr-review/page.test.tsx (new)",
+        "frontend/lib/hooks/use-pr-review.ts (new)",
+        "frontend/lib/api/pr-review.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-033-pr-review/page.tsx",
+          "frontend/app/s-033-pr-review/page.test.tsx",
+          "frontend/lib/hooks/use-pr-review.ts",
+          "frontend/lib/api/pr-review.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/review/S-033-pr-review.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the pr_review page is rendered, the system shall display an h1 element with the exact text \"feat: requirements editor + EARS notation parser\" (matching docs/mocks/2026-05-15_v3/review/S-033-pr-review.html h1).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts for an authenticated workspace member, the system shall call GET /api/workspaces/{id}/prs/{pr_number} and render its 2xx body into the page; on 4xx the system shall render an inline error toast and an empty state.",
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "EVENT-DRIVEN: When POST /api/prs/{id}/merge is called by a workspace_admin with valid merge_method, the system shall merge the PR via GitHub API and emit pr_merged audit log."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-033` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-033` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-44` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/review/S-033-pr-review.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-033",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-013"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-44.md",
+      "branch": "claude/T-V3-C-44",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-45",
+      "title": "S-035 納品承認 — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-013",
+      "screen_ids": [
+        "S-035"
+      ],
+      "entity_ids": [
+        "E-018"
+      ],
+      "legacy_task_id": "T-V3-NEW-035",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-013",
+        "T-V3-B-015"
+      ],
+      "files_changed": [
+        "frontend/app/s-035-delivery-approval/page.tsx (new)",
+        "frontend/app/s-035-delivery-approval/page.test.tsx (new)",
+        "frontend/lib/hooks/use-delivery-approval.ts (new)",
+        "frontend/lib/api/delivery-approval.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-035-delivery-approval/page.tsx",
+          "frontend/app/s-035-delivery-approval/page.test.tsx",
+          "frontend/lib/hooks/use-delivery-approval.ts",
+          "frontend/lib/api/delivery-approval.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/review/S-035-delivery-approval.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the delivery_approval page is rendered, the system shall display an h1 element with the exact text \"納品承認\" (matching docs/mocks/2026-05-15_v3/review/S-035-delivery-approval.html h1).",
+          "STATE-DRIVEN: While the page is rendered, the system shall display section h2 headings whose set equals {Phase 1 dogfood セットアップ完成 / 納品 Checklist / テスト結果サマリー / 納品成果物 HTML プレビュー / クライアント受入状況} (matching mock section_h2_texts).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts for an authenticated workspace member, the system shall call GET /api/workspaces/{id}/delivery and render its 2xx body into the page; on 4xx the system shall render an inline error toast and an empty state.",
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "EVENT-DRIVEN: When POST /api/prs/{id}/merge is called by a workspace_admin with valid merge_method, the system shall merge the PR via GitHub API and emit pr_merged audit log.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/reports is called with type=delivery_report, the system shall queue a report job and return report_id."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-035` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-035` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-45` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/review/S-035-delivery-approval.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-035",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-013",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-015"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-45.md",
+      "branch": "claude/T-V3-C-45",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-46",
+      "title": "S-020 ヒアリングセッション — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-005",
+      "screen_ids": [
+        "S-020"
+      ],
+      "entity_ids": [
+        "E-016",
+        "E-032",
+        "E-033"
+      ],
+      "legacy_task_id": "T-V3-NEW-020",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-005"
+      ],
+      "files_changed": [
+        "frontend/app/s-020-hearing-session/page.tsx (new)",
+        "frontend/app/s-020-hearing-session/page.test.tsx (new)",
+        "frontend/lib/hooks/use-hearing-session.ts (new)",
+        "frontend/lib/api/hearing-session.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-020-hearing-session/page.tsx",
+          "frontend/app/s-020-hearing-session/page.test.tsx",
+          "frontend/lib/hooks/use-hearing-session.ts",
+          "frontend/lib/api/hearing-session.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/spec/S-020-hearing-session.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the hearing_session page is rendered, the system shall display an h1 element with the exact text \"ヒアリングセッション\" (matching docs/mocks/2026-05-15_v3/spec/S-020-hearing-session.html h1).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts for an authenticated workspace member, the system shall call WS /ws/hearing/{session_id} and render its 2xx body into the page; on 4xx the system shall render an inline error toast and an empty state.",
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "EVENT-DRIVEN: When a client connects to WS /ws/hearing/{session_id}, the system shall stream chat messages and slot_state updates for that session."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-020` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-020` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-46` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/spec/S-020-hearing-session.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-020",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-005"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-46.md",
+      "branch": "claude/T-V3-C-46",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-47",
+      "title": "S-021 要件エディタ — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-006",
+      "screen_ids": [
+        "S-021"
+      ],
+      "entity_ids": [
+        "E-016",
+        "E-021"
+      ],
+      "legacy_task_id": "T-V3-NEW-021",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-006",
+        "T-V3-B-025"
+      ],
+      "files_changed": [
+        "frontend/app/s-021-requirements-editor/page.tsx (new)",
+        "frontend/app/s-021-requirements-editor/page.test.tsx (new)",
+        "frontend/lib/hooks/use-requirements-editor.ts (new)",
+        "frontend/lib/api/requirements-editor.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-021-requirements-editor/page.tsx",
+          "frontend/app/s-021-requirements-editor/page.test.tsx",
+          "frontend/lib/hooks/use-requirements-editor.ts",
+          "frontend/lib/api/requirements-editor.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/spec/S-021-requirements-editor.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the requirements_editor page is rendered, the system shall display an h1 element with the exact text \"要件エディタ\" (matching docs/mocks/2026-05-15_v3/spec/S-021-requirements-editor.html h1).",
+          "STATE-DRIVEN: While the page is rendered, the system shall display section h2 headings whose set equals {2. 機能要件 (Must)} (matching mock section_h2_texts).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts for an authenticated workspace member, the system shall call GET /api/workspaces/{id}/requirements and render its 2xx body into the page; on 4xx the system shall render an inline error toast and an empty state.",
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "EVENT-DRIVEN: When PUT /api/workspaces/{id}/requirements is called with EARS-conformant items, the system shall persist them and return version+1.",
+          "UBIQUITOUS: The system shall validate every acceptance_criteria item against one of the 5 EARS forms before persisting."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-021` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-021` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-47` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/spec/S-021-requirements-editor.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-021",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-006",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-025"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-47.md",
+      "branch": "claude/T-V3-C-47",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-48",
+      "title": "S-022 仕様書ビューア — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-005",
+      "screen_ids": [
+        "S-022"
+      ],
+      "entity_ids": [
+        "E-021",
+        "E-016"
+      ],
+      "legacy_task_id": "T-V3-NEW-022",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-005",
+        "T-V3-B-015"
+      ],
+      "files_changed": [
+        "frontend/app/s-022-spec-viewer/page.tsx (new)",
+        "frontend/app/s-022-spec-viewer/page.test.tsx (new)",
+        "frontend/lib/hooks/use-spec-viewer.ts (new)",
+        "frontend/lib/api/spec-viewer.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-022-spec-viewer/page.tsx",
+          "frontend/app/s-022-spec-viewer/page.test.tsx",
+          "frontend/lib/hooks/use-spec-viewer.ts",
+          "frontend/lib/api/spec-viewer.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/spec/S-022-spec-viewer.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the spec_viewer page is rendered, the system shall display an h1 element with the exact text \"仕様書ビューア\" (matching docs/mocks/2026-05-15_v3/spec/S-022-spec-viewer.html h1).",
+          "STATE-DRIVEN: While the page is rendered, the system shall display section h2 headings whose set equals {1. プロジェクト概要 / 2. Must 要件 (34 項目)} (matching mock section_h2_texts).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts for an authenticated workspace member, the system shall call GET /api/workspaces/{id}/specs and render its 2xx body into the page; on 4xx the system shall render an inline error toast and an empty state.",
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "EVENT-DRIVEN: When a client connects to WS /ws/hearing/{session_id}, the system shall stream chat messages and slot_state updates for that session.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/reports is called with type=delivery_report, the system shall queue a report job and return report_id."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-022` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-022` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-48` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/spec/S-022-spec-viewer.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-022",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-005",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-015"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-48.md",
+      "branch": "claude/T-V3-C-48",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-49",
+      "title": "S-023 画面モックビューア — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-005b",
+      "screen_ids": [
+        "S-023"
+      ],
+      "entity_ids": [
+        "E-022",
+        "E-023"
+      ],
+      "legacy_task_id": "T-V3-NEW-023",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-005b"
+      ],
+      "files_changed": [
+        "frontend/app/s-023-screen-mock-viewer/page.tsx (new)",
+        "frontend/app/s-023-screen-mock-viewer/page.test.tsx (new)",
+        "frontend/lib/hooks/use-screen-mock-viewer.ts (new)",
+        "frontend/lib/api/screen-mock-viewer.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-023-screen-mock-viewer/page.tsx",
+          "frontend/app/s-023-screen-mock-viewer/page.test.tsx",
+          "frontend/lib/hooks/use-screen-mock-viewer.ts",
+          "frontend/lib/api/screen-mock-viewer.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/spec/S-023-screen-mock-viewer.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the screen_mock_viewer page is rendered, the system shall display an h1 element with the exact text \"画面モックビューア\" (matching docs/mocks/2026-05-15_v3/spec/S-023-screen-mock-viewer.html h1).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts for an authenticated workspace member, the system shall call GET /api/workspaces/{id}/mocks and render its 2xx body into the page; on 4xx the system shall render an inline error toast and an empty state.",
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/mocks/{screen_id}/html is called, the system shall return the latest version of the mock HTML."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-023` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-023` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-49` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/spec/S-023-screen-mock-viewer.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-023",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-005b"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-49.md",
+      "branch": "claude/T-V3-C-49",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-50",
+      "title": "S-024 コンポーネントカタログ — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-005b",
+      "screen_ids": [
+        "S-024"
+      ],
+      "entity_ids": [
+        "E-023",
+        "E-024"
+      ],
+      "legacy_task_id": "T-V3-NEW-024",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-005b"
+      ],
+      "files_changed": [
+        "frontend/app/s-024-component-catalog/page.tsx (new)",
+        "frontend/app/s-024-component-catalog/page.test.tsx (new)",
+        "frontend/lib/hooks/use-component-catalog.ts (new)",
+        "frontend/lib/api/component-catalog.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-024-component-catalog/page.tsx",
+          "frontend/app/s-024-component-catalog/page.test.tsx",
+          "frontend/lib/hooks/use-component-catalog.ts",
+          "frontend/lib/api/component-catalog.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/spec/S-024-component-catalog.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the component_catalog page is rendered, the system shall display an h1 element with the exact text \"コンポーネントカタログ\" (matching docs/mocks/2026-05-15_v3/spec/S-024-component-catalog.html h1).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts for an authenticated workspace member, the system shall call GET /api/workspaces/{id}/components and render its 2xx body into the page; on 4xx the system shall render an inline error toast and an empty state.",
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/mocks/{screen_id}/html is called, the system shall return the latest version of the mock HTML."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-024` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-024` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-50` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/spec/S-024-component-catalog.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-024",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-005b"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-50.md",
+      "branch": "claude/T-V3-C-50",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-51",
+      "title": "S-025 画面遷移マップ — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-005b",
+      "screen_ids": [
+        "S-025"
+      ],
+      "entity_ids": [
+        "E-022",
+        "E-024"
+      ],
+      "legacy_task_id": "T-V3-NEW-025",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-005b"
+      ],
+      "files_changed": [
+        "frontend/app/s-025-screen-flow-map/page.tsx (new)",
+        "frontend/app/s-025-screen-flow-map/page.test.tsx (new)",
+        "frontend/lib/hooks/use-screen-flow-map.ts (new)",
+        "frontend/lib/api/screen-flow-map.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-025-screen-flow-map/page.tsx",
+          "frontend/app/s-025-screen-flow-map/page.test.tsx",
+          "frontend/lib/hooks/use-screen-flow-map.ts",
+          "frontend/lib/api/screen-flow-map.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/spec/S-025-screen-flow-map.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the screen_flow_map page is rendered, the system shall display an h1 element with the exact text \"画面遷移マップ\" (matching docs/mocks/2026-05-15_v3/spec/S-025-screen-flow-map.html h1).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts for an authenticated workspace member, the system shall call GET /api/workspaces/{id}/screen-flow and render its 2xx body into the page; on 4xx the system shall render an inline error toast and an empty state.",
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/mocks/{screen_id}/html is called, the system shall return the latest version of the mock HTML."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-025` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-025` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-51` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/spec/S-025-screen-flow-map.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-025",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-005b"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-51.md",
+      "branch": "claude/T-V3-C-51",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-52",
+      "title": "S-026 HTML エディタ — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-005b",
+      "screen_ids": [
+        "S-026"
+      ],
+      "entity_ids": [
+        "E-022",
+        "E-021"
+      ],
+      "legacy_task_id": "T-V3-NEW-026",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-005b"
+      ],
+      "files_changed": [
+        "frontend/app/s-026-design-html-editor/page.tsx (new)",
+        "frontend/app/s-026-design-html-editor/page.test.tsx (new)",
+        "frontend/lib/hooks/use-design-html-editor.ts (new)",
+        "frontend/lib/api/design-html-editor.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-026-design-html-editor/page.tsx",
+          "frontend/app/s-026-design-html-editor/page.test.tsx",
+          "frontend/lib/hooks/use-design-html-editor.ts",
+          "frontend/lib/api/design-html-editor.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/spec/S-026-design-html-editor.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the design_html_editor page is rendered, the system shall display an h1 element with the exact text \"HTML エディタ\" (matching docs/mocks/2026-05-15_v3/spec/S-026-design-html-editor.html h1).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts for an authenticated workspace member, the system shall call GET /api/workspaces/{id}/mocks/{screen_id}/html and render its 2xx body into the page; on 4xx the system shall render an inline error toast and an empty state.",
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/mocks/{screen_id}/html is called, the system shall return the latest version of the mock HTML."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-026` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-026` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-52` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/spec/S-026-design-html-editor.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-026",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-005b"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-52.md",
+      "branch": "claude/T-V3-C-52",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-53",
+      "title": "S-044 404 Not Found — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-system",
+      "screen_ids": [
+        "S-044"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "T-V3-NEW-044",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "frontend/app/s-044-not-found-404/page.tsx (new)",
+        "frontend/app/s-044-not-found-404/page.test.tsx (new)",
+        "frontend/lib/hooks/use-not-found-404.ts (new)",
+        "frontend/lib/api/not-found-404.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-044-not-found-404/page.tsx",
+          "frontend/app/s-044-not-found-404/page.test.tsx",
+          "frontend/lib/hooks/use-not-found-404.ts",
+          "frontend/lib/api/not-found-404.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/system/S-044-not-found-404.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the not_found_404 page is rendered, the system shall display an h1 element with the exact text \"ページが見つかりません\" (matching docs/mocks/2026-05-15_v3/system/S-044-not-found-404.html h1).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts for an authenticated workspace member, the system shall call N/A (static page) and render its 2xx body into the page; on 4xx the system shall render an inline error toast and an empty state.",
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "STATE-DRIVEN: While data is being fetched, the system shall render a skeleton loader with role=\"status\" aria-live=\"polite\"; once data arrives the skeleton shall be replaced atomically."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-044` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-044` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-53` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/system/S-044-not-found-404.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-044",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-system"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-53.md",
+      "branch": "claude/T-V3-C-53",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-54",
+      "title": "S-045 500 Server Error — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-system",
+      "screen_ids": [
+        "S-045"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "T-V3-NEW-045",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "frontend/app/s-045-server-error-500/page.tsx (new)",
+        "frontend/app/s-045-server-error-500/page.test.tsx (new)",
+        "frontend/lib/hooks/use-server-error-500.ts (new)",
+        "frontend/lib/api/server-error-500.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-045-server-error-500/page.tsx",
+          "frontend/app/s-045-server-error-500/page.test.tsx",
+          "frontend/lib/hooks/use-server-error-500.ts",
+          "frontend/lib/api/server-error-500.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/system/S-045-server-error-500.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the server_error_500 page is rendered, the system shall display an h1 element with the exact text \"サーバーエラー\" (matching docs/mocks/2026-05-15_v3/system/S-045-server-error-500.html h1).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "STATE-DRIVEN: While data is being fetched, the system shall render a skeleton loader with role=\"status\" aria-live=\"polite\"; once data arrives the skeleton shall be replaced atomically."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-045` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-045` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-54` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/system/S-045-server-error-500.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-045",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-system"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-54.md",
+      "branch": "claude/T-V3-C-54",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-55",
+      "title": "S-046 403 Forbidden — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": null,
+      "screen_ids": [
+        "S-046"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "T-V3-NEW-046",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "frontend/app/s-046-forbidden-403/page.tsx (new)",
+        "frontend/app/s-046-forbidden-403/page.test.tsx (new)",
+        "frontend/lib/hooks/use-forbidden-403.ts (new)",
+        "frontend/lib/api/forbidden-403.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-046-forbidden-403/page.tsx",
+          "frontend/app/s-046-forbidden-403/page.test.tsx",
+          "frontend/lib/hooks/use-forbidden-403.ts",
+          "frontend/lib/api/forbidden-403.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/system/S-046-forbidden-403.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the forbidden_403 page is rendered, the system shall display an h1 element with the exact text \"アクセス権限がありません\" (matching docs/mocks/2026-05-15_v3/system/S-046-forbidden-403.html h1).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "STATE-DRIVEN: While data is being fetched, the system shall render a skeleton loader with role=\"status\" aria-live=\"polite\"; once data arrives the skeleton shall be replaced atomically."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-046` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-046` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-55` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/system/S-046-forbidden-403.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-046"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-55.md",
+      "branch": "claude/T-V3-C-55",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-56",
+      "title": "S-047 Maintenance — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": null,
+      "screen_ids": [
+        "S-047"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "T-V3-NEW-047",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "frontend/app/s-047-maintenance/page.tsx (new)",
+        "frontend/app/s-047-maintenance/page.test.tsx (new)",
+        "frontend/lib/hooks/use-maintenance.ts (new)",
+        "frontend/lib/api/maintenance.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-047-maintenance/page.tsx",
+          "frontend/app/s-047-maintenance/page.test.tsx",
+          "frontend/lib/hooks/use-maintenance.ts",
+          "frontend/lib/api/maintenance.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/system/S-047-maintenance.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the maintenance page is rendered, the system shall display an h1 element with the exact text \"メンテナンス中\" (matching docs/mocks/2026-05-15_v3/system/S-047-maintenance.html h1).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "STATE-DRIVEN: While data is being fetched, the system shall render a skeleton loader with role=\"status\" aria-live=\"polite\"; once data arrives the skeleton shall be replaced atomically."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-047` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-047` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-56` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/system/S-047-maintenance.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-047"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-56.md",
+      "branch": "claude/T-V3-C-56",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-57-1",
+      "title": "S-027 タスク Kanban — core (accordion layout + columns + data fetch)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-007",
+      "screen_ids": [
+        "S-027"
+      ],
+      "entity_ids": [
+        "E-018",
+        "E-019"
+      ],
+      "legacy_task_id": "T-V3-NEW-027",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 6.0,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-007"
+      ],
+      "files_changed": [
+        "frontend/app/s-027-task-kanban/page.tsx (new)",
+        "frontend/app/s-027-task-kanban/page.test.tsx (new)",
+        "frontend/lib/hooks/use-kanban-board.ts (new)",
+        "frontend/lib/api/kanban.ts (new)",
+        "frontend/components/kanban/AccordionBoard.tsx (new)",
+        "frontend/components/kanban/Column.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-027-task-kanban/page.tsx",
+          "frontend/app/s-027-task-kanban/page.test.tsx",
+          "frontend/lib/hooks/use-kanban-board.ts",
+          "frontend/lib/api/kanban.ts",
+          "frontend/components/kanban/AccordionBoard.tsx",
+          "frontend/components/kanban/Column.tsx"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/task/S-027-task-kanban.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the kanban page is rendered, the system shall display an h1 element with the exact text \"タスク Kanban\" (matching docs/mocks/2026-05-15_v3/task/S-027-task-kanban.html h1).",
+          "UBIQUITOUS: The system shall render kanban as a feature-grouped accordion (each feature_id = one accordion section containing 4 columns: Todo / In Progress / Review / Done), NOT a flat 6-column board (Hermes-flat layout is forbidden per CLAUDE.md §5.5).",
+          "UBIQUITOUS: The system shall expand only in-progress feature accordions by default; completed (all Done) and not-started (all Todo) features shall be collapsed by default.",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements (design-tokens.md §8)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts for an authenticated workspace member, the system shall call GET /api/workspaces/{id}/tasks?group_by=feature and render tasks grouped by feature_id with accordion-friendly metadata.",
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any task data.",
+          "STATE-DRIVEN: While data is being fetched, the system shall render a skeleton accordion with role=\"status\" aria-live=\"polite\".",
+          "UNWANTED: If the API returns 403, the system shall display a 403 page (S-046) instead of partial data."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-027` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-027` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-57-1` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/task/S-027-task-kanban.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-027",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-007"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-57-1.md",
+      "branch": "claude/T-V3-C-57-1",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-57-2",
+      "title": "S-027 タスク Kanban — drag & drop (within-feature card move + optimistic update)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-007",
+      "screen_ids": [
+        "S-027"
+      ],
+      "entity_ids": [
+        "E-018",
+        "E-019"
+      ],
+      "legacy_task_id": "T-V3-NEW-027",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 5.0,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-007",
+        "T-V3-C-57-1"
+      ],
+      "files_changed": [
+        "frontend/components/kanban/DraggableCard.tsx (new)",
+        "frontend/components/kanban/DropZone.tsx (new)",
+        "frontend/lib/hooks/use-task-dnd.ts (new)",
+        "frontend/lib/api/kanban-move.ts (new)",
+        "frontend/app/s-027-task-kanban/page.tsx (modify)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/components/kanban/DraggableCard.tsx",
+          "frontend/components/kanban/DropZone.tsx",
+          "frontend/lib/hooks/use-task-dnd.ts",
+          "frontend/lib/api/kanban-move.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/task/S-027-task-kanban.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While a task card is being dragged, the system shall apply a `data-dragging=true` attribute and show a drop-shadow visual treatment matching design-tokens.md §6 elevation/2.",
+          "UBIQUITOUS: The system shall render valid drop zones (same feature, different column) with a dashed eb-500 border ring during a drag operation."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When a user drops a task card on a valid column DropZone of the SAME feature, the system shall call PATCH /api/tasks/{task_id} with the new status and optimistically update the UI within 100ms; on 4xx the system shall revert the optimistic move and show an error toast.",
+          "UNWANTED: If a user attempts to drop a task on a column belonging to a DIFFERENT feature accordion, the system shall reject the drop, revert the card position, and not call any API.",
+          "UNWANTED: If POST /api/tasks/{id}/play is called for a task with unsatisfied dependencies, the system shall surface the 409 error inline and not advance the card status.",
+          "OPTIONAL: Where the user holds shift while dropping, the system shall open a confirmation dialog before applying the status change."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-027` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-027` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-57-2` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/task/S-027-task-kanban.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-027",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-007"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-57-2.md",
+      "branch": "claude/T-V3-C-57-2",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-57-3",
+      "title": "S-027 タスク Kanban — filter & search (feature / status / assignee / text)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-007",
+      "screen_ids": [
+        "S-027"
+      ],
+      "entity_ids": [
+        "E-018",
+        "E-019"
+      ],
+      "legacy_task_id": "T-V3-NEW-027",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 3.0,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-007",
+        "T-V3-C-57-1"
+      ],
+      "files_changed": [
+        "frontend/components/kanban/FilterBar.tsx (new)",
+        "frontend/components/kanban/FeatureToggle.tsx (new)",
+        "frontend/lib/hooks/use-kanban-filter.ts (new)",
+        "frontend/app/s-027-task-kanban/page.tsx (modify)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/components/kanban/FilterBar.tsx",
+          "frontend/components/kanban/FeatureToggle.tsx",
+          "frontend/lib/hooks/use-kanban-filter.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/task/S-027-task-kanban.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "UBIQUITOUS: The system shall render a sticky FilterBar above the accordion containing: feature multi-select / status multi-select / assignee multi-select / text search input.",
+          "STATE-DRIVEN: While at least one filter is active, the system shall display an active-filter badge count and a 'Clear filters' button."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When a user changes any filter input, the system shall debounce 250ms and then re-call GET /api/workspaces/{id}/tasks?group_by=feature with the corresponding query parameters; the URL search params shall mirror the active filter state.",
+          "STATE-DRIVEN: While a filter narrows results to zero, the system shall display an empty state per accordion section with a 'Reset filters' CTA.",
+          "UNWANTED: If text search input exceeds 200 characters, the system shall truncate to 200 and not call the API beyond that length."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-027` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-027` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-57-3` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/task/S-027-task-kanban.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-027",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-007"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-57-3.md",
+      "branch": "claude/T-V3-C-57-3",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-58",
+      "title": "S-028 タスクリスト — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_id": "F-007",
+      "screen_ids": [
+        "S-028"
+      ],
+      "entity_ids": [
+        "E-018"
+      ],
+      "legacy_task_id": "T-V3-DRIFT-028",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-007"
+      ],
+      "files_changed": [
+        "frontend/app/s-028-task-list/page.tsx (new)",
+        "frontend/app/s-028-task-list/page.test.tsx (new)",
+        "frontend/lib/hooks/use-task-list.ts (new)",
+        "frontend/lib/api/task-list.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-028-task-list/page.tsx",
+          "frontend/app/s-028-task-list/page.test.tsx",
+          "frontend/lib/hooks/use-task-list.ts",
+          "frontend/lib/api/task-list.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/task/S-028-task-list.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the task_list page is rendered, the system shall display an h1 element with the exact text \"タスクリスト\" (matching docs/mocks/2026-05-15_v3/task/S-028-task-list.html h1).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts for an authenticated workspace member, the system shall call GET /api/workspaces/{id}/tasks and render its 2xx body into the page; on 4xx the system shall render an inline error toast and an empty state.",
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/tasks?group_by=feature is called, the system shall return tasks grouped by feature_id with accordion-friendly metadata."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-028` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-028` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-58` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/task/S-028-task-list.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-028",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-007"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-58.md",
+      "branch": "claude/T-V3-C-58",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-59",
+      "title": "S-029 タスク DAG — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-007",
+      "screen_ids": [
+        "S-029"
+      ],
+      "entity_ids": [
+        "E-018",
+        "E-019"
+      ],
+      "legacy_task_id": "T-V3-NEW-029",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-007",
+        "T-V3-B-009"
+      ],
+      "files_changed": [
+        "frontend/app/s-029-task-dag-view/page.tsx (new)",
+        "frontend/app/s-029-task-dag-view/page.test.tsx (new)",
+        "frontend/lib/hooks/use-task-dag-view.ts (new)",
+        "frontend/lib/api/task-dag-view.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-029-task-dag-view/page.tsx",
+          "frontend/app/s-029-task-dag-view/page.test.tsx",
+          "frontend/lib/hooks/use-task-dag-view.ts",
+          "frontend/lib/api/task-dag-view.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/task/S-029-task-dag-view.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the task_dag_view page is rendered, the system shall display an h1 element with the exact text \"タスク DAG\" (matching docs/mocks/2026-05-15_v3/task/S-029-task-dag-view.html h1).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts for an authenticated workspace member, the system shall call GET /api/workspaces/{id}/tasks/dag and render its 2xx body into the page; on 4xx the system shall render an inline error toast and an empty state.",
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/tasks?group_by=feature is called, the system shall return tasks grouped by feature_id with accordion-friendly metadata.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/dependencies is called with a valid edge, the system shall persist it and return 200."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-029` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-029` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-59` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/task/S-029-task-dag-view.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-029",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-007",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-009"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-59.md",
+      "branch": "claude/T-V3-C-59",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-60",
+      "title": "S-030 タスク詳細 — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-006",
+      "screen_ids": [
+        "S-030"
+      ],
+      "entity_ids": [
+        "E-018",
+        "E-016",
+        "E-019",
+        "E-025"
+      ],
+      "legacy_task_id": "T-V3-NEW-030",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-006",
+        "T-V3-B-007",
+        "T-V3-B-025"
+      ],
+      "files_changed": [
+        "frontend/app/s-030-task-detail/page.tsx (new)",
+        "frontend/app/s-030-task-detail/page.test.tsx (new)",
+        "frontend/lib/hooks/use-task-detail.ts (new)",
+        "frontend/lib/api/task-detail.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-030-task-detail/page.tsx",
+          "frontend/app/s-030-task-detail/page.test.tsx",
+          "frontend/lib/hooks/use-task-detail.ts",
+          "frontend/lib/api/task-detail.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/task/S-030-task-detail.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the task_detail page is rendered, the system shall display an h1 element with the exact text \"POST /api/auth/signup 実装\" (matching docs/mocks/2026-05-15_v3/task/S-030-task-detail.html h1).",
+          "STATE-DRIVEN: While the page is rendered, the system shall display section h2 headings whose set equals {Description / 受け入れ基準 (EARS / 5 件) / セッション履歴 (3) / コメント (2)} (matching mock section_h2_texts).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts for an authenticated workspace member, the system shall call GET /api/tasks/{id} and render its 2xx body into the page; on 4xx the system shall render an inline error toast and an empty state.",
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "EVENT-DRIVEN: When PUT /api/workspaces/{id}/requirements is called with EARS-conformant items, the system shall persist them and return version+1.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/tasks?group_by=feature is called, the system shall return tasks grouped by feature_id with accordion-friendly metadata.",
+          "UBIQUITOUS: The system shall validate every acceptance_criteria item against one of the 5 EARS forms before persisting."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-030` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-030` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-60` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/task/S-030-task-detail.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-030",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-006",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-007",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-025"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-60.md",
+      "branch": "claude/T-V3-C-60",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-61",
+      "title": "S-012 案件ダッシュボード — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-006",
+      "screen_ids": [
+        "S-012"
+      ],
+      "entity_ids": [
+        "E-009",
+        "E-018",
+        "E-025",
+        "E-013",
+        "E-017"
+      ],
+      "legacy_task_id": "T-V3-NEW-012",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-006",
+        "T-V3-B-007",
+        "T-V3-B-008",
+        "T-V3-B-026"
+      ],
+      "files_changed": [
+        "frontend/app/s-012-workspace-dashboard/page.tsx (new)",
+        "frontend/app/s-012-workspace-dashboard/page.test.tsx (new)",
+        "frontend/lib/hooks/use-workspace-dashboard.ts (new)",
+        "frontend/lib/api/workspace-dashboard.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-012-workspace-dashboard/page.tsx",
+          "frontend/app/s-012-workspace-dashboard/page.test.tsx",
+          "frontend/lib/hooks/use-workspace-dashboard.ts",
+          "frontend/lib/api/workspace-dashboard.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/workspace/S-012-workspace-dashboard.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the workspace_dashboard page is rendered, the system shall display an h1 element with the exact text \"Build-Factory dogfood\" (matching docs/mocks/2026-05-15_v3/workspace/S-012-workspace-dashboard.html h1).",
+          "STATE-DRIVEN: While the page hero is rendered, the system shall display KPI components whose labels equal the set {Spec / Task / Moat / Safety / Settings / Workspace / Phase 進捗 / Tasks / Running Sessions} (matching mock kpi_labels).",
+          "STATE-DRIVEN: While the page is rendered, the system shall display section h2 headings whose set equals {現在のフェーズ: Phase 1 (実装) / Constitution / 最近のタスク / Pending Reviews (3) / Running Sessions (5)} (matching mock section_h2_texts).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts for an authenticated workspace member, the system shall call GET /api/workspaces/{id}/dashboard and render its 2xx body into the page; on 4xx the system shall render an inline error toast and an empty state.",
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "EVENT-DRIVEN: When PUT /api/workspaces/{id}/requirements is called with EARS-conformant items, the system shall persist them and return version+1.",
+          "EVENT-DRIVEN: When GET /api/workspaces/{id}/tasks?group_by=feature is called, the system shall return tasks grouped by feature_id with accordion-friendly metadata.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/phases/{phase_id}/gate is called and all gate_conditions evaluate true, the system shall unlock the next phase.",
+          "EVENT-DRIVEN: When POST /api/workspaces/{id}/constitution/versions is called, the system shall create a new version snapshot without affecting the active version."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-012` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-012` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-61` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/workspace/S-012-workspace-dashboard.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-012",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-006",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-007",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-008",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-026"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-61.md",
+      "branch": "claude/T-V3-C-61",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-62",
+      "title": "S-013 案件設定 — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-004",
+      "screen_ids": [
+        "S-013"
+      ],
+      "entity_ids": [
+        "E-009"
+      ],
+      "legacy_task_id": "T-V3-NEW-013",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-004"
+      ],
+      "files_changed": [
+        "frontend/app/s-013-workspace-settings/page.tsx (new)",
+        "frontend/app/s-013-workspace-settings/page.test.tsx (new)",
+        "frontend/lib/hooks/use-workspace-settings.ts (new)",
+        "frontend/lib/api/workspace-settings.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-013-workspace-settings/page.tsx",
+          "frontend/app/s-013-workspace-settings/page.test.tsx",
+          "frontend/lib/hooks/use-workspace-settings.ts",
+          "frontend/lib/api/workspace-settings.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/workspace/S-013-workspace-settings.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the workspace_settings page is rendered, the system shall display an h1 element with the exact text \"案件設定\" (matching docs/mocks/2026-05-15_v3/workspace/S-013-workspace-settings.html h1).",
+          "STATE-DRIVEN: While the page is rendered, the system shall display section h2 headings whose set equals {基本情報 / トークン / コスト制限 / 外部連携 / Danger Zone} (matching mock section_h2_texts).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts for an authenticated workspace member, the system shall call GET /api/workspaces/{id} and render its 2xx body into the page; on 4xx the system shall render an inline error toast and an empty state.",
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "EVENT-DRIVEN: When PUT /api/accounts/{id} is called by the owner with a valid plan upgrade, the system shall update plan and emit account_updated audit log."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-013` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-013` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-62` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/workspace/S-013-workspace-settings.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-013",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-004"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-62.md",
+      "branch": "claude/T-V3-C-62",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-63",
+      "title": "S-014 案件メンバー — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-004",
+      "screen_ids": [
+        "S-014"
+      ],
+      "entity_ids": [
+        "E-003",
+        "E-001"
+      ],
+      "legacy_task_id": "T-V3-NEW-014",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-004",
+        "T-V3-B-021"
+      ],
+      "files_changed": [
+        "frontend/app/s-014-workspace-members/page.tsx (new)",
+        "frontend/app/s-014-workspace-members/page.test.tsx (new)",
+        "frontend/lib/hooks/use-workspace-members.ts (new)",
+        "frontend/lib/api/workspace-members.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-014-workspace-members/page.tsx",
+          "frontend/app/s-014-workspace-members/page.test.tsx",
+          "frontend/lib/hooks/use-workspace-members.ts",
+          "frontend/lib/api/workspace-members.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/workspace/S-014-workspace-members.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the workspace_members page is rendered, the system shall display an h1 element with the exact text \"案件メンバー\" (matching docs/mocks/2026-05-15_v3/workspace/S-014-workspace-members.html h1).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts for an authenticated workspace member, the system shall call GET /api/workspaces/{id}/members and render its 2xx body into the page; on 4xx the system shall render an inline error toast and an empty state.",
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "EVENT-DRIVEN: When PUT /api/accounts/{id} is called by the owner with a valid plan upgrade, the system shall update plan and emit account_updated audit log.",
+          "UBIQUITOUS: The system shall evaluate access via OR across role default_permissions and member custom_permissions."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-014` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-014` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-63` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/workspace/S-014-workspace-members.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-014",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-004",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-021"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-63.md",
+      "branch": "claude/T-V3-C-63",
+      "risk_flags": []
+    },
+    {
+      "id": "T-V3-C-64",
+      "title": "S-015 メンバー招待 — Vertical Slice UI (Next.js page + API client + hook + test)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_id": "F-004",
+      "screen_ids": [
+        "S-015"
+      ],
+      "entity_ids": [
+        "E-043"
+      ],
+      "legacy_task_id": "T-V3-NEW-015",
+      "phase": "Phase 1",
+      "wave": "1",
+      "wave_priority": "First",
+      "group": "C",
+      "deliverable_layer": "ui",
+      "estimate_hours": 4.0,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-B-004"
+      ],
+      "files_changed": [
+        "frontend/app/s-015-workspace-invite/page.tsx (new)",
+        "frontend/app/s-015-workspace-invite/page.test.tsx (new)",
+        "frontend/lib/hooks/use-workspace-invite.ts (new)",
+        "frontend/lib/api/workspace-invite.ts (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/app/s-015-workspace-invite/page.tsx",
+          "frontend/app/s-015-workspace-invite/page.test.tsx",
+          "frontend/lib/hooks/use-workspace-invite.ts",
+          "frontend/lib/api/workspace-invite.ts"
+        ],
+        "shared_no_concurrent_edit": [
+          "frontend/app/layout.tsx",
+          "frontend/lib/api/client.ts"
+        ],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/workspace/S-015-workspace-invite.html",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json",
+          "docs/functional-breakdown/2026-05-16_v3/features.json",
+          "docs/mocks/2026-05-15_v3/design-system/DESIGN.md"
+        ],
+        "forbidden": [
+          "data/migrations/",
+          "backend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the workspace_invite page is rendered, the system shall display an h1 element with the exact text \"メンバーを招待\" (matching docs/mocks/2026-05-15_v3/workspace/S-015-workspace-invite.html h1).",
+          "STATE-DRIVEN: While the page is rendered, the system shall display section h2 headings whose set equals {新規招待 / 送信済み招待 (pending)} (matching mock section_h2_texts).",
+          "UBIQUITOUS: The system shall use Lucide icons exclusively (no emoji) for icon-glyph elements on this page (design-tokens.md §8)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts for an authenticated workspace member, the system shall call POST /api/workspaces/{id}/invitations and render its 2xx body into the page; on 4xx the system shall render an inline error toast and an empty state.",
+          "UNWANTED: If an unauthenticated visitor navigates to this page, the system shall redirect to /login (S-001) and shall not render any workspace-scoped data.",
+          "EVENT-DRIVEN: When PUT /api/accounts/{id} is called by the owner with a valid plan upgrade, the system shall update plan and emit account_updated audit log."
+        ],
+        "regression": [
+          "The system shall pass `pnpm test --filter=s-015` with coverage >= 70%.",
+          "The system shall pass `tsc --noEmit` with 0 errors.",
+          "The system shall pass `pnpm run lint` (ESLint + design-token lint) with 0 violations.",
+          "The system shall pass `bash scripts/lint-mock.sh` 12/12 OK (no emoji / no AGPL / no ARCHIVE residue).",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-015` (Tier 1 structural diff = 0).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json` for this task id.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-C-64` (audit MD pre-flight green)."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/mocks/2026-05-15_v3/workspace/S-015-workspace-invite.html",
+        "docs/functional-breakdown/2026-05-16_v3/screens.json#S-015",
+        "docs/functional-breakdown/2026-05-16_v3/features.json#F-004"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-64.md",
+      "branch": "claude/T-V3-C-64",
+      "risk_flags": []
+    }
+  ]
+}
