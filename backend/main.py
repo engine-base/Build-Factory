@@ -57,13 +57,13 @@ from routers.swarm import router as swarm_router
 from routers.memory import router as memory_router
 from routers.context import router as context_router
 from routers.oauth import router as oauth_router
-from routers.auth import router as auth_router
 from routers.user_lifecycle import router as user_lifecycle_router
 from routers.memory_facts import router as memory_facts_router
 from routers.mem0_bridge import router as mem0_bridge_router
 from routers.anthropic_memory import router as anthropic_memory_router
 from routers.chat_search import router as chat_search_router
 from routers.bf_profile import router as bf_profile_router
+from routers.me import router as me_router
 from routers.ws import router as ws_router
 from routers.admin_fallback import router as admin_fallback_router
 from routers.phases import router as phases_router
@@ -125,8 +125,11 @@ from routers.unified_search import router as unified_search_router
 from routers.search import router as global_search_router  # T-V3-B-27 / F-024
 from routers.intent_classifier import router as intent_classifier_router
 from routers.intent_router import router as intent_router_router
+<<<<<<< HEAD
+=======
 from routers.mocks import router as mocks_router  # T-V3-B-08 / F-005b
 from routers.onboarding import router as onboarding_router  # T-V3-B-29 / F-027
+>>>>>>> origin/main
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 
@@ -241,6 +244,7 @@ app.include_router(mem0_bridge_router)
 app.include_router(anthropic_memory_router)
 app.include_router(chat_search_router)
 app.include_router(bf_profile_router)
+app.include_router(me_router)
 app.include_router(ws_router)
 app.include_router(admin_fallback_router)
 app.include_router(phases_router)
@@ -301,9 +305,12 @@ app.include_router(unified_search_router)
 app.include_router(global_search_router)  # T-V3-B-27 / F-024 (GET /api/search)
 app.include_router(intent_classifier_router)
 app.include_router(intent_router_router)
+<<<<<<< HEAD
+=======
 app.include_router(auth_router)
 app.include_router(mocks_router)  # T-V3-B-08 / F-005b
 app.include_router(onboarding_router)  # T-V3-B-29 / F-027
+>>>>>>> origin/main
 
 
 @app.get("/health")
