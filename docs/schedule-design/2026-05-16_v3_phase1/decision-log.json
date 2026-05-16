@@ -1,0 +1,128 @@
+{
+  "version": "v3",
+  "skill": "schedule-design",
+  "project": "Build-Factory",
+  "phase": "Phase 1",
+  "created_at": "2026-05-16",
+  "decisions": [
+    {
+      "id": "SD-01",
+      "title": "Wave 構成 = 6 Wave (W1-W6) ユーザー指定構造を採用",
+      "context": "task-decomp 出力では Group B が 3 wave (1/2/3) / C-part1 が wave 2 / C-part2 が wave 1 と部分指定のみ。Schedule-design レイヤで W1-W6 のグローバル順序を決定。",
+      "decision": "W1=B Wave1 (21), W2=B Wave2 (8), W3=B Wave3 (1), W4=C-Part1 (25), W5=C-Part2 (30), W6=D (15) — backend → UI → drift の Foundation/Backend/UI/Polish 順序保証。",
+      "rationale": "v3-core.md の順序保証ルール (UI Wave は対応 Backend Wave 完了後にのみ起動) を満たす。Group C tickets の depends_on は Group B tickets に 65/55 件 (T-V3-C-37〜64 の 20 件 + 大部分の C-Part1) で参照されているため、Backend 完了が UI 着手の prerequisite。",
+      "alternatives_considered": [
+        "task-decomp の wave 値をそのまま使う → Group C の wave=1/2 が global W1/W2 と衝突するため不採用",
+        "Backend と UI を同時並列 → contract test prerequisite を満たさず drift 増殖リスク (R-V3-06)"
+      ]
+    },
+    {
+      "id": "SD-02",
+      "title": "並列度 = 30 sessions (parallel_capacity)",
+      "context": "build-factory profile では large 規模 (30-50 並列) と定義。最大 Wave (W5 = 30 task) と同等。",
+      "decision": "parallel_capacity = 30 で固定。各 Wave で min(task_count, 30) を実行。",
+      "rationale": "GitHub Actions free tier の concurrent job 上限 + Vercel preview deploy 上限と整合。R-V3-05 (CI tier 上限超過) 回避。",
+      "alternatives_considered": [
+        "並列 50 → CI 直列化リスク",
+        "並列 21 (Wave 1 task 数) → W5 で 30 task 直列化、duration 増加"
+      ]
+    },
+    {
+      "id": "SD-03",
+      "title": "Wave duration = max(sub-wave 内 max(estimate_hours)) を合算 + CI buffer 1h",
+      "context": "build-factory profile で 1 Wave 周期 = 2-4h。最大 task 6h + sub-wave 直列化を吸収するため上振れ。",
+      "decision": "W1=6h, W2=6h, W3=5h, W4=24h (5 sub × max), W5=6h, W6=44h (9 sub × max) + 各 +1h CI buffer。",
+      "rationale": "Wave 内で全 task が並列完了するまで待つ必要があるため、max(estimate_hours) が wave duration の下限。sub-wave 直列化で W4/W6 は大幅延長。",
+      "alternatives_considered": [
+        "全 Wave 一律 4h → 6h task が Wave 跨ぎでブロック発生"
+      ]
+    },
+    {
+      "id": "SD-04",
+      "title": "milestone = M1/M2/M3 (Phase gate 機械判定)",
+      "context": "v3-core.md Phase gate を mechanical / observable に判定する要件。",
+      "decision": "M1 (W3 後 / Backend 完成) / M2 (W5 後 / UI 完成) / M3 (W6 後 / Phase 1 完了)。各 milestone に exit_criteria を 4 項目以上配置。",
+      "rationale": "phase_review_required = true で人間レビュー、ただし exit_criteria は機械判定可能 (gate 数 / lint 件数 / coverage %)。",
+      "alternatives_considered": [
+        "milestone なし → Phase gate 判定不能",
+        "Wave 毎に milestone → 過剰、レビュー疲弊"
+      ]
+    },
+    {
+      "id": "SD-05",
+      "title": "critical path = B-01 → B-02 → C-01 → C-02 → D-01 → D-15",
+      "context": "100 task 中、auth slice (T-V3-B-01/02 + T-V3-C-01/02) が他 Slice の前提となる base schema を含む。",
+      "decision": "Critical path は最短経路で 6 task (auth backend → auth UI → drift fix → final validation)。",
+      "rationale": "ユーザー認証は全 UI screen の前提条件。auth ロールバックは全 Slice ロールバックを引き起こす。",
+      "alternatives_considered": [
+        "全 100 task をクリティカル化 → 過剰"
+      ]
+    },
+    {
+      "id": "SD-06",
+      "title": "retry protocol = 3 strikes → human エスカ",
+      "context": "v3-core.md / build-factory profile で consecutive_failure_threshold = 3。",
+      "decision": "1st fail = auto-retry (CI 再実行) / 2nd fail = audit MD 補強して再実行 / 3rd fail = high.takamoto@engine-base.com に通知。",
+      "rationale": "human エスカ閾値 3 で過剰エスカ抑制。audit MD 補強で原因分析を mechanical に。",
+      "alternatives_considered": [
+        "5 strikes → 遅延リスク",
+        "1 strike → 過剰エスカ、人間疲弊"
+      ]
+    },
+    {
+      "id": "SD-07",
+      "title": "input source tickets 既知 drift の取り扱い",
+      "context": "Group B ticket ID は T-V3-B-01 (2-digit) だが C/D の depends_on は T-V3-B-001 (3-digit) や T-V3-B-AI-01 (名前付き) を参照。30 件以上の orphan 参照あり。",
+      "decision": "schedule-design レイヤでは normalize しない (task-decomp の責務)。Wave order で順序保証 (W1-W3 完了後に W4-W5 起動) するため、ticket ID drift は CI gate の AC validator (gate #2) が検出して fail させる方針。",
+      "rationale": "schedule-design はあくまで Wave 並列実行プラン。task ID 正規化は task-decomp の責務。",
+      "alternatives_considered": [
+        "schedule-design 側で auto-normalize → 上流 source の信頼性を損なう"
+      ]
+    },
+    {
+      "id": "SD-08",
+      "title": "file mutex validation = check-wave-mutex.py 全 sub-wave 適用",
+      "context": "v3-core.md で file-level mutex 必須。100 task × 6 Wave × 18 sub-wave の組み合わせを mechanical に検証。",
+      "decision": "wave-tickets.json を生成 (4 group tickets を統合 + sub-wave id 上書き)、check-wave-mutex.py で 18 sub-wave 全てを --strict 検証。全 pass 確認済。",
+      "rationale": "Wave 内の編集 file 衝突を mechanical に防止。R-V3-02 (並列セッション競合) 回避。",
+      "alternatives_considered": [
+        "目視検証 → 100 task × 18 sub-wave で人間ミス必発"
+      ]
+    },
+    {
+      "id": "SD-09",
+      "title": "sub-wave split = file mutex に基づく greedy graph coloring",
+      "context": "task-decomp output で W4 (UI part1) と W6 (Drift) に file mutex 衝突あり。W4 = 7 file 衝突 / W6 = 9 task が entities.json + 5 forbidden migration chain。--strict mode で fail。",
+      "decision": "schedule-design レイヤで W4 → 5 sub-wave (W4.a〜e) / W6 → 9 sub-wave (W6.a〜i) に分割。各 sub-wave は parallel 起動可能、sub-wave 間は直列起動 (claude-runner / Swarm が depends_on_sub_wave で順序保証)。",
+      "rationale": "task-decomp の wpb 設定 (editable / forbidden / shared) を尊重しつつ、mechanical な mutex check pass を確保。R-V3-02 完全回避。",
+      "consequence": "W4 duration = 24h (5 sub × max 5h) / W6 duration = 44h (9 sub × max 6h) — 当初想定の 4-6h より大幅延長。Phase 1B + Phase 1D で +56h 増加。",
+      "alternatives_considered": [
+        "task-decomp に diff を fix 要求 → 上流改修サイクル待ちで Phase 1 起動遅延",
+        "Wave 単位の直列実行 → 全 Wave で並列度損失",
+        "entities.json の sectional edit (Yaml-merge 戦略) → 上流 task-decomp の責務、本 schedule では未採用"
+      ]
+    },
+    {
+      "id": "SD-10",
+      "title": "W6 (Drift) 並列度損失への対応策",
+      "context": "W6 が 9 sub-wave に細分化、entities.json 共有のため 9 並列 → 1 並列に劣化。Phase 1 完了が +30h 遅れる影響大。",
+      "decision": "schedule では 9 sub-wave で plan、Phase 1 完了後の task-decomp 改修 PR (entities.json を section ごとに分割) を Phase 1.5 着手前の前提作業として記録。",
+      "rationale": "schedule-design は task-decomp の責務に踏み込まない。drift fix は Phase 1.5 で対応。",
+      "alternatives_considered": [
+        "schedule-design レイヤで entities.json を自動 split → 上流仕様改変、本 skill 責務外"
+      ]
+    }
+  ],
+  "risks": [
+    {"id": "R-V3-01", "risk": "CI gate 連続失敗 (1 task / 3+ 回 reject)", "probability": "中", "mitigation": "3 回で human エスカ + audit MD で原因記録 (SD-06)"},
+    {"id": "R-V3-02", "risk": "並列セッション競合 (同一 file への並列 edit)", "probability": "中", "mitigation": "check-wave-mutex.py で 18 sub-wave 起動前に検証 (SD-08)"},
+    {"id": "R-V3-03", "risk": "drift 増殖 (Group D 滞留)", "probability": "高", "mitigation": "W6 で 15 task 並列実行 + lint #17-19 0 件を M3 exit criteria に組込み"},
+    {"id": "R-V3-04", "risk": "Foundation gate 未達のまま Backend phase 開始", "probability": "低", "mitigation": "Phase 0 (Foundation) は別途完了済前提 (docs/task-decomposition/2026-05-16_v3_phase0/ で 8 task 完走)。本 schedule では W0 不要。"},
+    {"id": "R-V3-05", "risk": "GitHub Actions 並列上限超過", "probability": "中", "mitigation": "parallel_capacity = 30 で固定 (SD-02)。超過時は概算 1 Wave 当たり数時間延長。"},
+    {"id": "R-V3-06", "risk": "UI phase が Backend API spec 変更で手戻り", "probability": "中", "mitigation": "Backend phase (W1-W3) 完了 → M1 → UI phase (W4-W5) 起動の順序保証 (SD-01)"}
+  ],
+  "open_questions": [
+    "Q1: Group C ticket の depends_on (T-V3-B-001 3-digit 形式) を正規化するタイミング → 推奨: 次回 task-decomp PR で正規化",
+    "Q2: Group D の depends_on が空欄 (notes: 上位コーディネータが wave 4 をブロックして直列化) → 本 schedule では W1-W5 完了を depends_on_waves で機械的に block"
+  ]
+}

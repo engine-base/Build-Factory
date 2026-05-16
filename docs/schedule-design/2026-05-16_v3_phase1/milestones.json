@@ -1,0 +1,76 @@
+{
+  "version": "v3",
+  "project": "Build-Factory",
+  "phase": "Phase 1",
+  "created_at": "2026-05-16",
+  "milestones": [
+    {
+      "milestone_id": "M1",
+      "name": "Phase 1A Backend 完成",
+      "type": "phase_gate",
+      "after_wave": "W3",
+      "date": "2026-05-18T16:00:00+09:00",
+      "depends_on": ["W1", "W2", "W3"],
+      "exit_criteria": [
+        "30 backend tasks merged into main",
+        "94 endpoint contract tests green",
+        "RLS coverage 100% on touched tables",
+        "no critical drift in inventory"
+      ],
+      "deliverable": "Phase 1 Backend = 8 Slice の data/service/API layer 完成"
+    },
+    {
+      "milestone_id": "M2",
+      "name": "Phase 1B UI 完成",
+      "type": "phase_gate",
+      "after_wave": "W5",
+      "date": "2026-05-20T22:00:00+09:00",
+      "depends_on": ["W4", "W5"],
+      "exit_criteria": [
+        "55 UI tasks merged",
+        "mock-impl-diff (lint #17) 0 件",
+        "a11y check pass",
+        "screens.json と route 一致 (lint #18)"
+      ],
+      "deliverable": "Phase 1 UI = 60 screen + component 完成 (dialog 5 件 merge 反映)"
+    },
+    {
+      "milestone_id": "M3",
+      "name": "Phase 1 完成 (dogfood ready)",
+      "type": "phase_gate",
+      "after_wave": "W6",
+      "date": "2026-05-24T15:00:00+09:00",
+      "depends_on": ["W1", "W2", "W3", "W4", "W5", "W6"],
+      "exit_criteria": [
+        "100 tasks merged",
+        "Group D drift fix 完了 (entity/api/screen drift 0 件)",
+        "8 CI gate all green on main",
+        "Build-Factory 自身を Build-Factory で dogfood 起動可能"
+      ],
+      "deliverable": "Phase 1 全完成 / dogfood 起動可能状態"
+    }
+  ],
+  "phase_gates": [
+    {
+      "gate_id": "M1-gate",
+      "gate_name": "Backend phase 開放 → UI phase 起動許可",
+      "after": "M1",
+      "blocking": true,
+      "block_rule": "M1 未達のまま W4 (UI) を起動しない (機械的 block / wave-schedule.json depends_on_waves で強制)"
+    },
+    {
+      "gate_id": "M2-gate",
+      "gate_name": "UI phase 完了 → Drift fix 起動許可",
+      "after": "M2",
+      "blocking": true,
+      "block_rule": "M2 未達のまま W6 (Drift) を起動しない"
+    },
+    {
+      "gate_id": "M3-gate",
+      "gate_name": "Phase 1 完了 → Phase 1.5 (REFACTOR) 起動許可",
+      "after": "M3",
+      "blocking": true,
+      "block_rule": "全 100 task auto-merge + lint #17-19 0 件で Phase 1.5 起動"
+    }
+  ]
+}
