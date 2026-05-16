@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-007 アカウント設定 — Build-Factory</title>
+
+<meta name="bf-screen-id" content="S-007">
+<meta name="bf-screen-name" content="account_settings">
+<meta name="bf-category" content="account">
+<meta name="bf-feature-id" content="F-004">
+<meta name="bf-task-ids" content="T-V3-RF-01">
+<meta name="bf-entities" content="E-008,E-001">
+<meta name="bf-related-apis" content="GET /api/accounts/{id},PUT /api/accounts/{id},POST /api/accounts/{id}/transfer-owner,DELETE /api/accounts/{id}">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-007">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>
+  body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(8px);">
+  <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+  <span>Index に戻る</span>
+</a>
+
+<aside class="w-[240px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-4 border-b border-eb-600">
+    <div class="flex items-center gap-2 mb-3">
+      <div class="w-7 h-7 rounded-md bg-white/10 flex items-center justify-center"><i data-lucide="factory" class="w-4 h-4 text-white"></i></div>
+      <div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div>
+    </div>
+    <div class="text-sm font-bold">ENGINE BASE</div>
+    <div class="text-[11px] text-eb-100 mt-0.5 mono">account_a1b2 · Pro</div>
+  </div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5 overflow-y-auto">
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-2 pb-1 font-bold">Account</div>
+    <a href="./S-006-account-dashboard.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100">
+      <i data-lucide="layout-dashboard" class="w-4 h-4"></i> 10 案件 俯瞰
+    </a>
+    <a href="./S-008-account-members.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100">
+      <i data-lucide="users" class="w-4 h-4"></i> メンバー
+    </a>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 bg-eb-600 font-semibold">
+      <i data-lucide="settings" class="w-4 h-4"></i> アカウント設定
+    </a>
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-3 pb-1 font-bold">Personal</div>
+    <a href="./S-010-notifications-inbox.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="bell" class="w-4 h-4"></i> 通知</a>
+    <a href="./S-011-global-search.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="search" class="w-4 h-4"></i> 検索</a>
+    <a href="./S-009-profile-settings.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="user" class="w-4 h-4"></i> プロフィール</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 flex items-center gap-2">
+    <div class="w-7 h-7 rounded-full bg-eb-500 flex items-center justify-center text-[11px] font-bold mono">M</div>
+    <div class="flex-1 min-w-0"><div class="text-[11px] font-semibold truncate">masato</div><div class="text-[10px] text-eb-200 truncate">account_owner</div></div>
+  </div>
+</aside>
+
+<main class="flex-1 overflow-y-auto">
+  <div class="max-w-[800px] mx-auto px-6 py-8">
+
+    <!-- Breadcrumb -->
+    <div class="text-xs text-slate-500 flex items-center gap-1.5 mb-2">
+      <a href="./S-006-account-dashboard.html" class="hover:text-slate-900">Account</a>
+      <i data-lucide="chevron-right" class="w-3 h-3"></i>
+      <span class="text-slate-900 font-medium">アカウント設定</span>
+    </div>
+
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold">アカウント設定</h1>
+      <p class="text-sm text-slate-600 mt-1">アカウント全体の設定 / プラン / オーナー権限</p>
+    </div>
+
+    <!-- General -->
+    <section class="bg-white border border-slate-200 rounded-lg p-6 mb-4">
+      <h2 class="text-base font-bold mb-4">基本情報</h2>
+      <div class="space-y-4">
+        <div class="space-y-1.5">
+          <label class="text-sm font-medium block">アカウント名</label>
+          <input type="text" value="ENGINE BASE" class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md w-full" />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="text-sm font-medium block">アカウント種別</label>
+            <select class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md w-full">
+              <option>受託会社</option>
+              <option>社内開発チーム</option>
+              <option>フリーランス</option>
+            </select>
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-sm font-medium block">Account ID</label>
+            <div class="border border-slate-200 bg-slate-50 text-sm h-9 px-3 rounded-md w-full flex items-center mono text-slate-700">account_a1b2c3d4</div>
+          </div>
+        </div>
+        <div class="flex justify-end pt-2">
+          <button class="bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-9 px-4 rounded-md">保存</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Plan -->
+    <section class="bg-white border border-slate-200 rounded-lg p-6 mb-4">
+      <h2 class="text-base font-bold mb-4">プラン / 課金</h2>
+      <div class="border border-eb-200 bg-eb-50 rounded-md p-4 flex items-center justify-between mb-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-sm font-bold">Pro プラン</span>
+            <span class="text-[11px] bg-eb-500 text-white px-2 py-0.5 rounded-full font-semibold">CURRENT</span>
+          </div>
+          <div class="text-xs text-slate-600">10 案件並列 / 50 並列セッション / 月額 ¥9,800</div>
+        </div>
+        <button class="bg-white border border-eb-500 text-eb-500 hover:bg-eb-100 text-sm font-semibold h-9 px-4 rounded-md">プラン変更</button>
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-sm font-medium block">支払い方法</label>
+        <div class="border border-slate-200 rounded-md p-3 flex items-center gap-3">
+          <i data-lucide="credit-card" class="w-5 h-5 text-slate-500"></i>
+          <div class="flex-1">
+            <div class="text-sm font-medium mono">**** **** **** 4242</div>
+            <div class="text-xs text-slate-500">Visa · 有効期限 12/26</div>
+          </div>
+          <button class="text-xs text-eb-500 hover:text-eb-600 font-semibold">変更</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Owner -->
+    <section class="bg-white border border-slate-200 rounded-lg p-6 mb-4">
+      <h2 class="text-base font-bold mb-4">所有者 (Account Owner)</h2>
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-eb-500 text-white flex items-center justify-center text-sm font-bold">M</div>
+        <div class="flex-1">
+          <div class="text-sm font-medium">masato</div>
+          <div class="text-xs text-slate-500 mono">masato@engine-base.com</div>
+        </div>
+        <button class="border border-slate-200 hover:bg-slate-50 text-sm h-9 px-4 rounded-md">他メンバーに移譲</button>
+      </div>
+    </section>
+
+    <!-- Danger zone -->
+    <section class="bg-white border border-red-200 rounded-lg p-6">
+      <h2 class="text-base font-bold text-red-600 mb-3 flex items-center gap-2">
+        <i data-lucide="alert-triangle" class="w-4 h-4"></i> Danger Zone
+      </h2>
+      <p class="text-xs text-slate-600 mb-4">不可逆な操作です。慎重に実行してください。</p>
+      <div class="space-y-3">
+        <div class="flex items-center justify-between p-3 border border-slate-200 rounded-md">
+          <div>
+            <div class="text-sm font-semibold">全データのエクスポート (GDPR)</div>
+            <div class="text-xs text-slate-500">全 workspace / task / セッション履歴を JSON で出力</div>
+          </div>
+          <button class="border border-slate-300 hover:bg-slate-50 text-sm h-9 px-4 rounded-md">エクスポート</button>
+        </div>
+        <div class="flex items-center justify-between p-3 border border-red-200 rounded-md">
+          <div>
+            <div class="text-sm font-semibold text-red-600">アカウントを削除</div>
+            <div class="text-xs text-slate-500">全 workspace / メンバー / データを完全削除</div>
+          </div>
+          <button class="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold h-9 px-4 rounded-md">削除する</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

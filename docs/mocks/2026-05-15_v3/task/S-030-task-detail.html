@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-030 タスク詳細 — Build-Factory</title>
+<meta name="bf-screen-id" content="S-030">
+<meta name="bf-screen-name" content="task_detail">
+<meta name="bf-category" content="task">
+<meta name="bf-feature-id" content="F-006,F-007,F-025">
+<meta name="bf-task-ids" content="T-V3-SCR-11">
+<meta name="bf-entities" content="E-018,E-016,E-019,E-025">
+<meta name="bf-related-apis" content="GET /api/tasks/{id},PUT /api/tasks/{id},POST /api/tasks/{id}/play,POST /api/sessions/{id}/kill,POST /api/tasks/{id}/comments">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-030">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; } .mono { font-family: 'JetBrains Mono', monospace; } .pulse-dot { animation: pulse-dot 1.4s infinite; } @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(8px);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+
+<aside class="w-[240px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-4 border-b border-eb-600"><div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div><div class="text-sm font-bold mt-1">Build-Factory dogfood</div></div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5">
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-2 pb-1 font-bold">Task</div>
+    <a href="./S-027-task-kanban.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="kanban" class="w-4 h-4"></i> Kanban</a>
+    <a href="./S-028-task-list.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="list" class="w-4 h-4"></i> List</a>
+    <a href="./S-029-task-dag-view.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="git-branch" class="w-4 h-4"></i> DAG</a>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 bg-eb-600 font-semibold"><i data-lucide="file" class="w-4 h-4"></i> Detail</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-eb-500 flex items-center justify-center text-[11px] font-bold mono">M</div><div class="flex-1 min-w-0"><div class="text-[11px] font-semibold truncate">masato</div></div></div>
+</aside>
+
+<main class="flex-1 overflow-y-auto">
+  <div class="max-w-[1100px] mx-auto px-6 py-6">
+    <div class="text-xs text-slate-500 flex items-center gap-1.5 mb-2">
+      <a href="./S-027-task-kanban.html" class="hover:text-slate-900">Tasks</a>
+      <i data-lucide="chevron-right" class="w-3 h-3"></i>
+      <span class="mono text-eb-500">T-V3-AUTH-02</span>
+    </div>
+
+    <div class="flex items-start justify-between mb-6">
+      <div>
+        <div class="flex items-center gap-2 mb-1"><span class="text-[11px] mono bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-semibold">T-V3-AUTH-02</span><span class="text-[11px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-medium flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 pulse-dot"></span>running</span></div>
+        <h1 class="text-2xl font-bold">POST /api/auth/signup 実装</h1>
+        <div class="text-xs text-slate-500 mt-1 flex items-center gap-3">
+          <span><i data-lucide="briefcase" class="w-3 h-3 inline mr-0.5"></i>F-001 Supabase 基盤 + 認証</span>
+          <span><i data-lucide="layout" class="w-3 h-3 inline mr-0.5"></i>S-002 signup</span>
+          <span><i data-lucide="clock" class="w-3 h-3 inline mr-0.5"></i>8h</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="border border-slate-200 hover:bg-slate-50 text-sm h-9 px-3 rounded-md flex items-center gap-2"><i data-lucide="edit-3" class="w-4 h-4"></i>編集</button>
+        <button class="bg-red-50 border border-red-200 hover:bg-red-100 text-red-700 text-sm h-9 px-3 rounded-md font-semibold flex items-center gap-2"><i data-lucide="square" class="w-4 h-4"></i>kill session</button>
+        <button class="bg-eb-500 hover:bg-eb-600 text-white text-sm h-9 px-4 rounded-md font-semibold flex items-center gap-2"><i data-lucide="play" class="w-4 h-4"></i>▶ rerun</button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4">
+      <div class="col-span-2 space-y-4">
+        <!-- Description -->
+        <section class="bg-white border border-slate-200 rounded-lg p-5">
+          <h2 class="text-sm font-bold text-eb-500 mb-3 flex items-center gap-2"><i data-lucide="align-left" class="w-4 h-4"></i>Description</h2>
+          <div class="text-sm text-slate-700 leading-relaxed">
+            email + password + display_name で User + Account + AccountMember を 1 transaction で作成。
+            email_taken は 409、weak_password は 422 で返却。
+            成功時は JWT + refresh_token cookie を発行 (login と同じ形式)。
+          </div>
+        </section>
+
+        <!-- AC (EARS) -->
+        <section class="bg-white border border-slate-200 rounded-lg p-5">
+          <h2 class="text-sm font-bold text-eb-500 mb-3 flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4"></i>受け入れ基準 (EARS / 5 件)</h2>
+          <div class="space-y-2">
+            <div class="border-l-4 border-eb-500 bg-eb-50 pl-3 py-2 rounded-r text-sm">
+              <div class="text-[10px] uppercase tracking-wider text-eb-700 font-bold mb-0.5">EVENT-DRIVEN</div>
+              <p><strong>When</strong> valid email+password+display_name is POSTed, <strong>the system shall</strong> create User + Account + AccountMember atomically and return 201 with JWT.</p>
+            </div>
+            <div class="border-l-4 border-red-400 bg-red-50 pl-3 py-2 rounded-r text-sm">
+              <div class="text-[10px] uppercase tracking-wider text-red-700 font-bold mb-0.5">UNWANTED</div>
+              <p><strong>If</strong> email is taken, <strong>the system shall</strong> return 409 (email_taken).</p>
+            </div>
+            <div class="border-l-4 border-red-400 bg-red-50 pl-3 py-2 rounded-r text-sm">
+              <div class="text-[10px] uppercase tracking-wider text-red-700 font-bold mb-0.5">UNWANTED</div>
+              <p><strong>If</strong> password fails complexity, <strong>the system shall</strong> return 422 (weak_password) with details.</p>
+            </div>
+            <div class="border-l-4 border-eb-500 bg-eb-50 pl-3 py-2 rounded-r text-sm">
+              <div class="text-[10px] uppercase tracking-wider text-eb-700 font-bold mb-0.5">EVENT-DRIVEN</div>
+              <p><strong>When</strong> signup succeeds, <strong>the system shall</strong> enqueue a welcome email job (async).</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Session history -->
+        <section class="bg-white border border-slate-200 rounded-lg p-5">
+          <h2 class="text-sm font-bold text-eb-500 mb-3 flex items-center gap-2"><i data-lucide="terminal" class="w-4 h-4"></i>セッション履歴 (3)</h2>
+          <div class="space-y-2 text-sm">
+            <a href="./S-032-swarm-session-detail.html" class="block border border-amber-200 bg-amber-50 rounded-md p-3 hover:border-amber-400">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 pulse-dot"></span><span class="font-semibold text-xs mono">sess_a3f8c2 (current)</span></div>
+                <span class="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">running · 12 min</span>
+              </div>
+              <div class="text-xs text-slate-500 mono mt-1">devon · ¥41 · 1.2k tokens</div>
+            </a>
+            <div class="border border-slate-200 rounded-md p-3 opacity-70">
+              <div class="flex items-center justify-between">
+                <span class="font-semibold text-xs mono text-slate-700">sess_b29e4f</span>
+                <span class="text-[10px] bg-red-50 text-red-700 px-2 py-0.5 rounded-full font-medium">failed (lint)</span>
+              </div>
+              <div class="text-xs text-slate-500 mono mt-1">devon · ¥18 · 1h ago</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Comments -->
+        <section class="bg-white border border-slate-200 rounded-lg p-5">
+          <h2 class="text-sm font-bold text-eb-500 mb-3 flex items-center gap-2"><i data-lucide="message-square" class="w-4 h-4"></i>コメント (2)</h2>
+          <div class="space-y-3 mb-3">
+            <div class="border border-slate-200 rounded-md p-3 text-sm">
+              <div class="flex items-center gap-2 mb-1">
+                <div class="w-5 h-5 rounded-full bg-blue-500 text-white text-[9px] font-bold flex items-center justify-center mono">WS</div>
+                <span class="font-semibold text-xs">winston</span>
+                <span class="text-[10px] text-slate-500 mono ml-auto">25 min</span>
+              </div>
+              <p class="text-xs text-slate-700">transaction で User + Account 作成は OK だけど、AccountMember 失敗時の rollback テストを忘れずに。</p>
+            </div>
+          </div>
+          <textarea class="border border-slate-200 bg-white text-sm px-3 py-2 rounded-md w-full min-h-[60px]" placeholder="コメント..."></textarea>
+          <button class="bg-eb-500 hover:bg-eb-600 text-white text-xs font-semibold h-8 px-3 rounded-md mt-2">投稿</button>
+        </section>
+      </div>
+
+      <div class="space-y-4">
+        <!-- Meta -->
+        <section class="bg-white border border-slate-200 rounded-lg p-4">
+          <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-3">Meta</div>
+          <dl class="text-sm space-y-2">
+            <div class="flex"><dt class="text-slate-500 w-20">担当</dt><dd><span class="inline-flex items-center gap-1"><span class="w-4 h-4 rounded-full bg-eb-500 text-white text-[8px] font-bold flex items-center justify-center mono">DV</span>devon</span></dd></div>
+            <div class="flex"><dt class="text-slate-500 w-20">Phase</dt><dd>Phase 1</dd></div>
+            <div class="flex"><dt class="text-slate-500 w-20">工数</dt><dd>8h</dd></div>
+            <div class="flex"><dt class="text-slate-500 w-20">Cost</dt><dd class="mono">¥41 (1.2k tokens)</dd></div>
+            <div class="flex"><dt class="text-slate-500 w-20">作成</dt><dd class="text-xs text-slate-500 mono">5/14 18:23</dd></div>
+          </dl>
+        </section>
+
+        <!-- Dependencies -->
+        <section class="bg-white border border-slate-200 rounded-lg p-4">
+          <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-3 flex items-center justify-between"><span>依存タスク</span><button class="text-eb-500 hover:text-eb-600"><i data-lucide="plus" class="w-3 h-3"></i></button></div>
+          <div class="space-y-1.5">
+            <a href="#" class="flex items-center gap-2 p-1.5 rounded hover:bg-slate-50">
+              <i data-lucide="check" class="w-3 h-3 text-emerald-600"></i>
+              <span class="text-xs mono text-eb-500">T-V3-AUTH-01</span>
+              <span class="text-xs text-slate-700 truncate">login API</span>
+            </a>
+            <a href="#" class="flex items-center gap-2 p-1.5 rounded hover:bg-slate-50">
+              <i data-lucide="check" class="w-3 h-3 text-emerald-600"></i>
+              <span class="text-xs mono text-eb-500">T-V3-INFRA-01</span>
+              <span class="text-xs text-slate-700 truncate">ADR-013</span>
+            </a>
+          </div>
+        </section>
+
+        <!-- Related screens -->
+        <section class="bg-white border border-slate-200 rounded-lg p-4">
+          <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-3">関連画面</div>
+          <div class="flex flex-wrap gap-1.5">
+            <a class="text-[11px] bg-eb-50 text-eb-700 border border-eb-200 px-2 py-0.5 rounded mono">S-002 signup</a>
+            <a class="text-[11px] bg-eb-50 text-eb-700 border border-eb-200 px-2 py-0.5 rounded mono">S-001 login</a>
+          </div>
+        </section>
+
+        <!-- Files -->
+        <section class="bg-white border border-slate-200 rounded-lg p-4">
+          <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-3">変更予定ファイル</div>
+          <div class="space-y-1 text-xs mono text-slate-700">
+            <div class="flex items-center gap-1.5"><i data-lucide="file-plus" class="w-3 h-3 text-emerald-600"></i>backend/routers/auth.py</div>
+            <div class="flex items-center gap-1.5"><i data-lucide="file-plus" class="w-3 h-3 text-emerald-600"></i>backend/services/auth_service.py</div>
+            <div class="flex items-center gap-1.5"><i data-lucide="file-plus" class="w-3 h-3 text-emerald-600"></i>tests/test_T-V3-AUTH-02.py</div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

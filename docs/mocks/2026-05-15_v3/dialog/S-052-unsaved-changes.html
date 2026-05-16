@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-052 未保存警告 — Build-Factory</title>
+<meta name="bf-screen-id" content="S-052"><meta name="bf-screen-name" content="unsaved_changes"><meta name="bf-category" content="dialog"><meta name="bf-status" content="wip"><meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>tailwind.config={theme:{extend:{colors:{eb:{50:'#f0faf5',500:'#1a6648',600:'#155238'}},fontFamily:{sans:['"Noto Sans JP"','sans-serif']}}}};</script>
+<style>body{font-family:'Noto Sans JP',sans-serif;line-height:1.7}</style>
+</head>
+<body class="bg-slate-900/50 min-h-screen flex items-center justify-center px-6">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+<div class="bg-white rounded-xl shadow-2xl max-w-[440px] w-full p-6">
+  <div class="flex items-start gap-4 mb-5">
+    <div class="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center shrink-0"><i data-lucide="alert-circle" class="w-5 h-5 text-amber-600"></i></div>
+    <div>
+      <h2 class="text-base font-bold">変更が保存されていません</h2>
+      <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">編集中の <strong>requirements.md</strong> に未保存の変更があります。このページを離れますか?</p>
+    </div>
+  </div>
+  <div class="flex items-center justify-end gap-2">
+    <button class="border border-slate-200 hover:bg-slate-50 text-sm h-9 px-4 rounded-md">編集を続ける</button>
+    <button class="border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 text-sm h-9 px-4 rounded-md font-semibold">変更を破棄して離脱</button>
+    <button class="bg-eb-500 hover:bg-eb-600 text-white text-sm h-9 px-4 rounded-md font-semibold">保存して離脱</button>
+  </div>
+</div>
+<script>lucide.createIcons();</script>
+</body></html>

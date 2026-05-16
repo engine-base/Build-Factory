@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-005 OAuth コールバック — Build-Factory</title>
+
+<meta name="bf-screen-id" content="S-005">
+<meta name="bf-screen-name" content="oauth_callback">
+<meta name="bf-category" content="auth">
+<meta name="bf-feature-id" content="F-001">
+<meta name="bf-task-ids" content="T-V3-AUTH-12,T-V3-AUTH-06">
+<meta name="bf-entities" content="E-001,E-040">
+<meta name="bf-related-apis" content="GET /api/auth/oauth/{provider}/callback">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-005">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>
+  body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .spin { animation: spin 1s linear infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .pulse-dot { animation: pulse-dot 1.4s infinite; }
+  @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(8px);">
+  <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+  <span>Index に戻る</span>
+</a>
+
+<header class="px-6 py-4 border-b border-slate-200 bg-white">
+  <div class="flex items-center gap-2 max-w-[1400px] mx-auto">
+    <div class="w-7 h-7 rounded-md bg-eb-500 flex items-center justify-center"><i data-lucide="factory" class="w-4 h-4 text-white"></i></div>
+    <div class="text-sm font-bold">Build-Factory</div>
+    <span class="text-[11px] text-slate-500 mono">v3</span>
+  </div>
+</header>
+
+<main class="flex-1 flex items-center justify-center px-6 py-12">
+  <div class="w-full max-w-[420px]">
+
+    <!-- STATE A: Loading (default) -->
+    <div class="bg-white border border-slate-200 rounded-lg p-8 text-center" data-state="loading">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-eb-100 mb-6">
+        <i data-lucide="loader-2" class="w-8 h-8 text-eb-500 spin"></i>
+      </div>
+      <h1 class="text-2xl font-bold mb-2">ログイン中...</h1>
+      <p class="text-sm text-slate-600">Anthropic アカウントで認証しています</p>
+
+      <div class="mt-8 flex items-center justify-center gap-2 text-xs text-slate-500">
+        <span class="w-1.5 h-1.5 rounded-full bg-eb-500 pulse-dot"></span>
+        <span class="mono">connecting to anthropic.com</span>
+      </div>
+
+      <!-- Progress steps -->
+      <div class="mt-6 space-y-2 text-left max-w-xs mx-auto">
+        <div class="flex items-center gap-2 text-xs">
+          <i data-lucide="check-circle-2" class="w-4 h-4 text-eb-500 shrink-0"></i>
+          <span class="text-slate-700">OAuth トークン受信</span>
+        </div>
+        <div class="flex items-center gap-2 text-xs">
+          <i data-lucide="loader-2" class="w-4 h-4 text-eb-500 spin shrink-0"></i>
+          <span class="text-slate-700">ユーザー情報取得</span>
+        </div>
+        <div class="flex items-center gap-2 text-xs">
+          <i data-lucide="circle" class="w-4 h-4 text-slate-300 shrink-0"></i>
+          <span class="text-slate-500">セッション作成</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATE B: Success (hidden by default) -->
+    <div class="hidden bg-white border border-eb-200 rounded-lg p-8 text-center mt-4" data-state="success">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-eb-100 mb-6">
+        <i data-lucide="check" class="w-8 h-8 text-eb-500"></i>
+      </div>
+      <h1 class="text-2xl font-bold mb-2">ログイン成功</h1>
+      <p class="text-sm text-slate-600">ダッシュボードへ移動します...</p>
+      <div class="mt-4 h-1 bg-slate-100 rounded-full overflow-hidden">
+        <div class="h-full bg-eb-500" style="width: 100%"></div>
+      </div>
+    </div>
+
+    <!-- STATE C: Error - CSRF mismatch (hidden by default) -->
+    <div class="hidden bg-white border border-red-200 rounded-lg p-8 text-center mt-4" data-state="error_csrf">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-50 mb-6">
+        <i data-lucide="x" class="w-8 h-8 text-red-600"></i>
+      </div>
+      <h1 class="text-2xl font-bold mb-2">認証エラー</h1>
+      <p class="text-sm text-slate-600 mb-1">セキュリティ検証に失敗しました</p>
+      <p class="text-xs text-slate-500 mono mb-6">error: oauth_csrf_check_failed</p>
+
+      <div class="text-left bg-slate-50 border border-slate-200 rounded-md p-3 mb-6">
+        <p class="text-xs text-slate-700 leading-relaxed">
+          ブラウザの cookie 設定または 5 分以上経過した可能性があります。<br>
+          ログイン画面から再度お試しください。
+        </p>
+      </div>
+
+      <a href="./S-001-login.html" class="inline-flex items-center gap-2 bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-10 px-6 rounded-md transition-colors">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        ログインに戻る
+      </a>
+    </div>
+
+    <!-- STATE D: Error - Account not found (hidden by default) -->
+    <details class="bg-white border border-slate-200 rounded-lg p-6 mt-4">
+      <summary class="text-sm font-medium cursor-pointer text-slate-600 hover:text-slate-900 flex items-center gap-2">
+        <i data-lucide="user-x" class="w-4 h-4"></i>
+        その他のエラー状態 (preview)
+      </summary>
+      <div class="mt-4 space-y-3 text-xs">
+        <div class="border border-slate-200 rounded-md p-3 bg-slate-50">
+          <div class="font-medium text-slate-900 mb-1">oauth_provider_denied</div>
+          <div class="text-slate-600">ユーザーが認証を拒否しました → ログイン画面へ戻る誘導</div>
+        </div>
+        <div class="border border-slate-200 rounded-md p-3 bg-slate-50">
+          <div class="font-medium text-slate-900 mb-1">oauth_token_invalid</div>
+          <div class="text-slate-600">プロバイダから受け取った token が不正 → 再ログイン</div>
+        </div>
+        <div class="border border-slate-200 rounded-md p-3 bg-slate-50">
+          <div class="font-medium text-slate-900 mb-1">account_not_linked</div>
+          <div class="text-slate-600">既存アカウントに OAuth が紐付いていない → サインアップ画面へ</div>
+        </div>
+      </div>
+    </details>
+
+    <div class="text-center text-[11px] text-slate-400 mt-8 mono">© ENGINE BASE</div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

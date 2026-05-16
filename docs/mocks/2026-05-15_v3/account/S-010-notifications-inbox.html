@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-010 通知 Inbox — Build-Factory</title>
+
+<meta name="bf-screen-id" content="S-010">
+<meta name="bf-screen-name" content="notifications_inbox">
+<meta name="bf-category" content="account">
+<meta name="bf-feature-id" content="F-018">
+<meta name="bf-task-ids" content="T-V3-SCR-02">
+<meta name="bf-entities" content="E-042">
+<meta name="bf-related-apis" content="GET /api/notifications,POST /api/notifications/{id}/read,POST /api/notifications/read-all">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-010">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>
+  body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .pulse-dot { animation: pulse-dot 1.4s infinite; }
+  @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(8px);">
+  <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+  <span>Index に戻る</span>
+</a>
+
+<aside class="w-[240px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-4 border-b border-eb-600"><div class="flex items-center gap-2 mb-3"><div class="w-7 h-7 rounded-md bg-white/10 flex items-center justify-center"><i data-lucide="factory" class="w-4 h-4 text-white"></i></div><div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div></div><div class="text-sm font-bold">ENGINE BASE</div><div class="text-[11px] text-eb-100 mt-0.5 mono">account_a1b2 · Pro</div></div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5 overflow-y-auto">
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-2 pb-1 font-bold">Account</div>
+    <a href="./S-006-account-dashboard.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> 10 案件 俯瞰</a>
+    <a href="./S-008-account-members.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="users" class="w-4 h-4"></i> メンバー</a>
+    <a href="./S-007-account-settings.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="settings" class="w-4 h-4"></i> アカウント設定</a>
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-3 pb-1 font-bold">Personal</div>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 bg-eb-600 font-semibold"><i data-lucide="bell" class="w-4 h-4"></i> 通知<span class="ml-auto text-[10px] bg-red-500 text-white px-1.5 rounded-full mono">3</span></a>
+    <a href="./S-011-global-search.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="search" class="w-4 h-4"></i> 検索</a>
+    <a href="./S-009-profile-settings.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="user" class="w-4 h-4"></i> プロフィール</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-eb-500 flex items-center justify-center text-[11px] font-bold mono">M</div><div class="flex-1 min-w-0"><div class="text-[11px] font-semibold truncate">masato</div><div class="text-[10px] text-eb-200 truncate">account_owner</div></div></div>
+</aside>
+
+<main class="flex-1 overflow-y-auto">
+  <div class="max-w-[900px] mx-auto px-6 py-8">
+
+    <div class="flex items-end justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold flex items-center gap-2">通知 Inbox<span class="text-sm text-slate-500 font-normal">(3 未読)</span></h1>
+        <p class="text-sm text-slate-600 mt-1">タスク・赤線・PR レビュー等のリアルタイム通知</p>
+      </div>
+      <button class="border border-slate-200 hover:bg-slate-50 text-sm h-9 px-4 rounded-md flex items-center gap-2"><i data-lucide="check-check" class="w-4 h-4"></i> 全て既読にする</button>
+    </div>
+
+    <!-- Filter tabs -->
+    <div class="border-b border-slate-200 flex gap-0 mb-4">
+      <button class="px-4 py-2 text-sm font-medium border-b-2 border-eb-500 text-slate-900">全て <span class="text-xs text-slate-500">12</span></button>
+      <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-900">未読 <span class="text-xs">3</span></button>
+      <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-900">タスク</button>
+      <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-900">赤線</button>
+      <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-900">PR</button>
+      <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-900">納品</button>
+    </div>
+
+    <!-- Notification list -->
+    <div class="space-y-2">
+      <!-- Unread red-line -->
+      <div class="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3 cursor-pointer">
+        <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0"><i data-lucide="alert-triangle" class="w-4 h-4 text-red-600"></i></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-start justify-between gap-2 mb-1">
+            <div>
+              <span class="text-sm font-semibold">赤線抵触: 本番 DB に DROP query</span>
+              <span class="ml-2 w-1.5 h-1.5 rounded-full bg-red-500 pulse-dot inline-block align-middle"></span>
+            </div>
+            <span class="text-[11px] text-slate-500 mono whitespace-nowrap">2 min ago</span>
+          </div>
+          <div class="text-xs text-slate-600 mb-1"><span class="font-medium">XYZ 社</span> / Task <span class="mono">T-024-04</span> でセッションが自動停止</div>
+          <div class="flex items-center gap-2 mt-2">
+            <button class="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold h-7 px-3 rounded">承認画面へ</button>
+            <button class="text-xs text-slate-500 hover:text-slate-900">既読にする</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Unread task -->
+      <div class="bg-white border border-slate-200 rounded-lg p-4 flex items-start gap-3 cursor-pointer relative">
+        <span class="absolute top-3 left-3 w-1.5 h-1.5 rounded-full bg-eb-500"></span>
+        <div class="w-8 h-8 rounded-full bg-eb-100 flex items-center justify-center shrink-0 ml-3"><i data-lucide="check-circle-2" class="w-4 h-4 text-eb-600"></i></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-start justify-between gap-2 mb-1">
+            <span class="text-sm font-semibold">タスク完了: <span class="mono text-eb-500">T-V3-AUTH-01</span></span>
+            <span class="text-[11px] text-slate-500 mono whitespace-nowrap">8 min ago</span>
+          </div>
+          <div class="text-xs text-slate-600"><span class="font-medium">Build-Factory dogfood</span> / <strong>devon</strong> が POST /api/auth/login の実装を完了</div>
+        </div>
+      </div>
+
+      <!-- Unread PR review -->
+      <div class="bg-white border border-slate-200 rounded-lg p-4 flex items-start gap-3 cursor-pointer relative">
+        <span class="absolute top-3 left-3 w-1.5 h-1.5 rounded-full bg-eb-500"></span>
+        <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center shrink-0 ml-3"><i data-lucide="git-pull-request" class="w-4 h-4 text-blue-600"></i></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-start justify-between gap-2 mb-1">
+            <span class="text-sm font-semibold">PR レビュー依頼 <span class="mono text-blue-600">#283</span></span>
+            <span class="text-[11px] text-slate-500 mono whitespace-nowrap">12 min ago</span>
+          </div>
+          <div class="text-xs text-slate-600"><span class="font-medium">ABC 社</span> / feat: requirements editor + EARS notation parser</div>
+          <div class="flex items-center gap-2 mt-2">
+            <button class="bg-eb-500 hover:bg-eb-600 text-white text-xs font-semibold h-7 px-3 rounded">レビューへ</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Read items -->
+      <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold pt-4 pb-1 px-1">既読</div>
+
+      <div class="bg-white border border-slate-200 rounded-lg p-4 flex items-start gap-3 cursor-pointer opacity-70">
+        <div class="w-8 h-8 rounded-full bg-eb-50 flex items-center justify-center shrink-0"><i data-lucide="rocket" class="w-4 h-4 text-eb-600"></i></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-start justify-between gap-2 mb-1">
+            <span class="text-sm">Swarm 起動: 3 worktree 並列実行</span>
+            <span class="text-[11px] text-slate-500 mono whitespace-nowrap">25 min ago</span>
+          </div>
+          <div class="text-xs text-slate-600">XYZ 社 / Phase 1 タスク並列実装</div>
+        </div>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-lg p-4 flex items-start gap-3 cursor-pointer opacity-70">
+        <div class="w-8 h-8 rounded-full bg-eb-50 flex items-center justify-center shrink-0"><i data-lucide="mic" class="w-4 h-4 text-eb-600"></i></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-start justify-between gap-2 mb-1">
+            <span class="text-sm">ヒアリング完了: <strong>mary</strong></span>
+            <span class="text-[11px] text-slate-500 mono whitespace-nowrap">1h ago</span>
+          </div>
+          <div class="text-xs text-slate-600">ABC 社 / 12 質問 / 18 分</div>
+        </div>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-lg p-4 flex items-start gap-3 cursor-pointer opacity-70">
+        <div class="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center shrink-0"><i data-lucide="wallet" class="w-4 h-4 text-amber-600"></i></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-start justify-between gap-2 mb-1">
+            <span class="text-sm">予算アラート: 月間コスト 60% 到達</span>
+            <span class="text-[11px] text-slate-500 mono whitespace-nowrap">3h ago</span>
+          </div>
+          <div class="text-xs text-slate-600">¥8,420 / ¥14,000 (¥30,000 予算)</div>
+        </div>
+      </div>
+
+      <div class="text-center py-4 text-xs text-slate-500"><button class="hover:text-slate-900">さらに古い通知を見る →</button></div>
+    </div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

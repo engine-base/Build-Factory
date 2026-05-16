@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-018 Constitution エディタ — Build-Factory</title>
+<meta name="bf-screen-id" content="S-018">
+<meta name="bf-screen-name" content="constitution_editor">
+<meta name="bf-category" content="safety">
+<meta name="bf-feature-id" content="F-026">
+<meta name="bf-task-ids" content="T-V3-RF-08,T-V3-DB-08">
+<meta name="bf-entities" content="E-017,E-021">
+<meta name="bf-related-apis" content="GET /api/workspaces/{id}/constitution,POST /api/workspaces/{id}/constitution/versions,POST /api/workspaces/{id}/constitution/versions/{v}/approve">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-018">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; } .mono { font-family: 'JetBrains Mono', monospace; }</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(8px);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+
+<aside class="w-[240px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-4 border-b border-eb-600"><div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div><div class="text-sm font-bold mt-1">Build-Factory dogfood</div></div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5 overflow-y-auto">
+    <a href="../workspace/S-012-workspace-dashboard.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> ダッシュボード</a>
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-3 pb-1 font-bold">Moat / Safety</div>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 bg-eb-600 font-semibold"><i data-lucide="shield" class="w-4 h-4"></i> Constitution</a>
+    <a href="./S-019-red-line-settings.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="alert-octagon" class="w-4 h-4"></i> 赤線設定</a>
+    <a href="./S-034-red-line-approval.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="gavel" class="w-4 h-4"></i> 赤線承認</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-eb-500 flex items-center justify-center text-[11px] font-bold mono">M</div><div class="flex-1 min-w-0"><div class="text-[11px] font-semibold truncate">masato</div></div></div>
+</aside>
+
+<main class="flex-1 flex flex-col overflow-hidden">
+  <div class="px-6 py-3 border-b border-slate-200 bg-white flex items-center justify-between flex-shrink-0">
+    <div>
+      <h1 class="text-lg font-bold flex items-center gap-2"><i data-lucide="shield" class="w-5 h-5 text-eb-500"></i> Constitution エディタ</h1>
+      <p class="text-xs text-slate-500 mt-0.5">プロジェクトの不変原則 / 全 AI 社員に system prompt として注入される</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-[11px] bg-eb-50 text-eb-700 border border-eb-200 px-2 py-1 rounded-full font-medium mono">v 4.2 (current)</span>
+      <button class="border border-slate-200 hover:bg-slate-50 text-sm h-9 px-3 rounded-md flex items-center gap-2"><i data-lucide="git-compare" class="w-4 h-4"></i> diff 表示</button>
+      <button class="bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-9 px-4 rounded-md flex items-center gap-2"><i data-lucide="save" class="w-4 h-4"></i> 新バージョンとして保存</button>
+    </div>
+  </div>
+
+  <div class="flex-1 grid grid-cols-[1fr_280px] overflow-hidden">
+    <!-- Editor -->
+    <div class="flex flex-col overflow-hidden">
+      <div class="px-4 py-2 border-b border-slate-200 bg-slate-50 flex items-center gap-2 text-xs text-slate-500">
+        <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+        <span class="mono">constitution.md</span>
+        <span class="text-slate-400">·</span>
+        <span>Markdown</span>
+      </div>
+      <div class="flex-1 overflow-y-auto p-6 bg-white">
+        <pre class="text-sm leading-relaxed text-slate-800" style="font-family: 'JetBrains Mono', monospace; white-space: pre-wrap;"># Build-Factory Constitution v4.2
+
+## 1. 開発の根本原則
+
+- **Test pass = done ではない**: AC を spec の逐語に対して満たして初めて done
+- **3-tier AC を全 task で必須**: structural / functional / regression
+- **mock 一致は機械検証**: scripts/lint-mock-impl-diff.sh で gate
+
+## 2. 命名規約
+
+- spec entity (PascalCase) ↔ DB table (snake_case) 1:1
+- `bf_` prefix 禁止 (ADR-014)
+- entities.json を single source of truth
+
+## 3. セキュリティ (赤線)
+
+- 本番 DB に `DROP` / `TRUNCATE` / `DELETE *` = 即セッション kill
+- `.env` / 鍵ファイル commit = git pre-commit + secret scanning
+- AGPL ライセンス依存追加 = 自動却下
+
+## 4. AI 社員行動規範
+
+- 完了報告は手動 audit MD を必ず添える (auto-generated 禁止)
+- 仕様変更 / DB schema 変更 = masato 確認必須
+- 軽微変更 (UI / 文言 / バグ修正) は自走 OK / git commit で報告
+
+## 5. 意思決定の優先順位
+
+1. ユーザー (松本) の判断基準を最優先
+2. 仕様徹底 (mock = 実装 = spec)
+3. テスト網羅
+4. 速度 (※ 1〜3 を犠牲にしない)</pre>
+      </div>
+    </div>
+
+    <!-- Version history sidebar -->
+    <div class="border-l border-slate-200 bg-white flex flex-col overflow-hidden">
+      <div class="px-4 py-3 border-b border-slate-200 flex items-center gap-2"><i data-lucide="history" class="w-4 h-4 text-slate-500"></i><span class="text-sm font-bold">バージョン履歴</span></div>
+      <div class="flex-1 overflow-y-auto">
+        <div class="px-4 py-3 border-b border-slate-100 cursor-pointer bg-eb-50">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-sm font-bold mono text-eb-700">v 4.2</span>
+            <span class="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded-full font-medium">current</span>
+          </div>
+          <div class="text-xs text-slate-600">3-tier AC を追加 / bf_ 禁止追記</div>
+          <div class="text-[10px] text-slate-500 mono mt-1">2026-05-15 · masato</div>
+        </div>
+        <div class="px-4 py-3 border-b border-slate-100 cursor-pointer hover:bg-slate-50">
+          <div class="flex items-center justify-between mb-1"><span class="text-sm font-bold mono">v 4.1</span></div>
+          <div class="text-xs text-slate-600">AI 社員行動規範を細分化</div>
+          <div class="text-[10px] text-slate-500 mono mt-1">2026-05-10 · masato</div>
+        </div>
+        <div class="px-4 py-3 border-b border-slate-100 cursor-pointer hover:bg-slate-50">
+          <div class="flex items-center justify-between mb-1"><span class="text-sm font-bold mono">v 4.0</span></div>
+          <div class="text-xs text-slate-600">命名規約セクション新設</div>
+          <div class="text-[10px] text-slate-500 mono mt-1">2026-05-05 · masato</div>
+        </div>
+        <div class="px-4 py-3 border-b border-slate-100 cursor-pointer hover:bg-slate-50">
+          <div class="flex items-center justify-between mb-1"><span class="text-sm font-bold mono">v 3.0</span></div>
+          <div class="text-xs text-slate-600">セキュリティ赤線追加</div>
+          <div class="text-[10px] text-slate-500 mono mt-1">2026-04-22 · masato</div>
+        </div>
+        <div class="px-4 py-3 cursor-pointer hover:bg-slate-50">
+          <div class="flex items-center justify-between mb-1"><span class="text-sm font-bold mono">v 2.0</span></div>
+          <div class="text-xs text-slate-600">初期版</div>
+          <div class="text-[10px] text-slate-500 mono mt-1">2026-04-01 · masato</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

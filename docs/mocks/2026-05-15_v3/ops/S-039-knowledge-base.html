@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-039 ナレッジベース — Build-Factory</title>
+<meta name="bf-screen-id" content="S-039">
+<meta name="bf-screen-name" content="knowledge_base">
+<meta name="bf-category" content="knowledge">
+<meta name="bf-feature-id" content="F-016">
+<meta name="bf-task-ids" content="T-V3-RF-20">
+<meta name="bf-entities" content="E-041">
+<meta name="bf-related-apis" content="GET /api/workspaces/{id}/knowledge,GET /api/workspaces/{id}/knowledge/search">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-039">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; } .mono { font-family: 'JetBrains Mono', monospace; }</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(8px);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+
+<aside class="w-[240px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-4 border-b border-eb-600"><div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div></div>
+  <nav class="flex-1 px-2 py-3 space-y-0.5">
+    <a href="../workspace/S-012-workspace-dashboard.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100 text-sm"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> ダッシュボード</a>
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-3 pb-1 font-bold">Ops</div>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 bg-eb-600 font-semibold text-sm"><i data-lucide="book" class="w-4 h-4"></i> ナレッジ</a>
+    <a href="./S-040-cost-dashboard.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100 text-sm"><i data-lucide="wallet" class="w-4 h-4"></i> コスト</a>
+    <a href="./S-041-audit-log-viewer.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100 text-sm"><i data-lucide="activity" class="w-4 h-4"></i> 監査ログ</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-eb-500 flex items-center justify-center text-[11px] font-bold mono">M</div><div class="flex-1 min-w-0"><div class="text-[11px] font-semibold truncate">masato</div></div></div>
+</aside>
+
+<main class="flex-1 flex flex-col overflow-hidden">
+  <div class="px-6 py-3 border-b border-slate-200 bg-white flex items-center justify-between">
+    <div><h1 class="text-lg font-bold flex items-center gap-2"><i data-lucide="book" class="w-5 h-5 text-eb-500"></i> ナレッジベース</h1><p class="text-xs text-slate-500 mt-0.5">Obsidian Vault ブラウザ / 自動キュレーション / good/bad 分類</p></div>
+    <div class="flex items-center gap-2">
+      <div class="relative w-64"><i data-lucide="search" class="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="search" placeholder="ナレッジ検索..." class="border border-slate-200 text-sm h-8 pl-7 pr-2 rounded-md w-full" /></div>
+      <button class="border border-slate-200 hover:bg-slate-50 text-sm h-8 px-3 rounded-md flex items-center gap-2"><i data-lucide="external-link" class="w-3.5 h-3.5"></i>Obsidian で開く</button>
+    </div>
+  </div>
+
+  <div class="flex-1 grid grid-cols-[260px_1fr_320px] overflow-hidden">
+    <!-- Vault tree -->
+    <aside class="border-r border-slate-200 bg-white overflow-y-auto p-2">
+      <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold px-2 pb-2">Vault</div>
+      <div class="text-sm space-y-0.5">
+        <div class="px-2 py-1 font-semibold flex items-center gap-1"><i data-lucide="folder-open" class="w-3.5 h-3.5 text-eb-500"></i>build-factory</div>
+        <div class="pl-5 space-y-0.5">
+          <div class="px-2 py-1 flex items-center gap-1 hover:bg-slate-50 rounded"><i data-lucide="folder" class="w-3.5 h-3.5 text-emerald-600"></i>good (42)</div>
+          <div class="pl-4 space-y-0.5">
+            <a class="px-2 py-1 flex items-center gap-1 hover:bg-slate-50 rounded text-xs"><i data-lucide="file" class="w-3 h-3 text-slate-400"></i>EARS-syntax-cheatsheet.md</a>
+            <a class="px-2 py-1 bg-eb-50 rounded flex items-center gap-1 text-xs font-semibold text-eb-700"><i data-lucide="file" class="w-3 h-3"></i>RLS-best-practices.md</a>
+            <a class="px-2 py-1 flex items-center gap-1 hover:bg-slate-50 rounded text-xs"><i data-lucide="file" class="w-3 h-3 text-slate-400"></i>shadcn-ui-patterns.md</a>
+          </div>
+          <div class="px-2 py-1 flex items-center gap-1 hover:bg-slate-50 rounded"><i data-lucide="folder" class="w-3.5 h-3.5 text-red-500"></i>bad (12)</div>
+          <div class="pl-4 space-y-0.5">
+            <a class="px-2 py-1 flex items-center gap-1 hover:bg-slate-50 rounded text-xs"><i data-lucide="file" class="w-3 h-3 text-slate-400"></i>auto-generated-audit-failure.md</a>
+            <a class="px-2 py-1 flex items-center gap-1 hover:bg-slate-50 rounded text-xs"><i data-lucide="file" class="w-3 h-3 text-slate-400"></i>bf-prefix-naming-drift.md</a>
+          </div>
+          <div class="px-2 py-1 flex items-center gap-1 hover:bg-slate-50 rounded"><i data-lucide="folder" class="w-3.5 h-3.5 text-blue-500"></i>external (28)</div>
+          <div class="px-2 py-1 flex items-center gap-1 hover:bg-slate-50 rounded"><i data-lucide="folder" class="w-3.5 h-3.5 text-amber-500"></i>auto-curated (15)</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Note content -->
+    <div class="overflow-y-auto bg-white">
+      <article class="max-w-2xl mx-auto px-8 py-8">
+        <div class="text-xs text-slate-500 flex items-center gap-2 mb-2">
+          <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded font-medium">good</span>
+          <span class="mono">/build-factory/good/RLS-best-practices.md</span>
+          <span>·</span>
+          <span>last updated 3 days ago</span>
+        </div>
+        <h1 class="text-2xl font-bold mb-4">RLS Best Practices for Build-Factory</h1>
+
+        <h2 class="text-lg font-bold mt-6 mb-2">原則</h2>
+        <ul class="list-disc pl-6 space-y-1 text-sm">
+          <li>全 entity に <strong>必ず</strong> RLS policy を当てる (entities.json declared = 43, 実装も 43 必須)</li>
+          <li>workspace 系: <code class="mono bg-slate-100 px-1 rounded">workspace_id = current_workspace_id</code> + member 確認</li>
+          <li>account 系: <code class="mono bg-slate-100 px-1 rounded">account_id = current_account_id</code> + role 確認</li>
+        </ul>
+
+        <h2 class="text-lg font-bold mt-6 mb-2">PostgreSQL session GUC で current_user 管理</h2>
+        <pre class="bg-slate-900 text-slate-100 p-4 rounded-md text-xs mono leading-relaxed overflow-x-auto"><span class="text-purple-400">CREATE POLICY</span> tasks_select_member <span class="text-purple-400">ON</span> tasks
+  <span class="text-purple-400">FOR</span> <span class="text-purple-400">SELECT</span> <span class="text-purple-400">USING</span> (
+    workspace_id <span class="text-amber-400">IN</span> (
+      <span class="text-purple-400">SELECT</span> workspace_id <span class="text-purple-400">FROM</span> workspace_members
+      <span class="text-purple-400">WHERE</span> user_id = current_setting(<span class="text-emerald-400">'app.current_user_id'</span>)::uuid
+    )
+  );</pre>
+
+        <h2 class="text-lg font-bold mt-6 mb-2">FastAPI dependency で GUC 設定</h2>
+        <p class="text-sm">require_auth dependency で <code class="mono bg-slate-100 px-1 rounded">SET LOCAL app.current_user_id = $jwt.sub</code> を Postgres connection に流す。</p>
+
+        <div class="mt-8 border-t border-slate-200 pt-4 text-xs text-slate-500">
+          <span class="font-semibold">タグ:</span>
+          <span class="bg-slate-100 mono px-2 py-0.5 rounded ml-1">rls</span>
+          <span class="bg-slate-100 mono px-2 py-0.5 rounded ml-1">supabase</span>
+          <span class="bg-slate-100 mono px-2 py-0.5 rounded ml-1">security</span>
+          <span class="bg-emerald-100 text-emerald-700 mono px-2 py-0.5 rounded ml-1">good</span>
+        </div>
+      </article>
+    </div>
+
+    <!-- Right: auto-curated -->
+    <aside class="border-l border-slate-200 bg-white overflow-y-auto">
+      <div class="px-4 py-3 border-b border-slate-200 flex items-center gap-2"><i data-lucide="sparkles" class="w-4 h-4 text-eb-500"></i><span class="text-sm font-bold">自動キュレーション</span></div>
+      <div class="p-4 space-y-3 text-xs">
+        <p class="text-[11px] text-slate-500 leading-relaxed">curator (logan) が外部 / 内部のソースから自動収集した最新ナレッジ</p>
+
+        <div class="border border-slate-200 rounded-md p-3 hover:border-eb-500 cursor-pointer">
+          <div class="flex items-center gap-1.5 mb-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span><span class="text-[10px] uppercase tracking-wider text-amber-600 font-bold">new (今日)</span></div>
+          <div class="text-sm font-semibold">Anthropic Memory Tool 公式サンプル</div>
+          <div class="text-[11px] text-slate-500 mt-1">github.com/anthropics/.../memory-tool</div>
+        </div>
+
+        <div class="border border-slate-200 rounded-md p-3 hover:border-eb-500 cursor-pointer">
+          <div class="flex items-center gap-1.5 mb-1"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span><span class="text-[10px] uppercase tracking-wider text-blue-600 font-bold">2 days</span></div>
+          <div class="text-sm font-semibold">Tailwind v4 + shadcn 統合</div>
+          <div class="text-[11px] text-slate-500 mt-1">ui.shadcn.com/...</div>
+        </div>
+
+        <div class="border border-slate-200 rounded-md p-3 hover:border-eb-500 cursor-pointer">
+          <div class="flex items-center gap-1.5 mb-1"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span><span class="text-[10px] uppercase tracking-wider text-slate-500 font-bold">5 days</span></div>
+          <div class="text-sm font-semibold">EARS notation 5 forms</div>
+          <div class="text-[11px] text-slate-500 mt-1">internal: from S-021 spec</div>
+        </div>
+
+        <button class="w-full text-xs text-eb-500 hover:text-eb-600 font-semibold mt-2">+12 件を表示 →</button>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

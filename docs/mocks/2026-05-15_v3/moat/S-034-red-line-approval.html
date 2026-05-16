@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-034 赤線承認 — Build-Factory</title>
+<meta name="bf-screen-id" content="S-034">
+<meta name="bf-screen-name" content="red_line_approval">
+<meta name="bf-category" content="safety">
+<meta name="bf-feature-id" content="F-012">
+<meta name="bf-task-ids" content="T-V3-RF-16">
+<meta name="bf-entities" content="E-031,E-030,E-025">
+<meta name="bf-related-apis" content="GET /api/workspaces/{id}/violations,POST /api/violations/{id}/approve,POST /api/violations/{id}/reject">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-034">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; } .mono { font-family: 'JetBrains Mono', monospace; } .pulse-dot { animation: pulse-dot 1.4s infinite; } @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(8px);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+
+<aside class="w-[240px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-4 border-b border-eb-600"><div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div><div class="text-sm font-bold mt-1">Build-Factory dogfood</div></div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5 overflow-y-auto">
+    <a href="../workspace/S-012-workspace-dashboard.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> ダッシュボード</a>
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-3 pb-1 font-bold">Moat / Safety</div>
+    <a href="./S-018-constitution-editor.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="shield" class="w-4 h-4"></i> Constitution</a>
+    <a href="./S-019-red-line-settings.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="alert-octagon" class="w-4 h-4"></i> 赤線設定</a>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 bg-eb-600 font-semibold"><i data-lucide="gavel" class="w-4 h-4"></i> 赤線承認<span class="ml-auto text-[10px] bg-red-500 text-white px-1.5 rounded-full mono">2</span></a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-eb-500 flex items-center justify-center text-[11px] font-bold mono">M</div><div class="flex-1 min-w-0"><div class="text-[11px] font-semibold truncate">masato</div></div></div>
+</aside>
+
+<main class="flex-1 overflow-y-auto">
+  <div class="max-w-[1200px] mx-auto px-6 py-8">
+    <div class="flex items-end justify-between mb-6">
+      <div><h1 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="gavel" class="w-6 h-6 text-red-600"></i> 赤線承認キュー</h1><p class="text-sm text-slate-600 mt-1">赤線抵触で自動停止したセッションを判定 / 続行 or ブロック</p></div>
+      <div class="flex items-center gap-2 text-xs text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-red-500 pulse-dot"></span>未処理 2 件</div>
+    </div>
+
+    <!-- Violation #1 (active selection) -->
+    <div class="bg-white border-2 border-red-300 rounded-lg overflow-hidden mb-4">
+      <div class="px-5 py-3 border-b border-red-200 bg-red-50 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600"></i>
+          <div>
+            <div class="text-sm font-bold text-red-700">violation #12 — DROP query in T-024-04</div>
+            <div class="text-[11px] text-slate-500 mono">XYZ 社 · 25 min ago · severity: critical</div>
+          </div>
+        </div>
+        <span class="text-[11px] bg-white border border-red-200 text-red-700 px-2 py-1 rounded-full font-medium">SESSION PAUSED</span>
+      </div>
+      <div class="grid grid-cols-2 gap-4 p-5">
+        <div>
+          <div class="text-[11px] uppercase tracking-wider text-slate-500 font-bold mb-2">Detected Pattern</div>
+          <pre class="bg-slate-900 text-red-300 text-xs p-3 rounded-md mono leading-relaxed overflow-x-auto">-- generated by devon (T-024-04)
+DROP TABLE bf_old_users;
+DROP TABLE bf_legacy_logs;
+TRUNCATE bf_temp_cache;</pre>
+          <div class="text-xs text-slate-500 mt-2">matched: <span class="mono">/\b(DROP|TRUNCATE)\b/i</span> (built-in #1)</div>
+        </div>
+        <div>
+          <div class="text-[11px] uppercase tracking-wider text-slate-500 font-bold mb-2">Context</div>
+          <dl class="text-sm space-y-1.5">
+            <div class="flex"><dt class="text-slate-500 w-24">セッション:</dt><dd class="mono text-eb-500">sess_a3f8c2</dd></div>
+            <div class="flex"><dt class="text-slate-500 w-24">タスク:</dt><dd class="mono">T-024-04 cleanup</dd></div>
+            <div class="flex"><dt class="text-slate-500 w-24">AI 社員:</dt><dd>devon (Dev)</dd></div>
+            <div class="flex"><dt class="text-slate-500 w-24">target DB:</dt><dd class="mono text-red-600">production</dd></div>
+            <div class="flex"><dt class="text-slate-500 w-24">影響範囲:</dt><dd>3 tables / 推定 12,400 rows</dd></div>
+          </dl>
+        </div>
+      </div>
+      <div class="px-5 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+        <button class="text-xs text-slate-500 hover:text-slate-900 flex items-center gap-1"><i data-lucide="book-open" class="w-3.5 h-3.5"></i> Constitution を参照</button>
+        <div class="flex items-center gap-2">
+          <button class="bg-white border border-slate-200 hover:bg-slate-50 text-sm h-9 px-4 rounded-md flex items-center gap-2"><i data-lucide="flag" class="w-4 h-4"></i> false positive として記録</button>
+          <button class="bg-white border border-slate-300 hover:bg-amber-50 text-amber-700 text-sm font-semibold h-9 px-4 rounded-md flex items-center gap-2"><i data-lucide="check" class="w-4 h-4"></i> 承認して続行</button>
+          <button class="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold h-9 px-4 rounded-md flex items-center gap-2"><i data-lucide="x" class="w-4 h-4"></i> ブロック (セッション kill)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Violation #2 -->
+    <div class="bg-white border border-amber-300 rounded-lg overflow-hidden">
+      <div class="px-5 py-3 border-b border-amber-200 bg-amber-50 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600"></i>
+          <div>
+            <div class="text-sm font-bold text-amber-700">violation #11 — bf_ prefix 追加</div>
+            <div class="text-[11px] text-slate-500 mono">Build-Factory dogfood · 3h ago · severity: medium</div>
+          </div>
+        </div>
+        <span class="text-[11px] bg-white border border-amber-200 text-amber-700 px-2 py-1 rounded-full font-medium">SESSION PAUSED</span>
+      </div>
+      <div class="p-5">
+        <div class="text-sm text-slate-700">migration ファイルで <code class="mono bg-slate-100 px-1.5 py-0.5 rounded">CREATE TABLE bf_audit_logs_v2</code> を試行</div>
+        <div class="text-xs text-slate-500 mt-1 mono">matched: bf_ prefix custom rule</div>
+      </div>
+      <div class="px-5 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-2">
+        <button class="bg-white border border-slate-200 hover:bg-slate-50 text-sm h-8 px-3 rounded-md">false positive</button>
+        <button class="bg-white border border-slate-300 hover:bg-amber-50 text-amber-700 text-sm font-semibold h-8 px-3 rounded-md">承認</button>
+        <button class="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold h-8 px-3 rounded-md">ブロック</button>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div class="mt-8">
+      <h2 class="text-base font-bold mb-3 text-slate-700">処理済み履歴 (24h)</h2>
+      <div class="bg-white border border-slate-200 rounded-lg divide-y divide-slate-100">
+        <div class="px-5 py-3 flex items-center gap-3 text-sm">
+          <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+          <span class="flex-1">#10 .env コミット未遂 → <strong>ブロック</strong></span>
+          <span class="text-xs text-slate-500 mono">8h ago</span>
+        </div>
+        <div class="px-5 py-3 flex items-center gap-3 text-sm">
+          <i data-lucide="check-circle-2" class="w-4 h-4 text-amber-600"></i>
+          <span class="flex-1">#9 force push 検知 → <strong>承認 (rebase 必要だった)</strong></span>
+          <span class="text-xs text-slate-500 mono">12h ago</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

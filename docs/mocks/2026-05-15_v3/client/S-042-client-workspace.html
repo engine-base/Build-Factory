@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-042 クライアントポータル — Build-Factory</title>
+<meta name="bf-screen-id" content="S-042">
+<meta name="bf-screen-name" content="client_workspace">
+<meta name="bf-category" content="client">
+<meta name="bf-feature-id" content="F-013,F-021">
+<meta name="bf-task-ids" content="T-V3-SCR-14">
+<meta name="bf-entities" content="E-009,E-021">
+<meta name="bf-related-apis" content="GET /api/client/workspaces/{token},GET /api/client/workspaces/{token}/spec,POST /api/client/comments">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-042">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; } .mono { font-family: 'JetBrains Mono', monospace; } .tabular { font-variant-numeric: tabular-nums; }</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(8px);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+
+<!-- Client-only top bar (no sidebar, simplified) -->
+<header class="bg-white border-b border-slate-200 px-6 py-3 sticky top-0 z-10">
+  <div class="max-w-[1200px] mx-auto flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-md bg-eb-500 flex items-center justify-center"><i data-lucide="factory" class="w-4 h-4 text-white"></i></div>
+      <div>
+        <div class="text-sm font-bold">Build-Factory</div>
+        <div class="text-[11px] text-slate-500 mono">client portal</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-4">
+      <span class="text-xs text-slate-500">案件: <strong class="text-slate-900">受託 EC 構築 #4</strong></span>
+      <div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-slate-300 text-slate-700 text-xs font-bold flex items-center justify-center">C</div><span class="text-xs">ceo@abc.co.jp</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- Tabs (only visible_tabs for client) -->
+<div class="bg-white border-b border-slate-200">
+  <div class="max-w-[1200px] mx-auto px-6 flex gap-0">
+    <button class="px-4 py-3 text-sm font-medium border-b-2 border-eb-500 text-slate-900">Overview</button>
+    <button class="px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-900">仕様書</button>
+    <button class="px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-900">画面モック</button>
+    <button class="px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-900">進捗</button>
+    <button class="px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-900">レビュー <span class="ml-1 text-[10px] bg-red-500 text-white px-1.5 rounded-full">2</span></button>
+  </div>
+</div>
+
+<main class="max-w-[1200px] mx-auto px-6 py-6">
+  <h1 class="text-2xl font-bold mb-1">案件進捗状況</h1>
+  <p class="text-sm text-slate-600 mb-6">受託 EC 構築 #4 · Phase 2 統合テスト中</p>
+
+  <!-- Status hero -->
+  <div class="bg-white border border-eb-200 rounded-lg p-5 mb-4 ring-2 ring-eb-100">
+    <div class="flex items-center justify-between">
+      <div>
+        <div class="text-[11px] uppercase tracking-wider text-eb-700 font-bold">Current Phase</div>
+        <h2 class="text-xl font-bold mt-1">Phase 2: 統合テスト + 受入</h2>
+        <p class="text-xs text-slate-500 mt-1">5/8 完了 · 残り 3 日</p>
+      </div>
+      <div class="text-right">
+        <div class="text-4xl font-bold tabular text-eb-500">88<span class="text-base font-normal">%</span></div>
+      </div>
+    </div>
+    <div class="mt-3 h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-eb-500" style="width: 88%"></div></div>
+  </div>
+
+  <!-- Recent updates -->
+  <div class="grid grid-cols-3 gap-4 mb-4">
+    <div class="col-span-2 bg-white border border-slate-200 rounded-lg p-5">
+      <h2 class="text-sm font-bold text-eb-500 mb-4 flex items-center gap-2"><i data-lucide="bell" class="w-4 h-4"></i>最近の更新</h2>
+      <div class="space-y-3">
+        <div class="flex items-start gap-3 pb-3 border-b border-slate-100">
+          <div class="w-7 h-7 rounded-full bg-eb-50 flex items-center justify-center shrink-0"><i data-lucide="upload" class="w-3.5 h-3.5 text-eb-600"></i></div>
+          <div class="flex-1">
+            <div class="text-sm font-medium">仕様書 v2.0 が公開されました</div>
+            <div class="text-xs text-slate-500 mt-0.5">Must 34 項目 / 機能 30 項目 · 2 days ago</div>
+            <button class="text-xs text-eb-500 hover:text-eb-600 font-semibold mt-1">仕様書を見る →</button>
+          </div>
+        </div>
+        <div class="flex items-start gap-3 pb-3 border-b border-slate-100">
+          <div class="w-7 h-7 rounded-full bg-eb-50 flex items-center justify-center shrink-0"><i data-lucide="layout" class="w-3.5 h-3.5 text-eb-600"></i></div>
+          <div class="flex-1">
+            <div class="text-sm font-medium">画面モック 12 件が確認可能になりました</div>
+            <div class="text-xs text-slate-500 mt-0.5">login / signup / ダッシュ / 商品 / カート / 決済 · 3 days ago</div>
+            <button class="text-xs text-eb-500 hover:text-eb-600 font-semibold mt-1">モックを見る →</button>
+          </div>
+        </div>
+        <div class="flex items-start gap-3 pb-3 border-b border-slate-100">
+          <div class="w-7 h-7 rounded-full bg-amber-50 flex items-center justify-center shrink-0"><i data-lucide="message-circle" class="w-3.5 h-3.5 text-amber-600"></i></div>
+          <div class="flex-1">
+            <div class="text-sm font-medium">あなたのコメントに返信があります</div>
+            <div class="text-xs text-slate-500 mt-0.5">M-1 認証 / SAML SSO について · 5 days ago</div>
+            <button class="text-xs text-eb-500 hover:text-eb-600 font-semibold mt-1">確認する →</button>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="w-7 h-7 rounded-full bg-amber-50 flex items-center justify-center shrink-0"><i data-lucide="check-square" class="w-3.5 h-3.5 text-amber-600"></i></div>
+          <div class="flex-1">
+            <div class="text-sm font-medium">Phase 1 完了 - 承認お願いします</div>
+            <div class="text-xs text-slate-500 mt-0.5">設計基盤 / 認証 / DB スキーマ 完了 · 7 days ago</div>
+            <button class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold h-7 px-3 rounded-md mt-1">承認画面へ</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <div class="bg-white border border-slate-200 rounded-lg p-5">
+        <h2 class="text-sm font-bold text-eb-500 mb-3 flex items-center gap-2"><i data-lucide="users" class="w-4 h-4"></i>担当チーム</h2>
+        <div class="space-y-2 text-sm">
+          <div class="flex items-center gap-2"><div class="w-6 h-6 rounded-full bg-eb-500 text-white text-[10px] font-bold flex items-center justify-center">M</div><div class="flex-1"><div class="text-xs font-semibold">masato</div><div class="text-[10px] text-slate-500">PM / 主担当</div></div></div>
+          <div class="flex items-center gap-2"><div class="w-6 h-6 rounded-full bg-eb-500 text-white text-[10px] font-bold flex items-center justify-center mono">DV</div><div class="flex-1"><div class="text-xs font-semibold">devon (AI)</div><div class="text-[10px] text-slate-500">Senior Dev</div></div></div>
+          <div class="flex items-center gap-2"><div class="w-6 h-6 rounded-full bg-blue-500 text-white text-[10px] font-bold flex items-center justify-center mono">WS</div><div class="flex-1"><div class="text-xs font-semibold">winston (AI)</div><div class="text-[10px] text-slate-500">Architect</div></div></div>
+        </div>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-lg p-5">
+        <h2 class="text-sm font-bold text-eb-500 mb-3 flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4"></i>納期</h2>
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between"><span class="text-slate-500">Phase 2 完了</span><span class="font-bold mono">5/18</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">最終納品</span><span class="font-bold mono">5/30</span></div>
+          <div class="flex justify-between border-t border-slate-100 pt-2"><span class="text-slate-500">残り</span><span class="font-bold text-eb-500 mono">15 日</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase progress -->
+  <div class="bg-white border border-slate-200 rounded-lg p-5">
+    <h2 class="text-sm font-bold text-eb-500 mb-4 flex items-center gap-2"><i data-lucide="layers" class="w-4 h-4"></i>フェーズ進捗</h2>
+    <div class="space-y-3">
+      <div class="flex items-center gap-3 p-2.5 border border-emerald-200 bg-emerald-50 rounded-md">
+        <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600"></i>
+        <div class="flex-1"><div class="text-sm font-semibold">Phase 0: ヒアリング / 要件</div><div class="text-xs text-slate-500">完了 · 4/22</div></div>
+      </div>
+      <div class="flex items-center gap-3 p-2.5 border border-emerald-200 bg-emerald-50 rounded-md">
+        <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600"></i>
+        <div class="flex-1"><div class="text-sm font-semibold">Phase 1: 設計基盤 + 認証</div><div class="text-xs text-slate-500">完了 · 5/8</div></div>
+      </div>
+      <div class="flex items-center gap-3 p-2.5 border border-eb-200 bg-eb-50 rounded-md">
+        <i data-lucide="play-circle" class="w-5 h-5 text-eb-500"></i>
+        <div class="flex-1"><div class="text-sm font-semibold">Phase 2: 統合テスト + 受入</div><div class="text-xs text-slate-500">進行中 · 88%</div></div>
+        <span class="text-[11px] bg-eb-500 text-white px-2 py-0.5 rounded-full font-bold">CURRENT</span>
+      </div>
+      <div class="flex items-center gap-3 p-2.5 border border-slate-200 rounded-md opacity-60">
+        <i data-lucide="circle" class="w-5 h-5 text-slate-400"></i>
+        <div class="flex-1"><div class="text-sm font-semibold">Phase 3: 納品 + 引き継ぎ</div><div class="text-xs text-slate-500">未開始 · 5/24-5/30</div></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

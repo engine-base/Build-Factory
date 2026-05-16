@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build-Factory — Design System</title>
+<meta name="bf-doc-type" content="design-md-preview">
+<meta name="bf-version" content="v3">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* === COLOR TOKENS === */
+    --color-primary: #1a6648;
+    --color-on-primary: #ffffff;
+    --color-primary-container: #d3f0e0;
+    --color-on-primary-container: #082015;
+    --color-secondary: #475569;
+    --color-on-secondary: #ffffff;
+    --color-secondary-container: #e2e8f0;
+    --color-on-secondary-container: #0f172a;
+    --color-tertiary: #d97706;
+    --color-on-tertiary: #ffffff;
+    --color-tertiary-container: #fef3c7;
+    --color-on-tertiary-container: #78350f;
+    --color-surface: #ffffff;
+    --color-on-surface: #0f172a;
+    --color-surface-variant: #f1f5f9;
+    --color-on-surface-variant: #475569;
+    --color-neutral: #f8fafc;
+    --color-on-neutral: #0f172a;
+    --color-error: #dc2626;
+    --color-on-error: #ffffff;
+
+    /* === TYPOGRAPHY === */
+    --font-headline: 'Noto Sans JP', sans-serif;
+    --font-body: 'Noto Sans JP', sans-serif;
+    --font-label: 'Noto Sans JP', sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+    /* === SPACING === */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 48px;
+    --space-2xl: 96px;
+
+    /* === ROUNDED (適度な丸み) === */
+    --rounded-none: 0px;
+    --rounded-sm: 4px;
+    --rounded-md: 6px;
+    --rounded-lg: 8px;
+    --rounded-xl: 12px;
+    --rounded-full: 9999px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--color-neutral);
+    color: var(--color-on-neutral);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  /* HEADER */
+  .ds-header {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    padding: var(--space-xl) var(--space-2xl);
+  }
+  .ds-header h1 {
+    font-family: var(--font-headline);
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin-bottom: var(--space-sm);
+  }
+  .ds-header p {
+    font-family: var(--font-body);
+    font-size: 16px;
+    opacity: 0.85;
+    line-height: 1.7;
+  }
+  .ds-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--color-on-primary);
+    color: var(--color-primary);
+    padding: 4px 12px;
+    border-radius: var(--rounded-full);
+    font-family: var(--font-label);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: var(--space-lg);
+  }
+  .ds-meta {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    opacity: 0.7;
+    margin-top: var(--space-md);
+  }
+
+  /* SECTIONS */
+  .ds-section {
+    padding: var(--space-xl) var(--space-2xl);
+    border-bottom: 1px solid var(--color-secondary-container);
+    background: var(--color-neutral);
+  }
+  .ds-section:nth-child(even) {
+    background: var(--color-surface);
+  }
+  .ds-section-title {
+    font-family: var(--font-label);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-on-surface-variant);
+    margin-bottom: var(--space-xl);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .ds-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--color-secondary-container);
+  }
+  .ds-section-desc {
+    color: var(--color-on-surface-variant);
+    font-size: 14px;
+    line-height: 1.7;
+    margin-top: -32px;
+    margin-bottom: var(--space-xl);
+    max-width: 760px;
+  }
+
+  /* COLOR PALETTE */
+  .color-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-md);
+  }
+  .color-card {
+    border-radius: var(--rounded-lg);
+    overflow: hidden;
+    border: 1px solid var(--color-secondary-container);
+  }
+  .color-swatch-main {
+    height: 120px;
+    display: flex;
+    align-items: flex-end;
+    padding: var(--space-md);
+  }
+  .color-swatch-main span {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    opacity: 0.95;
+  }
+  .color-swatch-row {
+    display: flex;
+  }
+  .color-swatch-sm {
+    flex: 1;
+    height: 40px;
+  }
+  .color-card-meta {
+    padding: var(--space-md);
+    background: var(--color-surface);
+  }
+  .color-name {
+    font-family: var(--font-label);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-on-surface);
+    margin-bottom: 2px;
+  }
+  .color-hex {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--color-on-surface-variant);
+  }
+  .color-role {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--color-on-surface-variant);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  /* TYPOGRAPHY */
+  .type-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-lg);
+  }
+  .type-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-secondary-container);
+    border-radius: var(--rounded-lg);
+    padding: var(--space-lg);
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .type-sample {
+    color: var(--color-on-surface);
+    line-height: 1.2;
+    margin-bottom: var(--space-sm);
+  }
+  .type-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-on-surface-variant);
+    letter-spacing: 0;
+    line-height: 1.5;
+  }
+  .type-scale-name {
+    font-family: var(--font-label);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-on-surface-variant);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: var(--space-sm);
+  }
+  .type-example-text {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--color-on-surface);
+    margin-top: var(--space-sm);
+    line-height: 1.7;
+  }
+
+  /* COMPONENTS */
+  .component-section {
+    margin-bottom: var(--space-xl);
+  }
+  .component-label {
+    font-family: var(--font-label);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-on-surface-variant);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: var(--space-md);
+  }
+  .button-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-lg);
+  }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-label);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    transition: all 0.15s ease;
+    border-radius: var(--rounded-md);
+    height: 36px;
+  }
+  .btn-primary { background: var(--color-primary); color: var(--color-on-primary); }
+  .btn-primary:hover { background: #155238; }
+  .btn-secondary {
+    background: var(--color-secondary-container);
+    color: var(--color-on-secondary-container);
+  }
+  .btn-secondary:hover { background: #cbd5e1; }
+  .btn-outlined {
+    background: transparent;
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+  }
+  .btn-outlined:hover { background: var(--color-primary-container); }
+  .btn-inverted {
+    background: var(--color-on-primary);
+    color: var(--color-primary);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-on-surface);
+  }
+  .btn-ghost:hover { background: var(--color-surface-variant); }
+  .btn-destructive {
+    background: var(--color-error);
+    color: var(--color-on-error);
+  }
+  .btn-disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-loading {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+  .btn-sm { padding: 6px 12px; font-size: 12px; height: 28px; }
+  .btn-lg { padding: 12px 24px; font-size: 14px; height: 40px; }
+
+  /* CARD EXAMPLES */
+  .cards-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+  }
+  .demo-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-secondary-container);
+    border-radius: var(--rounded-lg);
+    padding: var(--space-lg);
+  }
+  .demo-card-primary {
+    background: var(--color-primary-container);
+    color: var(--color-on-primary-container);
+    border: none;
+  }
+  .demo-card-secondary {
+    background: var(--color-secondary-container);
+    color: var(--color-on-secondary-container);
+    border: none;
+  }
+  .demo-card h3 {
+    font-family: var(--font-headline);
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: var(--space-sm);
+  }
+  .demo-card p {
+    font-size: 14px;
+    opacity: 0.9;
+    line-height: 1.7;
+    margin-bottom: var(--space-md);
+  }
+
+  /* KPI CARDS (Build-Factory 特化) */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+  }
+  .kpi-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-secondary-container);
+    border-radius: var(--rounded-lg);
+    padding: var(--space-md);
+  }
+  .kpi-card-alert {
+    border-color: rgba(220, 38, 38, 0.3);
+  }
+  .kpi-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: var(--space-sm);
+  }
+  .kpi-label {
+    font-family: var(--font-label);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--color-on-surface-variant);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .kpi-label-alert { color: var(--color-error); }
+  .kpi-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--color-on-surface-variant);
+  }
+  .kpi-icon-alert { color: var(--color-error); }
+  .kpi-number {
+    font-family: var(--font-body);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--color-on-surface);
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+  .kpi-number-alert { color: var(--color-error); }
+  .kpi-unit {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--color-on-surface-variant);
+    font-weight: 400;
+  }
+  .kpi-sub {
+    font-size: 12px;
+    color: var(--color-on-surface-variant);
+    margin-top: var(--space-sm);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .kpi-bar {
+    margin-top: var(--space-sm);
+    height: 4px;
+    background: var(--color-secondary-container);
+    border-radius: var(--rounded-full);
+    overflow: hidden;
+  }
+  .kpi-bar-fill {
+    height: 100%;
+    background: var(--color-primary);
+    border-radius: var(--rounded-full);
+  }
+  .kpi-bar-fill-warning { background: var(--color-tertiary); }
+
+  /* BADGES */
+  .badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+    align-items: center;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    border-radius: var(--rounded-full);
+    font-family: var(--font-label);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    border: 1px solid transparent;
+  }
+  .badge-default {
+    background: var(--color-surface-variant);
+    color: var(--color-on-surface-variant);
+  }
+  .badge-success {
+    background: #f0fdf4;
+    color: #16a34a;
+    border-color: rgba(22, 163, 74, 0.2);
+  }
+  .badge-warning {
+    background: var(--color-tertiary-container);
+    color: var(--color-on-tertiary-container);
+    border-color: rgba(217, 119, 6, 0.2);
+  }
+  .badge-error {
+    background: #fef2f2;
+    color: var(--color-error);
+    border-color: rgba(220, 38, 38, 0.2);
+  }
+  .badge-brand {
+    background: var(--color-primary-container);
+    color: var(--color-on-primary-container);
+    border-color: rgba(26, 102, 72, 0.2);
+  }
+
+  /* STATUS DOTS */
+  .status-row {
+    display: flex;
+    gap: var(--space-lg);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .status-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--color-on-surface-variant);
+  }
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: var(--rounded-full);
+  }
+  .status-dot-pulse {
+    animation: pulse-dot 1.4s infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .dot-running { background: #16a34a; }
+  .dot-idle { background: var(--color-on-surface-variant); }
+  .dot-paused { background: var(--color-tertiary); }
+  .dot-failed { background: var(--color-error); }
+  .dot-done { background: var(--color-primary); }
+
+  /* AI 社員 CHIPS */
+  .chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+  .ai-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    border-radius: var(--rounded-md);
+    background: var(--color-primary-container);
+    border: 1px solid var(--color-secondary-container);
+  }
+  .ai-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: var(--rounded-full);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+  .ai-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-on-primary-container);
+  }
+  .ai-role {
+    font-size: 10px;
+    color: var(--color-on-surface-variant);
+  }
+
+  /* SIDEBAR PREVIEW */
+  .sidebar-preview {
+    border-radius: var(--rounded-lg);
+    border: 1px solid var(--color-secondary-container);
+    overflow: hidden;
+    display: flex;
+    height: 360px;
+  }
+  .sidebar-aside {
+    width: 240px;
+    background: #103e2a; /* eb-700 */
+    color: #d3f0e0;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar-brand {
+    padding: 20px;
+    border-bottom: 1px solid #155238;
+  }
+  .sidebar-brand-tag {
+    font-family: var(--font-label);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: #a8e1c1;
+  }
+  .sidebar-brand-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-top: 4px;
+    color: #ffffff;
+  }
+  .sidebar-brand-id {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #a8e1c1;
+    margin-top: 2px;
+  }
+  .sidebar-nav {
+    flex: 1;
+    padding: 12px 8px;
+  }
+  .nav-section-title {
+    font-family: var(--font-label);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #a8e1c1;
+    padding: 8px 12px 4px;
+    font-weight: 700;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: var(--rounded-md);
+    font-size: 13px;
+    color: #d3f0e0;
+    cursor: pointer;
+  }
+  .nav-item:hover { background: #155238; }
+  .nav-item-active {
+    background: #155238;
+    font-weight: 600;
+    color: #ffffff;
+  }
+  .sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid #155238;
+    font-size: 11px;
+    color: #a8e1c1;
+  }
+  .sidebar-main {
+    flex: 1;
+    padding: var(--space-lg);
+    background: var(--color-neutral);
+  }
+
+  /* TABLE */
+  .table-wrap {
+    background: var(--color-surface);
+    border: 1px solid var(--color-secondary-container);
+    border-radius: var(--rounded-lg);
+    overflow: hidden;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead tr {
+    background: var(--color-surface-variant);
+  }
+  th {
+    text-align: left;
+    font-family: var(--font-label);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-on-surface-variant);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--color-secondary-container);
+  }
+  th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--color-secondary-container);
+    color: var(--color-on-surface);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--color-surface-variant); }
+
+  /* SPACING VISUAL */
+  .spacing-row {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-lg);
+  }
+  .space-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .space-visual {
+    background: var(--color-primary);
+    opacity: 0.7;
+    border-radius: var(--rounded-sm);
+    width: 36px;
+  }
+  .space-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-on-surface-variant);
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  /* SHAPES */
+  .shapes-row {
+    display: flex;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .shape-demo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .shape-box {
+    width: 64px;
+    height: 64px;
+    background: var(--color-primary-container);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-label);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--color-on-primary-container);
+  }
+
+  /* INPUT DEMO */
+  .input-demo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    max-width: 360px;
+    margin-bottom: var(--space-lg);
+  }
+  .input-label {
+    font-family: var(--font-label);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-on-surface);
+  }
+  .input-field {
+    background: var(--color-surface);
+    color: var(--color-on-surface);
+    border: 1px solid var(--color-secondary-container);
+    border-radius: var(--rounded-md);
+    padding: 8px 12px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    width: 100%;
+    height: 36px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .input-field:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary-container);
+  }
+  .input-field-error {
+    border-color: var(--color-error);
+  }
+  .input-help {
+    font-size: 12px;
+    color: var(--color-on-surface-variant);
+  }
+  .input-error {
+    font-size: 12px;
+    color: var(--color-error);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* WCAG BADGES */
+  .wcag-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-sm);
+  }
+  .wcag-card {
+    border-radius: var(--rounded-md);
+    padding: var(--space-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .wcag-info {
+    font-family: var(--font-label);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .wcag-ratio {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  /* DESIGN.MD SOURCE */
+  .source-block {
+    background: var(--color-on-surface);
+    color: var(--color-surface);
+    border-radius: var(--rounded-lg);
+    padding: var(--space-lg);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.7;
+    white-space: pre;
+    overflow-x: auto;
+    max-height: 420px;
+    overflow-y: auto;
+  }
+
+  /* FOOTER */
+  .ds-footer {
+    background: var(--color-primary-container);
+    color: var(--color-on-primary-container);
+    padding: var(--space-lg) var(--space-2xl);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-label);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+  }
+
+  @media (max-width: 1024px) {
+    .color-grid { grid-template-columns: repeat(2, 1fr); }
+    .type-grid { grid-template-columns: repeat(2, 1fr); }
+    .cards-row { grid-template-columns: 1fr; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 768px) {
+    .ds-header { padding: var(--space-xl) var(--space-lg); }
+    .ds-section { padding: var(--space-xl) var(--space-lg); }
+    .ds-header h1 { font-size: 32px; }
+    .ds-footer { flex-direction: column; gap: var(--space-md); padding: var(--space-lg); }
+    .color-grid, .type-grid, .kpi-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="ds-header">
+  <div class="ds-badge">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    design.md · Google Labs Format
+  </div>
+  <h1>Build-Factory</h1>
+  <p>開発の工場 × Linear 系の高密度情報設計 — 受託 PM が 1 画面で 10 案件を並列管理する SaaS UI</p>
+  <div class="ds-meta">v3 / 2026-05-15 / 株式会社 ENGINE BASE</div>
+</header>
+
+<!-- 1. COLOR PALETTE -->
+<section class="ds-section">
+  <div class="ds-section-title">Colors</div>
+  <p class="ds-section-desc">Material Design 3 のロールベース命名規則を採用。Primary は ENGINE BASE green (`#1a6648`) を維持。全 critical pair で WCAG AA 達成。</p>
+
+  <div class="color-grid">
+    <!-- PRIMARY -->
+    <div class="color-card">
+      <div class="color-swatch-main" style="background:#1a6648;">
+        <span style="color:#ffffff;">#1a6648</span>
+      </div>
+      <div class="color-swatch-row">
+        <div class="color-swatch-sm" style="background:#d3f0e0;"></div>
+        <div class="color-swatch-sm" style="background:#ffffff; border-right:1px solid #e2e8f0;"></div>
+        <div class="color-swatch-sm" style="background:#082015;"></div>
+      </div>
+      <div class="color-card-meta">
+        <div class="color-name">Primary</div>
+        <div class="color-hex">#1a6648 (HSL 153° 59% 25%)</div>
+        <div class="color-role">ENGINE BASE green / CTA / Active / Brand</div>
+      </div>
+    </div>
+
+    <!-- SECONDARY -->
+    <div class="color-card">
+      <div class="color-swatch-main" style="background:#475569;">
+        <span style="color:#ffffff;">#475569</span>
+      </div>
+      <div class="color-swatch-row">
+        <div class="color-swatch-sm" style="background:#e2e8f0;"></div>
+        <div class="color-swatch-sm" style="background:#ffffff; border-right:1px solid #e2e8f0;"></div>
+        <div class="color-swatch-sm" style="background:#0f172a;"></div>
+      </div>
+      <div class="color-card-meta">
+        <div class="color-name">Secondary</div>
+        <div class="color-hex">#475569 (slate-600)</div>
+        <div class="color-role">Slate Steel / 副次ボタン / muted text</div>
+      </div>
+    </div>
+
+    <!-- TERTIARY -->
+    <div class="color-card">
+      <div class="color-swatch-main" style="background:#d97706;">
+        <span style="color:#ffffff;">#d97706</span>
+      </div>
+      <div class="color-swatch-row">
+        <div class="color-swatch-sm" style="background:#fef3c7;"></div>
+        <div class="color-swatch-sm" style="background:#ffffff; border-right:1px solid #e2e8f0;"></div>
+        <div class="color-swatch-sm" style="background:#78350f;"></div>
+      </div>
+      <div class="color-card-meta">
+        <div class="color-name">Tertiary</div>
+        <div class="color-hex">#d97706 (amber-600)</div>
+        <div class="color-role">Amber Warning / 注意喚起 / 予算アラート</div>
+      </div>
+    </div>
+
+    <!-- NEUTRAL / SURFACE -->
+    <div class="color-card">
+      <div class="color-swatch-main" style="background:#f8fafc; border: 1px solid #e2e8f0;">
+        <span style="color:#0f172a;">#f8fafc</span>
+      </div>
+      <div class="color-swatch-row">
+        <div class="color-swatch-sm" style="background:#ffffff; border-right:1px solid #e2e8f0;"></div>
+        <div class="color-swatch-sm" style="background:#f1f5f9;"></div>
+        <div class="color-swatch-sm" style="background:#0f172a;"></div>
+      </div>
+      <div class="color-card-meta">
+        <div class="color-name">Neutral / Surface</div>
+        <div class="color-hex">#f8fafc (slate-50)</div>
+        <div class="color-role">Slate Mist / ページ背景 + Card</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WCAG -->
+  <div style="margin-top: var(--space-xl);">
+    <div class="component-label">WCAG Contrast 確認 (全 AA 以上達成)</div>
+    <div class="wcag-grid">
+      <div class="wcag-card" style="background:#1a6648; color:#ffffff;">
+        <div class="wcag-info">Primary / On-Primary<br><span style="opacity:0.7">AA ✓</span></div>
+        <div class="wcag-ratio">5.4:1</div>
+      </div>
+      <div class="wcag-card" style="background:#ffffff; color:#0f172a; border: 1px solid #e2e8f0;">
+        <div class="wcag-info">Surface / On-Surface<br><span style="opacity:0.7">AAA ✓</span></div>
+        <div class="wcag-ratio">17.4:1</div>
+      </div>
+      <div class="wcag-card" style="background:#d3f0e0; color:#082015;">
+        <div class="wcag-info">Primary-Container<br><span style="opacity:0.7">AAA ✓</span></div>
+        <div class="wcag-ratio">12.6:1</div>
+      </div>
+      <div class="wcag-card" style="background:#e2e8f0; color:#0f172a;">
+        <div class="wcag-info">Secondary-Container<br><span style="opacity:0.7">AAA ✓</span></div>
+        <div class="wcag-ratio">14.8:1</div>
+      </div>
+      <div class="wcag-card" style="background:#fef3c7; color:#78350f;">
+        <div class="wcag-info">Tertiary-Container<br><span style="opacity:0.7">AAA ✓</span></div>
+        <div class="wcag-ratio">9.1:1</div>
+      </div>
+      <div class="wcag-card" style="background:#dc2626; color:#ffffff;">
+        <div class="wcag-info">Error / On-Error<br><span style="opacity:0.7">AA ✓</span></div>
+        <div class="wcag-ratio">5.9:1</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. TYPOGRAPHY -->
+<section class="ds-section">
+  <div class="ds-section-title">Typography</div>
+  <p class="ds-section-desc">Noto Sans JP 単一 family で全用途を統一。日本語見出しの可読性 / weight 違いだけで階層を表現。JetBrains Mono はコード / 数値 / ID 専用。</p>
+
+  <div class="type-grid">
+    <div class="type-card">
+      <div>
+        <div class="type-scale-name">Headline Display</div>
+        <div class="type-sample" style="font-family: var(--font-headline); font-size: 56px; font-weight: 700; letter-spacing: -0.01em;">Aa あ</div>
+      </div>
+      <div class="type-meta">Noto Sans JP · 56px · 700<br>lineHeight: 1.15 · −0.01em</div>
+    </div>
+
+    <div class="type-card">
+      <div>
+        <div class="type-scale-name">Headline LG</div>
+        <div class="type-sample" style="font-family: var(--font-headline); font-size: 36px; font-weight: 700;">Aa あ</div>
+        <div class="type-example-text" style="font-size: 24px; font-weight: 700; line-height: 1.25;">大見出し / 36px / 700</div>
+      </div>
+      <div class="type-meta">Noto Sans JP · 36px · 700</div>
+    </div>
+
+    <div class="type-card">
+      <div>
+        <div class="type-scale-name">Headline MD (★ page title)</div>
+        <div class="type-sample" style="font-family: var(--font-headline); font-size: 24px; font-weight: 700;">Aa あ</div>
+        <div class="type-example-text" style="font-size: 24px; font-weight: 700; line-height: 1.4;">10 案件 俯瞰</div>
+      </div>
+      <div class="type-meta">Noto Sans JP · 24px · 700<br>lineHeight: 1.4 · (= v3 h1)</div>
+    </div>
+
+    <div class="type-card">
+      <div>
+        <div class="type-scale-name">Body LG</div>
+        <div class="type-sample" style="font-family: var(--font-body); font-size: 32px; font-weight: 400;">Aa あ</div>
+        <div class="type-example-text" style="font-size: 16px; line-height: 1.7;">本文 LG。説明文に使用。日本語の line-height は 1.7 で詰めすぎない設計。</div>
+      </div>
+      <div class="type-meta">Noto Sans JP · 16px · 400<br>lineHeight: 1.7</div>
+    </div>
+
+    <div class="type-card">
+      <div>
+        <div class="type-scale-name">Body MD (★ default)</div>
+        <div class="type-sample" style="font-family: var(--font-body); font-size: 28px; font-weight: 400;">Aa あ</div>
+        <div class="type-example-text" style="font-size: 14px; line-height: 1.7;">標準本文 / 14px。Linear 系の高密度設計で 1 画面の情報量を最大化。</div>
+      </div>
+      <div class="type-meta">Noto Sans JP · 14px · 400<br>lineHeight: 1.7 · UI 主体</div>
+    </div>
+
+    <div class="type-card">
+      <div>
+        <div class="type-scale-name">Label SM (Micro)</div>
+        <div class="type-sample" style="font-family: var(--font-label); font-size: 28px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;">Aa</div>
+        <div class="type-example-text" style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.8;">ACTIVE PROJECTS</div>
+      </div>
+      <div class="type-meta">Noto Sans JP · 11px · 700<br>uppercase · +0.06em</div>
+    </div>
+
+    <div class="type-card">
+      <div>
+        <div class="type-scale-name">Mono (Code / ID / HEX のみ)</div>
+        <div class="type-sample" style="font-family: var(--font-mono); font-size: 32px; font-weight: 600;">Aa</div>
+        <div class="type-example-text" style="font-family: var(--font-mono); font-size: 13px;">const ws_id = "ws_8f3a2c";</div>
+      </div>
+      <div class="type-meta">JetBrains Mono · 13px · 400<br>※ KPI / Table 数値は Noto Sans JP に変更</div>
+    </div>
+
+    <div class="type-card" style="background: var(--color-primary-container); color: var(--color-on-primary-container); border: none;">
+      <div>
+        <div class="type-scale-name" style="color: var(--color-on-primary-container); opacity: 0.7;">KPI Hero</div>
+        <div style="font-family: var(--font-body); font-size: 48px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; letter-spacing: -0.01em;">7<span style="font-size: 24px; opacity: 0.6;">/10</span></div>
+      </div>
+      <div class="type-meta" style="color: var(--color-on-primary-container); opacity: 0.7;">Noto Sans JP · 28px · 700<br>tabular-nums で桁揃え</div>
+    </div>
+
+    <div class="type-card">
+      <div>
+        <div class="type-scale-name">Body SM (Caption)</div>
+        <div class="type-sample" style="font-family: var(--font-body); font-size: 26px; font-weight: 400;">Aa あ</div>
+        <div class="type-example-text" style="font-size: 13px; color: var(--color-on-surface-variant);">補助テキスト / 13px / muted。ヘルパー文用</div>
+      </div>
+      <div class="type-meta">Noto Sans JP · 13px · 400<br>lineHeight: 1.6</div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. SHAPES -->
+<section class="ds-section">
+  <div class="ds-section-title">Shapes / Border Radius</div>
+  <p class="ds-section-desc">「角を丸くしすぎず、0px でもない適度な丸み」— Linear 系 sharper。Button 6px / Card 8px / Modal 12px。</p>
+
+  <div class="shapes-row">
+    <div class="shape-demo">
+      <div class="shape-box" style="border-radius: 0px;">none</div>
+      <span class="space-label">none<br>0px</span>
+    </div>
+    <div class="shape-demo">
+      <div class="shape-box" style="border-radius: 4px;">sm</div>
+      <span class="space-label">sm<br>4px</span>
+    </div>
+    <div class="shape-demo">
+      <div class="shape-box" style="border-radius: 6px; background: var(--color-primary); color: var(--color-on-primary);">md ★</div>
+      <span class="space-label">md (Button)<br>6px</span>
+    </div>
+    <div class="shape-demo">
+      <div class="shape-box" style="border-radius: 8px; background: var(--color-primary); color: var(--color-on-primary);">lg ★</div>
+      <span class="space-label">lg (Card)<br>8px</span>
+    </div>
+    <div class="shape-demo">
+      <div class="shape-box" style="border-radius: 12px; background: var(--color-primary); color: var(--color-on-primary);">xl ★</div>
+      <span class="space-label">xl (Modal)<br>12px</span>
+    </div>
+    <div class="shape-demo">
+      <div class="shape-box" style="border-radius: 9999px;">full</div>
+      <span class="space-label">full<br>pill</span>
+    </div>
+  </div>
+</section>
+
+<!-- 4. COMPONENTS -->
+<section class="ds-section">
+  <div class="ds-section-title">Components</div>
+  <p class="ds-section-desc">主要コンポーネントを 4 種ボタン + Card + Input + Badge + KPI + AI 社員 Chip + Sidebar + Table で網羅。</p>
+
+  <!-- Buttons -->
+  <div class="component-section">
+    <div class="component-label">Buttons (6 variant × 主要 states)</div>
+    <div class="button-row">
+      <button class="btn btn-primary">Primary</button>
+      <button class="btn btn-secondary">Secondary</button>
+      <button class="btn btn-outlined">Outlined</button>
+      <button class="btn btn-ghost">Ghost</button>
+      <button class="btn btn-destructive">Destructive</button>
+      <a class="btn btn-ghost" style="text-decoration: underline;">Link</a>
+    </div>
+    <div class="button-row">
+      <button class="btn btn-primary">default</button>
+      <button class="btn btn-primary" style="background: #155238;">hover</button>
+      <button class="btn btn-primary" style="outline: 2px solid var(--color-primary); outline-offset: 2px;">focus</button>
+      <button class="btn btn-primary btn-disabled" disabled>disabled</button>
+      <button class="btn btn-primary btn-loading">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation: pulse-dot 1s linear infinite;"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>
+        loading
+      </button>
+    </div>
+    <div class="button-row">
+      <button class="btn btn-primary btn-sm">sm (h-28)</button>
+      <button class="btn btn-primary">md default (h-36)</button>
+      <button class="btn btn-primary btn-lg">lg (h-40)</button>
+    </div>
+
+    <!-- On Primary bg -->
+    <div style="background: var(--color-primary); padding: var(--space-md); border-radius: var(--rounded-lg); margin-top: var(--space-md);">
+      <div style="font-family: var(--font-label); font-size: 11px; font-weight: 700; color: var(--color-on-primary); opacity: 0.7; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: var(--space-md);">On Primary Background (sidebar 等)</div>
+      <div class="button-row">
+        <button class="btn btn-inverted">Inverted</button>
+        <button class="btn btn-outlined" style="color: var(--color-on-primary); border-color: var(--color-on-primary);">Outlined</button>
+        <button class="btn btn-ghost" style="color: var(--color-on-primary);">Ghost</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cards -->
+  <div class="component-section">
+    <div class="component-label">Cards</div>
+    <div class="cards-row">
+      <div class="demo-card">
+        <h3>Surface Card</h3>
+        <p>標準 Card / shadow なし + border 区切り (Linear 流)。p-24 / rounded-lg = 8px。</p>
+        <button class="btn btn-primary btn-sm">Action</button>
+      </div>
+      <div class="demo-card demo-card-primary">
+        <h3>Primary Container</h3>
+        <p>Primary を弱めた背景 / アクセント / promotional card で使用。</p>
+        <button class="btn btn-inverted btn-sm">Action</button>
+      </div>
+      <div class="demo-card demo-card-secondary">
+        <h3>Secondary Container</h3>
+        <p>Slate ベースの控えめなカード / 区切り / disabled bg で使用。</p>
+        <button class="btn btn-outlined btn-sm">Action</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="component-section">
+    <div class="component-label">KPI Cards (Build-Factory 特化 / 4 variant)</div>
+    <div class="kpi-grid">
+      <!-- 数値型 -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <div class="kpi-label">Active Projects</div>
+          <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-3V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v3H4a1 1 0 0 0-1 1v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a1 1 0 0 0-1-1z"/></svg>
+        </div>
+        <div class="kpi-number">7<span class="kpi-unit">/10</span></div>
+        <div class="kpi-sub">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/></svg>
+          本日 +2
+        </div>
+      </div>
+      <!-- ゲージ型 -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <div class="kpi-label">Running Sessions</div>
+          <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div class="kpi-number">12<span class="kpi-unit">/50</span></div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" style="width: 24%;"></div></div>
+        <div class="kpi-sub">並列上限 24%</div>
+      </div>
+      <!-- 金額型 -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <div class="kpi-label">Monthly Cost</div>
+          <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
+        </div>
+        <div class="kpi-number">¥8,420</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill kpi-bar-fill-warning" style="width: 28%;"></div></div>
+        <div class="kpi-sub">予算 ¥30,000</div>
+      </div>
+      <!-- アラート型 -->
+      <div class="kpi-card kpi-card-alert">
+        <div class="kpi-header">
+          <div class="kpi-label kpi-label-alert">Anomalies (24h)</div>
+          <svg class="kpi-icon kpi-icon-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="kpi-number kpi-number-alert">3</div>
+        <div class="kpi-sub">赤線抵触 1 / 失敗 2</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Badges -->
+  <div class="component-section">
+    <div class="component-label">Badges / Tags</div>
+    <div class="badge-row">
+      <span class="badge badge-default">Default</span>
+      <span class="badge badge-success">Success</span>
+      <span class="badge badge-warning">Warning</span>
+      <span class="badge badge-error">Error</span>
+      <span class="badge badge-brand">Brand</span>
+    </div>
+    <div class="component-label" style="margin-top: var(--space-md);">Status Dots (pulse animation)</div>
+    <div class="status-row">
+      <span class="status-item"><span class="status-dot dot-running status-dot-pulse"></span>running</span>
+      <span class="status-item"><span class="status-dot dot-idle"></span>idle</span>
+      <span class="status-item"><span class="status-dot dot-paused"></span>paused</span>
+      <span class="status-item"><span class="status-dot dot-failed"></span>failed</span>
+      <span class="status-item"><span class="status-dot dot-done"></span>done</span>
+    </div>
+  </div>
+
+  <!-- AI 社員 Chips -->
+  <div class="component-section">
+    <div class="component-label">AI 社員 Chip (Build-Factory 特化)</div>
+    <div class="chip-row">
+      <span class="ai-chip">
+        <span class="ai-avatar" style="background:#1a6648;">DV</span>
+        <span class="ai-name">devon</span>
+        <span class="ai-role">(Dev)</span>
+      </span>
+      <span class="ai-chip">
+        <span class="ai-avatar" style="background:#2563eb;">WS</span>
+        <span class="ai-name">winston</span>
+        <span class="ai-role">(Architect)</span>
+      </span>
+      <span class="ai-chip">
+        <span class="ai-avatar" style="background:#d97706;">QN</span>
+        <span class="ai-name">quinn</span>
+        <span class="ai-role">(QA)</span>
+      </span>
+      <span class="ai-chip">
+        <span class="ai-avatar" style="background:#16a34a;">MR</span>
+        <span class="ai-name">mary</span>
+        <span class="ai-role">(BA)</span>
+      </span>
+      <span class="ai-chip">
+        <span class="ai-avatar" style="background:#dc2626;">PS</span>
+        <span class="ai-name">preston</span>
+        <span class="ai-role">(PM)</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- Forms -->
+  <div class="component-section">
+    <div class="component-label">Form Input</div>
+    <div class="input-demo">
+      <label class="input-label">メールアドレス <span style="color: var(--color-error);">*</span></label>
+      <input class="input-field" type="email" placeholder="you@example.com" />
+      <p class="input-help">ログインに使用します</p>
+    </div>
+    <div class="input-demo">
+      <label class="input-label">パスワード (error 状態)</label>
+      <input class="input-field input-field-error" type="password" value="invalid" />
+      <p class="input-error">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        12 文字以上で入力してください
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- 5. SIDEBAR -->
+<section class="ds-section">
+  <div class="ds-section-title">Sidebar Navigation (両 mode 共通の濃グリーン)</div>
+  <p class="ds-section-desc">240px 固定 / bg-primary 系 (eb-700) / Light + Dark 両 mode で共通の濃グリーンでブランド面積を維持。</p>
+
+  <div class="sidebar-preview">
+    <aside class="sidebar-aside">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-tag">BUILD-FACTORY</div>
+        <div class="sidebar-brand-title">受託 EC 構築 #4</div>
+        <div class="sidebar-brand-id">ws_8f3a2c · P1</div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Workspace</div>
+        <div class="nav-item nav-item-active">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          ダッシュボード
+        </div>
+        <div class="nav-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          タスク Kanban
+        </div>
+        <div class="nav-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+          依存グラフ
+        </div>
+        <div class="nav-section-title">Spec</div>
+        <div class="nav-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+          ヒアリング
+        </div>
+        <div class="nav-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          仕様書
+        </div>
+      </nav>
+      <div class="sidebar-footer">masato (owner)</div>
+    </aside>
+    <div class="sidebar-main">
+      <h3 style="font-size: 16px; font-weight: 600; margin-bottom: var(--space-sm);">Sidebar の見え方</h3>
+      <p style="font-size: 13px; color: var(--color-on-surface-variant); line-height: 1.7;">
+        w-240px / 両 mode 共通の濃グリーン (eb-700 = #103e2a) / 角丸 6px (rounded-md) で nav items。<br>
+        Active state は bg を 1 段明るく (eb-600 = #155238) + font-weight: 600。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- 6. TABLE -->
+<section class="ds-section">
+  <div class="ds-section-title">Table (高密度 / 案件一覧)</div>
+  <p class="ds-section-desc">Linear 流の高密度テーブル。数値カラムは mono tabular-nums で桁揃え。</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>案件</th>
+          <th>Phase</th>
+          <th class="num">Tasks</th>
+          <th class="num">Sessions</th>
+          <th class="num">Cost</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Build-Factory dogfood</td>
+          <td>P1 · 64%</td>
+          <td class="num">23 / 36</td>
+          <td class="num">5 / 5</td>
+          <td class="num">¥3,200</td>
+          <td><span class="badge badge-success">running</span></td>
+        </tr>
+        <tr>
+          <td>ABC 社</td>
+          <td>P2 · 88%</td>
+          <td class="num">42 / 48</td>
+          <td class="num">2 / 5</td>
+          <td class="num">¥1,820</td>
+          <td><span class="badge badge-warning">review</span></td>
+        </tr>
+        <tr>
+          <td>XYZ 社</td>
+          <td>P1 · 32%</td>
+          <td class="num">12 / 38</td>
+          <td class="num">3 / 5</td>
+          <td class="num">¥920</td>
+          <td><span class="badge badge-brand">running</span></td>
+        </tr>
+        <tr>
+          <td>自社 KPI</td>
+          <td>P1 · 12%</td>
+          <td class="num">3 / 25</td>
+          <td class="num">0 / 5</td>
+          <td class="num">¥0</td>
+          <td><span class="badge badge-default">idle</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 7. SPACING -->
+<section class="ds-section">
+  <div class="ds-section-title">Spacing Scale (8px ベース)</div>
+  <div class="spacing-row">
+    <div class="space-block"><div class="space-visual" style="height: 4px;"></div><div class="space-label">xs<br>4px</div></div>
+    <div class="space-block"><div class="space-visual" style="height: 8px;"></div><div class="space-label">sm<br>8px</div></div>
+    <div class="space-block"><div class="space-visual" style="height: 16px;"></div><div class="space-label">md<br>16px</div></div>
+    <div class="space-block"><div class="space-visual" style="height: 24px;"></div><div class="space-label">lg ★<br>24px</div></div>
+    <div class="space-block"><div class="space-visual" style="height: 48px;"></div><div class="space-label">xl<br>48px</div></div>
+    <div class="space-block"><div class="space-visual" style="height: 96px;"></div><div class="space-label">2xl<br>96px</div></div>
+  </div>
+</section>
+
+<!-- 8. DESIGN.MD SOURCE -->
+<section class="ds-section">
+  <div class="ds-section-title">DESIGN.md Source</div>
+  <p class="ds-section-desc">design.md format (Google Labs) の YAML フロントマター抜粋。完全な仕様は同階層 `DESIGN.md` を参照。</p>
+  <div class="source-block">name: Build-Factory
+colors:
+  primary: "#1a6648"               # ENGINE BASE green
+  on-primary: "#ffffff"
+  primary-container: "#d3f0e0"
+  on-primary-container: "#082015"
+  secondary: "#475569"             # slate-600
+  on-secondary: "#ffffff"
+  secondary-container: "#e2e8f0"
+  on-secondary-container: "#0f172a"
+  tertiary: "#d97706"              # amber-600
+  on-tertiary: "#ffffff"
+  tertiary-container: "#fef3c7"
+  on-tertiary-container: "#78350f"
+  surface: "#ffffff"
+  on-surface: "#0f172a"
+  surface-variant: "#f1f5f9"
+  on-surface-variant: "#475569"
+  error: "#dc2626"
+  on-error: "#ffffff"
+  neutral: "#f8fafc"
+  on-neutral: "#0f172a"
+typography:
+  headline-display: { fontFamily: "Noto Sans JP", fontSize: 56px, fontWeight: 700, lineHeight: 1.15 }
+  headline-md:      { fontFamily: "Noto Sans JP", fontSize: 24px, fontWeight: 700, lineHeight: 1.4 }
+  body-md:          { fontFamily: "Noto Sans JP", fontSize: 14px, fontWeight: 400, lineHeight: 1.7 }
+  label-sm:         { fontFamily: "Noto Sans JP", fontSize: 11px, fontWeight: 700, letterSpacing: 0.06em }
+spacing: { xs: 4px, sm: 8px, md: 16px, lg: 24px, xl: 48px, 2xl: 96px }
+rounded: { none: 0px, sm: 4px, md: 6px, lg: 8px, xl: 12px, full: 9999px }
+components:
+  button-primary:  { backgroundColor: "{colors.primary}", textColor: "{colors.on-primary}", rounded: "{rounded.md}" }
+  button-outlined: { backgroundColor: "transparent", textColor: "{colors.primary}", border: "1px solid {colors.primary}", rounded: "{rounded.md}" }
+  card:            { backgroundColor: "{colors.surface}", rounded: "{rounded.lg}", padding: "{spacing.lg}" }
+  modal:           { backgroundColor: "{colors.surface}", rounded: "{rounded.xl}", padding: "{spacing.lg}" }</div>
+</section>
+
+<!-- FOOTER -->
+<footer class="ds-footer">
+  <span>Build-Factory Design System · design.md format by Google Labs</span>
+  <span>v3 · 2026-05-15 · 株式会社 ENGINE BASE</span>
+</footer>
+
+</body>
+</html>

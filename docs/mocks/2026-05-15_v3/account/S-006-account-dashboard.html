@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-006 10 案件 俯瞰 — Build-Factory</title>
+
+<meta name="bf-screen-id" content="S-006">
+<meta name="bf-screen-name" content="account_dashboard">
+<meta name="bf-category" content="account">
+<meta name="bf-feature-id" content="F-024,F-018,F-008,F-007,F-017">
+<meta name="bf-task-ids" content="T-V3-DRIFT-01,T-V3-DRIFT-02,T-V3-RF-03">
+<meta name="bf-entities" content="E-008,E-009,E-018,E-025,E-027,E-029">
+<meta name="bf-related-apis" content="GET /api/accounts/{id}/dashboard">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-006">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a', 800:'#0c2e1f', 950:'#04110a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>
+  body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .tabular { font-variant-numeric: tabular-nums; }
+  .pulse-dot { animation: pulse-dot 1.4s infinite; }
+  @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(8px);">
+  <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+  <span>Index に戻る</span>
+</a>
+
+<!-- Sidebar -->
+<aside class="w-[240px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-4 border-b border-eb-600">
+    <div class="flex items-center gap-2 mb-3">
+      <div class="w-7 h-7 rounded-md bg-white/10 flex items-center justify-center">
+        <i data-lucide="factory" class="w-4 h-4 text-white"></i>
+      </div>
+      <div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div>
+    </div>
+    <div class="text-sm font-bold">ENGINE BASE</div>
+    <div class="text-[11px] text-eb-100 mt-0.5 mono">account_a1b2 · Pro</div>
+  </div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5 overflow-y-auto">
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-2 pb-1 font-bold">Account</div>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 bg-eb-600 font-semibold">
+      <i data-lucide="layout-dashboard" class="w-4 h-4"></i> 10 案件 俯瞰
+    </a>
+    <a href="./S-008-account-members.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100">
+      <i data-lucide="users" class="w-4 h-4"></i> メンバー
+    </a>
+    <a href="./S-007-account-settings.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100">
+      <i data-lucide="settings" class="w-4 h-4"></i> アカウント設定
+    </a>
+
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-3 pb-1 font-bold">Workspaces (10)</div>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot"></span>
+      <span class="truncate">Build-Factory dogfood</span>
+    </a>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100">
+      <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+      <span class="truncate">ABC 社</span>
+    </a>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot"></span>
+      <span class="truncate">XYZ 社</span>
+    </a>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100">
+      <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+      <span class="truncate">自社 KPI ダッシュ</span>
+    </a>
+    <button class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-200 w-full text-left mono text-xs">
+      <i data-lucide="chevron-down" class="w-3 h-3"></i> 残り 6 件を表示
+    </button>
+
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-3 pb-1 font-bold">Personal</div>
+    <a href="./S-010-notifications-inbox.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100">
+      <i data-lucide="bell" class="w-4 h-4"></i> 通知
+      <span class="ml-auto text-[10px] bg-red-500 text-white px-1.5 rounded-full mono">3</span>
+    </a>
+    <a href="./S-011-global-search.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100">
+      <i data-lucide="search" class="w-4 h-4"></i> 検索
+      <span class="ml-auto text-[10px] mono text-eb-200">⌘K</span>
+    </a>
+    <a href="./S-009-profile-settings.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100">
+      <i data-lucide="user" class="w-4 h-4"></i> プロフィール
+    </a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 flex items-center gap-2">
+    <div class="w-7 h-7 rounded-full bg-eb-500 flex items-center justify-center text-[11px] font-bold mono">M</div>
+    <div class="flex-1 min-w-0">
+      <div class="text-[11px] font-semibold truncate">masato</div>
+      <div class="text-[10px] text-eb-200 truncate">account_owner</div>
+    </div>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="flex-1 overflow-y-auto">
+  <div class="max-w-[1400px] mx-auto px-6 py-6">
+
+    <!-- Page header -->
+    <div class="flex items-end justify-between mb-6">
+      <div>
+        <div class="text-[11px] uppercase tracking-wider text-slate-500 font-bold mb-1">Account Dashboard</div>
+        <h1 class="text-2xl font-bold text-slate-900">10 案件 俯瞰</h1>
+        <p class="text-sm text-slate-600 mt-1">受託 + 内製プロジェクトの並走状況をリアルタイム表示</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <select class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md">
+          <option>過去 7 日</option>
+          <option>過去 24 時間</option>
+          <option>過去 30 日</option>
+        </select>
+        <button class="border border-slate-200 bg-white hover:bg-slate-50 text-sm h-9 px-4 rounded-md flex items-center gap-2">
+          <i data-lucide="download" class="w-4 h-4"></i> HTML 出力
+        </button>
+      </div>
+    </div>
+
+    <!-- Hero KPIs (4 cards) -->
+    <div class="grid grid-cols-4 gap-4 mb-6">
+      <!-- 数値型 -->
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="flex items-start justify-between mb-2">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Active Projects</div>
+          <i data-lucide="briefcase" class="w-4 h-4 text-slate-400"></i>
+        </div>
+        <div class="text-[28px] font-bold tabular leading-none">7<span class="text-base text-slate-500 font-normal">/10</span></div>
+        <div class="text-xs text-slate-500 mt-2 flex items-center gap-1">
+          <i data-lucide="trending-up" class="w-3 h-3 text-emerald-600"></i>
+          <span>本日 +2</span>
+        </div>
+      </div>
+      <!-- ゲージ型 -->
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="flex items-start justify-between mb-2">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Running Sessions</div>
+          <i data-lucide="zap" class="w-4 h-4 text-slate-400"></i>
+        </div>
+        <div class="text-[28px] font-bold tabular leading-none">12<span class="text-base text-slate-500 font-normal">/50</span></div>
+        <div class="mt-3 h-1 bg-slate-100 rounded-full overflow-hidden">
+          <div class="h-full bg-eb-500" style="width: 24%"></div>
+        </div>
+        <div class="text-xs text-slate-500 mt-2">並列上限 24%</div>
+      </div>
+      <!-- 金額型 -->
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="flex items-start justify-between mb-2">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Monthly Cost</div>
+          <i data-lucide="wallet" class="w-4 h-4 text-slate-400"></i>
+        </div>
+        <div class="text-[28px] font-bold tabular leading-none">¥8,420</div>
+        <div class="text-xs text-slate-500 mt-1">予算 ¥30,000</div>
+        <div class="mt-2 h-1 bg-slate-100 rounded-full overflow-hidden">
+          <div class="h-full bg-amber-500" style="width: 28%"></div>
+        </div>
+      </div>
+      <!-- アラート型 -->
+      <div class="bg-white border border-red-200 rounded-lg p-4">
+        <div class="flex items-start justify-between mb-2">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-red-600">Anomalies (24h)</div>
+          <i data-lucide="alert-triangle" class="w-4 h-4 text-red-600"></i>
+        </div>
+        <div class="text-[28px] font-bold tabular leading-none text-red-600">3</div>
+        <div class="text-xs text-slate-500 mt-2">赤線抵触 1 / 失敗 2</div>
+      </div>
+    </div>
+
+    <!-- 3-col grid: Pending / Phase 進捗 / 完了タスク -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+      <!-- Pending Reviews -->
+      <div class="bg-white border border-slate-200 rounded-lg p-5">
+        <h2 class="text-sm font-bold text-eb-500 flex items-center gap-2 mb-4">
+          <i data-lucide="check-circle-2" class="w-4 h-4"></i> Pending Reviews
+        </h2>
+        <div class="space-y-2 text-sm">
+          <div class="flex items-start gap-2 p-2 rounded-md hover:bg-slate-50 cursor-pointer">
+            <span class="text-[10px] bg-red-50 text-red-600 border border-red-200 px-2 py-0.5 rounded-full font-medium mt-0.5">赤線抵触</span>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-medium truncate">DROP query in T-024-04</div>
+              <div class="text-[11px] text-slate-500 mono">XYZ 社 · 3 min ago</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-2 p-2 rounded-md hover:bg-slate-50 cursor-pointer">
+            <span class="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-medium mt-0.5">PR レビュー</span>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-medium truncate">feat: requirements editor</div>
+              <div class="text-[11px] text-slate-500 mono">ABC 社 · 12 min ago</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-2 p-2 rounded-md hover:bg-slate-50 cursor-pointer">
+            <span class="text-[10px] bg-eb-50 text-eb-700 border border-eb-200 px-2 py-0.5 rounded-full font-medium mt-0.5">納品承認</span>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-medium truncate">Phase 2 deliverables</div>
+              <div class="text-[11px] text-slate-500 mono">Build-Factory · 1h ago</div>
+            </div>
+          </div>
+        </div>
+        <button class="text-xs text-slate-500 hover:text-slate-900 mt-3">残り 2 件 →</button>
+      </div>
+
+      <!-- Phase 進捗 -->
+      <div class="bg-white border border-slate-200 rounded-lg p-5">
+        <h2 class="text-sm font-bold text-eb-500 flex items-center gap-2 mb-4">
+          <i data-lucide="layers" class="w-4 h-4"></i> Phase 進捗
+        </h2>
+        <div class="space-y-3 text-sm">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-medium truncate">Build-Factory dogfood</span>
+              <span class="text-[11px] mono text-slate-500">P1 · 64%</span>
+            </div>
+            <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-eb-500" style="width: 64%"></div></div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-medium truncate">ABC 社</span>
+              <span class="text-[11px] mono text-slate-500">P2 · 88%</span>
+            </div>
+            <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-eb-500" style="width: 88%"></div></div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-medium truncate">XYZ 社</span>
+              <span class="text-[11px] mono text-slate-500">P1 · 32%</span>
+            </div>
+            <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-eb-500" style="width: 32%"></div></div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-medium truncate">自社 KPI</span>
+              <span class="text-[11px] mono text-slate-500">P1 · 12%</span>
+            </div>
+            <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-eb-500" style="width: 12%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 完了タスク (7d) -->
+      <div class="bg-white border border-slate-200 rounded-lg p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-sm font-bold text-eb-500 flex items-center gap-2">
+            <i data-lucide="bar-chart-3" class="w-4 h-4"></i> 完了タスク (7d)
+          </h2>
+          <span class="text-[11px] mono text-emerald-600 font-bold">+34%</span>
+        </div>
+        <div class="text-2xl font-bold tabular mb-1">47<span class="text-sm text-slate-500 font-normal ml-1">件</span></div>
+        <div class="text-xs text-slate-500 mb-3">合計 (今週)</div>
+        <!-- Mini bar chart -->
+        <div class="flex items-end gap-1 h-16">
+          <div class="flex-1 bg-eb-100 rounded-sm" style="height: 30%"></div>
+          <div class="flex-1 bg-eb-100 rounded-sm" style="height: 45%"></div>
+          <div class="flex-1 bg-eb-200 rounded-sm" style="height: 60%"></div>
+          <div class="flex-1 bg-eb-300 rounded-sm" style="height: 75%"></div>
+          <div class="flex-1 bg-eb-400 rounded-sm" style="height: 55%"></div>
+          <div class="flex-1 bg-eb-500 rounded-sm" style="height: 90%"></div>
+          <div class="flex-1 bg-eb-500 rounded-sm" style="height: 70%"></div>
+        </div>
+        <div class="flex justify-between text-[10px] text-slate-400 mono mt-1">
+          <span>5/9</span><span>5/15</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Workspaces table -->
+    <div class="bg-white border border-slate-200 rounded-lg overflow-hidden mb-6">
+      <div class="px-5 py-3 border-b border-slate-200 flex items-center justify-between">
+        <h2 class="text-sm font-bold text-eb-500 flex items-center gap-2">
+          <i data-lucide="briefcase" class="w-4 h-4"></i> 全 Workspaces <span class="text-slate-500 font-normal">(10 案件並走中)</span>
+        </h2>
+        <button class="text-xs text-slate-500 hover:text-slate-900">filter</button>
+      </div>
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50">
+          <tr class="text-[10px] uppercase tracking-wider text-slate-500">
+            <th class="text-left font-bold px-4 py-2">案件</th>
+            <th class="text-left font-bold px-4 py-2">Phase</th>
+            <th class="text-right font-bold px-4 py-2">Tasks</th>
+            <th class="text-right font-bold px-4 py-2">Sessions</th>
+            <th class="text-right font-bold px-4 py-2">Cost</th>
+            <th class="text-left font-bold px-4 py-2">担当 AI</th>
+            <th class="text-left font-bold px-4 py-2">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-t border-slate-100 hover:bg-slate-50 cursor-pointer">
+            <td class="px-4 py-2.5 font-medium">Build-Factory dogfood</td>
+            <td class="px-4 py-2.5"><span class="text-xs">P1 · 64%</span></td>
+            <td class="px-4 py-2.5 text-right tabular">23 / 36</td>
+            <td class="px-4 py-2.5 text-right tabular">5 / 5</td>
+            <td class="px-4 py-2.5 text-right tabular">¥3,200</td>
+            <td class="px-4 py-2.5">
+              <div class="flex -space-x-1">
+                <div class="w-5 h-5 rounded-full bg-eb-500 text-white border border-white text-[9px] font-bold flex items-center justify-center mono" title="devon">DV</div>
+                <div class="w-5 h-5 rounded-full bg-blue-500 text-white border border-white text-[9px] font-bold flex items-center justify-center mono" title="winston">WS</div>
+                <div class="w-5 h-5 rounded-full bg-amber-500 text-white border border-white text-[9px] font-bold flex items-center justify-center mono" title="quinn">QN</div>
+              </div>
+            </td>
+            <td class="px-4 py-2.5">
+              <span class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">
+                <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot mr-1 align-middle"></span>running
+              </span>
+            </td>
+          </tr>
+          <tr class="border-t border-slate-100 hover:bg-slate-50 cursor-pointer">
+            <td class="px-4 py-2.5 font-medium">ABC 社</td>
+            <td class="px-4 py-2.5"><span class="text-xs">P2 · 88%</span></td>
+            <td class="px-4 py-2.5 text-right tabular">42 / 48</td>
+            <td class="px-4 py-2.5 text-right tabular">2 / 5</td>
+            <td class="px-4 py-2.5 text-right tabular">¥1,820</td>
+            <td class="px-4 py-2.5">
+              <div class="flex -space-x-1">
+                <div class="w-5 h-5 rounded-full bg-eb-500 text-white border border-white text-[9px] font-bold flex items-center justify-center mono">DV</div>
+                <div class="w-5 h-5 rounded-full bg-emerald-500 text-white border border-white text-[9px] font-bold flex items-center justify-center mono">MR</div>
+              </div>
+            </td>
+            <td class="px-4 py-2.5">
+              <span class="text-[11px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-medium">review</span>
+            </td>
+          </tr>
+          <tr class="border-t border-slate-100 hover:bg-slate-50 cursor-pointer">
+            <td class="px-4 py-2.5 font-medium">XYZ 社</td>
+            <td class="px-4 py-2.5"><span class="text-xs">P1 · 32%</span></td>
+            <td class="px-4 py-2.5 text-right tabular">12 / 38</td>
+            <td class="px-4 py-2.5 text-right tabular">3 / 5</td>
+            <td class="px-4 py-2.5 text-right tabular">¥920</td>
+            <td class="px-4 py-2.5">
+              <div class="flex -space-x-1">
+                <div class="w-5 h-5 rounded-full bg-blue-500 text-white border border-white text-[9px] font-bold flex items-center justify-center mono">WS</div>
+                <div class="w-5 h-5 rounded-full bg-amber-500 text-white border border-white text-[9px] font-bold flex items-center justify-center mono">QN</div>
+              </div>
+            </td>
+            <td class="px-4 py-2.5">
+              <span class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">running</span>
+            </td>
+          </tr>
+          <tr class="border-t border-slate-100 hover:bg-slate-50 cursor-pointer">
+            <td class="px-4 py-2.5 font-medium">自社 KPI ダッシュ</td>
+            <td class="px-4 py-2.5"><span class="text-xs">P1 · 12%</span></td>
+            <td class="px-4 py-2.5 text-right tabular">3 / 25</td>
+            <td class="px-4 py-2.5 text-right tabular">0 / 5</td>
+            <td class="px-4 py-2.5 text-right tabular">¥0</td>
+            <td class="px-4 py-2.5 text-slate-400 text-xs">—</td>
+            <td class="px-4 py-2.5">
+              <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-medium">idle</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="px-5 py-3 border-t border-slate-100 flex items-center justify-between">
+        <span class="text-xs text-slate-500">4 / 10 件表示</span>
+        <button class="text-xs text-eb-500 hover:text-eb-600 font-semibold">残り 6 件を表示 →</button>
+      </div>
+    </div>
+
+    <!-- 2-col bottom: AI 社員 使用率 / Activity -->
+    <div class="grid grid-cols-2 gap-4">
+      <div class="bg-white border border-slate-200 rounded-lg p-5">
+        <h2 class="text-sm font-bold text-eb-500 flex items-center gap-2 mb-4">
+          <i data-lucide="bot" class="w-4 h-4"></i> AI 社員 使用率（今週）
+        </h2>
+        <div class="space-y-3">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-sm flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-eb-500 text-white text-[9px] font-bold flex items-center justify-center mono">DV</span>
+                devon <span class="text-slate-500 text-xs">(Senior Dev)</span>
+              </span>
+              <span class="text-xs mono text-slate-500">¥2,840</span>
+            </div>
+            <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-eb-500" style="width: 85%"></div></div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-sm flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-blue-500 text-white text-[9px] font-bold flex items-center justify-center mono">WS</span>
+                winston <span class="text-slate-500 text-xs">(Architect)</span>
+              </span>
+              <span class="text-xs mono text-slate-500">¥1,620</span>
+            </div>
+            <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-eb-500" style="width: 55%"></div></div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-sm flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-amber-500 text-white text-[9px] font-bold flex items-center justify-center mono">QN</span>
+                quinn <span class="text-slate-500 text-xs">(QA)</span>
+              </span>
+              <span class="text-xs mono text-slate-500">¥1,240</span>
+            </div>
+            <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-eb-500" style="width: 42%"></div></div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-sm flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-emerald-500 text-white text-[9px] font-bold flex items-center justify-center mono">MR</span>
+                mary <span class="text-slate-500 text-xs">(BA)</span>
+              </span>
+              <span class="text-xs mono text-slate-500">¥980</span>
+            </div>
+            <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-eb-500" style="width: 33%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-lg p-5">
+        <h2 class="text-sm font-bold text-eb-500 flex items-center gap-2 mb-4">
+          <i data-lucide="activity" class="w-4 h-4"></i> 直近の Activity
+        </h2>
+        <div class="space-y-3 text-sm">
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-full bg-emerald-50 flex items-center justify-center shrink-0"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i></div>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs"><strong>devon</strong> がタスク <span class="mono text-eb-500">T-V3-AUTH-01</span> を完了</div>
+              <div class="text-[11px] text-slate-500 mono">Build-Factory · 2 min ago</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center shrink-0"><i data-lucide="git-pull-request" class="w-3.5 h-3.5 text-blue-600"></i></div>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs"><strong>reviewer</strong> が PR <span class="mono text-eb-500">#283</span> にコメント</div>
+              <div class="text-[11px] text-slate-500 mono">ABC 社 · 8 min ago</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-full bg-red-50 flex items-center justify-center shrink-0"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-red-600"></i></div>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs">赤線抵触検知: <span class="mono">DROP query in T-024-04</span></div>
+              <div class="text-[11px] text-slate-500 mono">XYZ 社 · 12 min ago</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-full bg-eb-50 flex items-center justify-center shrink-0"><i data-lucide="mic" class="w-3.5 h-3.5 text-eb-600"></i></div>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs"><strong>mary</strong> がヒアリング Session を完了</div>
+              <div class="text-[11px] text-slate-500 mono">ABC 社 · 25 min ago</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-full bg-amber-50 flex items-center justify-center shrink-0"><i data-lucide="pause" class="w-3.5 h-3.5 text-amber-600"></i></div>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs"><strong>quinn</strong> がセッションを一時停止</div>
+              <div class="text-[11px] text-slate-500 mono">Build-Factory · 1h ago</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-full bg-eb-50 flex items-center justify-center shrink-0"><i data-lucide="rocket" class="w-3.5 h-3.5 text-eb-600"></i></div>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs"><strong>devon</strong> が Swarm 並列実行を起動 (3 worktree)</div>
+              <div class="text-[11px] text-slate-500 mono">XYZ 社 · 2h ago</div>
+            </div>
+          </div>
+        </div>
+        <button class="text-xs text-eb-500 hover:text-eb-600 font-semibold mt-3">監査ログを見る →</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-047 Maintenance — Build-Factory</title>
+<meta name="bf-screen-id" content="S-047"><meta name="bf-screen-name" content="maintenance"><meta name="bf-category" content="system"><meta name="bf-status" content="wip"><meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>tailwind.config={theme:{extend:{colors:{eb:{50:'#f0faf5',500:'#1a6648',600:'#155238',700:'#103e2a'}},fontFamily:{sans:['"Noto Sans JP"','sans-serif'],mono:['"JetBrains Mono"','monospace']}}}};</script>
+<style>body{font-family:'Noto Sans JP',sans-serif;line-height:1.7}.mono{font-family:'JetBrains Mono',monospace}.pulse-dot{animation:pulse-dot 1.4s infinite}@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}</style>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+<main class="flex-1 flex items-center justify-center px-6">
+  <div class="text-center max-w-md">
+    <div class="inline-flex w-20 h-20 rounded-full bg-eb-50 items-center justify-center mb-4 relative">
+      <i data-lucide="wrench" class="w-10 h-10 text-eb-500"></i>
+      <span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-eb-500 pulse-dot"></span>
+    </div>
+    <h1 class="text-2xl font-bold">メンテナンス中</h1>
+    <p class="text-sm text-slate-600 mt-2">サービス品質向上のためメンテナンスを実施しています。<br>もうしばらくお待ちください。</p>
+
+    <div class="mt-6 bg-white border border-slate-200 rounded-md p-4 text-left">
+      <div class="flex justify-between text-sm mb-2"><span class="text-slate-500">開始</span><span class="font-bold mono">2026-05-15 04:00 JST</span></div>
+      <div class="flex justify-between text-sm mb-2"><span class="text-slate-500">予定終了</span><span class="font-bold mono">2026-05-15 06:00 JST</span></div>
+      <div class="flex justify-between text-sm"><span class="text-slate-500">経過</span><span class="font-bold mono text-eb-500">42 分 / 120 分</span></div>
+      <div class="mt-3 h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-eb-500" style="width: 35%"></div></div>
+    </div>
+
+    <div class="mt-6 bg-white border border-slate-200 rounded-md p-4 text-left">
+      <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">メンテナンス内容</div>
+      <ul class="text-sm space-y-1 list-disc pl-5 text-slate-700">
+        <li>DB 移行 (v2.0 → v3.0)</li>
+        <li>RLS policy 全 entity 補完</li>
+        <li>Backend pyright strict 適用</li>
+      </ul>
+    </div>
+
+    <div class="mt-6 flex items-center justify-center gap-2 text-xs text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-eb-500 pulse-dot"></span><span>ステータス: 進行中 ·</span><a class="text-eb-500 hover:underline">status.engine-base.com で詳細を見る</a></div>
+  </div>
+</main>
+<script>lucide.createIcons();</script>
+</body></html>

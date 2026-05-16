@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-041 監査ログ — Build-Factory</title>
+<meta name="bf-screen-id" content="S-041">
+<meta name="bf-screen-name" content="audit_log_viewer">
+<meta name="bf-category" content="ops">
+<meta name="bf-feature-id" content="F-018">
+<meta name="bf-task-ids" content="T-V3-RF-22">
+<meta name="bf-entities" content="E-029">
+<meta name="bf-related-apis" content="GET /api/audit-logs,GET /api/audit-logs/export.csv,GET /api/audit-logs/export.json">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-041">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; } .mono { font-family: 'JetBrains Mono', monospace; }</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(8px);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+
+<aside class="w-[240px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-4 border-b border-eb-600"><div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div></div>
+  <nav class="flex-1 px-2 py-3 space-y-0.5">
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-2 pb-1 font-bold">Ops</div>
+    <a href="./S-039-knowledge-base.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100 text-sm"><i data-lucide="book" class="w-4 h-4"></i> ナレッジ</a>
+    <a href="./S-040-cost-dashboard.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100 text-sm"><i data-lucide="wallet" class="w-4 h-4"></i> コスト</a>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 bg-eb-600 font-semibold text-sm"><i data-lucide="activity" class="w-4 h-4"></i> 監査ログ</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-eb-500 flex items-center justify-center text-[11px] font-bold mono">M</div><div class="flex-1 min-w-0"><div class="text-[11px] font-semibold truncate">masato</div></div></div>
+</aside>
+
+<main class="flex-1 overflow-y-auto">
+  <div class="px-6 py-4 border-b border-slate-200 bg-white">
+    <div class="flex items-end justify-between mb-3">
+      <div><h1 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="activity" class="w-6 h-6 text-eb-500"></i> 監査ログ</h1><p class="text-sm text-slate-600 mt-1">全アクション履歴 / before/after diff / 7 年保管 / 改ざん検知</p></div>
+      <div class="flex items-center gap-2">
+        <button class="border border-slate-200 hover:bg-slate-50 text-sm h-9 px-3 rounded-md flex items-center gap-2"><i data-lucide="download" class="w-4 h-4"></i>CSV export</button>
+        <button class="border border-slate-200 hover:bg-slate-50 text-sm h-9 px-3 rounded-md flex items-center gap-2"><i data-lucide="braces" class="w-4 h-4"></i>JSON export</button>
+      </div>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="flex items-center gap-2">
+      <div class="relative flex-1 max-w-[260px]"><i data-lucide="search" class="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="search" placeholder="検索: action / user / target" class="border border-slate-200 text-xs h-8 pl-7 pr-2 rounded-md w-full" /></div>
+      <select class="border border-slate-200 text-xs h-8 px-2 rounded-md"><option>全 user</option><option>masato</option><option>devon (AI)</option><option>system</option></select>
+      <select class="border border-slate-200 text-xs h-8 px-2 rounded-md"><option>全 action</option><option>create</option><option>update</option><option>delete</option><option>auth</option><option>red-line</option></select>
+      <select class="border border-slate-200 text-xs h-8 px-2 rounded-md"><option>全期間</option><option>過去 24h</option><option>過去 7 日</option><option>過去 30 日</option></select>
+      <button class="text-xs text-slate-500 hover:text-slate-900">filter リセット</button>
+      <span class="ml-auto text-xs text-slate-500 mono">2,847 件 (24h: 142 件)</span>
+    </div>
+  </div>
+
+  <div class="bg-white">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-50 sticky top-0">
+        <tr class="text-[10px] uppercase tracking-wider text-slate-500">
+          <th class="px-3 py-2 text-left w-32">時刻</th>
+          <th class="px-3 py-2 text-left">User</th>
+          <th class="px-3 py-2 text-left">Action</th>
+          <th class="px-3 py-2 text-left">Target</th>
+          <th class="px-3 py-2 text-left">Detail</th>
+          <th class="px-3 py-2 text-right w-32">IP / source</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="border-t border-slate-100 hover:bg-slate-50 cursor-pointer">
+          <td class="px-3 py-2 mono text-xs text-slate-500">2026-05-15 14:34:21</td>
+          <td class="px-3 py-2"><span class="inline-flex items-center gap-1 text-xs"><span class="w-4 h-4 rounded-full bg-eb-500 text-white text-[8px] font-bold flex items-center justify-center mono">M</span>masato</span></td>
+          <td class="px-3 py-2"><span class="text-[11px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full font-medium mono">user.login</span></td>
+          <td class="px-3 py-2 mono text-xs">users/masato</td>
+          <td class="px-3 py-2 text-xs text-slate-600">MFA verified · ip change detected</td>
+          <td class="px-3 py-2 text-right text-xs text-slate-500 mono">203.0.113.42</td>
+        </tr>
+        <tr class="border-t border-slate-100 hover:bg-slate-50 cursor-pointer">
+          <td class="px-3 py-2 mono text-xs text-slate-500">2026-05-15 14:32:18</td>
+          <td class="px-3 py-2"><span class="inline-flex items-center gap-1 text-xs"><span class="w-4 h-4 rounded-full bg-eb-500 text-white text-[8px] font-bold flex items-center justify-center mono">DV</span>devon</span></td>
+          <td class="px-3 py-2"><span class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-medium mono">task.update</span></td>
+          <td class="px-3 py-2 mono text-xs">tasks/T-V3-AUTH-01</td>
+          <td class="px-3 py-2 text-xs text-slate-600">status: running → done · cost: ¥120</td>
+          <td class="px-3 py-2 text-right text-xs text-slate-500 mono">internal</td>
+        </tr>
+        <tr class="border-t border-red-200 bg-red-50 hover:bg-red-100 cursor-pointer">
+          <td class="px-3 py-2 mono text-xs text-slate-500">2026-05-15 14:10:05</td>
+          <td class="px-3 py-2"><span class="text-xs text-red-600 font-semibold mono">system</span></td>
+          <td class="px-3 py-2"><span class="text-[11px] bg-red-100 text-red-700 border border-red-300 px-2 py-0.5 rounded-full font-bold mono">redline.violation</span></td>
+          <td class="px-3 py-2 mono text-xs">sessions/sess_xyz_b91</td>
+          <td class="px-3 py-2 text-xs text-red-700 font-semibold">DROP query detected → session killed</td>
+          <td class="px-3 py-2 text-right text-xs text-slate-500 mono">XYZ 社 / devon</td>
+        </tr>
+        <tr class="border-t border-slate-100 hover:bg-slate-50 cursor-pointer">
+          <td class="px-3 py-2 mono text-xs text-slate-500">2026-05-15 13:55:42</td>
+          <td class="px-3 py-2"><span class="inline-flex items-center gap-1 text-xs"><span class="w-4 h-4 rounded-full bg-eb-500 text-white text-[8px] font-bold flex items-center justify-center mono">M</span>masato</span></td>
+          <td class="px-3 py-2"><span class="text-[11px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-medium mono">workspace.update</span></td>
+          <td class="px-3 py-2 mono text-xs">workspaces/ws_8f3a2c</td>
+          <td class="px-3 py-2 text-xs text-slate-600">token_limit: 5M → 10M (before/after diff)</td>
+          <td class="px-3 py-2 text-right text-xs text-slate-500 mono">203.0.113.42</td>
+        </tr>
+        <tr class="border-t border-slate-100 hover:bg-slate-50 cursor-pointer">
+          <td class="px-3 py-2 mono text-xs text-slate-500">2026-05-15 13:42:11</td>
+          <td class="px-3 py-2"><span class="inline-flex items-center gap-1 text-xs"><span class="w-4 h-4 rounded-full bg-eb-500 text-white text-[8px] font-bold flex items-center justify-center mono">DV</span>devon</span></td>
+          <td class="px-3 py-2"><span class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-medium mono">pr.merge</span></td>
+          <td class="px-3 py-2 mono text-xs">prs/#283</td>
+          <td class="px-3 py-2 text-xs text-slate-600">feat: requirements editor · approved by masato</td>
+          <td class="px-3 py-2 text-right text-xs text-slate-500 mono">github</td>
+        </tr>
+        <tr class="border-t border-slate-100 hover:bg-slate-50 cursor-pointer">
+          <td class="px-3 py-2 mono text-xs text-slate-500">2026-05-15 12:18:33</td>
+          <td class="px-3 py-2"><span class="text-xs text-slate-500 font-semibold mono">system</span></td>
+          <td class="px-3 py-2"><span class="text-[11px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full font-medium mono">cost.alert</span></td>
+          <td class="px-3 py-2 mono text-xs">accounts/account_a1b2</td>
+          <td class="px-3 py-2 text-xs text-slate-600">月間予算 60% 到達 (¥8,420 / ¥14,000)</td>
+          <td class="px-3 py-2 text-right text-xs text-slate-500 mono">internal</td>
+        </tr>
+        <tr class="border-t border-slate-100 hover:bg-slate-50 cursor-pointer">
+          <td class="px-3 py-2 mono text-xs text-slate-500">2026-05-15 09:02:14</td>
+          <td class="px-3 py-2"><span class="inline-flex items-center gap-1 text-xs"><span class="w-4 h-4 rounded-full bg-eb-500 text-white text-[8px] font-bold flex items-center justify-center mono">M</span>masato</span></td>
+          <td class="px-3 py-2"><span class="text-[11px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-medium mono">constitution.update</span></td>
+          <td class="px-3 py-2 mono text-xs">constitutions/c_4_2</td>
+          <td class="px-3 py-2 text-xs text-slate-600">v4.1 → v4.2 · "3-tier AC を全 task で必須"</td>
+          <td class="px-3 py-2 text-right text-xs text-slate-500 mono">203.0.113.42</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Expanded row (diff view) -->
+    <div class="border-t border-amber-200 bg-amber-50/30 p-5">
+      <div class="text-xs text-slate-500 font-semibold mb-2 flex items-center gap-2"><i data-lucide="git-compare" class="w-3.5 h-3.5"></i>workspace.update → token_limit diff</div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-white border border-red-200 rounded-md p-3">
+          <div class="text-[10px] uppercase tracking-wider text-red-600 font-bold mb-1">Before</div>
+          <pre class="mono text-xs text-slate-700 leading-relaxed">{
+  "token_limit": 5000000,
+  "updated_at": "2026-04-22"
+}</pre>
+        </div>
+        <div class="bg-white border border-emerald-200 rounded-md p-3">
+          <div class="text-[10px] uppercase tracking-wider text-emerald-600 font-bold mb-1">After</div>
+          <pre class="mono text-xs text-slate-700 leading-relaxed">{
+  "token_limit": 10000000,
+  "updated_at": "2026-05-15"
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="px-4 py-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+      <span>7 件表示 / 全 2,847 件</span>
+      <div class="flex items-center gap-1"><button class="px-2 py-1 rounded hover:bg-slate-50"><i data-lucide="chevron-left" class="w-3.5 h-3.5"></i></button><span class="px-3 py-1 mono">1 / 407</span><button class="px-2 py-1 rounded hover:bg-slate-50"><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></button></div>
+    </div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

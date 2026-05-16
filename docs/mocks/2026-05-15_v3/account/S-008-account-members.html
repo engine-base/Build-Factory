@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-008 メンバー管理 — Build-Factory</title>
+
+<meta name="bf-screen-id" content="S-008">
+<meta name="bf-screen-name" content="account_members">
+<meta name="bf-category" content="account">
+<meta name="bf-feature-id" content="F-004,F-021">
+<meta name="bf-task-ids" content="T-V3-SCR-01">
+<meta name="bf-entities" content="E-001,E-002,E-043">
+<meta name="bf-related-apis" content="GET /api/accounts/{id}/members,POST /api/accounts/{id}/invitations,DELETE /api/accounts/{id}/members/{user_id}">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-008">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>
+  body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .tabular { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(8px);">
+  <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+  <span>Index に戻る</span>
+</a>
+
+<aside class="w-[240px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-4 border-b border-eb-600">
+    <div class="flex items-center gap-2 mb-3"><div class="w-7 h-7 rounded-md bg-white/10 flex items-center justify-center"><i data-lucide="factory" class="w-4 h-4 text-white"></i></div><div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div></div>
+    <div class="text-sm font-bold">ENGINE BASE</div>
+    <div class="text-[11px] text-eb-100 mt-0.5 mono">account_a1b2 · Pro</div>
+  </div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5 overflow-y-auto">
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-2 pb-1 font-bold">Account</div>
+    <a href="./S-006-account-dashboard.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> 10 案件 俯瞰</a>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 bg-eb-600 font-semibold"><i data-lucide="users" class="w-4 h-4"></i> メンバー</a>
+    <a href="./S-007-account-settings.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="settings" class="w-4 h-4"></i> アカウント設定</a>
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-3 pb-1 font-bold">Personal</div>
+    <a href="./S-010-notifications-inbox.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="bell" class="w-4 h-4"></i> 通知</a>
+    <a href="./S-011-global-search.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="search" class="w-4 h-4"></i> 検索</a>
+    <a href="./S-009-profile-settings.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="user" class="w-4 h-4"></i> プロフィール</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-eb-500 flex items-center justify-center text-[11px] font-bold mono">M</div><div class="flex-1 min-w-0"><div class="text-[11px] font-semibold truncate">masato</div><div class="text-[10px] text-eb-200 truncate">account_owner</div></div></div>
+</aside>
+
+<main class="flex-1 overflow-y-auto">
+  <div class="max-w-[1200px] mx-auto px-6 py-8">
+    <div class="text-xs text-slate-500 flex items-center gap-1.5 mb-2"><a href="./S-006-account-dashboard.html" class="hover:text-slate-900">Account</a><i data-lucide="chevron-right" class="w-3 h-3"></i><span class="text-slate-900 font-medium">メンバー管理</span></div>
+
+    <div class="flex items-end justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold">メンバー管理</h1>
+        <p class="text-sm text-slate-600 mt-1">アカウント全体のメンバー一覧とロール</p>
+      </div>
+      <button class="bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-9 px-4 rounded-md flex items-center gap-2"><i data-lucide="user-plus" class="w-4 h-4"></i> メンバーを招待</button>
+    </div>
+
+    <!-- Role distribution -->
+    <div class="grid grid-cols-4 gap-3 mb-6">
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">Total</div>
+        <div class="text-2xl font-bold tabular">8</div>
+        <div class="text-xs text-slate-500 mt-1">人</div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">Account Owner</div>
+        <div class="text-2xl font-bold tabular text-eb-500">1</div>
+        <div class="text-xs text-slate-500 mt-1">最大 1 人</div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">Workspace Admin</div>
+        <div class="text-2xl font-bold tabular text-blue-600">3</div>
+        <div class="text-xs text-slate-500 mt-1">人</div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">Monitor</div>
+        <div class="text-2xl font-bold tabular text-slate-700">4</div>
+        <div class="text-xs text-slate-500 mt-1">読み取り専用</div>
+      </div>
+    </div>
+
+    <!-- Filter / Search -->
+    <div class="flex items-center gap-2 mb-4">
+      <div class="flex-1 relative">
+        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input type="search" placeholder="メンバー検索..." class="border border-slate-200 bg-white text-sm h-9 pl-9 pr-3 rounded-md w-full focus-visible:outline-none focus-visible:border-eb-500" />
+      </div>
+      <select class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md"><option>全ロール</option><option>account_owner</option><option>workspace_admin</option><option>monitor</option></select>
+      <select class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md"><option>全ステータス</option><option>active</option><option>pending</option></select>
+    </div>
+
+    <!-- Members table -->
+    <div class="bg-white border border-slate-200 rounded-lg overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50">
+          <tr class="text-[10px] uppercase tracking-wider text-slate-500">
+            <th class="text-left font-bold px-4 py-2">メンバー</th>
+            <th class="text-left font-bold px-4 py-2">Role</th>
+            <th class="text-left font-bold px-4 py-2">所属 Workspace</th>
+            <th class="text-left font-bold px-4 py-2">最終ログイン</th>
+            <th class="text-left font-bold px-4 py-2">Status</th>
+            <th class="text-right font-bold px-4 py-2"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-t border-slate-100 hover:bg-slate-50">
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-eb-500 text-white text-xs font-bold flex items-center justify-center">M</div>
+                <div><div class="text-sm font-medium">masato</div><div class="text-xs text-slate-500 mono">masato@engine-base.com</div></div>
+              </div>
+            </td>
+            <td class="px-4 py-3"><span class="text-[11px] bg-eb-50 text-eb-700 border border-eb-200 px-2 py-0.5 rounded-full font-medium">account_owner</span></td>
+            <td class="px-4 py-3 text-xs text-slate-500">全 10 案件</td>
+            <td class="px-4 py-3 text-xs text-slate-500 mono">2 min ago</td>
+            <td class="px-4 py-3"><span class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">active</span></td>
+            <td class="px-4 py-3 text-right"><button class="text-xs text-slate-400 hover:text-slate-900"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button></td>
+          </tr>
+          <tr class="border-t border-slate-100 hover:bg-slate-50">
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center">T</div>
+                <div><div class="text-sm font-medium">takashi</div><div class="text-xs text-slate-500 mono">takashi@engine-base.com</div></div>
+              </div>
+            </td>
+            <td class="px-4 py-3"><span class="text-[11px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full font-medium">workspace_admin</span></td>
+            <td class="px-4 py-3 text-xs text-slate-500">ABC 社, XYZ 社</td>
+            <td class="px-4 py-3 text-xs text-slate-500 mono">8 min ago</td>
+            <td class="px-4 py-3"><span class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">active</span></td>
+            <td class="px-4 py-3 text-right"><button class="text-xs text-slate-400 hover:text-slate-900"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button></td>
+          </tr>
+          <tr class="border-t border-slate-100 hover:bg-slate-50">
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-purple-500 text-white text-xs font-bold flex items-center justify-center">Y</div>
+                <div><div class="text-sm font-medium">yumi</div><div class="text-xs text-slate-500 mono">yumi@engine-base.com</div></div>
+              </div>
+            </td>
+            <td class="px-4 py-3"><span class="text-[11px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full font-medium">workspace_admin</span></td>
+            <td class="px-4 py-3 text-xs text-slate-500">Build-Factory dogfood</td>
+            <td class="px-4 py-3 text-xs text-slate-500 mono">3h ago</td>
+            <td class="px-4 py-3"><span class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">active</span></td>
+            <td class="px-4 py-3 text-right"><button class="text-xs text-slate-400 hover:text-slate-900"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button></td>
+          </tr>
+          <tr class="border-t border-slate-100 hover:bg-slate-50">
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-slate-300 text-slate-700 text-xs font-bold flex items-center justify-center">K</div>
+                <div><div class="text-sm font-medium">kaori</div><div class="text-xs text-slate-500 mono">kaori@partner.com</div></div>
+              </div>
+            </td>
+            <td class="px-4 py-3"><span class="text-[11px] bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 rounded-full font-medium">monitor</span></td>
+            <td class="px-4 py-3 text-xs text-slate-500">XYZ 社 (閲覧のみ)</td>
+            <td class="px-4 py-3 text-xs text-slate-500 mono">2 days ago</td>
+            <td class="px-4 py-3"><span class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">active</span></td>
+            <td class="px-4 py-3 text-right"><button class="text-xs text-slate-400 hover:text-slate-900"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button></td>
+          </tr>
+          <tr class="border-t border-slate-100 hover:bg-slate-50">
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center"><i data-lucide="mail" class="w-3.5 h-3.5"></i></div>
+                <div><div class="text-sm font-medium text-slate-600">aki@new-member.com</div><div class="text-xs text-slate-500">招待送信済み (2 日前)</div></div>
+              </div>
+            </td>
+            <td class="px-4 py-3"><span class="text-[11px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full font-medium">workspace_admin</span></td>
+            <td class="px-4 py-3 text-xs text-slate-400">—</td>
+            <td class="px-4 py-3 text-xs text-slate-400 mono">—</td>
+            <td class="px-4 py-3"><span class="text-[11px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-medium">pending</span></td>
+            <td class="px-4 py-3 text-right">
+              <div class="inline-flex items-center gap-1">
+                <button class="text-xs text-slate-500 hover:text-slate-900 px-2 py-1 rounded hover:bg-slate-100">再送</button>
+                <button class="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50">取消</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="px-4 py-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+        <span>5 / 8 件表示</span>
+        <button class="text-eb-500 hover:text-eb-600 font-semibold">残り 3 件 →</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

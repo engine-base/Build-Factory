@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-062 納品レポート — Build-Factory</title>
+<meta name="bf-screen-id" content="S-062"><meta name="bf-screen-name" content="export_delivery_report"><meta name="bf-category" content="export"><meta name="bf-status" content="wip"><meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>tailwind.config={theme:{extend:{colors:{eb:{50:'#f0faf5',500:'#1a6648',600:'#155238'}},fontFamily:{sans:['"Noto Sans JP"','sans-serif'],mono:['"JetBrains Mono"','monospace']}}}};</script>
+<style>body{font-family:'Noto Sans JP',sans-serif;line-height:1.7}.mono{font-family:'JetBrains Mono',monospace}.tabular{font-variant-numeric:tabular-nums}@media print{.no-print{display:none!important}}</style>
+</head>
+<body class="bg-slate-200 min-h-screen">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+<div class="no-print sticky top-0 bg-slate-900 text-white px-4 py-2 flex items-center gap-3 z-10">
+  <span class="text-xs font-semibold">納品レポート Preview</span>
+  <span class="text-xs opacity-70">delivery-report-phase1.pdf · 8 pages</span>
+  <div class="ml-auto flex items-center gap-2">
+    <button class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded flex items-center gap-1"><i data-lucide="mail" class="w-3 h-3"></i>クライアントに送付</button>
+    <button class="text-xs bg-eb-500 hover:bg-eb-600 px-3 py-1 rounded font-semibold flex items-center gap-1"><i data-lucide="download" class="w-3 h-3"></i>PDF ダウンロード</button>
+  </div>
+</div>
+
+<div class="max-w-[800px] mx-auto my-6 bg-white shadow-xl p-12" style="min-height: 1130px;">
+  <header class="border-b-2 border-eb-500 pb-4 mb-6">
+    <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-md bg-eb-500 flex items-center justify-center"><i data-lucide="factory" class="w-4 h-4 text-white"></i></div><span class="text-sm font-bold">Build-Factory</span></div>
+      <span class="text-xs mono text-slate-500">納品 ID: del_5f8a2c · 2026-05-15</span>
+    </div>
+    <h1 class="text-3xl font-bold">Phase 1 納品レポート<br><span class="text-xl font-normal text-slate-600">— 受託 EC 構築 #4 / 基盤実装フェーズ —</span></h1>
+    <div class="text-sm text-slate-600 mt-2">納品先: ABC 社 ceo@abc.co.jp · 担当: masato@engine-base.com</div>
+  </header>
+
+  <section class="mb-6">
+    <h2 class="text-xl font-bold border-l-4 border-eb-500 pl-3 mb-3">1. 納品物サマリー</h2>
+    <div class="grid grid-cols-4 gap-3">
+      <div class="bg-emerald-50 border border-emerald-200 rounded-md p-3 text-center"><div class="text-[10px] uppercase text-emerald-700 font-bold">完了タスク</div><div class="text-2xl font-bold tabular text-emerald-600">23</div></div>
+      <div class="bg-emerald-50 border border-emerald-200 rounded-md p-3 text-center"><div class="text-[10px] uppercase text-emerald-700 font-bold">Test PASS</div><div class="text-2xl font-bold tabular text-emerald-600">8000</div></div>
+      <div class="bg-emerald-50 border border-emerald-200 rounded-md p-3 text-center"><div class="text-[10px] uppercase text-emerald-700 font-bold">Coverage</div><div class="text-2xl font-bold tabular text-emerald-600">84%</div></div>
+      <div class="bg-emerald-50 border border-emerald-200 rounded-md p-3 text-center"><div class="text-[10px] uppercase text-emerald-700 font-bold">赤線抵触</div><div class="text-2xl font-bold tabular text-emerald-600">0</div></div>
+    </div>
+  </section>
+
+  <section class="mb-6">
+    <h2 class="text-xl font-bold border-l-4 border-eb-500 pl-3 mb-3">2. 実装内容</h2>
+    <ul class="text-sm space-y-2 list-disc pl-5">
+      <li>Supabase 基盤 + 8 migrations (RLS policy 43 件全実装)</li>
+      <li>認証フロー: signup / login / MFA (TOTP) / OAuth (Google / GitHub)</li>
+      <li>商品管理 schema (商品 / カテゴリ / 在庫 / 画像)</li>
+      <li>カート + 決済 (Stripe 連携 / Webhook)</li>
+      <li>管理画面 (admin / 出荷管理 / 在庫管理)</li>
+    </ul>
+  </section>
+
+  <section class="mb-6">
+    <h2 class="text-xl font-bold border-l-4 border-eb-500 pl-3 mb-3">3. 検証結果</h2>
+    <table class="w-full text-sm border border-slate-200">
+      <thead class="bg-slate-50"><tr><th class="px-3 py-2 text-left text-xs font-bold">項目</th><th class="px-3 py-2 text-right text-xs font-bold">結果</th><th class="px-3 py-2 text-left text-xs font-bold">備考</th></tr></thead>
+      <tbody>
+        <tr class="border-t border-slate-200"><td class="px-3 py-2">unit test</td><td class="px-3 py-2 text-right mono tabular">8000 / 8010 PASS</td><td class="px-3 py-2 text-xs text-slate-500">10 件 skipped (numpy 互換)</td></tr>
+        <tr class="border-t border-slate-200"><td class="px-3 py-2">integration test</td><td class="px-3 py-2 text-right mono tabular">187 / 187 PASS</td><td class="px-3 py-2"></td></tr>
+        <tr class="border-t border-slate-200"><td class="px-3 py-2">E2E (Playwright)</td><td class="px-3 py-2 text-right mono tabular">42 / 42 PASS</td><td class="px-3 py-2"></td></tr>
+        <tr class="border-t border-slate-200"><td class="px-3 py-2">Coverage</td><td class="px-3 py-2 text-right mono tabular">84%</td><td class="px-3 py-2 text-xs text-slate-500">target 70% 達成</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="mb-6">
+    <h2 class="text-xl font-bold border-l-4 border-eb-500 pl-3 mb-3">4. 受入確認</h2>
+    <div class="border-2 border-eb-500 bg-eb-50 rounded-md p-5 text-center">
+      <div class="text-sm text-slate-600 mb-2">クライアント受入署名</div>
+      <div class="h-20 border-b-2 border-slate-300 mb-1"></div>
+      <div class="text-xs text-slate-500">日付: ____________ 氏名: ____________</div>
+    </div>
+  </section>
+
+  <footer class="mt-12 pt-4 border-t border-slate-200 text-[10px] text-slate-500 mono flex justify-between">
+    <span>delivery-report-phase1</span><span>Page 1 / 8</span><span>© ENGINE BASE</span>
+  </footer>
+</div>
+<script>lucide.createIcons();</script>
+</body></html>

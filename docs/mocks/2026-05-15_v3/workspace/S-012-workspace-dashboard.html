@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-012 案件ダッシュボード — Build-Factory</title>
+
+<meta name="bf-screen-id" content="S-012">
+<meta name="bf-screen-name" content="workspace_dashboard">
+<meta name="bf-category" content="workspace">
+<meta name="bf-feature-id" content="F-006,F-007,F-008,F-026">
+<meta name="bf-task-ids" content="T-V3-RF-03">
+<meta name="bf-entities" content="E-009,E-018,E-025,E-013,E-017">
+<meta name="bf-related-apis" content="GET /api/workspaces/{id}/dashboard,POST /api/workspaces/{id}/play-all">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-012">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a', 950:'#04110a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>
+  body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .tabular { font-variant-numeric: tabular-nums; }
+  .pulse-dot { animation: pulse-dot 1.4s infinite; }
+  @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(8px);">
+  <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+  <span>Index に戻る</span>
+</a>
+
+<!-- Workspace Sidebar -->
+<aside class="w-[240px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-4 border-b border-eb-600">
+    <a href="../account/S-006-account-dashboard.html" class="text-[10px] text-eb-200 hover:text-white flex items-center gap-1 mb-2">
+      <i data-lucide="arrow-left" class="w-3 h-3"></i> ← Account
+    </a>
+    <div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div>
+    <div class="text-sm font-bold mt-1">Build-Factory dogfood</div>
+    <div class="text-[11px] text-eb-100 mt-0.5 mono">ws_8f3a2c · P1 · 64%</div>
+  </div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5 overflow-y-auto">
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 bg-eb-600 font-semibold"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> ダッシュボード</a>
+    <a href="../moat/S-016-phase-management.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="layers" class="w-4 h-4"></i> フェーズ管理</a>
+    <a href="../moat/S-017-dependency-graph.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="git-branch" class="w-4 h-4"></i> 依存グラフ</a>
+
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-3 pb-1 font-bold">Spec</div>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="mic" class="w-4 h-4"></i> ヒアリング</a>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="file-text" class="w-4 h-4"></i> 要件 / 仕様</a>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="layout" class="w-4 h-4"></i> 画面モック</a>
+
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-3 pb-1 font-bold">Task</div>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="kanban" class="w-4 h-4"></i> Kanban</a>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="zap" class="w-4 h-4"></i> Swarm 実行</a>
+
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-3 pb-1 font-bold">Moat / Safety</div>
+    <a href="../moat/S-018-constitution-editor.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="shield" class="w-4 h-4"></i> Constitution</a>
+    <a href="../moat/S-019-red-line-settings.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="alert-octagon" class="w-4 h-4"></i> 赤線設定</a>
+
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-3 pb-1 font-bold">Settings</div>
+    <a href="./S-014-workspace-members.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="users" class="w-4 h-4"></i> メンバー</a>
+    <a href="./S-013-workspace-settings.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="settings" class="w-4 h-4"></i> 案件設定</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-eb-500 flex items-center justify-center text-[11px] font-bold mono">M</div><div class="flex-1 min-w-0"><div class="text-[11px] font-semibold truncate">masato</div><div class="text-[10px] text-eb-200 truncate">workspace_admin</div></div></div>
+</aside>
+
+<main class="flex-1 overflow-y-auto">
+  <div class="max-w-[1400px] mx-auto px-6 py-6">
+
+    <div class="flex items-end justify-between mb-6">
+      <div>
+        <div class="text-[11px] uppercase tracking-wider text-slate-500 font-bold mb-1">Workspace</div>
+        <h1 class="text-2xl font-bold">Build-Factory dogfood</h1>
+        <p class="text-sm text-slate-600 mt-1">Phase 1 開発 / 受託 SaaS の dogfood 検証</p>
+      </div>
+      <button class="bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-9 px-4 rounded-md flex items-center gap-2">
+        <i data-lucide="play" class="w-4 h-4"></i> 全タスク並列実行 (▶ Play All)
+      </button>
+    </div>
+
+    <!-- Top metrics row -->
+    <div class="grid grid-cols-4 gap-4 mb-6">
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Phase 進捗</div>
+        <div class="text-[28px] font-bold tabular leading-none">64<span class="text-base text-slate-500 font-normal">%</span></div>
+        <div class="text-xs text-slate-500 mt-1">Phase 1 / 4</div>
+        <div class="mt-2 h-1 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-eb-500" style="width: 64%"></div></div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Tasks</div>
+        <div class="text-[28px] font-bold tabular leading-none">23<span class="text-base text-slate-500 font-normal">/36</span></div>
+        <div class="text-xs text-slate-500 mt-1">残 13 件</div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Running Sessions</div>
+        <div class="text-[28px] font-bold tabular leading-none">5<span class="text-base text-slate-500 font-normal">/5</span></div>
+        <div class="text-xs text-emerald-600 mt-1 flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot"></span> swarm 稼働中
+        </div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Cost (this month)</div>
+        <div class="text-[28px] font-bold tabular leading-none">¥3,200</div>
+        <div class="text-xs text-slate-500 mt-1">予算 ¥10,000</div>
+      </div>
+    </div>
+
+    <!-- 2-col grid -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+      <!-- Current phase -->
+      <div class="bg-white border border-slate-200 rounded-lg p-5 col-span-2">
+        <h2 class="text-sm font-bold text-eb-500 flex items-center gap-2 mb-4">
+          <i data-lucide="flag" class="w-4 h-4"></i> 現在のフェーズ: Phase 1 (実装)
+        </h2>
+        <div class="space-y-3">
+          <div class="flex items-center gap-3 p-3 border border-eb-200 bg-eb-50 rounded-md">
+            <div class="w-8 h-8 rounded-full bg-eb-500 text-white text-xs font-bold flex items-center justify-center">1</div>
+            <div class="flex-1">
+              <div class="text-sm font-semibold">Phase 1: 実装</div>
+              <div class="text-xs text-slate-600">基盤 + 主要画面実装 / 23 / 36 task done</div>
+            </div>
+            <button class="text-xs text-eb-500 hover:text-eb-600 font-semibold">フェーズ画面へ →</button>
+          </div>
+          <div class="flex items-center gap-3 p-3 border border-slate-200 rounded-md opacity-60">
+            <div class="w-8 h-8 rounded-full bg-slate-300 text-slate-700 text-xs font-bold flex items-center justify-center">2</div>
+            <div class="flex-1">
+              <div class="text-sm font-semibold">Phase 2: 統合テスト</div>
+              <div class="text-xs text-slate-600">Locked / Phase 1 完了で自動解放</div>
+            </div>
+            <i data-lucide="lock" class="w-4 h-4 text-slate-400"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Constitution summary -->
+      <div class="bg-white border border-slate-200 rounded-lg p-5">
+        <h2 class="text-sm font-bold text-eb-500 flex items-center gap-2 mb-3">
+          <i data-lucide="shield" class="w-4 h-4"></i> Constitution
+        </h2>
+        <div class="text-xs text-slate-600 space-y-2">
+          <p>「Test pass = done ではない」</p>
+          <p>「mock 一致は機械検証」</p>
+          <p>「RLS は全 entity 必須」</p>
+        </div>
+        <button class="text-xs text-eb-500 hover:text-eb-600 font-semibold mt-3">編集 →</button>
+      </div>
+    </div>
+
+    <!-- Recent tasks -->
+    <div class="bg-white border border-slate-200 rounded-lg overflow-hidden mb-6">
+      <div class="px-5 py-3 border-b border-slate-200 flex items-center justify-between">
+        <h2 class="text-sm font-bold text-eb-500 flex items-center gap-2"><i data-lucide="clock" class="w-4 h-4"></i> 最近のタスク</h2>
+        <button class="text-xs text-slate-500 hover:text-slate-900">Kanban で全て見る →</button>
+      </div>
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50">
+          <tr class="text-[10px] uppercase tracking-wider text-slate-500">
+            <th class="text-left font-bold px-4 py-2">ID</th>
+            <th class="text-left font-bold px-4 py-2">タイトル</th>
+            <th class="text-left font-bold px-4 py-2">Status</th>
+            <th class="text-left font-bold px-4 py-2">担当</th>
+            <th class="text-right font-bold px-4 py-2">更新</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-t border-slate-100 hover:bg-slate-50 cursor-pointer">
+            <td class="px-4 py-2 mono text-xs text-eb-500 font-semibold">T-V3-AUTH-01</td>
+            <td class="px-4 py-2">POST /api/auth/login 実装</td>
+            <td class="px-4 py-2"><span class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">done</span></td>
+            <td class="px-4 py-2"><span class="inline-flex items-center gap-1 text-xs"><span class="w-4 h-4 rounded-full bg-eb-500 text-white text-[9px] font-bold flex items-center justify-center mono">DV</span>devon</span></td>
+            <td class="px-4 py-2 text-right text-xs text-slate-500 mono">2 min ago</td>
+          </tr>
+          <tr class="border-t border-slate-100 hover:bg-slate-50 cursor-pointer">
+            <td class="px-4 py-2 mono text-xs text-eb-500 font-semibold">T-V3-AUTH-02</td>
+            <td class="px-4 py-2">POST /api/auth/signup 実装</td>
+            <td class="px-4 py-2"><span class="text-[11px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-medium">running</span></td>
+            <td class="px-4 py-2"><span class="inline-flex items-center gap-1 text-xs"><span class="w-4 h-4 rounded-full bg-eb-500 text-white text-[9px] font-bold flex items-center justify-center mono">DV</span>devon</span></td>
+            <td class="px-4 py-2 text-right text-xs text-slate-500 mono">5 min ago</td>
+          </tr>
+          <tr class="border-t border-slate-100 hover:bg-slate-50 cursor-pointer">
+            <td class="px-4 py-2 mono text-xs text-eb-500 font-semibold">T-V3-DB-02</td>
+            <td class="px-4 py-2">E-024 ScreenComponent 中間 table</td>
+            <td class="px-4 py-2"><span class="text-[11px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full font-medium">review</span></td>
+            <td class="px-4 py-2"><span class="inline-flex items-center gap-1 text-xs"><span class="w-4 h-4 rounded-full bg-blue-500 text-white text-[9px] font-bold flex items-center justify-center mono">WS</span>winston</span></td>
+            <td class="px-4 py-2 text-right text-xs text-slate-500 mono">12 min ago</td>
+          </tr>
+          <tr class="border-t border-slate-100 hover:bg-slate-50 cursor-pointer">
+            <td class="px-4 py-2 mono text-xs text-slate-500 font-semibold">T-V3-DRIFT-02</td>
+            <td class="px-4 py-2">S-006 root / page を仕様準拠に書き直し</td>
+            <td class="px-4 py-2"><span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-medium">todo</span></td>
+            <td class="px-4 py-2 text-xs text-slate-400">unassigned</td>
+            <td class="px-4 py-2 text-right text-xs text-slate-500 mono">—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 2-col bottom: Pending Reviews + Running Sessions -->
+    <div class="grid grid-cols-2 gap-4">
+      <div class="bg-white border border-slate-200 rounded-lg p-5">
+        <h2 class="text-sm font-bold text-eb-500 flex items-center gap-2 mb-4"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Pending Reviews (3)</h2>
+        <div class="space-y-2 text-sm">
+          <div class="flex items-start gap-2 p-2 border border-slate-200 rounded-md hover:bg-slate-50 cursor-pointer">
+            <span class="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full mt-0.5">PR</span>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-medium truncate">feat: auth backend complete</div>
+              <div class="text-[11px] text-slate-500 mono">PR #283 · 12 min ago</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-2 p-2 border border-slate-200 rounded-md hover:bg-slate-50 cursor-pointer">
+            <span class="text-[10px] bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 rounded-full mt-0.5">赤線</span>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-medium truncate">DROP query in T-024-04</div>
+              <div class="text-[11px] text-slate-500 mono">violation #12 · 25 min ago</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-2 p-2 border border-slate-200 rounded-md hover:bg-slate-50 cursor-pointer">
+            <span class="text-[10px] bg-eb-50 text-eb-700 border border-eb-200 px-2 py-0.5 rounded-full mt-0.5">納品</span>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-medium truncate">Phase 1 partial deliverable</div>
+              <div class="text-[11px] text-slate-500 mono">delivery #4 · 1h ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-lg p-5">
+        <h2 class="text-sm font-bold text-eb-500 flex items-center gap-2 mb-4"><i data-lucide="zap" class="w-4 h-4"></i> Running Sessions (5)</h2>
+        <div class="space-y-2 text-sm">
+          <div class="flex items-center gap-2 p-2 border border-slate-200 rounded-md">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot"></span>
+            <span class="w-5 h-5 rounded-full bg-eb-500 text-white text-[9px] font-bold flex items-center justify-center mono">DV</span>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-medium truncate">T-V3-AUTH-02 signup impl</div>
+              <div class="text-[11px] text-slate-500 mono">12 min · ¥41</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 p-2 border border-slate-200 rounded-md">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot"></span>
+            <span class="w-5 h-5 rounded-full bg-amber-500 text-white text-[9px] font-bold flex items-center justify-center mono">QN</span>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-medium truncate">T-V3-AUTH-13 unit test</div>
+              <div class="text-[11px] text-slate-500 mono">3 min · ¥8</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 p-2 border border-slate-200 rounded-md">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot"></span>
+            <span class="w-5 h-5 rounded-full bg-blue-500 text-white text-[9px] font-bold flex items-center justify-center mono">WS</span>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-medium truncate">T-V3-DB-03 ArtifactVersion table</div>
+              <div class="text-[11px] text-slate-500 mono">7 min · ¥22</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 p-2 border border-slate-200 rounded-md">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+            <span class="w-5 h-5 rounded-full bg-emerald-500 text-white text-[9px] font-bold flex items-center justify-center mono">MR</span>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-medium truncate">paused: T-V3-SCR-05 hearing</div>
+              <div class="text-[11px] text-slate-500 mono">paused 4 min ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

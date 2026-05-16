@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-014 案件メンバー — Build-Factory</title>
+<meta name="bf-screen-id" content="S-014">
+<meta name="bf-screen-name" content="workspace_members">
+<meta name="bf-category" content="workspace">
+<meta name="bf-feature-id" content="F-004,F-021">
+<meta name="bf-task-ids" content="T-V3-RF-05">
+<meta name="bf-entities" content="E-003,E-001">
+<meta name="bf-related-apis" content="GET /api/workspaces/{id}/members,PUT /api/workspaces/{id}/members/{user_id}/role,DELETE /api/workspaces/{id}/members/{user_id}">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-014">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; } .mono { font-family: 'JetBrains Mono', monospace; }</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(8px);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+
+<aside class="w-[240px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-4 border-b border-eb-600"><div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div><div class="text-sm font-bold mt-1">Build-Factory dogfood</div><div class="text-[11px] text-eb-100 mt-0.5 mono">ws_8f3a2c · P1</div></div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5 overflow-y-auto">
+    <a href="./S-012-workspace-dashboard.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> ダッシュボード</a>
+    <a href="../moat/S-016-phase-management.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="layers" class="w-4 h-4"></i> フェーズ管理</a>
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-3 pb-1 font-bold">Settings</div>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 bg-eb-600 font-semibold"><i data-lucide="users" class="w-4 h-4"></i> メンバー</a>
+    <a href="./S-013-workspace-settings.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="settings" class="w-4 h-4"></i> 案件設定</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-eb-500 flex items-center justify-center text-[11px] font-bold mono">M</div><div class="flex-1 min-w-0"><div class="text-[11px] font-semibold truncate">masato</div><div class="text-[10px] text-eb-200 truncate">workspace_admin</div></div></div>
+</aside>
+
+<main class="flex-1 overflow-y-auto">
+  <div class="max-w-[1200px] mx-auto px-6 py-8">
+    <div class="text-xs text-slate-500 flex items-center gap-1.5 mb-2"><a href="./S-012-workspace-dashboard.html" class="hover:text-slate-900">Workspace</a><i data-lucide="chevron-right" class="w-3 h-3"></i><span class="text-slate-900 font-medium">メンバー</span></div>
+
+    <div class="flex items-end justify-between mb-6">
+      <div><h1 class="text-2xl font-bold">案件メンバー</h1><p class="text-sm text-slate-600 mt-1">この workspace に参加しているメンバー / ロール / カスタム権限</p></div>
+      <a href="./S-015-workspace-invite.html" class="bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-9 px-4 rounded-md flex items-center gap-2"><i data-lucide="user-plus" class="w-4 h-4"></i> メンバーを招待</a>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-lg overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50">
+          <tr class="text-[10px] uppercase tracking-wider text-slate-500">
+            <th class="text-left font-bold px-4 py-2">メンバー</th>
+            <th class="text-left font-bold px-4 py-2">Role</th>
+            <th class="text-left font-bold px-4 py-2">Custom 権限</th>
+            <th class="text-left font-bold px-4 py-2">表示 Tabs</th>
+            <th class="text-left font-bold px-4 py-2">最終 active</th>
+            <th class="text-right font-bold px-4 py-2"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-t border-slate-100 hover:bg-slate-50">
+            <td class="px-4 py-3"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-eb-500 text-white text-xs font-bold flex items-center justify-center">M</div><div><div class="text-sm font-medium">masato</div><div class="text-xs text-slate-500 mono">masato@engine-base.com</div></div></div></td>
+            <td class="px-4 py-3"><span class="text-[11px] bg-eb-50 text-eb-700 border border-eb-200 px-2 py-0.5 rounded-full font-medium">workspace_admin</span></td>
+            <td class="px-4 py-3"><span class="text-xs text-slate-500">全権限</span></td>
+            <td class="px-4 py-3 text-xs text-slate-500">全 Tabs</td>
+            <td class="px-4 py-3 text-xs text-slate-500 mono">2 min</td>
+            <td class="px-4 py-3 text-right"><button class="text-xs text-slate-400 hover:text-slate-900"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button></td>
+          </tr>
+          <tr class="border-t border-slate-100 hover:bg-slate-50">
+            <td class="px-4 py-3"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center">Y</div><div><div class="text-sm font-medium">yumi</div><div class="text-xs text-slate-500 mono">yumi@engine-base.com</div></div></div></td>
+            <td class="px-4 py-3"><span class="text-[11px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full font-medium">contributor</span></td>
+            <td class="px-4 py-3"><span class="text-xs text-slate-700">編集 ✓ / 承認 ×</span></td>
+            <td class="px-4 py-3 text-xs text-slate-500">spec, task, review</td>
+            <td class="px-4 py-3 text-xs text-slate-500 mono">3h</td>
+            <td class="px-4 py-3 text-right"><button class="text-xs text-slate-400 hover:text-slate-900"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button></td>
+          </tr>
+          <tr class="border-t border-slate-100 hover:bg-slate-50">
+            <td class="px-4 py-3"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-slate-300 text-slate-700 text-xs font-bold flex items-center justify-center">C</div><div><div class="text-sm font-medium">client_abc</div><div class="text-xs text-slate-500 mono">ceo@abc.co.jp</div></div></div></td>
+            <td class="px-4 py-3"><span class="text-[11px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-medium">client</span></td>
+            <td class="px-4 py-3"><span class="text-xs text-slate-700">閲覧のみ</span></td>
+            <td class="px-4 py-3 text-xs text-slate-500">dashboard, spec_viewer</td>
+            <td class="px-4 py-3 text-xs text-slate-500 mono">2 days</td>
+            <td class="px-4 py-3 text-right"><button class="text-xs text-slate-400 hover:text-slate-900"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button></td>
+          </tr>
+          <tr class="border-t border-slate-100 hover:bg-slate-50">
+            <td class="px-4 py-3"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-slate-300 text-slate-700 text-xs font-bold flex items-center justify-center">K</div><div><div class="text-sm font-medium">kaori</div><div class="text-xs text-slate-500 mono">kaori@partner.com</div></div></div></td>
+            <td class="px-4 py-3"><span class="text-[11px] bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 rounded-full font-medium">monitor</span></td>
+            <td class="px-4 py-3"><span class="text-xs text-slate-500">読み取り専用</span></td>
+            <td class="px-4 py-3 text-xs text-slate-500">audit_log, cost</td>
+            <td class="px-4 py-3 text-xs text-slate-500 mono">5 days</td>
+            <td class="px-4 py-3 text-right"><button class="text-xs text-slate-400 hover:text-slate-900"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Edit panel preview -->
+    <details class="mt-6 bg-white border border-slate-200 rounded-lg">
+      <summary class="cursor-pointer px-5 py-3 text-sm font-bold flex items-center gap-2"><i data-lucide="edit-3" class="w-4 h-4 text-eb-500"></i> Custom 権限編集 (yumi / contributor) — preview</summary>
+      <div class="p-5 border-t border-slate-200 space-y-3">
+        <div class="grid grid-cols-2 gap-2 text-sm">
+          <label class="flex items-center gap-2 p-2 border border-slate-200 rounded-md cursor-pointer"><input type="checkbox" checked class="w-4 h-4 accent-eb-500" /><span>仕様編集</span></label>
+          <label class="flex items-center gap-2 p-2 border border-slate-200 rounded-md cursor-pointer"><input type="checkbox" checked class="w-4 h-4 accent-eb-500" /><span>タスク編集</span></label>
+          <label class="flex items-center gap-2 p-2 border border-slate-200 rounded-md cursor-pointer"><input type="checkbox" class="w-4 h-4 accent-eb-500" /><span>赤線承認</span></label>
+          <label class="flex items-center gap-2 p-2 border border-slate-200 rounded-md cursor-pointer"><input type="checkbox" class="w-4 h-4 accent-eb-500" /><span>納品承認</span></label>
+          <label class="flex items-center gap-2 p-2 border border-slate-200 rounded-md cursor-pointer"><input type="checkbox" checked class="w-4 h-4 accent-eb-500" /><span>PR コメント</span></label>
+          <label class="flex items-center gap-2 p-2 border border-slate-200 rounded-md cursor-pointer"><input type="checkbox" class="w-4 h-4 accent-eb-500" /><span>メンバー招待</span></label>
+        </div>
+        <div class="flex justify-end gap-2"><button class="border border-slate-200 text-sm h-8 px-3 rounded-md">キャンセル</button><button class="bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-8 px-3 rounded-md">保存</button></div>
+      </div>
+    </details>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

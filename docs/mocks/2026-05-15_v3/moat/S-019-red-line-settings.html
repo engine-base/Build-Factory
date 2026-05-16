@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-019 赤線設定 — Build-Factory</title>
+<meta name="bf-screen-id" content="S-019">
+<meta name="bf-screen-name" content="red_line_settings">
+<meta name="bf-category" content="safety">
+<meta name="bf-feature-id" content="F-012">
+<meta name="bf-task-ids" content="T-V3-RF-09">
+<meta name="bf-entities" content="E-030">
+<meta name="bf-related-apis" content="GET /api/workspaces/{id}/red-lines,POST /api/workspaces/{id}/red-lines,POST /api/workspaces/{id}/red-lines/test">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-019">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; } .mono { font-family: 'JetBrains Mono', monospace; }</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(8px);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+
+<aside class="w-[240px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-4 border-b border-eb-600"><div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div><div class="text-sm font-bold mt-1">Build-Factory dogfood</div></div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5 overflow-y-auto">
+    <a href="../workspace/S-012-workspace-dashboard.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> ダッシュボード</a>
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-3 pb-1 font-bold">Moat / Safety</div>
+    <a href="./S-018-constitution-editor.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="shield" class="w-4 h-4"></i> Constitution</a>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 bg-eb-600 font-semibold"><i data-lucide="alert-octagon" class="w-4 h-4"></i> 赤線設定</a>
+    <a href="./S-034-red-line-approval.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="gavel" class="w-4 h-4"></i> 赤線承認</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-eb-500 flex items-center justify-center text-[11px] font-bold mono">M</div><div class="flex-1 min-w-0"><div class="text-[11px] font-semibold truncate">masato</div></div></div>
+</aside>
+
+<main class="flex-1 overflow-y-auto">
+  <div class="max-w-[1200px] mx-auto px-6 py-8">
+    <div class="flex items-end justify-between mb-6">
+      <div><h1 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="alert-octagon" class="w-6 h-6 text-red-600"></i> 赤線設定</h1><p class="text-sm text-slate-600 mt-1">禁止操作パターン / 自動停止ルール (5 項目 = ハードコード必須)</p></div>
+      <div class="flex items-center gap-2">
+        <button class="border border-slate-200 hover:bg-slate-50 text-sm h-9 px-4 rounded-md flex items-center gap-2"><i data-lucide="play-circle" class="w-4 h-4"></i> パターンテスト</button>
+        <button class="bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-9 px-4 rounded-md flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> 赤線追加</button>
+      </div>
+    </div>
+
+    <!-- Built-in red lines (5 hardcoded) -->
+    <div class="mb-6">
+      <div class="flex items-center gap-2 mb-3"><i data-lucide="lock" class="w-4 h-4 text-slate-500"></i><span class="text-sm font-bold text-slate-700">組み込み赤線 (削除不可)</span></div>
+      <div class="space-y-2">
+        <div class="bg-white border border-red-200 rounded-lg p-4 flex items-start gap-3">
+          <div class="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center shrink-0"><i data-lucide="database" class="w-4 h-4 text-red-600"></i></div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1"><span class="text-sm font-semibold">本番 DB の DROP / TRUNCATE / DELETE *</span><span class="text-[11px] bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 rounded-full font-medium">critical</span></div>
+            <div class="text-xs text-slate-500 mono">pattern: /\b(DROP|TRUNCATE|DELETE\s+FROM\s+\w+\s*(?!WHERE))\b/i</div>
+          </div>
+          <span class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">auto-block</span>
+        </div>
+        <div class="bg-white border border-red-200 rounded-lg p-4 flex items-start gap-3">
+          <div class="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center shrink-0"><i data-lucide="key" class="w-4 h-4 text-red-600"></i></div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1"><span class="text-sm font-semibold">.env / 鍵ファイル commit</span><span class="text-[11px] bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 rounded-full font-medium">critical</span></div>
+            <div class="text-xs text-slate-500 mono">pattern: \.env(?!\.example)|id_rsa|aws_secret_key</div>
+          </div>
+          <span class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">auto-block</span>
+        </div>
+        <div class="bg-white border border-red-200 rounded-lg p-4 flex items-start gap-3">
+          <div class="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center shrink-0"><i data-lucide="git-branch" class="w-4 h-4 text-red-600"></i></div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1"><span class="text-sm font-semibold">--force push to main / --no-verify</span><span class="text-[11px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-medium">high</span></div>
+            <div class="text-xs text-slate-500 mono">pattern: git push.*--force|--no-verify</div>
+          </div>
+          <span class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">auto-block</span>
+        </div>
+        <div class="bg-white border border-red-200 rounded-lg p-4 flex items-start gap-3">
+          <div class="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center shrink-0"><i data-lucide="package" class="w-4 h-4 text-red-600"></i></div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1"><span class="text-sm font-semibold">AGPL ライセンス依存追加</span><span class="text-[11px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-medium">high</span></div>
+            <div class="text-xs text-slate-500 mono">pattern: package.json / requirements.txt の license check</div>
+          </div>
+          <span class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">auto-block</span>
+        </div>
+        <div class="bg-white border border-red-200 rounded-lg p-4 flex items-start gap-3">
+          <div class="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center shrink-0"><i data-lucide="smile" class="w-4 h-4 text-red-600"></i></div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1"><span class="text-sm font-semibold">絵文字混入 (UI / コード)</span><span class="text-[11px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-medium">high</span></div>
+            <div class="text-xs text-slate-500 mono">pattern: [\u{1F300}-\u{1F9FF}] in *.tsx, *.html, *.py</div>
+          </div>
+          <span class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">auto-block</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom red lines -->
+    <div>
+      <div class="flex items-center gap-2 mb-3"><i data-lucide="edit-3" class="w-4 h-4 text-slate-500"></i><span class="text-sm font-bold text-slate-700">カスタム赤線 (案件固有)</span></div>
+      <div class="space-y-2">
+        <div class="bg-white border border-amber-200 rounded-lg p-4 flex items-start gap-3">
+          <div class="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center shrink-0"><i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600"></i></div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1"><span class="text-sm font-semibold">bf_ prefix の追加</span><span class="text-[11px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-medium">medium</span></div>
+            <div class="text-xs text-slate-500 mono">pattern: CREATE TABLE.*\bbf_\w+ in supabase/migrations/*.sql</div>
+            <div class="text-xs text-slate-500 mt-1">ADR-014 命名規約により禁止</div>
+          </div>
+          <label class="inline-flex items-center cursor-pointer"><input type="checkbox" checked class="sr-only peer"><div class="relative w-9 h-5 bg-slate-200 rounded-full peer-checked:bg-eb-500 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div></label>
+          <button class="text-xs text-slate-400 hover:text-slate-900 ml-2"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+        </div>
+        <div class="bg-white border border-amber-200 rounded-lg p-4 flex items-start gap-3">
+          <div class="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center shrink-0"><i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600"></i></div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1"><span class="text-sm font-semibold">claude-runner で LangGraph / LangChain</span><span class="text-[11px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-medium">medium</span></div>
+            <div class="text-xs text-slate-500 mono">pattern: from langgraph|from langchain in backend/runner/**</div>
+            <div class="text-xs text-slate-500 mt-1">ADR-010 AI スタック方針</div>
+          </div>
+          <label class="inline-flex items-center cursor-pointer"><input type="checkbox" checked class="sr-only peer"><div class="relative w-9 h-5 bg-slate-200 rounded-full peer-checked:bg-eb-500 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div></label>
+          <button class="text-xs text-slate-400 hover:text-slate-900 ml-2"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

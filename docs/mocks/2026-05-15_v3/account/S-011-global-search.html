@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-011 グローバル検索 (Cmd+K) — Build-Factory</title>
+
+<meta name="bf-screen-id" content="S-011">
+<meta name="bf-screen-name" content="global_search">
+<meta name="bf-category" content="account">
+<meta name="bf-feature-id" content="F-024">
+<meta name="bf-task-ids" content="T-V3-SCR-03">
+<meta name="bf-entities" content="E-001,E-008,E-009,E-018,E-022,E-029">
+<meta name="bf-related-apis" content="GET /api/search?q={query}&category={cat}">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-011">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>
+  body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .kbd { display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 4px; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:4px; font-family:'JetBrains Mono',monospace; font-size:10px; color:#475569; font-weight:600; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(8px);">
+  <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+  <span>Index に戻る</span>
+</a>
+
+<aside class="w-[240px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-4 border-b border-eb-600"><div class="flex items-center gap-2 mb-3"><div class="w-7 h-7 rounded-md bg-white/10 flex items-center justify-center"><i data-lucide="factory" class="w-4 h-4 text-white"></i></div><div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div></div><div class="text-sm font-bold">ENGINE BASE</div><div class="text-[11px] text-eb-100 mt-0.5 mono">account_a1b2 · Pro</div></div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5 overflow-y-auto">
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-2 pb-1 font-bold">Account</div>
+    <a href="./S-006-account-dashboard.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> 10 案件 俯瞰</a>
+    <a href="./S-008-account-members.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="users" class="w-4 h-4"></i> メンバー</a>
+    <a href="./S-007-account-settings.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="settings" class="w-4 h-4"></i> アカウント設定</a>
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-3 pb-1 font-bold">Personal</div>
+    <a href="./S-010-notifications-inbox.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="bell" class="w-4 h-4"></i> 通知</a>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 bg-eb-600 font-semibold"><i data-lucide="search" class="w-4 h-4"></i> 検索<span class="ml-auto text-[10px] mono text-eb-200">⌘K</span></a>
+    <a href="./S-009-profile-settings.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="user" class="w-4 h-4"></i> プロフィール</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-eb-500 flex items-center justify-center text-[11px] font-bold mono">M</div><div class="flex-1 min-w-0"><div class="text-[11px] font-semibold truncate">masato</div><div class="text-[10px] text-eb-200 truncate">account_owner</div></div></div>
+</aside>
+
+<main class="flex-1 relative">
+  <!-- Dimmed background -->
+  <div class="absolute inset-0 bg-slate-100/50 backdrop-blur-sm"></div>
+
+  <!-- Cmd+K Modal -->
+  <div class="absolute top-[15%] left-1/2 -translate-x-1/2 w-[640px] max-w-[calc(100vw-32px)] bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden">
+
+    <!-- Search input -->
+    <div class="flex items-center gap-2 px-4 py-3 border-b border-slate-200">
+      <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
+      <input type="search" placeholder="案件 / タスク / メンバー / 仕様書 を検索..." value="auth"
+        class="flex-1 bg-transparent text-base outline-none placeholder:text-slate-400 mono" />
+      <span class="kbd">esc</span>
+    </div>
+
+    <!-- Category chips -->
+    <div class="flex items-center gap-1 px-3 py-2 border-b border-slate-200 overflow-x-auto">
+      <button class="text-[11px] bg-eb-50 text-eb-700 border border-eb-200 px-2 py-1 rounded-full font-medium whitespace-nowrap">全て (12)</button>
+      <button class="text-[11px] hover:bg-slate-100 text-slate-600 px-2 py-1 rounded-full whitespace-nowrap">Tasks (5)</button>
+      <button class="text-[11px] hover:bg-slate-100 text-slate-600 px-2 py-1 rounded-full whitespace-nowrap">Workspaces (2)</button>
+      <button class="text-[11px] hover:bg-slate-100 text-slate-600 px-2 py-1 rounded-full whitespace-nowrap">Specs (3)</button>
+      <button class="text-[11px] hover:bg-slate-100 text-slate-600 px-2 py-1 rounded-full whitespace-nowrap">Members (1)</button>
+      <button class="text-[11px] hover:bg-slate-100 text-slate-600 px-2 py-1 rounded-full whitespace-nowrap">Audit Logs (1)</button>
+    </div>
+
+    <!-- Results -->
+    <div class="max-h-[440px] overflow-y-auto p-2">
+
+      <!-- Group: Tasks -->
+      <div class="px-3 pt-2 pb-1 text-[10px] uppercase tracking-wider text-slate-500 font-bold">Tasks</div>
+
+      <a class="bg-eb-50 px-3 py-2 rounded-md flex items-center gap-3 cursor-pointer">
+        <div class="w-7 h-7 rounded-md bg-white border border-slate-200 flex items-center justify-center shrink-0"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-eb-500"></i></div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium truncate"><span class="bg-eb-200/60 rounded px-0.5">auth</span> backend: POST /api/auth/login</div>
+          <div class="text-[11px] text-slate-500 mono">T-V3-AUTH-01 · Build-Factory dogfood · running</div>
+        </div>
+        <span class="kbd">↵</span>
+      </a>
+
+      <div class="px-3 py-2 rounded-md flex items-center gap-3 cursor-pointer hover:bg-slate-50">
+        <div class="w-7 h-7 rounded-md bg-white border border-slate-200 flex items-center justify-center shrink-0"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-slate-400"></i></div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium truncate"><span class="bg-eb-100 rounded px-0.5">auth</span> frontend: /login page</div>
+          <div class="text-[11px] text-slate-500 mono">T-V3-AUTH-08 · Build-Factory dogfood · todo</div>
+        </div>
+      </div>
+
+      <div class="px-3 py-2 rounded-md flex items-center gap-3 cursor-pointer hover:bg-slate-50">
+        <div class="w-7 h-7 rounded-md bg-white border border-slate-200 flex items-center justify-center shrink-0"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-500"></i></div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium truncate"><span class="bg-eb-100 rounded px-0.5">auth</span> session table RLS</div>
+          <div class="text-[11px] text-slate-500 mono">T-V3-AUTH-15 · done</div>
+        </div>
+      </div>
+
+      <!-- Group: Workspaces -->
+      <div class="px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider text-slate-500 font-bold">Workspaces</div>
+      <div class="px-3 py-2 rounded-md flex items-center gap-3 cursor-pointer hover:bg-slate-50">
+        <div class="w-7 h-7 rounded-md bg-white border border-slate-200 flex items-center justify-center shrink-0"><i data-lucide="briefcase" class="w-3.5 h-3.5 text-eb-500"></i></div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium truncate">Build-Factory dogfood</div>
+          <div class="text-[11px] text-slate-500 mono">ws_8f3a2c · Phase 1 · 64%</div>
+        </div>
+      </div>
+
+      <!-- Group: Specs -->
+      <div class="px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider text-slate-500 font-bold">Specs / 仕様書</div>
+      <div class="px-3 py-2 rounded-md flex items-center gap-3 cursor-pointer hover:bg-slate-50">
+        <div class="w-7 h-7 rounded-md bg-white border border-slate-200 flex items-center justify-center shrink-0"><i data-lucide="file-text" class="w-3.5 h-3.5 text-slate-500"></i></div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium truncate">F-001: Supabase 基盤 + テストデータ seed</div>
+          <div class="text-[11px] text-slate-500 mono">requirements / F-001 · <span class="bg-eb-100 rounded px-0.5">AUTH</span> / S-001..S-005</div>
+        </div>
+      </div>
+
+      <!-- Group: Members -->
+      <div class="px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider text-slate-500 font-bold">Members</div>
+      <div class="px-3 py-2 rounded-md flex items-center gap-3 cursor-pointer hover:bg-slate-50">
+        <div class="w-7 h-7 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center shrink-0">T</div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium truncate">takashi <span class="text-xs text-slate-500">— <span class="bg-eb-100 rounded px-0.5">auth</span>or of T-001-02</span></div>
+          <div class="text-[11px] text-slate-500 mono">workspace_admin · ABC 社</div>
+        </div>
+      </div>
+
+      <!-- Group: Audit Logs -->
+      <div class="px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider text-slate-500 font-bold">Audit Logs</div>
+      <div class="px-3 py-2 rounded-md flex items-center gap-3 cursor-pointer hover:bg-slate-50">
+        <div class="w-7 h-7 rounded-md bg-white border border-slate-200 flex items-center justify-center shrink-0"><i data-lucide="activity" class="w-3.5 h-3.5 text-slate-500"></i></div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium truncate">OAuth <span class="bg-eb-100 rounded px-0.5">auth</span>orization granted: github</div>
+          <div class="text-[11px] text-slate-500 mono">2 days ago · masato</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="border-t border-slate-200 px-4 py-2 flex items-center gap-3 text-[11px] text-slate-500">
+      <span class="flex items-center gap-1"><span class="kbd">↑</span><span class="kbd">↓</span>選択</span>
+      <span class="flex items-center gap-1"><span class="kbd">↵</span>開く</span>
+      <span class="flex items-center gap-1"><span class="kbd">esc</span>閉じる</span>
+      <span class="ml-auto mono">12 件 (43ms)</span>
+    </div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

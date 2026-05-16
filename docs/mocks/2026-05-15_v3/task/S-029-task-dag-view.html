@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-029 タスク DAG — Build-Factory</title>
+<meta name="bf-screen-id" content="S-029">
+<meta name="bf-screen-name" content="task_dag_view">
+<meta name="bf-category" content="task">
+<meta name="bf-feature-id" content="F-007,F-009">
+<meta name="bf-task-ids" content="T-V3-RF-13,T-V3-FIX-03">
+<meta name="bf-entities" content="E-018,E-019">
+<meta name="bf-related-apis" content="GET /api/workspaces/{id}/tasks/dag">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-029">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; } .mono { font-family: 'JetBrains Mono', monospace; }</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(8px);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+
+<aside class="w-[240px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-4 border-b border-eb-600"><div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div><div class="text-sm font-bold mt-1">Build-Factory dogfood</div></div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5">
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-2 pb-1 font-bold">Task</div>
+    <a href="./S-027-task-kanban.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="kanban" class="w-4 h-4"></i> Kanban</a>
+    <a href="./S-028-task-list.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="list" class="w-4 h-4"></i> List</a>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 bg-eb-600 font-semibold"><i data-lucide="git-branch" class="w-4 h-4"></i> DAG</a>
+    <a href="./S-030-task-detail.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="file" class="w-4 h-4"></i> Detail</a>
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-3 pb-1 font-bold">Execution</div>
+    <a href="./S-031-swarm-grid.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="grid-3x3" class="w-4 h-4"></i> Swarm Grid</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-eb-500 flex items-center justify-center text-[11px] font-bold mono">M</div><div class="flex-1 min-w-0"><div class="text-[11px] font-semibold truncate">masato</div></div></div>
+</aside>
+
+<main class="flex-1 flex flex-col overflow-hidden">
+  <div class="px-6 py-3 border-b border-slate-200 bg-white flex items-center justify-between">
+    <div><h1 class="text-lg font-bold flex items-center gap-2"><i data-lucide="git-branch" class="w-5 h-5 text-eb-500"></i> タスク DAG</h1><p class="text-xs text-slate-500 mt-0.5">タスク間の依存関係を React Flow で可視化 / Phase / Status で fillter</p></div>
+    <div class="flex items-center gap-2"><select class="border border-slate-200 text-xs h-8 px-2 rounded-md"><option>全 Phase</option><option>Phase 1</option></select><select class="border border-slate-200 text-xs h-8 px-2 rounded-md"><option>全 Status</option><option>running</option><option>blocked</option></select></div>
+  </div>
+
+  <div class="flex-1 relative bg-slate-100 overflow-auto" style="background-image: radial-gradient(circle, #cbd5e1 1px, transparent 1px); background-size: 16px 16px;">
+    <svg width="1400" height="700" class="absolute">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8" /></marker>
+        <marker id="arrow-active" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1a6648" /></marker>
+        <marker id="arrow-block" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626" /></marker>
+      </defs>
+      <!-- Edges -->
+      <line x1="170" y1="120" x2="290" y2="120" stroke="#1a6648" stroke-width="2" marker-end="url(#arrow-active)" />
+      <line x1="170" y1="120" x2="290" y2="240" stroke="#1a6648" stroke-width="2" marker-end="url(#arrow-active)" />
+      <line x1="170" y1="120" x2="290" y2="360" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arrow)" />
+      <line x1="410" y1="120" x2="540" y2="120" stroke="#1a6648" stroke-width="2" marker-end="url(#arrow-active)" />
+      <line x1="410" y1="240" x2="540" y2="240" stroke="#1a6648" stroke-width="2" marker-end="url(#arrow-active)" />
+      <line x1="410" y1="360" x2="540" y2="360" stroke="#dc2626" stroke-width="2" marker-end="url(#arrow-block)" />
+      <line x1="660" y1="120" x2="780" y2="180" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow)" />
+      <line x1="660" y1="240" x2="780" y2="180" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow)" />
+      <line x1="900" y1="180" x2="1020" y2="120" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow)" />
+      <line x1="900" y1="180" x2="1020" y2="240" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow)" />
+    </svg>
+
+    <!-- Phase 0 -->
+    <div class="absolute" style="left: 40px; top: 40px;"><div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 mono">Phase 0</div><div class="bg-white border-2 border-emerald-500 rounded-lg p-3 w-[120px]"><div class="text-[10px] mono text-eb-500 font-bold">T-V3-INFRA-01</div><div class="text-xs font-semibold mt-0.5">ADR-013 AUTH</div><div class="mt-1.5"><span class="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full">done</span></div></div></div>
+
+    <!-- Phase 1: AUTH backend (3 nodes) -->
+    <div class="absolute" style="left: 290px; top: 70px;"><div class="bg-white border-2 border-amber-300 rounded-lg p-3 w-[120px] ring-2 ring-amber-100"><div class="text-[10px] mono text-eb-500 font-bold">T-V3-AUTH-01</div><div class="text-xs font-semibold mt-0.5">login API</div><div class="mt-1.5"><span class="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full">running</span></div></div></div>
+    <div class="absolute" style="left: 290px; top: 190px;"><div class="bg-white border border-slate-300 rounded-lg p-3 w-[120px]"><div class="text-[10px] mono text-eb-500 font-bold">T-V3-AUTH-02</div><div class="text-xs font-semibold mt-0.5">signup API</div><div class="mt-1.5"><span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full">todo</span></div></div></div>
+    <div class="absolute" style="left: 290px; top: 310px;"><div class="bg-white border-2 border-red-300 rounded-lg p-3 w-[120px] ring-2 ring-red-100"><div class="text-[10px] mono text-red-600 font-bold">T-V3-AUTH-04</div><div class="text-xs font-semibold mt-0.5">MFA enroll</div><div class="mt-1.5"><span class="text-[10px] bg-red-50 text-red-700 px-1.5 py-0.5 rounded-full">blocked</span></div></div></div>
+
+    <!-- Phase 1: AUTH frontend -->
+    <div class="absolute" style="left: 540px; top: 70px;"><div class="bg-white border border-slate-300 rounded-lg p-3 w-[120px]"><div class="text-[10px] mono text-eb-500 font-bold">T-V3-AUTH-08</div><div class="text-xs font-semibold mt-0.5">/login page</div><div class="mt-1.5"><span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full">todo</span></div></div></div>
+    <div class="absolute" style="left: 540px; top: 190px;"><div class="bg-white border border-slate-300 rounded-lg p-3 w-[120px]"><div class="text-[10px] mono text-eb-500 font-bold">T-V3-AUTH-09</div><div class="text-xs font-semibold mt-0.5">/signup page</div><div class="mt-1.5"><span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full">todo</span></div></div></div>
+    <div class="absolute" style="left: 540px; top: 310px;"><div class="bg-white border border-slate-300 rounded-lg p-3 w-[120px] opacity-60"><div class="text-[10px] mono text-slate-400 font-bold">T-V3-AUTH-11</div><div class="text-xs font-semibold mt-0.5">/mfa-setup</div><div class="mt-1.5"><span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">blocked</span></div></div></div>
+
+    <!-- Test -->
+    <div class="absolute" style="left: 780px; top: 130px;"><div class="bg-white border border-slate-300 rounded-lg p-3 w-[120px]"><div class="text-[10px] mono text-eb-500 font-bold">T-V3-AUTH-13</div><div class="text-xs font-semibold mt-0.5">unit tests</div><div class="mt-1.5"><span class="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full">running</span></div></div></div>
+
+    <!-- E2E -->
+    <div class="absolute" style="left: 1020px; top: 70px;"><div class="bg-white border border-slate-300 rounded-lg p-3 w-[120px] opacity-60"><div class="text-[10px] mono text-slate-400 font-bold">T-V3-AUTH-14</div><div class="text-xs font-semibold mt-0.5">Playwright e2e</div><div class="mt-1.5"><span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">todo</span></div></div></div>
+    <div class="absolute" style="left: 1020px; top: 190px;"><div class="bg-white border border-slate-300 rounded-lg p-3 w-[120px] opacity-60"><div class="text-[10px] mono text-slate-400 font-bold">T-V3-AUTH-15</div><div class="text-xs font-semibold mt-0.5">RLS policy</div><div class="mt-1.5"><span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">todo</span></div></div></div>
+
+    <!-- Legend -->
+    <div class="absolute bottom-4 left-4 bg-white border border-slate-200 rounded-md p-3 text-xs space-y-1.5">
+      <div class="font-bold text-slate-700 mb-2">Status colors</div>
+      <div class="flex items-center gap-2"><div class="w-3 h-3 rounded border-2 border-emerald-500"></div>done</div>
+      <div class="flex items-center gap-2"><div class="w-3 h-3 rounded border-2 border-amber-300 ring-1 ring-amber-100"></div>running</div>
+      <div class="flex items-center gap-2"><div class="w-3 h-3 rounded border border-slate-300"></div>todo</div>
+      <div class="flex items-center gap-2"><div class="w-3 h-3 rounded border-2 border-red-300 ring-1 ring-red-100"></div>blocked</div>
+    </div>
+
+    <div class="absolute top-4 right-4 bg-white border border-slate-200 rounded-md flex flex-col">
+      <button class="w-9 h-9 hover:bg-slate-50 border-b border-slate-200 flex items-center justify-center"><i data-lucide="plus" class="w-4 h-4"></i></button>
+      <button class="w-9 h-9 hover:bg-slate-50 border-b border-slate-200 flex items-center justify-center"><i data-lucide="minus" class="w-4 h-4"></i></button>
+      <button class="w-9 h-9 hover:bg-slate-50 flex items-center justify-center"><i data-lucide="maximize" class="w-4 h-4"></i></button>
+    </div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

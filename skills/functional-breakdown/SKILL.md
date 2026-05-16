@@ -1,6 +1,6 @@
 ---
 name: functional-breakdown
-description: 要件定義の後・アーキテクチャ設計の前に挟む「画面・機能・ロール権限・エンティティ草案の徹底分解」スキル。要件定義の機能リストレベルから DB 設計・API 設計に渡せる粒度まで深掘りする。「画面ごとの項目を決めたい」「ログインの 2FA をどうするか決めたい」「管理画面で誰が何を操作できるか決めたい」「権限ロールを設計したい」「機能の例外フローを詰めたい」「画面遷移を整理したい」「エンティティを洗い出したい」と言われたら、明示されていなくても必ず使う。feature-decomposition (分散開発のための粒度分割) と異なり、こちらは「仕様詳細化」が主軸。各項目は draft → in_review → decided のステータスで管理し、チェックリストで決定を可視化する。出力は 4 種 JSON (screens/features/roles/entities) + ブログ記事風 HTML。
+description: 要件定義の後・アーキテクチャ設計の前に挟む「画面・機能・ロール権限・エンティティ草案の徹底分解」スキル。要件定義の機能リストレベルから DB 設計・API 設計に渡せる粒度まで深掘りする。**v3 採用 (2026-05-15〜)**: 4 種 JSON 出力に下流の 3-tier AC を埋めるための紐付け情報 (screens の mock_path / h1_text / kpi_labels / bf_meta、features の api_endpoints と EARS AC seed、entities の rls_policies と table_name、roles の rls_predicate_expr) を必ず含め、lint #17-19 (mock-impl-diff / screens-API / entity-table-naming) と verify-rls-coverage で検証可能な spec を出力する。既存実装が存在するプロジェクトでは STEP 1 で **drift 検知モード** を起動し、mock ↔ 実装 / spec ↔ backend router の不整合を `legacy_drift_notes` に記録できる。「画面ごとの項目を決めたい」「ログインの 2FA をどうするか決めたい」「管理画面で誰が何を操作できるか決めたい」「権限ロールを設計したい」「機能の例外フローを詰めたい」「画面遷移を整理したい」「エンティティを洗い出したい」「screens.json / entities.json を作りたい」「mock との drift を検知したい」「RLS policy を spec から起こしたい」「EARS の AC seed を作りたい」と言われたら、明示されていなくても必ず使う。feature-decomposition (分散開発のための粒度分割) と異なり、こちらは「仕様詳細化」が主軸。各項目は draft → in_review → decided のステータスで管理し、チェックリストで決定を可視化する。出力は 4 種 JSON (screens/features/roles/entities, v3 拡張フィールド込み) + (任意) addendum.json + ブログ記事風 HTML。
 tab: 設計
 builtin: true
 ---
@@ -148,6 +148,9 @@ builtin: true
 4. **要件定義に書いてあることを再質問しない** — requirements の出力 (機能一覧 / 制約 / ロール) を読んでから話す
 5. **曖昧な「使いやすく」「良い感じに」は drilldown で潰す** — 何と比べて? 誰にとって?
 6. **設計分岐の判断材料になるまで詰める** — エンティティ草案 (DB の前段) と権限マトリクス (RBAC の前段) を必ず出す
+7. **v3: 4 JSON 出力に下流連携フィールドを必ず含める** — `references/v3-extensions.md` の必須フィールド (mock_path / bf_meta / h1_text / kpi_labels / api_endpoints / ears_ac_seed / table_name / rls_policies / rls_predicate_expr) は null/欠落不可。値が無い場合は明示的に `[]` または `null` を書く (validator が形式チェックする)
+8. **v3: EARS 5 形式から外れた AC seed は書かない** — features の `ears_ac_seed` は UBIQUITOUS / EVENT-DRIVEN / STATE-DRIVEN / OPTIONAL / UNWANTED いずれかで始まる文に限定。自然文 (「正しく動くこと」等) は禁止
+9. **v3: 既存実装ありなら drift 検知モードを必ず起動** — STEP 1 で「既存実装あり/なし」を確認し、あり と回答されたら mock↔impl / spec↔router の比較を実施し `legacy_drift_notes` を出力
 
 ## 4 軸の分解構造
 
@@ -197,24 +200,34 @@ builtin: true
 
 ## STEP 構成
 
-### ▶ STEP 1: 要件定義からの自動展開
+### ▶ STEP 1: 要件定義からの自動展開 (v3: drift 検知モード対応)
 
 requirements の出力 (機能一覧 / ペルソナ / 画面リスト) を読み込み、4 カテゴリに自動展開する。
 
-**出力する内容:**
+**v3 必須: 起動時に drift 検知モードの要否を確認する。**
+
+最初の応答冒頭で必ず「既存実装あり/なし」を確認:
+- 既存実装あり (リファクタリング / 受託継続) → drift 検知モードを起動
+- 既存実装なし (新規) → 通常モード
+
+**出力する内容 (通常モード):**
 
 ```
 ## 自動展開結果
 
+### 動作モード
+- 既存実装: なし (新規プロジェクト)
+- drift 検知モード: 無効
+
 ### 画面 (Screens) — N 件
-| ID | 画面名 | 想定ロール | 概要 | チェックリスト数 |
-|---|---|---|---|---|
-| S-001 | 商品一覧 | ゲスト/一般/管理者 | グリッド表示・検索/フィルタ可 | 12 |
+| ID | 画面名 | 想定ロール | 概要 | mock_path 想定 | チェックリスト数 |
+|---|---|---|---|---|---|
+| S-001 | 商品一覧 | ゲスト/一般/管理者 | グリッド表示・検索/フィルタ可 | docs/mocks/<date>/<cat>/S-001-product-list.html | 12 |
 
 ### 機能 (Features) — N 件
-| ID | 機能名 | 種別 | 概要 | チェックリスト数 |
-|---|---|---|---|---|
-| F-001 | 認証 | 横断 | email/Google ログイン・2FA 検討 | 18 |
+| ID | 機能名 | 種別 | 概要 | api_endpoints 想定数 | チェックリスト数 |
+|---|---|---|---|---|---|
+| F-001 | 認証 | 横断 (auth) | email/Google ログイン・2FA 検討 | 6 endpoint | 18 |
 
 ### ロール (Roles) — N 件
 | ID | ロール名 | 想定ユーザー | 主な権限カテゴリ |
@@ -222,16 +235,48 @@ requirements の出力 (機能一覧 / ペルソナ / 画面リスト) を読み
 | R-001 | ゲスト | 未ログイン訪問者 | 閲覧のみ |
 
 ### エンティティ草案 (Entities) — N 件
-| ID | エンティティ | 主要フィールド (推定) | 関連 |
-|---|---|---|---|
-| E-001 | User | id/email/name/role | -< Order |
+| ID | エンティティ | table_name | 主要フィールド (推定) | tenant_isolation | rls_policies 想定数 |
+|---|---|---|---|---|---|
+| E-001 | User | users | id/email/name/role | account_scoped | 3 |
 
 ## 抜け検出 (要確認)
 以下は AI が確信を持てなかった項目です。STEP 2 に進む前に確認したい:
 - ロール: 編集者と管理者の境界が要件定義に明示されてない → R-XXX に分けるか統合するか
 - 機能: 通知 (メール/Push) は要件にあるが配信頻度・オプトアウトの方針が未定義
-- 画面: 管理ダッシュボードの KPI 種類が未定義
+- 画面: 管理ダッシュボードの KPI 種類が未定義 (h1_text と kpi_labels のドラフトが書けない)
 - (上記の必須機能群でこのプロダクトに該当しそうだが要件に明示なしのもの)
+
+## v3 拡張フィールド (各項目に必ず付与する)
+詳細: references/v3-extensions.md
+- screens: mock_path / bf_meta / h1_text / kpi_labels / section_h2_texts
+- features: api_endpoints (method/path/auth/inputs/outputs_2xx/outputs_4xx) / ears_ac_seed (EARS 5 形式)
+- entities: table_name (snake_case) / rls_policies[] / tenant_isolation
+- roles: object_constraints[].rls_predicate_expr
+```
+
+**drift 検知モード出力 (既存実装ありの場合):**
+
+```
+## 自動展開結果
+
+### 動作モード
+- 既存実装: あり (path: <user 指定>)
+- drift 検知モード: 有効
+
+### Drift 検知対象
+- mock HTML: docs/mocks/<dir>/ で N 件確認
+- backend router: backend/routers/ で N 件確認 (FastAPI endpoint 抽出)
+- frontend page: frontend/app/ で N 件確認
+
+### 検出した drift (legacy_drift_notes 候補)
+| ID | 種別 | 差分の概要 | severity | 推奨対応 |
+|---|---|---|---|---|
+| S-006 | h1 mismatch | mock: "10 案件 俯瞰" / impl: "AI 社員ダッシュボード" | high | task-decomposition Group D で改修 |
+| S-040 | section drift | mock: 8 tabs / impl: 5 tabs | medium | task-decomposition Group D / F |
+| F-001 → POST /api/auth/login | API 不在 | spec 宣言あり / backend 未実装 | critical | task-decomposition Group B-1 で実装 |
+
+### 画面 / 機能 / ロール / エンティティ
+(同上の通常モード表 + 各 item に legacy_drift_notes 列を追加)
 ```
 
 **抜け検出セクションは必ず 1 個以上の項目を出す。** 完全に網羅できる要件は存在しない前提で、未明示の項目を必ず洗い出す。
@@ -242,19 +287,21 @@ requirements の出力 (機能一覧 / ペルソナ / 画面リスト) を読み
 ---
 🔍 STEP 1 確認
 自動展開結果を確認してください。
+- 既存実装の有無に変更はないか (drift モード切替が必要なら指示してください)
 - 不足/過剰がないか
 - 抜け検出への回答
+- v3 拡張フィールドの想定 (mock_path / api_endpoints 数 / rls_policies 数) に違和感はないか
 - 問題なければ「STEP 2 へ」とお知らせください
 
 ※ 回答後に各項目を 1 つずつ詰めていきます
 ---
 ```
 
-### ▶ STEP 2: 各項目の深掘り (繰り返し)
+### ▶ STEP 2: 各項目の深掘り (繰り返し / v3 拡張フィールド対応)
 
 ユーザーが項目 ID を指定 (例: 「S-002 を詰める」「F-001 をやろう」) → その項目だけにスコープして詰める。
 
-**1 項目あたりの出力:**
+**1 項目あたりの出力 (v3):**
 
 ```
 ## [ID] [項目名] (kind: screen/feature/role/entity)
@@ -267,6 +314,30 @@ requirements の出力 (機能一覧 / ペルソナ / 画面リスト) を読み
 - [ ] CL-2: [確認事項] → 提案: [AI推奨案]
 ...
 
+### v3 拡張フィールド (種別ごとに必須)
+詳細スキーマ: references/v3-extensions.md
+
+**screen (S-XXX) の場合:**
+- mock_path: docs/mocks/<date>/<cat>/S-XXX-<slug>.html
+- bf_meta: { screen_id, screen_name, category, status, version }
+- h1_text: "<canonical h1 文字列>"
+- kpi_labels: ["...", "..."] (Dashboard 系のみ必須)
+- section_h2_texts: ["...", "..."]
+- responsive_breakpoints: ["mobile", "tablet", "desktop"]
+- (drift モード時) legacy_drift_notes: { mock_h1, impl_h1, diff_severity, recommendation, task_id }
+
+**feature (F-XXX) の場合:**
+- api_endpoints[]: [{ method, path, auth, inputs, outputs_2xx, outputs_4xx[], rate_limit, related_entities }]
+- ears_ac_seed[]: EARS 5 形式の AC ドラフト (UBIQUITOUS / EVENT-DRIVEN / STATE-DRIVEN / OPTIONAL / UNWANTED いずれか)
+
+**entity (E-XXX) の場合:**
+- table_name: <snake_case_plural> (bf_ prefix 禁止)
+- rls_policies[]: [{ name, operation, role, predicate, rationale }]
+- tenant_isolation: { type: account_scoped|workspace_scoped|user_scoped|none, column, fk_table }
+
+**role (R-XXX) の場合:**
+- object_constraints[] の各 entry に rls_predicate_expr (SQL 表現) を追加
+
 ### 私からの質問
 （チェックリストの中で特に重要・曖昧度が高い 2〜3 個に絞って質問）
 
@@ -275,18 +346,20 @@ requirements の出力 (機能一覧 / ペルソナ / 画面リスト) を読み
 ```
 
 各種別ごとの **標準チェックリストテンプレート** は `references/checklist-templates.md` を読み込んで使うこと。
-- 画面項目 (S-XXX): 12 項目
-- 機能項目 (F-XXX): 10 項目
+- 画面項目 (S-XXX): 12 項目 + v3 拡張 5 項目 (mock_path / bf_meta / h1_text / kpi_labels / section_h2_texts)
+- 機能項目 (F-XXX): 10 項目 + v3 拡張 2 項目 (api_endpoints / ears_ac_seed)
 - 認証機能 (F-XXX かつ category=auth): +8 項目 (2FA / パスワード / セッション / ロック / 退会等)
-- ロール項目 (R-XXX): 7 項目
-- エンティティ項目 (E-XXX): 8 項目
+- ロール項目 (R-XXX): 7 項目 + v3 拡張 1 項目 (rls_predicate_expr)
+- エンティティ項目 (E-XXX): 8 項目 + v3 拡張 3 項目 (table_name / rls_policies / tenant_isolation)
+
+**v3 拡張フィールドが draft 状態でも、チェックリストの一部として扱う**: in_review → decided 昇格には拡張フィールドも OK 必要。
 
 **ユーザー回答後の動き:**
-チャットでチェックリストを潰す → 全 OK で自動 `decided` 昇格 → サマリ提示 → 次の項目へ。
+チャットでチェックリストを潰す → 全 OK (v3 拡張も含む) で自動 `decided` 昇格 → サマリ提示 → 次の項目へ。
 
 ユーザーが「次は S-002」「F-001 から」など指定するまで、AI からは **次にやるべき優先項目** を 1 件提案して止まる。
 
-### ▶ STEP 3: 完了確認 + 出力
+### ▶ STEP 3: 完了確認 + 出力 (v3 拡張フィールド込み)
 
 全項目 (または必須項目すべて) が `decided` になったら STEP 3 へ。
 
@@ -295,37 +368,62 @@ requirements の出力 (機能一覧 / ペルソナ / 画面リスト) を読み
 ```
 ## 完了サマリー
 
-| 種別 | decided | blocked | 残 in_review |
-|---|---|---|---|
-| 画面 | N | N | 0 |
-| 機能 | N | N | 0 |
-| ロール | N | N | 0 |
-| エンティティ | N | N | 0 |
+| 種別 | decided | blocked | 残 in_review | v3 拡張完備 |
+|---|---|---|---|---|
+| 画面 | N | N | 0 | N/N (mock_path / bf_meta / h1_text 全て埋まり) |
+| 機能 | N | N | 0 | N/N (api_endpoints / ears_ac_seed 全て埋まり) |
+| ロール | N | N | 0 | N/N (rls_predicate_expr 全て埋まり) |
+| エンティティ | N | N | 0 | N/N (table_name / rls_policies / tenant_isolation 全て埋まり) |
+
+(drift モード時)
+| | drift 検出 | 改修 task 割当済 |
+| screen drift | N | N (task-decomposition Group D へ) |
+| API drift | N | N (Group B-1 へ) |
 
 ## アーキテクチャ設計への引き継ぎ事項
 - 認証: [決定内容] → 認証ライブラリ選定で考慮
 - 決済: [決定内容] → 決済代行選定で考慮
 - 検索: [決定内容] → 全文検索エンジン要否
 - ロール: N 種類 → RBAC ライブラリ要否
-- エンティティ: N 個 → DB スキーマ規模感
+- エンティティ: N 個 → DB スキーマ規模感 / RLS policy 合計 N 件
 - 外部サービス依存: [一覧]
 
-## 出力 (4 形式)
-1. screens.json
-2. features.json
-3. roles.json
-4. entities.json
+## task-decomposition への引き継ぎ事項 (v3)
+- screens.json の各 item の bf_meta / mock_path / h1_text / kpi_labels → task の screen_ids + Tier 1 structural AC 用
+- features.json の api_endpoints → task の files_changed (backend/routers/...) + Tier 2 functional AC の source
+- features.json の ears_ac_seed → task の acceptance_criteria.functional に直接コピー
+- entities.json の rls_policies → task の rls_policies_required + Tier 2 functional AC
+- entities.json の table_name → lint #19 entity-table-naming の検証対象
+- (drift モード時) legacy_drift_notes → task-decomposition Group D 入力
+
+## CI gate との連携
+- lint #17 mock-impl-diff: screens.h1_text / kpi_labels / section_h2_texts / mock_path を使用
+- lint #18 screens-API: features.api_endpoints の method+path を使用
+- lint #19 entity-table-naming: entities.table_name を使用
+- verify-rls-coverage.py: entities.rls_policies を使用
+- validate-ears-ac.py: features.ears_ac_seed の EARS 5 形式準拠を検証
+
+## 出力 (4 形式 + 任意 1)
+1. screens.json (v3 拡張フィールド込み)
+2. features.json (v3 拡張フィールド込み)
+3. roles.json (v3 拡張フィールド込み)
+4. entities.json (v3 拡張フィールド込み)
++ (任意) addendum.json (ADR 起票後の差分時のみ。命名: <date>-<adr-id>-addendum.json)
 + ブログ記事風 HTML (functional-breakdown.html)
 ```
 
 ## 出力 JSON スキーマ
 
-詳細は `references/output-schemas.md` 参照。概略:
+詳細は以下の 2 ファイル参照:
+- `references/output-schemas.md` — v1 ベースの完全スキーマ (フィールド型 / status 遷移 / architecture-design 引き継ぎマッピング)
+- `references/v3-extensions.md` — **v3 で追加した必須フィールド** (mock_path / bf_meta / h1_text / kpi_labels / api_endpoints / ears_ac_seed / table_name / rls_policies / rls_predicate_expr / tenant_isolation / legacy_drift_notes) + 下流連携先 (task-decomposition / lint #17-19 / verify-rls-coverage / validate-ears-ac.py) / drift 検知モードの詳細
 
-- **screens.json**: items[] = { id, name, fields[], layout, actions[], states[], transitions, responsive, access_roles[], edit_roles[], related_apis[], related_entities[], checklist[], decided_at }
-- **features.json**: items[] = { id, name, category, happy_path[], error_paths[], policies, notifications[], audit_logs[], access_roles[], external_services[], related_screens[], related_entities[], checklist[], decided_at }
-- **roles.json**: roles[] + matrix{} + object_constraints[]
-- **entities.json**: entities[] = { id, name, fields[], relations[], soft_delete, timestamps, tenant_field, indexes[], computed[] }
+概略 (v3 拡張込み):
+
+- **screens.json**: items[] = { id, name, fields[], layout, actions[], states[], transitions, responsive, access_roles[], edit_roles[], related_apis[], related_entities[], checklist[], decided_at, **mock_path, bf_meta, h1_text, kpi_labels, section_h2_texts, responsive_breakpoints, legacy_drift_notes** }
+- **features.json**: items[] = { id, name, category, happy_path[], error_paths[], policies, notifications[], audit_logs[], access_roles[], external_services[], related_screens[], related_entities[], checklist[], decided_at, **api_endpoints[], ears_ac_seed[]** }
+- **roles.json**: roles[] + matrix{} + object_constraints[] (object_constraint に **rls_predicate_expr** 追加)
+- **entities.json**: entities[] = { id, name, fields[], relations[], soft_delete, timestamps, tenant_field, indexes[], computed[], **table_name, rls_policies[], tenant_isolation** }
 
 ## 出力 HTML
 

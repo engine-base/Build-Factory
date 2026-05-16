@@ -1,6 +1,7 @@
 {
   "skill_name": "functional-breakdown",
-  "description": "要件定義 → 設計分岐の前段で、画面/機能/ロール/エンティティを項目単位で詰めるスキルのテスト",
+  "version": "v3-2026-05-15",
+  "description": "要件定義 → 設計分岐の前段で、画面/機能/ロール/エンティティを項目単位で詰めるスキルのテスト (v3: mock linking / RLS / EARS AC seed / API endpoint 拡張)",
   "evals": [
     {
       "id": "fb-eval-1",
@@ -13,23 +14,27 @@
         "Roles 表に最低 3 件 (ゲスト/一般/管理者)",
         "Entities 草案に 6 件以上 (User/Product/Order/Cart/Review/Payment 等)",
         "抜け検出セクションに具体的な未確認項目が挙がっている",
-        "STEP 1 末尾で『STEP 2 へ』のメッセージで止まっている"
+        "STEP 1 末尾で『STEP 2 へ』のメッセージで止まっている",
+        "v3: drift 検知モード使用可否を STEP 1 で確認していること (既存実装あり/なしの選択)",
+        "v3: Screens 表に mock_path 想定列が含まれているか言及"
       ],
       "assertions": [
         {"id": "format_no_preface", "check": "応答冒頭が '##' で始まる (前置き禁止)"},
         {"id": "screens_count", "check": "Screens 表に 8 件以上"},
         {"id": "features_count", "check": "Features 表に 6 件以上"},
         {"id": "auth_in_features", "check": "Features に認証 (auth) が含まれる"},
-        {"id": "payment_in_features", "check": "Features に決済関連が含まれる (Stripe を踏まえた categoryで)"},
+        {"id": "payment_in_features", "check": "Features に決済関連が含まれる (Stripe を踏まえた category で)"},
         {"id": "roles_count", "check": "Roles 表に 3 件以上 (guest/user/admin 相当)"},
         {"id": "entities_count", "check": "Entities 草案に 6 件以上 (User/Product/Order 含む)"},
         {"id": "gap_detection", "check": "抜け検出セクションが空でなく、要件未明示の項目を具体的に列挙"},
-        {"id": "stops_at_step1", "check": "STEP 1 で止まり STEP 2 を勝手に開始しない"}
+        {"id": "stops_at_step1", "check": "STEP 1 で止まり STEP 2 を勝手に開始しない"},
+        {"id": "v3_drift_mode_asked", "check": "v3 drift 検知モード (既存実装あり/なし) を確認している"},
+        {"id": "v3_mock_path_mentioned", "check": "screens に mock_path フィールドが入る旨を言及している"}
       ]
     },
     {
       "id": "fb-eval-2",
-      "title": "認証機能 (F-001) の深掘り",
+      "title": "認証機能 (F-001) の深掘り (v3 EARS + api_endpoints 含む)",
       "prompt": "F-001 の認証機能を STEP 2 で詰めたい。要件は: BtoB SaaS / 法人ユーザー前提 / メール+パス + Google Workspace SSO / 管理者は 2FA 必須 / 退会は 90 日猶予で論理削除。漏れなくチェックリスト出してくれ。",
       "expected_behavior": [
         "1 項目スコープで応答 (F-001 のみを扱う)",
@@ -37,7 +42,9 @@
         "標準 F チェックリスト 10 項目を全て含む",
         "auth カテゴリなので追加 8 項目 (CL-AUTH-1〜8) も全て含む",
         "BtoB / SSO / 管理者 2FA 必須 / 90 日猶予の文脈が反映された AI 推奨案",
-        "質問は重要度高い項目に絞られている (全部聞かない)"
+        "質問は重要度高い項目に絞られている (全部聞かない)",
+        "v3: api_endpoints のドラフト (method/path/auth/inputs/outputs_2xx/outputs_4xx) を含む",
+        "v3: ears_ac_seed のドラフト (EVENT-DRIVEN / UNWANTED 形式) を含む"
       ],
       "assertions": [
         {"id": "scoped_to_f001", "check": "F-001 のみを扱い、他項目を出していない"},
@@ -49,12 +56,14 @@
         {"id": "context_reflected_sso", "check": "推奨案に SSO (Google Workspace) が反映されている"},
         {"id": "context_reflected_2fa_admin", "check": "2FA は管理者必須が反映されている"},
         {"id": "context_reflected_grace", "check": "退会フローに 90 日猶予が反映されている"},
-        {"id": "questions_focused", "check": "質問は 2〜3 個に絞られている"}
+        {"id": "questions_focused", "check": "質問は 2〜3 個に絞られている"},
+        {"id": "v3_api_endpoints", "check": "api_endpoints のドラフトに POST /api/auth/login + POST /api/auth/logout + POST /api/auth/2fa/verify を含む"},
+        {"id": "v3_ears_ac_seed", "check": "ears_ac_seed に EVENT-DRIVEN + UNWANTED 形式の EARS 文が最低 3 件含まれる"}
       ]
     },
     {
       "id": "fb-eval-3",
-      "title": "全項目 decided 後の STEP 3 出力",
+      "title": "全項目 decided 後の STEP 3 出力 (v3 rls_policies + bf_meta 含む)",
       "prompt": "全部の項目 decided になった。STEP 3 で完了サマリーと 4 JSON + ブログ風 HTML 出して。Screens 8件 / Features 7件 / Roles 4件 / Entities 9件 で全部 decided 状態。",
       "expected_behavior": [
         "完了サマリーテーブル",
@@ -62,14 +71,41 @@
         "screens.json / features.json / roles.json / entities.json の 4 形式言及",
         "ブログ記事風 HTML への参照",
         "引き継ぎに認証/決済/検索/ロール/エンティティ等のキーが出る",
-        "外部サービス依存の一覧化"
+        "外部サービス依存の一覧化",
+        "v3: screens.json の各 item に mock_path / bf_meta / h1_text / kpi_labels / section_h2_texts を含む旨を明示",
+        "v3: entities.json の各 item に table_name / rls_policies[] / tenant_isolation を含む旨を明示",
+        "v3: features.json の各 item に api_endpoints / ears_ac_seed を含む旨を明示",
+        "v3: 下流連携先 (task-decomposition / lint #17-19 / verify-rls-coverage / validate-ears-ac.py) への引き継ぎを明記"
       ],
       "assertions": [
         {"id": "summary_table", "check": "完了サマリーテーブルが含まれる"},
         {"id": "handoff_section", "check": "## アーキテクチャ設計への引き継ぎ事項 が存在"},
         {"id": "all_4_json", "check": "screens.json / features.json / roles.json / entities.json の 4 つ全て言及"},
         {"id": "html_output_mentioned", "check": "ブログ記事風 HTML への言及"},
-        {"id": "handoff_categories", "check": "引き継ぎに認証/ロール/エンティティ規模/外部依存のいずれかが言及される"}
+        {"id": "handoff_categories", "check": "引き継ぎに認証/ロール/エンティティ規模/外部依存のいずれかが言及される"},
+        {"id": "v3_screens_extensions", "check": "screens.json の v3 拡張フィールド (mock_path / bf_meta / h1_text) を明示"},
+        {"id": "v3_entities_rls", "check": "entities.json の rls_policies[] と table_name を明示"},
+        {"id": "v3_features_api_endpoints", "check": "features.json の api_endpoints + ears_ac_seed を明示"},
+        {"id": "v3_downstream_links", "check": "task-decomposition / lint #17-19 / verify-rls-coverage / validate-ears-ac.py のいずれかへの連携が言及される"}
+      ]
+    },
+    {
+      "id": "fb-eval-4-v3-new",
+      "title": "v3 新規: drift 検知モード (既存実装あり)",
+      "prompt": "既存の受託案件のリファクタです。docs/mocks/2026-05-15_v3/ にモック 64 件、backend/routers/ に既存 router 40+ 件、frontend/app/ に既存 page.tsx 22 件あります。STEP 1 で drift 検知モードを起動して、既存実装と spec の不整合を洗い出してほしい。",
+      "expected_behavior": [
+        "drift 検知モードが起動していることを明示",
+        "screens の auto-展開結果に legacy_drift_notes の列または注記が含まれる",
+        "mock ↔ 実装で h1 / KPI / section が違う候補を最低 1 件以上挙げる",
+        "backend router に存在する endpoint と spec の related_apis を比較した結果を示す",
+        "task-decomposition の Group D (重大 drift 修正) の input となる旨を明示"
+      ],
+      "assertions": [
+        {"id": "drift_mode_announced", "check": "drift 検知モードが起動した旨を明示"},
+        {"id": "drift_notes_in_screens", "check": "screens の出力に legacy_drift_notes に関する言及がある"},
+        {"id": "drift_candidates_listed", "check": "mock-impl drift 候補を最低 1 件挙げる"},
+        {"id": "api_drift_compared", "check": "backend router ↔ spec related_apis の比較を行う旨を示す"},
+        {"id": "group_d_handoff", "check": "task-decomposition の Group D (重大 drift 修正) の input となる旨を明示"}
       ]
     }
   ]

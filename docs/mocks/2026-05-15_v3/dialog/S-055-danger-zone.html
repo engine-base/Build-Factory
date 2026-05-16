@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-055 Danger Zone — Build-Factory</title>
+<meta name="bf-screen-id" content="S-055"><meta name="bf-screen-name" content="danger_zone"><meta name="bf-category" content="dialog"><meta name="bf-status" content="wip"><meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>tailwind.config={theme:{extend:{colors:{eb:{50:'#f0faf5',500:'#1a6648'}},fontFamily:{sans:['"Noto Sans JP"','sans-serif'],mono:['"JetBrains Mono"','monospace']}}}};</script>
+<style>body{font-family:'Noto Sans JP',sans-serif;line-height:1.7}.mono{font-family:'JetBrains Mono',monospace}</style>
+</head>
+<body class="bg-slate-900/60 min-h-screen flex items-center justify-center px-6">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+<div class="bg-white rounded-xl shadow-2xl max-w-[480px] w-full p-6 border-2 border-red-200">
+  <div class="flex items-start gap-3 mb-4">
+    <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0"><i data-lucide="skull" class="w-5 h-5 text-red-700"></i></div>
+    <div>
+      <h2 class="text-base font-bold text-red-700">アカウントを完全削除</h2>
+      <p class="text-sm text-slate-700 mt-1.5 leading-relaxed font-semibold">この操作は<strong class="text-red-700">完全に取り消し不能</strong>です。</p>
+    </div>
+  </div>
+  <div class="bg-red-50 border-2 border-red-300 rounded-md p-3 mb-4 space-y-1.5 text-xs text-red-900">
+    <div class="flex gap-1.5"><i data-lucide="x" class="w-3 h-3 mt-0.5 shrink-0"></i><span>全 10 案件のデータが削除されます</span></div>
+    <div class="flex gap-1.5"><i data-lucide="x" class="w-3 h-3 mt-0.5 shrink-0"></i><span>全メンバー (8 人) のアクセスが解除されます</span></div>
+    <div class="flex gap-1.5"><i data-lucide="x" class="w-3 h-3 mt-0.5 shrink-0"></i><span>請求は当月末に最終決済 (¥8,420)</span></div>
+    <div class="flex gap-1.5"><i data-lucide="x" class="w-3 h-3 mt-0.5 shrink-0"></i><span>30 日後に物理削除 (バックアップも削除)</span></div>
+  </div>
+  <div class="space-y-2 mb-4">
+    <label class="text-sm font-medium block">アカウント名 <span class="mono bg-slate-100 px-1.5 py-0.5 rounded">ENGINE BASE</span> を入力</label>
+    <input type="text" placeholder="ENGINE BASE" class="border border-red-300 text-sm h-10 px-3 rounded-md w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400" />
+    <label class="flex items-start gap-2 text-xs cursor-pointer pt-1"><input type="checkbox" class="w-4 h-4 mt-0.5 accent-red-600" /><span class="text-slate-700">不可逆な削除であることを理解し、データを全てエクスポート済みです</span></label>
+  </div>
+  <div class="flex items-center justify-end gap-2">
+    <button class="border border-slate-200 hover:bg-slate-50 text-sm h-10 px-5 rounded-md font-semibold">キャンセル</button>
+    <button class="bg-red-600 hover:bg-red-700 text-white text-sm h-10 px-5 rounded-md font-bold disabled:opacity-50">完全削除する</button>
+  </div>
+</div>
+<script>lucide.createIcons();</script>
+</body></html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-045 500 Server Error — Build-Factory</title>
+<meta name="bf-screen-id" content="S-045"><meta name="bf-screen-name" content="server_error_500"><meta name="bf-category" content="system">
+<meta name="bf-feature-id" content="F-system"><meta name="bf-status" content="wip"><meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>tailwind.config={theme:{extend:{colors:{eb:{50:'#f0faf5',100:'#d3f0e0',500:'#1a6648',600:'#155238',700:'#103e2a'}},fontFamily:{sans:['"Noto Sans JP"','sans-serif'],mono:['"JetBrains Mono"','monospace']}}}};</script>
+<style>body{font-family:'Noto Sans JP',sans-serif;line-height:1.7}.mono{font-family:'JetBrains Mono',monospace}.tabular{font-variant-numeric:tabular-nums}</style>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+<header class="px-6 py-4 border-b border-slate-200 bg-white"><div class="flex items-center gap-2"><div class="w-7 h-7 rounded-md bg-eb-500 flex items-center justify-center"><i data-lucide="factory" class="w-4 h-4 text-white"></i></div><div class="text-sm font-bold">Build-Factory</div></div></header>
+<main class="flex-1 flex items-center justify-center px-6">
+  <div class="text-center max-w-md">
+    <div class="inline-flex w-20 h-20 rounded-full bg-red-50 items-center justify-center mb-4"><i data-lucide="alert-octagon" class="w-10 h-10 text-red-600"></i></div>
+    <div class="text-[100px] font-bold tabular text-red-600 leading-none">500</div>
+    <h1 class="text-2xl font-bold mt-4">サーバーエラー</h1>
+    <p class="text-sm text-slate-600 mt-2">一時的な問題が発生しています。少し時間をおいて再度お試しください。</p>
+
+    <div class="mt-6 bg-white border border-red-200 rounded-md p-4 text-left">
+      <div class="text-[10px] uppercase tracking-wider text-red-600 font-bold mb-2">エラー詳細</div>
+      <div class="space-y-1.5 text-xs mono">
+        <div class="flex"><span class="text-slate-500 w-24">error_id:</span><span>err_a3f8c29b71</span></div>
+        <div class="flex"><span class="text-slate-500 w-24">timestamp:</span><span>2026-05-15 14:42:11 UTC+9</span></div>
+        <div class="flex"><span class="text-slate-500 w-24">path:</span><span>POST /api/workspaces/.../tasks</span></div>
+        <div class="flex"><span class="text-slate-500 w-24">status:</span><span class="text-red-600 font-bold">500 Internal Server Error</span></div>
+      </div>
+      <div class="mt-3 pt-3 border-t border-slate-100 text-[11px] text-slate-500">問題は自動的に開発チームに通知されました</div>
+    </div>
+
+    <div class="mt-6 flex items-center justify-center gap-3">
+      <button class="border border-slate-200 hover:bg-slate-50 text-sm h-10 px-5 rounded-md flex items-center gap-2"><i data-lucide="rotate-cw" class="w-4 h-4"></i>再試行</button>
+      <a href="../account/S-006-account-dashboard.html" class="bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-10 px-5 rounded-md flex items-center gap-2"><i data-lucide="home" class="w-4 h-4"></i>ダッシュボードへ</a>
+    </div>
+    <div class="text-xs text-slate-500 mt-6">5 分以上続く場合 <a class="text-eb-500 hover:underline">サポートに連絡 (error_id を伝えてください)</a></div>
+  </div>
+</main>
+<script>lucide.createIcons();</script>
+</body></html>

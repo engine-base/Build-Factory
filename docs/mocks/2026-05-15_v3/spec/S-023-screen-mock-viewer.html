@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-023 画面モックビューア — Build-Factory</title>
+<meta name="bf-screen-id" content="S-023">
+<meta name="bf-screen-name" content="screen_mock_viewer">
+<meta name="bf-category" content="spec">
+<meta name="bf-feature-id" content="F-005b">
+<meta name="bf-task-ids" content="T-V3-SCR-08,T-V3-DB-05">
+<meta name="bf-entities" content="E-022,E-023">
+<meta name="bf-related-apis" content="GET /api/workspaces/{id}/mocks,GET /api/workspaces/{id}/mocks/{screen_id}">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-023">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; } .mono { font-family: 'JetBrains Mono', monospace; }</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(8px);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+
+<aside class="w-[240px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-4 border-b border-eb-600"><div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div><div class="text-sm font-bold mt-1">Build-Factory dogfood</div></div>
+  <nav class="flex-1 px-2 py-3 text-sm space-y-0.5 overflow-y-auto">
+    <a href="../workspace/S-012-workspace-dashboard.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> ダッシュボード</a>
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-3 pb-1 font-bold">Spec</div>
+    <a href="./S-020-hearing-session.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="mic" class="w-4 h-4"></i> ヒアリング</a>
+    <a href="./S-021-requirements-editor.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="file-text" class="w-4 h-4"></i> 要件エディタ</a>
+    <a href="./S-022-spec-viewer.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="book-open" class="w-4 h-4"></i> 仕様書</a>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 bg-eb-600 font-semibold"><i data-lucide="layout" class="w-4 h-4"></i> 画面 Mock</a>
+    <a href="./S-024-component-catalog.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="box" class="w-4 h-4"></i> Components</a>
+    <a href="./S-025-screen-flow-map.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="map" class="w-4 h-4"></i> Flow Map</a>
+    <a href="./S-026-design-html-editor.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100"><i data-lucide="edit-3" class="w-4 h-4"></i> HTML エディタ</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-eb-500 flex items-center justify-center text-[11px] font-bold mono">M</div><div class="flex-1 min-w-0"><div class="text-[11px] font-semibold truncate">masato</div></div></div>
+</aside>
+
+<main class="flex-1 flex flex-col overflow-hidden">
+  <div class="px-6 py-3 border-b border-slate-200 bg-white flex items-center justify-between flex-shrink-0">
+    <div>
+      <h1 class="text-lg font-bold flex items-center gap-2"><i data-lucide="layout" class="w-5 h-5 text-eb-500"></i> 画面モックビューア</h1>
+      <p class="text-xs text-slate-500 mt-0.5">仕様画面の HTML mock を iframe でプレビュー / レスポンシブ確認</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <select class="border border-slate-200 bg-white text-sm h-9 px-3 rounded-md text-xs">
+        <option>S-006 アカウントダッシュ</option><option>S-012 案件ダッシュ</option><option>S-027 タスク Kanban</option>
+      </select>
+      <a href="./S-026-design-html-editor.html" class="bg-eb-500 hover:bg-eb-600 text-white text-sm font-semibold h-9 px-4 rounded-md flex items-center gap-2"><i data-lucide="edit-3" class="w-4 h-4"></i> HTML エディタで開く</a>
+    </div>
+  </div>
+
+  <!-- Screen list + preview area -->
+  <div class="flex-1 grid grid-cols-[220px_1fr_280px] overflow-hidden">
+    <!-- Screen list -->
+    <aside class="border-r border-slate-200 bg-white overflow-y-auto">
+      <div class="px-3 py-2 border-b border-slate-200 sticky top-0 bg-white">
+        <input type="search" placeholder="検索..." class="w-full border border-slate-200 text-xs h-8 px-2 rounded-md focus-visible:outline-none focus-visible:border-eb-500" />
+      </div>
+      <div class="p-2 space-y-0.5 text-sm">
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold px-2 pt-2 pb-1">Account (6)</div>
+        <a class="block px-2 py-1.5 rounded-md bg-eb-50 text-eb-700 font-semibold mono text-xs">S-006 dashboard</a>
+        <a class="block px-2 py-1.5 rounded-md hover:bg-slate-50 mono text-xs">S-007 settings</a>
+        <a class="block px-2 py-1.5 rounded-md hover:bg-slate-50 mono text-xs">S-008 members</a>
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold px-2 pt-3 pb-1">Workspace (4)</div>
+        <a class="block px-2 py-1.5 rounded-md hover:bg-slate-50 mono text-xs">S-012 dashboard</a>
+        <a class="block px-2 py-1.5 rounded-md hover:bg-slate-50 mono text-xs">S-013 settings</a>
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold px-2 pt-3 pb-1">Task (4)</div>
+        <a class="block px-2 py-1.5 rounded-md hover:bg-slate-50 mono text-xs">S-027 kanban</a>
+        <a class="block px-2 py-1.5 rounded-md hover:bg-slate-50 mono text-xs">S-029 dag</a>
+      </div>
+    </aside>
+
+    <!-- Preview iframe -->
+    <div class="flex flex-col overflow-hidden">
+      <!-- Device toolbar -->
+      <div class="px-4 py-2 border-b border-slate-200 bg-slate-50 flex items-center gap-2">
+        <button class="px-3 py-1 rounded-md bg-white border border-eb-500 text-eb-500 text-xs font-semibold flex items-center gap-1"><i data-lucide="monitor" class="w-3 h-3"></i>Desktop (1280px)</button>
+        <button class="px-3 py-1 rounded-md hover:bg-white text-slate-600 text-xs flex items-center gap-1"><i data-lucide="tablet" class="w-3 h-3"></i>Tablet</button>
+        <button class="px-3 py-1 rounded-md hover:bg-white text-slate-600 text-xs flex items-center gap-1"><i data-lucide="smartphone" class="w-3 h-3"></i>Mobile</button>
+        <div class="ml-auto flex items-center gap-2 text-xs text-slate-500">
+          <button class="px-2 py-1 rounded hover:bg-white"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i></button>
+          <button class="px-2 py-1 rounded hover:bg-white"><i data-lucide="external-link" class="w-3.5 h-3.5"></i></button>
+        </div>
+      </div>
+      <!-- iframe simulation -->
+      <div class="flex-1 bg-slate-100 p-6 overflow-auto flex items-start justify-center">
+        <div class="w-full max-w-[1280px] aspect-[16/10] bg-white shadow-lg rounded border border-slate-200 overflow-hidden">
+          <div class="h-full flex">
+            <div class="w-[180px] bg-eb-700 text-white flex flex-col text-xs">
+              <div class="px-3 py-3 border-b border-eb-600"><div class="text-[8px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div><div class="font-bold mt-1">ENGINE BASE</div></div>
+              <nav class="flex-1 px-1.5 py-2 space-y-0.5">
+                <div class="px-2 py-1 rounded bg-eb-600 font-semibold flex items-center gap-1.5 text-[10px]"><i data-lucide="layout-dashboard" class="w-3 h-3"></i>10 案件 俯瞰</div>
+                <div class="px-2 py-1 rounded text-eb-100 flex items-center gap-1.5 text-[10px]"><i data-lucide="users" class="w-3 h-3"></i>メンバー</div>
+                <div class="px-2 py-1 rounded text-eb-100 flex items-center gap-1.5 text-[10px]"><i data-lucide="settings" class="w-3 h-3"></i>設定</div>
+              </nav>
+            </div>
+            <div class="flex-1 p-4 overflow-hidden">
+              <div class="text-[8px] uppercase tracking-wider text-slate-500 font-bold">Account Dashboard</div>
+              <div class="text-base font-bold mt-0.5">10 案件 俯瞰</div>
+              <div class="grid grid-cols-4 gap-2 mt-3">
+                <div class="border border-slate-200 rounded p-2"><div class="text-[7px] uppercase text-slate-500">Active</div><div class="text-base font-bold mono">7/10</div></div>
+                <div class="border border-slate-200 rounded p-2"><div class="text-[7px] uppercase text-slate-500">Sessions</div><div class="text-base font-bold mono">12/50</div></div>
+                <div class="border border-slate-200 rounded p-2"><div class="text-[7px] uppercase text-slate-500">Cost</div><div class="text-base font-bold mono">¥8,420</div></div>
+                <div class="border border-red-200 rounded p-2"><div class="text-[7px] uppercase text-red-600">Anomalies</div><div class="text-base font-bold mono text-red-600">3</div></div>
+              </div>
+              <div class="mt-3 border border-slate-200 rounded p-3 text-[10px]">
+                <div class="font-bold mb-2">Workspaces (10)</div>
+                <div class="space-y-1 text-slate-600">
+                  <div class="flex justify-between"><span>Build-Factory dogfood</span><span class="mono">P1 · 64%</span></div>
+                  <div class="flex justify-between"><span>ABC 社</span><span class="mono">P2 · 88%</span></div>
+                  <div class="flex justify-between"><span>XYZ 社</span><span class="mono">P1 · 32%</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: linked spec / components / comments -->
+    <aside class="border-l border-slate-200 bg-white overflow-y-auto">
+      <div class="px-4 py-3 border-b border-slate-200 flex items-center gap-2"><i data-lucide="info" class="w-4 h-4 text-eb-500"></i><span class="text-sm font-bold">S-006 詳細</span></div>
+
+      <div class="p-4 border-b border-slate-200">
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">関連仕様</div>
+        <a class="block bg-eb-50 text-eb-700 border border-eb-200 px-2 py-1.5 rounded-md text-xs font-medium hover:bg-eb-100"><i data-lucide="link" class="w-3 h-3 inline-block mr-1"></i>requirements / M-1 認証</a>
+      </div>
+
+      <div class="p-4 border-b border-slate-200">
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">使用コンポーネント (8)</div>
+        <div class="flex flex-wrap gap-1 text-[11px]">
+          <span class="bg-slate-100 px-2 py-0.5 rounded mono">Sidebar</span>
+          <span class="bg-slate-100 px-2 py-0.5 rounded mono">KpiCard</span>
+          <span class="bg-slate-100 px-2 py-0.5 rounded mono">Table</span>
+          <span class="bg-slate-100 px-2 py-0.5 rounded mono">Badge</span>
+          <span class="bg-slate-100 px-2 py-0.5 rounded mono">AiEmployeeChip</span>
+          <span class="bg-slate-100 px-2 py-0.5 rounded mono">Progress</span>
+        </div>
+      </div>
+
+      <div class="p-4 border-b border-slate-200">
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">レスポンシブ</div>
+        <div class="space-y-1.5 text-xs">
+          <div class="flex items-center justify-between"><span>Desktop (1280px+)</span><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i></div>
+          <div class="flex items-center justify-between"><span>Tablet (768px)</span><span class="text-slate-500">閲覧専用</span></div>
+          <div class="flex items-center justify-between"><span>Mobile (&lt;640px)</span><span class="text-slate-500">PC 推奨表示</span></div>
+        </div>
+      </div>
+
+      <div class="p-4">
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">コメント (2)</div>
+        <div class="space-y-2 text-xs">
+          <div class="border border-slate-200 rounded-md p-2">
+            <div class="flex items-center gap-1.5 mb-0.5"><span class="font-semibold">client_abc</span><span class="text-slate-500 mono ml-auto">3h</span></div>
+            <p class="text-slate-700">予算進捗をもう少し大きく表示できますか？</p>
+          </div>
+        </div>
+        <textarea class="border border-slate-200 bg-white text-xs px-2 py-1.5 rounded-md w-full min-h-[50px] mt-3" placeholder="コメント..."></textarea>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

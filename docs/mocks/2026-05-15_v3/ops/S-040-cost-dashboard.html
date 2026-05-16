@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-040 コスト ダッシュボード — Build-Factory</title>
+<meta name="bf-screen-id" content="S-040">
+<meta name="bf-screen-name" content="cost_dashboard">
+<meta name="bf-category" content="ops">
+<meta name="bf-feature-id" content="F-017">
+<meta name="bf-task-ids" content="T-V3-RF-21,T-V3-DRIFT-05">
+<meta name="bf-entities" content="E-027,E-028">
+<meta name="bf-related-apis" content="GET /api/observability/cost-summary,GET /api/observability/cost-summary/export.csv,POST /api/workspaces/{id}/token-limit">
+<meta name="bf-spec-link" content="../../../functional-breakdown/2026-05-09_v1/screens.json#S-040">
+<meta name="bf-design-link" content="../../design-system/DESIGN.md">
+<meta name="bf-status" content="wip">
+<meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { eb: { 50:'#f0faf5', 100:'#d3f0e0', 400:'#34b164', 500:'#1a6648', 600:'#155238', 700:'#103e2a' } },
+    fontFamily: { sans: ['"Noto Sans JP"','sans-serif'], mono: ['"JetBrains Mono"','monospace'] }
+  }}};
+</script>
+<style>body { font-family: 'Noto Sans JP', sans-serif; line-height: 1.7; } .mono { font-family: 'JetBrains Mono', monospace; } .tabular { font-variant-numeric: tabular-nums; }</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(8px);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+
+<aside class="w-[240px] bg-eb-700 text-white flex flex-col shrink-0">
+  <div class="px-5 py-4 border-b border-eb-600"><div class="text-[11px] tracking-widest text-eb-100 font-bold">BUILD-FACTORY</div></div>
+  <nav class="flex-1 px-2 py-3 space-y-0.5">
+    <a href="../account/S-006-account-dashboard.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100 text-sm"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Account</a>
+    <div class="text-[10px] uppercase tracking-wider text-eb-200 px-3 pt-3 pb-1 font-bold">Ops</div>
+    <a href="./S-039-knowledge-base.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100 text-sm"><i data-lucide="book" class="w-4 h-4"></i> ナレッジ</a>
+    <a class="px-3 py-1.5 rounded-md flex items-center gap-2 bg-eb-600 font-semibold text-sm"><i data-lucide="wallet" class="w-4 h-4"></i> コスト</a>
+    <a href="./S-041-audit-log-viewer.html" class="px-3 py-1.5 rounded-md flex items-center gap-2 hover:bg-eb-600 text-eb-100 text-sm"><i data-lucide="activity" class="w-4 h-4"></i> 監査ログ</a>
+  </nav>
+  <div class="px-4 py-3 border-t border-eb-600 flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-eb-500 flex items-center justify-center text-[11px] font-bold mono">M</div><div class="flex-1 min-w-0"><div class="text-[11px] font-semibold truncate">masato</div></div></div>
+</aside>
+
+<main class="flex-1 overflow-y-auto">
+  <div class="px-6 py-4 border-b border-slate-200 bg-white">
+    <div class="flex items-end justify-between mb-3">
+      <div><h1 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="wallet" class="w-6 h-6 text-eb-500"></i> コスト ダッシュボード</h1><p class="text-sm text-slate-600 mt-1">8 ディメンション集計 / トークン消費 / 予算アラート</p></div>
+      <div class="flex items-center gap-2">
+        <input type="date" value="2026-05-01" class="border border-slate-200 text-xs h-8 px-2 rounded-md" />
+        <span class="text-xs text-slate-500">→</span>
+        <input type="date" value="2026-05-15" class="border border-slate-200 text-xs h-8 px-2 rounded-md" />
+        <button class="border border-slate-200 hover:bg-slate-50 text-sm h-8 px-3 rounded-md flex items-center gap-2"><i data-lucide="download" class="w-3.5 h-3.5"></i>CSV</button>
+        <button class="bg-eb-500 hover:bg-eb-600 text-white text-sm h-8 px-3 rounded-md font-semibold flex items-center gap-2"><i data-lucide="bell" class="w-3.5 h-3.5"></i>予算アラート設定</button>
+      </div>
+    </div>
+
+    <!-- Tabs (8) -->
+    <div class="flex gap-0 -mb-px overflow-x-auto">
+      <button class="px-4 py-2 text-sm font-medium border-b-2 border-eb-500 text-slate-900 whitespace-nowrap">overview</button>
+      <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-900 whitespace-nowrap">daily</button>
+      <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-900 whitespace-nowrap">monthly</button>
+      <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-900 whitespace-nowrap">provider</button>
+      <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-900 whitespace-nowrap">model</button>
+      <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-900 whitespace-nowrap">by_user</button>
+      <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-900 whitespace-nowrap">by_workspace</button>
+      <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-900 whitespace-nowrap">by_session</button>
+      <button class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-900 whitespace-nowrap">alert_threshold</button>
+    </div>
+  </div>
+
+  <div class="max-w-[1400px] mx-auto px-6 py-6">
+    <!-- 3 KPI cards -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">今月コスト</div>
+        <div class="text-[28px] font-bold tabular leading-none">¥8,420</div>
+        <div class="text-xs text-slate-500 mt-1">予算 ¥30,000 (28%)</div>
+        <div class="mt-2 h-1 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-eb-500" style="width: 28%"></div></div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">トークン (今月)</div>
+        <div class="text-[28px] font-bold tabular leading-none">42.8<span class="text-base text-slate-500 font-normal">M</span></div>
+        <div class="text-xs text-slate-500 mt-1">input 38M / output 4.8M</div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">セッション平均</div>
+        <div class="text-[28px] font-bold tabular leading-none">¥46</div>
+        <div class="text-xs text-emerald-600 mt-1 flex items-center gap-1"><i data-lucide="trending-down" class="w-3 h-3"></i><span>先月比 -18% (cache 効果)</span></div>
+      </div>
+    </div>
+
+    <!-- Bar charts side-by-side -->
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <div class="bg-white border border-slate-200 rounded-lg p-5">
+        <h2 class="text-sm font-bold text-eb-500 mb-4 flex items-center gap-2"><i data-lucide="briefcase" class="w-4 h-4"></i>案件別コスト</h2>
+        <div class="space-y-2.5">
+          <div><div class="flex items-center justify-between mb-0.5"><span class="text-xs">受託 EC 構築 #4</span><span class="text-xs mono">¥4,021 · 48%</span></div><div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-eb-500" style="width: 48%"></div></div></div>
+          <div><div class="flex items-center justify-between mb-0.5"><span class="text-xs">Build-Factory dogfood</span><span class="text-xs mono">¥3,200 · 38%</span></div><div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-eb-500" style="width: 38%"></div></div></div>
+          <div><div class="flex items-center justify-between mb-0.5"><span class="text-xs">XYZ 社</span><span class="text-xs mono">¥920 · 11%</span></div><div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-eb-500" style="width: 11%"></div></div></div>
+          <div><div class="flex items-center justify-between mb-0.5"><span class="text-xs">ABC 社</span><span class="text-xs mono">¥279 · 3%</span></div><div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-eb-500" style="width: 3%"></div></div></div>
+        </div>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-lg p-5">
+        <h2 class="text-sm font-bold text-eb-500 mb-4 flex items-center gap-2"><i data-lucide="bot" class="w-4 h-4"></i>AI 社員別コスト</h2>
+        <div class="space-y-2.5">
+          <div><div class="flex items-center justify-between mb-0.5"><span class="text-xs"><span class="inline-block w-3 h-3 rounded-full bg-eb-500 mr-1 align-middle"></span>devon</span><span class="text-xs mono">¥2,840 · 33%</span></div><div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-eb-500" style="width: 33%"></div></div></div>
+          <div><div class="flex items-center justify-between mb-0.5"><span class="text-xs"><span class="inline-block w-3 h-3 rounded-full bg-blue-500 mr-1 align-middle"></span>winston</span><span class="text-xs mono">¥1,620 · 19%</span></div><div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-blue-500" style="width: 19%"></div></div></div>
+          <div><div class="flex items-center justify-between mb-0.5"><span class="text-xs"><span class="inline-block w-3 h-3 rounded-full bg-amber-500 mr-1 align-middle"></span>quinn</span><span class="text-xs mono">¥1,240 · 15%</span></div><div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-amber-500" style="width: 15%"></div></div></div>
+          <div><div class="flex items-center justify-between mb-0.5"><span class="text-xs"><span class="inline-block w-3 h-3 rounded-full bg-emerald-500 mr-1 align-middle"></span>mary</span><span class="text-xs mono">¥980 · 12%</span></div><div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-emerald-500" style="width: 12%"></div></div></div>
+          <div><div class="flex items-center justify-between mb-0.5"><span class="text-xs"><span class="inline-block w-3 h-3 rounded-full bg-purple-500 mr-1 align-middle"></span>secretary</span><span class="text-xs mono">¥720 · 9%</span></div><div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-purple-500" style="width: 9%"></div></div></div>
+          <div><div class="flex items-center justify-between mb-0.5"><span class="text-xs">others (4)</span><span class="text-xs mono">¥1,020 · 12%</span></div><div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-slate-400" style="width: 12%"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily chart -->
+    <div class="bg-white border border-slate-200 rounded-lg p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-bold text-eb-500 flex items-center gap-2"><i data-lucide="trending-up" class="w-4 h-4"></i>日別コスト推移 (15 日)</h2>
+        <div class="flex items-center gap-2 text-xs"><button class="text-eb-500 font-semibold">¥</button><button class="text-slate-500 hover:text-slate-900">tokens</button></div>
+      </div>
+      <div class="flex items-end gap-1 h-32 mb-1">
+        <div class="flex-1 bg-eb-100 rounded-sm relative group" style="height: 20%"><span class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] mono opacity-0 group-hover:opacity-100 whitespace-nowrap">¥168</span></div>
+        <div class="flex-1 bg-eb-200 rounded-sm" style="height: 35%"></div>
+        <div class="flex-1 bg-eb-200 rounded-sm" style="height: 30%"></div>
+        <div class="flex-1 bg-eb-300 rounded-sm" style="height: 45%"></div>
+        <div class="flex-1 bg-eb-300 rounded-sm" style="height: 60%"></div>
+        <div class="flex-1 bg-eb-400 rounded-sm" style="height: 55%"></div>
+        <div class="flex-1 bg-eb-400 rounded-sm" style="height: 70%"></div>
+        <div class="flex-1 bg-eb-400 rounded-sm" style="height: 65%"></div>
+        <div class="flex-1 bg-eb-500 rounded-sm" style="height: 80%"></div>
+        <div class="flex-1 bg-eb-500 rounded-sm" style="height: 75%"></div>
+        <div class="flex-1 bg-eb-500 rounded-sm" style="height: 90%"></div>
+        <div class="flex-1 bg-eb-500 rounded-sm" style="height: 85%"></div>
+        <div class="flex-1 bg-eb-600 rounded-sm" style="height: 95%"></div>
+        <div class="flex-1 bg-eb-600 rounded-sm" style="height: 88%"></div>
+        <div class="flex-1 bg-eb-600 rounded-sm" style="height: 100%"></div>
+      </div>
+      <div class="flex justify-between text-[10px] text-slate-500 mono"><span>5/1</span><span>5/8</span><span>5/15</span></div>
+    </div>
+  </div>
+</main>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 ---
 name: test-verification
-description: 実装完了したコードのテスト戦略設計・品質検証スキル。何をどのレベルでテストするか、テスト種類の選定（ユニット・統合・E2E）、カバレッジ基準、CI連携、受け入れ基準を設計する。テストを書きたい・テスト戦略を決めたい・品質基準を設けたい・CIを整備したい・リグレッションを防ぎたいといった場面で必ず使うこと。
+description: 実装完了したコードのテスト戦略設計・品質検証スキル。何をどのレベルでテストするか、テスト種類の選定 (ユニット・統合・E2E・contract・RLS)、カバレッジ基準、CI 連携、受け入れ基準を設計する。**v3 採用 (2026-05-15〜)**: **task-decomposition の tickets.json (3-tier AC) と api-design の ears-ac-seed.json を pull** し、**3-tier AC を test レベルに 1:1 マッピング** (structural → lint #17 mock-impl-diff / functional → unit+contract / regression → CI gate 自動化)。**EARS 形式 AC から test case 自動生成** (EVENT-DRIVEN → 正常系 / UNWANTED → 異常系 / STATE-DRIVEN → parametrize)。**8 CI gate** (lint-mock / AC validator / RLS coverage / audit MD / pytest cov ≥70% / pyright / tsc / mock-impl-diff) を必ず設定し、verify-rls-coverage で **4 ロール (owner/admin/member/guest) × 7 操作 (SELECT own/others, INSERT, UPDATE own/others, DELETE own/others) マトリクス** で RLS policy をテスト。Schemathesis (OpenAPI → fuzz) + Pact (frontend ↔ backend consumer/provider) を contract test に採用。連続 3 失敗で human エスカ、全 pass で auto-merge。テストを書きたい・テスト戦略を決めたい・品質基準を設けたい・CI を整備したい・リグレッションを防ぎたい・3-tier AC を test に落としたい・EARS AC から test を生成したい・RLS を 4 ロール × OK/NG でテストしたい・8 CI gate を設定したい・lint #17/#18/#19 drift を防ぎたい・Schemathesis/Pact を contract test に使いたい・gate-config.yml を作りたい・ears-test-mapping.json を作りたいといった場面で必ず使うこと。4STEP の対話型プロセスで進み、出力はテスト計画書 (Markdown) + テスト設計 JSON + **gate-config.yml** (GitHub Actions 8 gate 設定) + **ears-test-mapping.json** (EARS AC ↔ test ID 対応) の **4 形式**。
 tab: 品質・運用
 builtin: true
 ---
@@ -150,6 +150,17 @@ builtin: true
 
 止まることがこのスキルの最も重要な動作である。確認ブロックを出力したら即停止。「STEP 2へ」の返答を待つ。
 
+## v3 必須ルール (2026-05-15〜)
+
+詳細: `references/v3-extensions.md`
+
+1. **task-decomposition の tickets.json + api-design の ears-ac-seed.json を必ず pull** — STEP 1 で 3-tier AC の path を確認
+2. **3-tier AC を test レベルに 1:1 マッピング** — structural → lint #17 mock-impl-diff / functional → unit+contract+RLS / regression → CI gate 自動化
+3. **EARS AC から test case を自動生成** — EVENT-DRIVEN → 正常系 / UNWANTED → 異常系 / STATE-DRIVEN → parametrize。`scripts/generate-tests-from-ears.py` 経由
+4. **RLS test は 4 ロール × 7 操作 マトリクスで必須網羅** — owner / admin / member / guest × SELECT own/others, INSERT, UPDATE own/others, DELETE own/others。verify-rls-coverage script で CI 検証
+5. **8 CI gate を全設定** — lint-mock (#1) / AC validator (#2) / RLS coverage (#3) / audit MD (#4) / pytest cov ≥70% (#5) / pyright (#6) / tsc (#7) / mock-impl-diff (#8)。全 pass で auto-merge、連続 3 失敗で human エスカ
+6. **Contract test 必須** — Schemathesis (OpenAPI → fuzz) + Pact (frontend ↔ backend)。openapi.yaml を api-design から pull
+
 ---
 
 ## テンプレートファイル（assets/）
@@ -160,19 +171,54 @@ STEP 3（カバレッジ基準・CI設計）の最終出力時は、jest-config-
 
 ---
 
-## STEP 1: テスト対象とリスク評価
+## STEP 1: テスト対象とリスク評価 (v3: 3-tier AC マッピング + 上流出力 pull)
 
 **このSTEPでやること：**
 何をテストするか・何をテストしないかを決める。全部テストするのは現実的ではないので、リスクと価値のバランスで優先順位をつける。
 
+**v3 必須**: 上流出力の path を確認し、3-tier AC を test レベルに 1:1 マッピング:
+
+```
+## 入力情報の確認 (v3)
+
+### 上流出力
+- task-decomposition 出力: docs/task-decomposition/<date>_v<N>/
+  - tickets.json: N 件 (3-tier AC 込み)
+- api-design 出力: docs/api-design/<date>_v<N>/
+  - openapi.yaml (Schemathesis input)
+  - ears-ac-seed.json (EARS AC ドラフト)
+  - lint-mapping.json (lint #18 検証対象)
+- functional-breakdown 出力: docs/functional-breakdown/<date>_v<N>/
+  - entities.json (RLS policy)
+  - roles.json (owner/admin/member/guest)
+- architecture-design 出力: docs/architecture/<date>_v<N>/
+  - phase_0_gates.json (8 gate 定義)
+
+### 3-tier AC ↔ test レベル マッピング (v3 必須)
+| 3-tier AC | test レベル | tool | gate |
+|---|---|---|---|
+| structural (mock/spec 一致) | lint #17 mock-impl-diff | lint-mock-impl-diff.py | gate #8 |
+| functional.api (EARS) | unit + contract | pytest + Schemathesis | gate #5 |
+| functional.rls (4 ロール × 7 操作) | RLS test | verify-rls-coverage | gate #3 |
+| functional.acceptance | E2E | Playwright | gate #5 |
+| regression.coverage | coverage check | pytest-cov ≥70% | gate #5 |
+| regression.lint | mock-lint + AC validator | lint-mock.sh + validate-tickets.py | gate #1 + #2 |
+| regression.type | type check | pyright + tsc | gate #6 + #7 |
+| regression.audit | audit MD existence | audit-md-check.sh | gate #4 |
+```
+
 **確認すること（曖昧なら【仮説】を立てて質問）：**
 
 1. **実装内容** — どの機能・APIを対象とするか？複数ある場合はリスト
-2. **技術スタック** — テストフレームワークは決まっているか？（Jest / Vitest / pytest など）
+2. **技術スタック** — テストフレームワークは決まっているか？(Jest / Vitest / pytest など)
 3. **既存のテスト状況** — テストは既にあるか？あるならどのレベルまでカバーされているか？
-4. **リスクの高い箇所** — 「ここが壊れると一番困る」機能はどこか？（認証・決済・データ処理など）
+4. **リスクの高い箇所** — 「ここが壊れると一番困る」機能はどこか？(認証・決済・データ処理など)
 5. **テストに使える時間・リソース** — 全部丁寧にやる余裕があるか、最小限でよいか？
 6. **CIの有無** — GitHub ActionsなどのCI環境はあるか？
+7. **v3: tickets.json の 3-tier AC schema 適合** — 全 task が structural / functional / regression に分かれているか
+8. **v3: ears-ac-seed.json の EARS 形式** — EVENT-DRIVEN + UNWANTED 1 件以上を全 endpoint で確認
+9. **v3: 8 CI gate 採用方針** — 8 gate 全 ON or 一部 skip (例: Phase 1 で gate #3 RLS をまだ ON にしない等) の判断
+10. **v3: contract test (Schemathesis + Pact) 採用方針** — frontend/backend の契約検証を CI に含めるか
 
 **出力形式：**
 
@@ -211,10 +257,22 @@ STEP 3（カバレッジ基準・CI設計）の最終出力時は、jest-config-
 
 ---
 
-## STEP 2: テスト種類と粒度の設計
+## STEP 2: テスト種類と粒度の設計 (v3: EARS 自動生成 + RLS 4 ロール × 7 操作)
 
 **このSTEPでやること：**
-ユニット・統合・E2Eのどのレベルでテストするかを機能ごとに決める。
+ユニット・統合・E2E・contract・RLS のどのレベルでテストするかを機能ごとに決める。
+
+**v3 必須**:
+- **EARS AC → test case 自動生成** (`scripts/generate-tests-from-ears.py`)
+  - EVENT-DRIVEN → `test_<endpoint>_<event>()` (正常系)
+  - UNWANTED → `test_<endpoint>_<condition>_rejected()` (異常系)
+  - STATE-DRIVEN → `@pytest.mark.parametrize("state", [...])` で分岐
+- **RLS test は 4 ロール × 7 操作 マトリクスで網羅必須**
+  - 4 ロール: owner / admin / member / guest
+  - 7 操作: SELECT own / SELECT others / INSERT / UPDATE own / UPDATE others / DELETE own / DELETE others
+  - entity 1 件あたり 28 test case
+  - `scripts/verify-rls-coverage.py` で網羅検証
+- **Contract test**: Schemathesis (OpenAPI → fuzz) + Pact (frontend ↔ backend consumer/provider)
 
 **Webリサーチ（STEP 2で実施）：**
 採用テストフレームワークのベストプラクティスを調査する：
@@ -231,23 +289,43 @@ STEP 3（カバレッジ基準・CI設計）の最終出力時は、jest-config-
 
 受託開発の現実解：E2Eは最小限にして、APIレベルの統合テストをメインにする。
 
-**出力形式：**
+**出力形式 (v3)：**
 
 ```
-## テスト設計
+## テスト設計 (v3)
 
 ### テストレベル配分
-| 機能 | ユニット | 統合 | E2E | 理由 |
-|-----|--------|------|-----|------|
+| 機能 | unit | contract | RLS | E2E | EARS 自動生成 | 理由 |
+|-----|------|----------|-----|-----|--------------|------|
 
-### ユニットテスト設計
-[関数・メソッドごとのテストケース案]
+### EARS 自動生成 test (v3)
+- 入力: docs/api-design/<date>_v3/ears-ac-seed.json
+- 出力: backend/tests/generated/
+- script: scripts/generate-tests-from-ears.py
+- 命名規則:
+  - EVENT-DRIVEN → test_<endpoint>_<event>()
+  - UNWANTED → test_<endpoint>_<condition>_rejected()
+  - STATE-DRIVEN → @pytest.mark.parametrize 経由
 
-### 統合テスト設計
-[エンドポイントごとの正常系・異常系]
+### RLS test (v3 / 4 ロール × 7 操作 マトリクス)
+| ロール | SELECT own | SELECT others | INSERT | UPDATE own | UPDATE others | DELETE own | DELETE others |
+|---|---|---|---|---|---|---|---|
+| owner | OK | OK | OK | OK | OK | OK | OK |
+| admin | OK | OK | OK | OK | OK | OK | OK |
+| member | OK | NG | OK | OK | NG | OK | NG |
+| guest | OK (assigned) | NG | NG | NG | NG | NG | NG |
 
-### E2Eテスト設計（最小限）
-[クリティカルなユーザーフローのみ]
+- entity 1 件 = 28 test case
+- 検証: scripts/verify-rls-coverage.py
+- gate #3 で CI 自動検証
+
+### Contract test (v3)
+- Schemathesis: OpenAPI → fuzz (property-based test)
+- Pact: frontend (consumer) ↔ backend (provider) 契約検証
+- 入力: docs/api-design/<date>_v3/openapi.yaml
+
+### E2Eテスト設計（最小限 / Playwright）
+- クリティカルなユーザーフローのみ
 
 ### モック戦略
 - DBはモックするか・しないか（理由）
@@ -268,43 +346,58 @@ STEP 3（カバレッジ基準・CI設計）の最終出力時は、jest-config-
 
 ---
 
-## STEP 3: カバレッジ基準・CI設計・受け入れ基準
+## STEP 3: カバレッジ基準・CI設計・受け入れ基準 (v3: 8 CI gate auto-merge)
 
 **このSTEPでやること：**
-テストが「通った」とはどういう状態かを定義する。カバレッジの基準値・CIパスの条件・マージ可能の判断基準を確定する。
+テストが「通った」とはどういう状態かを定義する。**v3: 8 CI gate auto-merge を必須化**。
 
 **カバレッジ基準の現実解：**
-「100%」は多くの場合コスト過剰。受託開発では「リスクの高い部分を重点的に」が正しい。
-- ビジネスロジック・認証・データ操作：80%以上
-- ユーティリティ・型変換：60%以上
-- UI表示ロジック：手動確認でよい場合も
+- ビジネスロジック・認証・データ操作: 80%以上
+- ユーティリティ・型変換: 60%以上
+- **v3 統一基準: pytest cov ≥70% (gate #5)**
 
-**出力形式：**
+**出力形式 (v3)：**
 
 ```
-## カバレッジ基準・受け入れ基準
+## カバレッジ基準・受け入れ基準 (v3)
+
+### 8 CI gate (v3 必須)
+| Gate | 名前 | tool | 失敗条件 |
+|---|---|---|---|
+| #1 | lint-mock | scripts/lint-mock.sh | 19 check のいずれか violation |
+| #2 | AC validator | scripts/validate-tickets.py | 3-tier AC schema 違反 or EARS 形式違反 |
+| #3 | RLS coverage | scripts/verify-rls-coverage.py | 4 ロール × 7 操作 マトリクス未網羅 |
+| #4 | audit MD existence | scripts/audit-md-check.sh | 該当 task の audit MD が存在しない |
+| #5 | pytest cov | pytest --cov --cov-fail-under=70 | カバレッジ <70% or test failure |
+| #6 | pyright strict | pyright | type error |
+| #7 | tsc strict | tsc --noEmit | type error |
+| #8 | mock-impl-diff | scripts/lint-mock-impl-diff.py | mock の項目が backend response に存在しない |
+
+### auto-merge (v3 必須)
+- needs: [gate-1 〜 gate-8] 全 pass
+- 動作: `gh pr merge --auto --squash`
+- 連続 3 失敗で human エスカ (Slack / メール)
+- 例外: gate #3 RLS を Phase 1 序盤で OFF にする場合は phase_0_gates.json の override で明示
 
 ### カバレッジ基準
 | 対象 | 最低カバレッジ | 重点テスト対象 |
 |-----|-------------|------------|
+| ビジネスロジック / 認証 / データ操作 | 80% | RLS / 認証 / 決済 |
+| ユーティリティ / 型変換 | 60% | - |
+| v3 統一: 全体 | 70% | gate #5 |
 
-### CI設定（GitHub Actions想定）
-\`\`\`yaml
-# 実行するチェック
-- Lint（ESLint / Prettier）
-- 型チェック（tsc --noEmit）
-- ユニット・統合テスト
-- カバレッジチェック（閾値未満でfail）
-\`\`\`
+### マージ可能の判断基準 (v3 / Done → auto-merge)
+- [ ] 8 CI gate 全て green
+- [ ] EARS AC → test case 自動生成済 (ears-test-mapping.json で対応取れている)
+- [ ] RLS 4 ロール × 7 操作 マトリクス網羅 (verify-rls-coverage pass)
+- [ ] Schemathesis contract test pass (任意)
+- [ ] Pact contract verify pass (任意)
+- [ ] 連続 3 失敗していない (もしくは human escalate 完了)
 
-### マージ可能の判断基準（Done → Merge）
-- [ ] CIが全て通っている
-- [ ] カバレッジ基準を満たしている
-- [ ] リスクの高い機能のテストが通っている
-- [ ] 手動動作確認が完了している（E2E省略の場合）
-
-### リグレッション防止
-- 今後の変更でこのテストが壊れた場合：（対応方針）
+### リグレッション防止 (v3)
+- 全 EARS AC が ears-test-mapping.json に登録 → 仕様変更時に test の追従漏れを CI で検出
+- lint #17 mock-impl-diff (gate #8) で mock ↔ 実装 drift を毎 PR 検出
+- Phase 1 中の Group D (drift fix) で常時 20% を割当
 ```
 
 ---
@@ -321,41 +414,138 @@ STEP 3（カバレッジ基準・CI設計）の最終出力時は、jest-config-
 
 ---
 
-## STEP 4: 最終出力
+## STEP 4: 最終出力 (v3: 4 形式同時出力)
 
-### 出力1: テスト計画書（Markdown）
+### 出力① テスト計画書 (Markdown)
 
 ```markdown
 # テスト計画書
 
 ## 対象機能とリスク評価
-## テスト設計（ユニット・統合・E2E）
+## 3-tier AC ↔ test レベル マッピング (v3)
+## テスト設計 (unit / contract / RLS / E2E)
+## EARS AC 自動生成方針 (v3)
+## RLS 4 ロール × 7 操作 マトリクス (v3)
+## 8 CI gate 設計 (v3)
 ## カバレッジ基準
-## CI設定
-## マージ可能判断基準
+## マージ可能判断基準 (auto-merge)
 ```
 
-### 出力2: テスト設計JSON（機械処理・CI設定用）
+### 出力② テスト設計 JSON
 
 ```json
 {
+  "version": "v3",
   "project_id": "",
   "test_strategy": {
-    "framework": "",
+    "framework": "pytest + Playwright + Schemathesis + Pact",
     "coverage_thresholds": {
       "business_logic": 80,
-      "utilities": 60
+      "utilities": 60,
+      "overall_gate_5": 70
     },
-    "ci_checks": [],
-    "merge_criteria": []
+    "ci_checks": ["8 gates"],
+    "merge_criteria": ["8 gates green", "ears-test-mapping consistent", "RLS matrix complete"]
   },
   "test_cases": [],
-  "research": {
-    "sources": [{"url": "", "title": "", "accessed_at": "YYYY-MM-DD"}],
-    "findings": ["テストフレームワークのベストプラクティス調査結果"],
-    "research_date": "YYYY-MM-DD"
-  },
-  "next_skill": "integration"
+  "next_skill": "distributed-dev"
+}
+```
+
+### 出力③ gate-config.yml (v3 新規 / GitHub Actions)
+
+```yaml
+name: 8 CI Gate
+on: [pull_request]
+
+jobs:
+  gate-1-lint-mock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/lint-mock.sh
+
+  gate-2-ac-validator:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/validate-tickets.py
+
+  gate-3-rls-coverage:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/verify-rls-coverage.py
+
+  gate-4-audit-md:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/audit-md-check.sh
+
+  gate-5-pytest-cov:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pytest --cov --cov-fail-under=70
+
+  gate-6-pyright:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pyright
+
+  gate-7-tsc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: tsc --noEmit
+
+  gate-8-mock-impl-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/lint-mock-impl-diff.py
+
+  auto-merge:
+    needs: [gate-1-lint-mock, gate-2-ac-validator, gate-3-rls-coverage, gate-4-audit-md, gate-5-pytest-cov, gate-6-pyright, gate-7-tsc, gate-8-mock-impl-diff]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Auto-merge PR
+        run: gh pr merge --auto --squash
+```
+
+### 出力④ ears-test-mapping.json (v3 新規)
+
+```json
+{
+  "version": "v3",
+  "skill": "test-verification",
+  "mappings": [
+    {
+      "ears_ac_id": "F-001-AC-01",
+      "ears_form": "EVENT-DRIVEN",
+      "ears_text": "When POST /api/auth/login is called with valid email+password, the system shall return 200 with { access_token, refresh_token, user_id }.",
+      "test_id": "TC-001",
+      "test_file": "backend/tests/generated/test_auth_login.py",
+      "test_function": "test_auth_login_valid_credentials",
+      "test_level": "unit+contract",
+      "gate": "gate-5-pytest-cov"
+    },
+    {
+      "ears_ac_id": "F-001-AC-02",
+      "ears_form": "UNWANTED",
+      "ears_text": "If credentials are invalid, the system shall return 401 with generic message (no user enumeration).",
+      "test_id": "TC-002",
+      "test_file": "backend/tests/generated/test_auth_login.py",
+      "test_function": "test_auth_login_invalid_credentials_rejected",
+      "test_level": "unit+contract",
+      "gate": "gate-5-pytest-cov"
+    }
+  ]
 }
 ```
 

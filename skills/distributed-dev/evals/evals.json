@@ -1,0 +1,92 @@
+{
+  "skill_name": "distributed-dev",
+  "version": "v3-2026-05-15",
+  "description": "ブランチ実装パッケージ生成スキルのテスト (v3: 3-tier AC + 8 CI gate + file mutex + pre-flight audit MD + Wave 連携)",
+  "evals": [
+    {
+      "id": "dd-eval-1",
+      "title": "STEP 1 で tickets.json + wave-schedule.json + ears-ac-seed.json pull + work_package_boundary 確認",
+      "prompt": "STEP 1 で T-001-01 (FastAPI 認証 endpoint 実装) のブランチパッケージを作って。task-decomposition の tickets.json と schedule-design の wave-schedule.json (W1 / Wave 1) と api-design の ears-ac-seed.json (POST /api/auth/login の 4 AC) が出てる。",
+      "expected_behavior": [
+        "STEP 1 形式で出力 (会話的前置きなし)",
+        "v3: 入力情報に tickets.json + wave-schedule.json + ears-ac-seed.json + entities.json + screens.json の path を listing",
+        "v3: T-001-01 の work_package_boundary を 4 区分 (editable / shared_no_concurrent_edit / readonly / forbidden) で明示",
+        "v3: Wave ID (W1) + depends_on_waves + parallel_session_count_target を継承",
+        "v3: pre-flight audit MD path を明示 (docs/audit/<date>_v3/T-001-01.md)",
+        "STEP 2 へ で止まる"
+      ],
+      "assertions": [
+        {"id": "format_no_preface", "check": "応答冒頭が '##' で始まる"},
+        {"id": "v3_input_paths_listed", "check": "tickets.json + wave-schedule.json + ears-ac-seed.json + entities.json + screens.json の path"},
+        {"id": "v3_4_boundary_zones", "check": "work_package_boundary が editable/shared_no_concurrent_edit/readonly/forbidden の 4 区分"},
+        {"id": "v3_wave_inherited", "check": "Wave ID + depends_on_waves + parallel_session_count_target を継承"},
+        {"id": "v3_pre_flight_audit_path", "check": "pre-flight audit MD path を明示"},
+        {"id": "stops_at_step1", "check": "STEP 2 を勝手に開始しない"}
+      ]
+    },
+    {
+      "id": "dd-eval-2",
+      "title": "STEP 2 で CLAUDE.md に 3-tier AC + upstream path + Wave ID を埋め込み",
+      "prompt": "STEP 2 へ。実装仕様を埋めて。",
+      "expected_behavior": [
+        "v3: CLAUDE.md の '0. 上流出力' に 7 path を列挙 (task / mock / api / ears_ac_seed / entities / wave / pre_flight_audit)",
+        "v3: '1. Wave / 起動情報' に wave_id / depends_on_waves / parallel_session_count_target / group",
+        "v3: '3. work-package boundary' に 4 区分の file mutex",
+        "v3: '4. 実装仕様' に EARS AC seed を逐語コピー (EVENT-DRIVEN + UNWANTED)",
+        "v3: 型定義は openapi.yaml から自動生成された types.ts を参照 (人手 edit 禁止を明示)",
+        "STEP 3 へ で止まる"
+      ],
+      "assertions": [
+        {"id": "v3_upstream_7_paths", "check": "CLAUDE.md '0. 上流出力' に 7 path"},
+        {"id": "v3_wave_info_block", "check": "'1. Wave / 起動情報' に wave_id/depends_on_waves/parallel_session_count_target/group"},
+        {"id": "v3_4_boundary_in_claude_md", "check": "'3. work-package boundary' に 4 区分の file mutex"},
+        {"id": "v3_ears_ac_verbatim", "check": "EARS AC seed を逐語コピー (EVENT-DRIVEN + UNWANTED)"},
+        {"id": "v3_types_ts_no_edit", "check": "types.ts は openapi 自動生成 / 人手 edit 禁止を明示"},
+        {"id": "stops_at_step2", "check": "STEP 3 を勝手に開始しない"}
+      ]
+    },
+    {
+      "id": "dd-eval-3",
+      "title": "STEP 3 で Done Criteria に 8 CI gate + 3-tier AC + pre-flight audit MD を含める",
+      "prompt": "STEP 3 へ。Done Criteria を。",
+      "expected_behavior": [
+        "v3: Done Criteria を 3 セクション (Tier 1 structural / Tier 2 functional / Tier 3 regression) で構成",
+        "v3: Tier 1: lint #17 mock-impl-diff 0 件",
+        "v3: Tier 2: ears-test-mapping.json + verify-rls-coverage + Schemathesis",
+        "v3: Tier 3: pytest cov ≥70% / pyright / tsc / lint-mock / validate-tickets / audit MD",
+        "v3: 8 CI gate auto-merge セクション (連続 3 失敗で human エスカ)",
+        "v3: pre-flight audit MD の commit を完了報告に含める",
+        "STEP 4 へ で止まる"
+      ],
+      "assertions": [
+        {"id": "v3_done_3tier", "check": "Done Criteria が Tier 1/2/3 で構成"},
+        {"id": "v3_tier1_lint17", "check": "Tier 1 に lint #17 mock-impl-diff"},
+        {"id": "v3_tier2_ears_rls_schemathesis", "check": "Tier 2 に ears-test-mapping + verify-rls-coverage + Schemathesis"},
+        {"id": "v3_tier3_8gate_items", "check": "Tier 3 に pytest cov ≥70% / pyright / tsc / lint-mock / validate-tickets / audit MD"},
+        {"id": "v3_auto_merge_section", "check": "8 CI gate auto-merge セクション (連続 3 失敗 → human エスカ)"},
+        {"id": "v3_pre_flight_audit_in_done", "check": "pre-flight audit MD の commit を完了報告に含める"},
+        {"id": "stops_at_step3", "check": "STEP 4 を勝手に開始しない"}
+      ]
+    },
+    {
+      "id": "dd-eval-4-v3-new",
+      "title": "v3 新規: STEP 4 で 5 形式出力 (audit-md-template.md + start-cmd.sh + done-cmd.sh 追加)",
+      "prompt": "STEP 4 へ。最終出力を。",
+      "expected_behavior": [
+        "出力① ブランチ作業手順 (Markdown)",
+        "出力② CLAUDE.md (Claude Code 指示書)",
+        "出力③ 管理 JSON",
+        "v3 出力④ audit-md-template.md (pre-flight 監査テンプレ)",
+        "v3 出力⑤ start-cmd.sh / done-cmd.sh (起動・完了スクリプト)",
+        "v3: start-cmd.sh が branch 切替 + audit MD 生成 + Wave mutex check + CLAUDE.md 表示を実行",
+        "v3: done-cmd.sh が 8 gate 実行 + work-package boundary check + push + PR create + auto-merge を実行"
+      ],
+      "assertions": [
+        {"id": "output_count_5", "check": "出力 5 形式 (既存 3 + audit-md-template.md + start/done-cmd.sh) すべて言及"},
+        {"id": "v3_audit_md_template", "check": "audit-md-template.md に pre-flight + post-implementation の 2 セクション"},
+        {"id": "v3_start_cmd_actions", "check": "start-cmd.sh が branch 切替 + audit MD 生成 + Wave mutex check + CLAUDE.md 表示"},
+        {"id": "v3_done_cmd_8gate", "check": "done-cmd.sh が 8 gate 実行 + boundary check + push + PR + auto-merge"}
+      ]
+    }
+  ]
+}

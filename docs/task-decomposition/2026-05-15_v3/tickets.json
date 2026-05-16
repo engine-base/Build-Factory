@@ -1,0 +1,5069 @@
+{
+  "meta": {
+    "version": "v3",
+    "created_at": "2026-05-15",
+    "project": "Build-Factory",
+    "supersedes": [
+      "docs/task-decomposition/2026-05-09_v1/ (187 task, formally done but spec-drifted)",
+      "docs/task-decomposition/2026-05-14_v2/ (vertical slice attempt)"
+    ],
+    "total_tasks": 113,
+    "estimate_total_hours": 594.0,
+    "estimate_total_sessions": 154,
+    "estimate_total_person_days_8h": 74.2,
+    "by_category": {
+      "doc": 3,
+      "infra": 9,
+      "backend": 12,
+      "frontend": 32,
+      "test": 2,
+      "db": 38,
+      "full-stack": 17
+    },
+    "by_label": {
+      "NEW": 59,
+      "REFACTOR": 43,
+      "ARCHIVE": 7,
+      "FIX": 4
+    },
+    "by_phase": {
+      "0": 8,
+      "1": 89,
+      "2": 16
+    },
+    "ac_schema": "3-tier (structural + functional + regression)",
+    "must_pass_to_done": "all 3 tiers + lint 1-19 + 3-tier AC validator",
+    "new_lints": [
+      "#17 mock-impl-diff",
+      "#18 screens-API",
+      "#19 entity-table naming"
+    ],
+    "new_adrs": [
+      "ADR-013 auth strategy",
+      "ADR-014 naming standard",
+      "ADR-015 company-dashboard bleed removal"
+    ]
+  },
+  "tickets": [
+    {
+      "id": "T-V3-INFRA-01",
+      "title": "ADR-013 起票: AUTH 戦略 (REST API として `/api/auth/*` 実装)",
+      "category": "doc",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001",
+        "F-021"
+      ],
+      "screen_ids": [
+        "S-001",
+        "S-002",
+        "S-003",
+        "S-004",
+        "S-005"
+      ],
+      "entity_ids": [
+        "E-001",
+        "E-008",
+        "E-038"
+      ],
+      "legacy_task_id": null,
+      "phase": 0,
+      "wave": 1,
+      "estimate_hours": 2,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "docs/decisions/ADR-013-auth-strategy.md"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The ADR shall document why AUTH is implemented as REST API (`POST /api/auth/login` etc.) rather than client-side Supabase Auth delegation.",
+          "UBIQUITOUS: The ADR shall list all 6 affected screens (S-001..S-005) and 6 affected endpoints.",
+          "UBIQUITOUS: The ADR shall declare backward-incompatibility with v1 implicit Supabase Auth assumption."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-INFRA-01.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-INFRA-02",
+      "title": "ADR-014 起票: 命名統一 (`bf_` prefix 廃止 / entity PascalCase ↔ table snake_case 1:1)",
+      "category": "doc",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 0,
+      "wave": 1,
+      "estimate_hours": 2,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "docs/decisions/ADR-014-naming-standard.md"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The ADR shall declare entity name (entities.json, PascalCase) maps 1:1 to DB table (snake_case_of_pascal).",
+          "UBIQUITOUS: The ADR shall list all `bf_*` tables to be renamed (>= 5).",
+          "UBIQUITOUS: The ADR shall include a migration timeline (Phase 0 freeze new bf_* / Phase 2 deletion of bf_* alias)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-INFRA-02.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-INFRA-03",
+      "title": "lint #17: scripts/lint-mock-impl-diff.sh (mock h1/KPI/sections ↔ impl page.tsx 比較)",
+      "category": "infra",
+      "label": "NEW",
+      "feature_ids": [
+        "F-005b"
+      ],
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 0,
+      "wave": 1,
+      "estimate_hours": 8,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "scripts/lint-mock-impl-diff.sh"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When invoked, the script shall for each S-XXX in screens.json: extract mock h1 + Hero KPI labels + h2 section titles from docs/mocks/.../<id>-*.html.",
+          "EVENT-DRIVEN: When invoked, the script shall locate the corresponding implementation page.tsx and extract its h1 / KPI label props / section titles.",
+          "UNWANTED: If any h1 / KPI / section text differs, the script shall exit code != 0 with a diff report listing screen_id, mock_path, impl_path, diff_lines.",
+          "OPTIONAL: Where a screen has no implementation, the script shall log it as MISSING (not a failure unless --strict is set)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-INFRA-03.md",
+      "notes": "このスクリプトが Group D, E, F の Done 判定に直接使われる。"
+    },
+    {
+      "id": "T-V3-INFRA-04",
+      "title": "lint #18: scripts/lint-screens-api.py (screens.json の related_apis が backend に存在するか)",
+      "category": "infra",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 0,
+      "wave": 1,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "scripts/lint-screens-api.py"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When invoked, the script shall enumerate all `related_apis` strings in docs/functional-breakdown/.../screens.json.",
+          "EVENT-DRIVEN: When invoked, the script shall enumerate all `@router.{get,post,put,delete,patch}` decorators with their paths in backend/.",
+          "UNWANTED: If any spec API is not implemented in backend, the script shall exit code != 0 with a list of missing endpoints by screen_id.",
+          "UBIQUITOUS: The script shall normalize path prefixes (/api/v1 vs /api vs /) per ADR-013."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-INFRA-04.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-INFRA-05",
+      "title": "lint #19: scripts/lint-entity-table-naming.py (entity PascalCase ↔ table snake_case 1:1)",
+      "category": "infra",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 0,
+      "wave": 1,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-02"
+      ],
+      "files_changed": [
+        "scripts/lint-entity-table-naming.py"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When invoked, the script shall parse entities.json and enumerate entity names (PascalCase).",
+          "EVENT-DRIVEN: When invoked, the script shall parse supabase/migrations/*.sql and enumerate CREATE TABLE statements.",
+          "UNWANTED: If any entity has no matching table OR table uses `bf_` prefix without explicit ADR-014 exemption, the script shall exit != 0.",
+          "OPTIONAL: Where a table has a snake_case name that doesn't match the entity's PascalCase, the script shall report it as a NAMING DRIFT."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-INFRA-05.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-INFRA-06",
+      "title": "AC schema 拡張: validate-ears-ac.py に 3-tier 必須化 (structural/functional/regression)",
+      "category": "infra",
+      "label": "REFACTOR",
+      "feature_ids": [
+        "F-006"
+      ],
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 0,
+      "wave": 1,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "scripts/validate-ears-ac.py"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When invoked on a tickets.json, the script shall verify each task's acceptance_criteria has all 3 keys (structural, functional, regression).",
+          "UNWANTED: If structural is non-empty but the task has no screen_ids, the script shall exit != 0.",
+          "UNWANTED: If functional is empty, the script shall exit != 0 (every task must have functional AC).",
+          "UNWANTED: If regression is empty, the script shall exit != 0."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-INFRA-06.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-INFRA-07",
+      "title": "backend pyright strict 設定 (pyrightconfig.json 新規 + 既存型エラー解消 / 初回は --strict-only-changes で baseline)",
+      "category": "infra",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 0,
+      "wave": 1,
+      "estimate_hours": 12,
+      "estimate_sessions": 3,
+      "depends_on": [],
+      "files_changed": [
+        "pyrightconfig.json",
+        ".pyright-baseline"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The pyrightconfig.json shall enable strict mode with reportMissingTypeStubs=warning.",
+          "EVENT-DRIVEN: When pyright is run on the backend/ folder, it shall report 0 NEW errors compared to .pyright-baseline.",
+          "UBIQUITOUS: The CI shall fail if a PR introduces new pyright strict errors."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-INFRA-07.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-INFRA-08",
+      "title": "coverage gate 70% 強制 (CI / pytest --cov-fail-under=70 + .coverage-baseline 更新)",
+      "category": "infra",
+      "label": "REFACTOR",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 0,
+      "wave": 1,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        ".github/workflows/ci.yml",
+        ".coverage-baseline"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When CI runs on a PR, pytest shall be invoked with `--cov --cov-fail-under=70`.",
+          "UNWANTED: If coverage drops below 70% on any touched module, the CI shall fail.",
+          "UBIQUITOUS: The .coverage-baseline shall be updated atomically only on main branch merges."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-INFRA-08.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-AUTH-01",
+      "title": "POST /api/auth/login 実装",
+      "category": "backend",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001",
+        "F-021"
+      ],
+      "screen_ids": [
+        "S-001"
+      ],
+      "entity_ids": [
+        "E-001 User",
+        "E-038 AuthSession"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 1,
+      "estimate_hours": 8,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-INFRA-01"
+      ],
+      "files_changed": [
+        "backend/routers/auth.py",
+        "backend/services/auth_service.py",
+        "tests/test_T-V3-AUTH-01.py"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When valid email+password is POSTed, the system shall return 200 with { access_token, expires_in } AND set-cookie: refresh_token=...; HttpOnly; SameSite=Strict.",
+          "UNWANTED: If credentials are invalid (wrong password OR user not found), the system shall return 401 with body {\"error\":\"invalid_credentials\"} (no user enumeration distinction).",
+          "EVENT-DRIVEN: When 6 requests come from same IP within 60s, the system shall return 429.",
+          "STATE-DRIVEN: While user.mfa_enabled = TRUE, the system shall return 202 with { mfa_challenge_id, expires_in } instead of access_token.",
+          "UNWANTED: If POST body lacks email or password, the system shall return 422."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "users:select_self",
+        "auth_sessions:insert_owner"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-AUTH-01.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-AUTH-02",
+      "title": "POST /api/auth/signup 実装",
+      "category": "backend",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001",
+        "F-004"
+      ],
+      "screen_ids": [
+        "S-002"
+      ],
+      "entity_ids": [
+        "E-001 User",
+        "E-008 Account",
+        "E-002 AccountMember"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 1,
+      "estimate_hours": 8,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-AUTH-01"
+      ],
+      "files_changed": [
+        "backend/routers/auth.py",
+        "backend/services/auth_service.py"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When valid email+password+display_name is POSTed, the system shall (within a transaction) create User + Account + AccountMember and return 201 with same body as /login.",
+          "UNWANTED: If email is already taken, the system shall return 409 (email_taken).",
+          "UNWANTED: If password is shorter than 12 chars or fails complexity check, the system shall return 422 (weak_password) with detail.",
+          "EVENT-DRIVEN: When signup succeeds, the system shall enqueue a welcome email job (async, no synchronous wait)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "users:insert_self",
+        "accounts:insert_via_signup",
+        "account_members:insert_self_as_owner"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-AUTH-02.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-AUTH-03",
+      "title": "POST /api/auth/password-reset 実装",
+      "category": "backend",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [
+        "S-003"
+      ],
+      "entity_ids": [
+        "E-039 PasswordReset"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 1,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-AUTH-01"
+      ],
+      "files_changed": [
+        "backend/routers/auth.py"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When valid email is POSTed, the system shall return 202 with no body AND enqueue a reset-email with a single-use token (24h TTL).",
+          "UBIQUITOUS: The system shall return 202 regardless of whether the email exists (no user enumeration).",
+          "EVENT-DRIVEN: When the token is later POSTed with new_password, the system shall update users.password_hash and invalidate all existing auth_sessions for that user."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "password_resets:insert_anon",
+        "password_resets:consume_with_token"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-AUTH-03.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-AUTH-04",
+      "title": "POST /api/auth/mfa/enroll 実装",
+      "category": "backend",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [
+        "S-004"
+      ],
+      "entity_ids": [
+        "E-001 User"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 1,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-AUTH-01"
+      ],
+      "files_changed": [
+        "backend/routers/auth.py"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When an authenticated user POSTs /mfa/enroll, the system shall generate a TOTP secret + 10 recovery codes, return otpauth://... URI + QR PNG + codes (only shown once).",
+          "UBIQUITOUS: The system shall store the secret in user_2fa_secrets (pgsodium encrypted) but NOT yet flip user.mfa_enabled.",
+          "EVENT-DRIVEN: When the user later POSTs /mfa/verify with a valid TOTP code, the system shall flip user.mfa_enabled = TRUE."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "user_2fa_secrets:insert_self",
+        "user_2fa_secrets:select_self_only"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-AUTH-04.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-AUTH-05",
+      "title": "POST /api/auth/mfa/verify 実装",
+      "category": "backend",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [
+        "S-004"
+      ],
+      "entity_ids": [
+        "E-001 User"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 1,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-AUTH-04"
+      ],
+      "files_changed": [
+        "backend/routers/auth.py"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When { mfa_challenge_id, code } is POSTed and code is a valid TOTP for that user, the system shall return 200 with { access_token, expires_in } and rotate mfa_challenge_id (no replay).",
+          "UNWANTED: If code is invalid OR challenge expired, the system shall return 401 (mfa_invalid).",
+          "EVENT-DRIVEN: When 5 wrong codes are entered within 5 minutes, the system shall lock MFA for 15 minutes and return 429."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-AUTH-05.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-AUTH-06",
+      "title": "GET /api/auth/oauth/{provider}/callback 移設 + 統合 signup",
+      "category": "backend",
+      "label": "REFACTOR",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [
+        "S-005"
+      ],
+      "entity_ids": [
+        "E-040 OAuthConnection"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 1,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-AUTH-02"
+      ],
+      "files_changed": [
+        "backend/routers/auth.py",
+        "backend/routers/oauth.py (delete)"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When the OAuth provider redirects to /api/auth/oauth/{provider}/callback with code, the system shall exchange the code for tokens, locate or create User by provider_user_id, return 200 with auth tokens like /login.",
+          "UBIQUITOUS: The legacy /api/oauth/{provider}/callback shall return 308 → /api/auth/oauth/{provider}/callback for one Phase 1 cycle, then be deleted in Phase 2.",
+          "UNWANTED: If the OAuth state nonce is missing or wrong, the system shall return 400 (csrf_check_failed)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-AUTH-06.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-AUTH-07",
+      "title": "FastAPI dependency require_auth / require_role 実装",
+      "category": "backend",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001",
+        "F-021"
+      ],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-001 User"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 1,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-AUTH-01"
+      ],
+      "files_changed": [
+        "backend/dependencies/auth.py"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When require_auth is used as a FastAPI Depends, the system shall verify Authorization: Bearer <JWT> OR refresh_token cookie, decode it, and inject current_user.",
+          "UNWANTED: If no token or token invalid, the system shall return 401.",
+          "EVENT-DRIVEN: When require_role('account_owner') is used, the system shall additionally verify the current_user has the requested role on the path's account_id/workspace_id; otherwise return 403.",
+          "UBIQUITOUS: The dependency shall set Postgres session-level GUC `app.current_user_id` for RLS context."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-AUTH-07.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-AUTH-08",
+      "title": "S-001 /login page.tsx 実装",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [
+        "S-001"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-AUTH-01",
+        "T-V3-INFRA-03"
+      ],
+      "files_changed": [
+        "frontend/src/app/login/page.tsx",
+        "frontend/src/components/auth/LoginForm.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the page is rendered at /login, the system shall display an h1 element with exact text matching mock docs/mocks/2026-05-09_v1/auth/S-001-login.html h1.",
+          "STATE-DRIVEN: While the page is rendered, the form shall contain input[type=email][required], input[type=password][required], and a submit button."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the form is submitted with valid values, the page shall POST to /api/auth/login and on 200 redirect to /.",
+          "EVENT-DRIVEN: When the response is 202 (MFA required), the page shall navigate to /mfa-challenge?id={challenge_id}.",
+          "UNWANTED: If the response is 401, the page shall display 'メールアドレスかパスワードが正しくありません' inline (no user enumeration)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-AUTH-08.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-AUTH-09",
+      "title": "S-002 /signup page.tsx 実装",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001",
+        "F-004"
+      ],
+      "screen_ids": [
+        "S-002"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-AUTH-02",
+        "T-V3-INFRA-03"
+      ],
+      "files_changed": [
+        "frontend/src/app/signup/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While rendered at /signup, the h1 shall match the mock h1 exactly."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the form is submitted, POST /api/auth/signup, on 201 redirect to /.",
+          "UNWANTED: If 409 email_taken, show 'すでに登録されているメールアドレスです' inline.",
+          "UNWANTED: If 422 weak_password, show password requirement hints."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-AUTH-09.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-AUTH-10",
+      "title": "S-003 /password-reset page.tsx 実装",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [
+        "S-003"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 3,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-AUTH-03",
+        "T-V3-INFRA-03"
+      ],
+      "files_changed": [
+        "frontend/src/app/password-reset/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: h1 matches mock exactly."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When email is submitted, POST /api/auth/password-reset, then show 'メールを送信しました' regardless of result.",
+          "EVENT-DRIVEN: When the URL contains ?token=..., the page shall switch to new-password mode."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-AUTH-10.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-AUTH-11",
+      "title": "S-004 /mfa-setup page.tsx 実装 (TOTP QR + recovery codes)",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [
+        "S-004"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-AUTH-04",
+        "T-V3-AUTH-05"
+      ],
+      "files_changed": [
+        "frontend/src/app/mfa-setup/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: h1 matches mock; QR image + recovery codes block render."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page loads, POST /api/auth/mfa/enroll once and render the returned QR + recovery codes.",
+          "EVENT-DRIVEN: When a TOTP code is entered and submitted, POST /api/auth/mfa/verify.",
+          "UBIQUITOUS: The recovery codes shall be shown only on this page (refresh = lost)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-AUTH-11.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-AUTH-12",
+      "title": "S-005 /oauth/callback page.tsx 実装",
+      "category": "frontend",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [
+        "S-005"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 3,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-AUTH-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/oauth/callback/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: Spinner + 'ログイン中...' message; h1 matches mock."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page loads with ?code=...&state=..., it shall GET /api/auth/oauth/{provider}/callback and redirect to /.",
+          "UNWANTED: If state mismatch, redirect to /login?error=oauth_csrf."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-AUTH-12.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-AUTH-13",
+      "title": "AUTH backend unit tests (8+ ケース × 6 endpoint)",
+      "category": "test",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 8,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-AUTH-01",
+        "T-V3-AUTH-02",
+        "T-V3-AUTH-03",
+        "T-V3-AUTH-04",
+        "T-V3-AUTH-05",
+        "T-V3-AUTH-06"
+      ],
+      "files_changed": [
+        "tests/test_T-V3-AUTH-01.py",
+        "tests/test_T-V3-AUTH-02.py",
+        "tests/test_T-V3-AUTH-03.py",
+        "tests/test_T-V3-AUTH-04.py",
+        "tests/test_T-V3-AUTH-05.py",
+        "tests/test_T-V3-AUTH-06.py"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: Each test file shall contain >= 8 test cases covering success / wrong_input / sql_injection / csrf / replay / rate_limit / mfa_branch / token_expiry."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-AUTH-13.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-AUTH-14",
+      "title": "AUTH Playwright e2e (signup → login → MFA enroll → MFA verify → logout)",
+      "category": "test",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [
+        "S-001",
+        "S-002",
+        "S-003",
+        "S-004",
+        "S-005"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 6,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-AUTH-08",
+        "T-V3-AUTH-09",
+        "T-V3-AUTH-10",
+        "T-V3-AUTH-11",
+        "T-V3-AUTH-12"
+      ],
+      "files_changed": [
+        "frontend/e2e/auth.spec.ts"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: The e2e shall walk signup → email-verify-skip → login → mfa-setup → mfa-verify → / dashboard render → logout, all asserting expected URLs and DOM elements."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-AUTH-14.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-AUTH-15",
+      "title": "AUTH session table RLS policy",
+      "category": "db",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-038 AuthSession",
+        "E-039 PasswordReset"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 1,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-AUTH-07"
+      ],
+      "files_changed": [
+        "supabase/migrations/20260515000001_auth_rls.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: RLS shall be ENABLED on auth_sessions, password_resets, user_2fa_secrets.",
+          "UBIQUITOUS: Policies shall restrict SELECT/INSERT/UPDATE/DELETE to current_user_id only.",
+          "UBIQUITOUS: scripts/verify-rls-coverage.py shall list these 3 tables as covered."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "auth_sessions:owner_only",
+        "password_resets:owner_only",
+        "user_2fa_secrets:owner_only"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-AUTH-15.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-DB-01",
+      "title": "E-013 PhaseGate table 新設 + RLS",
+      "category": "db",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [
+        "S-016"
+      ],
+      "entity_ids": [
+        "E-013"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 1,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_phase_gates.sql",
+        "backend/models/phase_gates.py"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The migration shall CREATE TABLE phase_gates with the columns declared in entities.json for this entity.",
+          "UBIQUITOUS: RLS shall be ENABLED on phase_gates with appropriate scope policy.",
+          "EVENT-DRIVEN: When verify-rls-coverage.py runs, phase_gates shall be listed as covered."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "phase_gates:scope_owner"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-DB-01.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-DB-02",
+      "title": "E-024 ScreenComponent (中間 table) table 新設 + RLS",
+      "category": "db",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [
+        "S-023",
+        "S-024"
+      ],
+      "entity_ids": [
+        "E-024"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 1,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_screen_components.sql",
+        "backend/models/screen_components.py"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The migration shall CREATE TABLE screen_components with the columns declared in entities.json for this entity.",
+          "UBIQUITOUS: RLS shall be ENABLED on screen_components with appropriate scope policy.",
+          "EVENT-DRIVEN: When verify-rls-coverage.py runs, screen_components shall be listed as covered."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "screen_components:scope_owner"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-DB-02.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-DB-03",
+      "title": "E-021 ArtifactVersion table 新設 + RLS",
+      "category": "db",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [
+        "S-022",
+        "S-023"
+      ],
+      "entity_ids": [
+        "E-021"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 1,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_artifact_versions.sql",
+        "backend/models/artifact_versions.py"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The migration shall CREATE TABLE artifact_versions with the columns declared in entities.json for this entity.",
+          "UBIQUITOUS: RLS shall be ENABLED on artifact_versions with appropriate scope policy.",
+          "EVENT-DRIVEN: When verify-rls-coverage.py runs, artifact_versions shall be listed as covered."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "artifact_versions:scope_owner"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-DB-03.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-DB-04",
+      "title": "E-010 UserKnowledgeNamespace table 新設 + RLS",
+      "category": "db",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [
+        "S-036",
+        "S-037"
+      ],
+      "entity_ids": [
+        "E-010"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 1,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_user_knowledge_namespaces.sql",
+        "backend/models/user_knowledge_namespaces.py"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The migration shall CREATE TABLE user_knowledge_namespaces with the columns declared in entities.json for this entity.",
+          "UBIQUITOUS: RLS shall be ENABLED on user_knowledge_namespaces with appropriate scope policy.",
+          "EVENT-DRIVEN: When verify-rls-coverage.py runs, user_knowledge_namespaces shall be listed as covered."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "user_knowledge_namespaces:scope_owner"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-DB-04.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-DB-05",
+      "title": "E-022 Screen consolidate (design_frames → screens)",
+      "category": "db",
+      "label": "REFACTOR",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [
+        "S-023"
+      ],
+      "entity_ids": [
+        "E-022"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-02"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_screens_rename.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The migration shall ALTER TABLE bf_screens RENAME TO screens (or CREATE + INSERT + DROP if columns also change).",
+          "UBIQUITOUS: All backend SQLAlchemy models / queries shall be updated atomically.",
+          "EVENT-DRIVEN: When lint #19 runs, no bf_ prefix shall remain."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-DB-05.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-DB-06",
+      "title": "E-023 Component consolidate (design_mocks → components)",
+      "category": "db",
+      "label": "REFACTOR",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [
+        "S-024"
+      ],
+      "entity_ids": [
+        "E-023"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-02"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_components_rename.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The migration shall ALTER TABLE bf_components RENAME TO components (or CREATE + INSERT + DROP if columns also change).",
+          "UBIQUITOUS: All backend SQLAlchemy models / queries shall be updated atomically.",
+          "EVENT-DRIVEN: When lint #19 runs, no bf_ prefix shall remain."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-DB-06.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-DB-07",
+      "title": "bf_acceptance_criteria → acceptance_criteria rename",
+      "category": "db",
+      "label": "REFACTOR",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [
+        "S-021"
+      ],
+      "entity_ids": [
+        "E-016"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-02"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_acceptance_criteria_rename.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The migration shall ALTER TABLE bf_acceptance_criteria RENAME TO acceptance_criteria (or CREATE + INSERT + DROP if columns also change).",
+          "UBIQUITOUS: All backend SQLAlchemy models / queries shall be updated atomically.",
+          "EVENT-DRIVEN: When lint #19 runs, no bf_ prefix shall remain."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-DB-07.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-DB-08",
+      "title": "bf_constitutions → constitutions rename",
+      "category": "db",
+      "label": "REFACTOR",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [
+        "S-018"
+      ],
+      "entity_ids": [
+        "E-017"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-02"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_constitutions_rename.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The migration shall ALTER TABLE bf_constitutions RENAME TO constitutions (or CREATE + INSERT + DROP if columns also change).",
+          "UBIQUITOUS: All backend SQLAlchemy models / queries shall be updated atomically.",
+          "EVENT-DRIVEN: When lint #19 runs, no bf_ prefix shall remain."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-DB-08.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-DB-09",
+      "title": "bf_tasks → tasks rename",
+      "category": "db",
+      "label": "REFACTOR",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [
+        "S-027",
+        "S-030"
+      ],
+      "entity_ids": [
+        "E-018"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-02"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_tasks_rename.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The migration shall ALTER TABLE bf_tasks RENAME TO tasks (or CREATE + INSERT + DROP if columns also change).",
+          "UBIQUITOUS: All backend SQLAlchemy models / queries shall be updated atomically.",
+          "EVENT-DRIVEN: When lint #19 runs, no bf_ prefix shall remain."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-DB-09.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-DB-10",
+      "title": "bf_features / bf_mocks dead table 削除",
+      "category": "db",
+      "label": "REFACTOR",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-02"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_(dropped)_rename.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The migration shall ALTER TABLE bf_(dropped) RENAME TO (dropped) (or CREATE + INSERT + DROP if columns also change).",
+          "UBIQUITOUS: All backend SQLAlchemy models / queries shall be updated atomically.",
+          "EVENT-DRIVEN: When lint #19 runs, no bf_ prefix shall remain."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-DB-10.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RLS-01",
+      "title": "RLS policy 追加: E-001/E-002/E-003 (User / AccountMember / WorkspaceMember)",
+      "category": "db",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-001",
+        "E-002",
+        "E-003"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_rls_t-v3-rls-01.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: For each listed table, RLS shall be ENABLED.",
+          "UBIQUITOUS: Each table shall have at least one CREATE POLICY for SELECT enforcing the scope listed in entities.json.",
+          "EVENT-DRIVEN: When verify-rls-coverage.py runs, all listed tables shall be reported as covered."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "users:select_member",
+        "account_members:rls",
+        "workspace_members:rls"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RLS-01.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RLS-02",
+      "title": "RLS policy 追加: E-008/E-009 (Account / Workspace)",
+      "category": "db",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-008",
+        "E-009"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_rls_t-v3-rls-02.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: For each listed table, RLS shall be ENABLED.",
+          "UBIQUITOUS: Each table shall have at least one CREATE POLICY for SELECT enforcing the scope listed in entities.json.",
+          "EVENT-DRIVEN: When verify-rls-coverage.py runs, all listed tables shall be reported as covered."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "accounts:scope_member",
+        "workspaces:scope_member"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RLS-02.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RLS-03",
+      "title": "RLS policy 追加: E-018/E-019 (Task / TaskDependency)",
+      "category": "db",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-018",
+        "E-019"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_rls_t-v3-rls-03.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: For each listed table, RLS shall be ENABLED.",
+          "UBIQUITOUS: Each table shall have at least one CREATE POLICY for SELECT enforcing the scope listed in entities.json.",
+          "EVENT-DRIVEN: When verify-rls-coverage.py runs, all listed tables shall be reported as covered."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "tasks:workspace_member",
+        "task_dependencies:workspace_member"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RLS-03.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RLS-04",
+      "title": "RLS policy 追加: E-025/E-026 (Session / SessionLog)",
+      "category": "db",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-025",
+        "E-026"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_rls_t-v3-rls-04.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: For each listed table, RLS shall be ENABLED.",
+          "UBIQUITOUS: Each table shall have at least one CREATE POLICY for SELECT enforcing the scope listed in entities.json.",
+          "EVENT-DRIVEN: When verify-rls-coverage.py runs, all listed tables shall be reported as covered."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "sessions:workspace_member",
+        "session_logs:workspace_member"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RLS-04.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RLS-05",
+      "title": "RLS policy 追加: E-027/E-028 (CostLog / TokenUsage)",
+      "category": "db",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-027",
+        "E-028"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_rls_t-v3-rls-05.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: For each listed table, RLS shall be ENABLED.",
+          "UBIQUITOUS: Each table shall have at least one CREATE POLICY for SELECT enforcing the scope listed in entities.json.",
+          "EVENT-DRIVEN: When verify-rls-coverage.py runs, all listed tables shall be reported as covered."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "cost_logs:account_owner",
+        "token_usage:account_owner"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RLS-05.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RLS-06",
+      "title": "RLS policy 追加: E-029 (AuditLog) read-only",
+      "category": "db",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-029"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_rls_t-v3-rls-06.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: For each listed table, RLS shall be ENABLED.",
+          "UBIQUITOUS: Each table shall have at least one CREATE POLICY for SELECT enforcing the scope listed in entities.json.",
+          "EVENT-DRIVEN: When verify-rls-coverage.py runs, all listed tables shall be reported as covered."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "audit_logs:read_only_owner_monitor"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RLS-06.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RLS-07",
+      "title": "RLS policy 追加: E-030/E-031 (RedLine / RedLineViolation)",
+      "category": "db",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-030",
+        "E-031"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_rls_t-v3-rls-07.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: For each listed table, RLS shall be ENABLED.",
+          "UBIQUITOUS: Each table shall have at least one CREATE POLICY for SELECT enforcing the scope listed in entities.json.",
+          "EVENT-DRIVEN: When verify-rls-coverage.py runs, all listed tables shall be reported as covered."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "red_lines:workspace",
+        "red_line_violations:workspace"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RLS-07.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RLS-08",
+      "title": "RLS policy 追加: E-013/E-014 (PhaseGate / PhaseGateDecision)",
+      "category": "db",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-013",
+        "E-014"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_rls_t-v3-rls-08.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: For each listed table, RLS shall be ENABLED.",
+          "UBIQUITOUS: Each table shall have at least one CREATE POLICY for SELECT enforcing the scope listed in entities.json.",
+          "EVENT-DRIVEN: When verify-rls-coverage.py runs, all listed tables shall be reported as covered."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "phase_gates:workspace",
+        "phase_gate_decisions:workspace"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RLS-08.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RLS-09",
+      "title": "RLS policy 追加: E-016 (AcceptanceCriterion)",
+      "category": "db",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-016"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_rls_t-v3-rls-09.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: For each listed table, RLS shall be ENABLED.",
+          "UBIQUITOUS: Each table shall have at least one CREATE POLICY for SELECT enforcing the scope listed in entities.json.",
+          "EVENT-DRIVEN: When verify-rls-coverage.py runs, all listed tables shall be reported as covered."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "acceptance_criteria:workspace"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RLS-09.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RLS-10",
+      "title": "RLS policy 追加: E-017 (Constitution)",
+      "category": "db",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-017"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_rls_t-v3-rls-10.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: For each listed table, RLS shall be ENABLED.",
+          "UBIQUITOUS: Each table shall have at least one CREATE POLICY for SELECT enforcing the scope listed in entities.json.",
+          "EVENT-DRIVEN: When verify-rls-coverage.py runs, all listed tables shall be reported as covered."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "constitutions:workspace"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RLS-10.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RLS-11",
+      "title": "RLS policy 追加: E-021 (ArtifactVersion)",
+      "category": "db",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-021"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_rls_t-v3-rls-11.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: For each listed table, RLS shall be ENABLED.",
+          "UBIQUITOUS: Each table shall have at least one CREATE POLICY for SELECT enforcing the scope listed in entities.json.",
+          "EVENT-DRIVEN: When verify-rls-coverage.py runs, all listed tables shall be reported as covered."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "artifact_versions:workspace"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RLS-11.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RLS-12",
+      "title": "RLS policy 追加: E-022/E-023/E-024 (Screen / Component / ScreenComponent)",
+      "category": "db",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-022",
+        "E-023",
+        "E-024"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_rls_t-v3-rls-12.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: For each listed table, RLS shall be ENABLED.",
+          "UBIQUITOUS: Each table shall have at least one CREATE POLICY for SELECT enforcing the scope listed in entities.json.",
+          "EVENT-DRIVEN: When verify-rls-coverage.py runs, all listed tables shall be reported as covered."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "screens:workspace",
+        "components:workspace",
+        "screen_components:workspace"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RLS-12.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RLS-13",
+      "title": "RLS policy 追加: E-032/E-033 (ChatThread / ChatMessage)",
+      "category": "db",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-032",
+        "E-033"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_rls_t-v3-rls-13.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: For each listed table, RLS shall be ENABLED.",
+          "UBIQUITOUS: Each table shall have at least one CREATE POLICY for SELECT enforcing the scope listed in entities.json.",
+          "EVENT-DRIVEN: When verify-rls-coverage.py runs, all listed tables shall be reported as covered."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "chat_threads:workspace_member",
+        "chat_messages:workspace_member"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RLS-13.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RLS-14",
+      "title": "RLS policy 追加: E-034/E-035/E-036 (AIEmployee / EmployeeSkill / SkillRun)",
+      "category": "db",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-034",
+        "E-035",
+        "E-036"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_rls_t-v3-rls-14.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: For each listed table, RLS shall be ENABLED.",
+          "UBIQUITOUS: Each table shall have at least one CREATE POLICY for SELECT enforcing the scope listed in entities.json.",
+          "EVENT-DRIVEN: When verify-rls-coverage.py runs, all listed tables shall be reported as covered."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "ai_employees:workspace",
+        "employee_skills:workspace",
+        "skill_runs:workspace"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RLS-14.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RLS-15",
+      "title": "RLS policy 追加: E-040/E-041 (ChatThread legacy / KnowledgeNamespace)",
+      "category": "db",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-040",
+        "E-041"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_rls_t-v3-rls-15.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: For each listed table, RLS shall be ENABLED.",
+          "UBIQUITOUS: Each table shall have at least one CREATE POLICY for SELECT enforcing the scope listed in entities.json.",
+          "EVENT-DRIVEN: When verify-rls-coverage.py runs, all listed tables shall be reported as covered."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "chat_threads:legacy",
+        "knowledge_namespaces:workspace_member"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RLS-15.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RLS-16",
+      "title": "RLS policy 追加: E-042/E-043 (Notification / Invitation)",
+      "category": "db",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-042",
+        "E-043"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_rls_t-v3-rls-16.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: For each listed table, RLS shall be ENABLED.",
+          "UBIQUITOUS: Each table shall have at least one CREATE POLICY for SELECT enforcing the scope listed in entities.json.",
+          "EVENT-DRIVEN: When verify-rls-coverage.py runs, all listed tables shall be reported as covered."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "notifications:owner_only",
+        "invitations:account_owner_or_invitee"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RLS-16.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RLS-17",
+      "title": "RLS policy 追加: E-038/E-039 (AuthSession / PasswordReset) — T-V3-AUTH-15 と統合 / 確認 task",
+      "category": "db",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-038",
+        "E-039"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_rls_t-v3-rls-17.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: For each listed table, RLS shall be ENABLED.",
+          "UBIQUITOUS: Each table shall have at least one CREATE POLICY for SELECT enforcing the scope listed in entities.json.",
+          "EVENT-DRIVEN: When verify-rls-coverage.py runs, all listed tables shall be reported as covered."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [
+        "auth_sessions:owner_only",
+        "password_resets:owner_only"
+      ],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RLS-17.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RLS-18",
+      "title": "RLS policy 追加: verify-rls-coverage 拡張 (全 43 entity に CREATE POLICY 必須化)",
+      "category": "db",
+      "label": "NEW",
+      "feature_ids": [
+        "F-001"
+      ],
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_rls_t-v3-rls-18.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: For each listed table, RLS shall be ENABLED.",
+          "UBIQUITOUS: Each table shall have at least one CREATE POLICY for SELECT enforcing the scope listed in entities.json.",
+          "EVENT-DRIVEN: When verify-rls-coverage.py runs, all listed tables shall be reported as covered."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RLS-18.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-DRIFT-01",
+      "title": "GET /api/accounts/{id}/dashboard backend 実装 (S-006 API)",
+      "category": "backend",
+      "label": "NEW",
+      "feature_ids": [
+        "F-024",
+        "F-018",
+        "F-008",
+        "F-007",
+        "F-017"
+      ],
+      "screen_ids": [
+        "S-006"
+      ],
+      "entity_ids": [
+        "E-008",
+        "E-009",
+        "E-018",
+        "E-025",
+        "E-027",
+        "E-029"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 8,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-RLS-02"
+      ],
+      "files_changed": [
+        "backend/routers/accounts.py"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When an authenticated account_owner GETs /api/accounts/{id}/dashboard, the system shall return 200 with { active_projects: int, running_sessions: { current: int, max: int }, monthly_cost: { current: number, budget: number }, anomalies_24h: int, workspaces: Workspace[], ai_employee_usage: AIEmployeeUsage[], recent_activity: ActivityLog[], phase_progress: PhaseProgress[], pending_reviews: PendingReview[] }.",
+          "UNWANTED: If caller is not a member of the account, the system shall return 403.",
+          "UBIQUITOUS: The endpoint shall accept an optional ?period=24h|7d|30d query parameter that filters anomalies_24h and recent_activity windows."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-DRIFT-01.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-DRIFT-02",
+      "title": "S-006 root `/` 完全 rewrite (10 案件俯瞰)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [
+        "F-024",
+        "F-008"
+      ],
+      "screen_ids": [
+        "S-006"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "company-dashboard-bleed",
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 12,
+      "estimate_sessions": 3,
+      "depends_on": [
+        "T-V3-DRIFT-01",
+        "T-V3-INFRA-03"
+      ],
+      "files_changed": [
+        "frontend/src/app/page.tsx",
+        "frontend/src/components/dashboard/AccountDashboard.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While rendered at /, the page h1 shall be '10 案件 俯瞰' (exact match with mock docs/mocks/2026-05-09_v1/account/S-006-account-dashboard.html).",
+          "STATE-DRIVEN: The 4 Hero KPI cards shall have labels 'Active Projects', 'Running Sessions', 'Monthly Cost', 'Anomalies (24h)' in this order (mock-impl lint #17 PASS).",
+          "STATE-DRIVEN: The page shall contain sections 'Pending Reviews', 'Phase 進捗', '完了タスク (7d)', '全 Workspaces', 'AI 社員 使用率', '直近の Activity' (h2 elements)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts, it shall call GET /api/accounts/{current_account_id}/dashboard and render the returned data into the 4 Hero KPI cards + 6 sections."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-DRIFT-02.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-DRIFT-03",
+      "title": "既存 AI 社員 KPI を /ai-employees-legacy に退避 or 完全削除 + ADR-015",
+      "category": "frontend",
+      "label": "ARCHIVE",
+      "feature_ids": [
+        "F-022"
+      ],
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-DRIFT-02"
+      ],
+      "files_changed": [
+        "frontend/src/app/ai-employees-legacy/page.tsx (move) or DELETE",
+        "docs/decisions/ADR-015-company-dashboard-bleed-removal.md"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The legacy KPI (今月売上 / パイプライン / 今月受注 / タスク・コンタクト) shall NOT exist at /.",
+          "UBIQUITOUS: ADR-015 shall document why this content was at /, the bleed source, and the resolution (move-or-delete decision)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-DRIFT-03.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-DRIFT-04",
+      "title": "S-036 h1 統一 (実装 'AI社員（組織図）' → mock 'AI 社員 組織図')",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [
+        "F-003"
+      ],
+      "screen_ids": [
+        "S-036"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 0.5,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-03"
+      ],
+      "files_changed": [
+        "frontend/src/app/ai-employees/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page h1 shall be 'AI 社員 組織図' (exact match, half-width spaces, no full-width parens)."
+        ],
+        "functional": [],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-DRIFT-04.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-DRIFT-05",
+      "title": "S-040 h1 日本語化 (実装 'Cost Dashboard' → mock 'コスト ダッシュボード')",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [
+        "F-017"
+      ],
+      "screen_ids": [
+        "S-040"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 2,
+      "estimate_hours": 0.5,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-03"
+      ],
+      "files_changed": [
+        "frontend/src/app/dashboard/costs/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page h1 shall be 'コスト ダッシュボード' (exact match with mock)."
+        ],
+        "functional": [],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-DRIFT-05.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-SCR-01",
+      "title": "S-008 /account/members",
+      "category": "full-stack",
+      "label": "NEW",
+      "feature_ids": [
+        "F-004"
+      ],
+      "screen_ids": [
+        "S-008"
+      ],
+      "entity_ids": [
+        "E-001",
+        "E-002"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 8,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-RLS-01",
+        "T-V3-AUTH-07"
+      ],
+      "files_changed": [
+        "frontend/src/app/account/members/page.tsx",
+        "backend/routers/* (new endpoints as needed)"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While rendered at /account/members, the page h1, KPI labels, and section h2s shall match the mock for S-008 (lint #17 PASS)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts, it shall call the related_apis declared for S-008 in screens.json and render their responses."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-SCR-01.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-SCR-02",
+      "title": "S-010 /notifications",
+      "category": "full-stack",
+      "label": "NEW",
+      "feature_ids": [
+        "F-018"
+      ],
+      "screen_ids": [
+        "S-010"
+      ],
+      "entity_ids": [
+        "E-042"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 8,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-RLS-16"
+      ],
+      "files_changed": [
+        "frontend/src/app/notifications/page.tsx",
+        "backend/routers/* (new endpoints as needed)"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While rendered at /notifications, the page h1, KPI labels, and section h2s shall match the mock for S-010 (lint #17 PASS)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts, it shall call the related_apis declared for S-010 in screens.json and render their responses."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-SCR-02.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-SCR-03",
+      "title": "S-011 /search + Cmd+K",
+      "category": "full-stack",
+      "label": "NEW",
+      "feature_ids": [
+        "F-024"
+      ],
+      "screen_ids": [
+        "S-011"
+      ],
+      "entity_ids": [
+        "E-001",
+        "E-018",
+        "E-009"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 12,
+      "estimate_sessions": 3,
+      "depends_on": [
+        "T-V3-AUTH-07"
+      ],
+      "files_changed": [
+        "frontend/src/app/search/page.tsx",
+        "backend/routers/* (new endpoints as needed)"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While rendered at /search, the page h1, KPI labels, and section h2s shall match the mock for S-011 (lint #17 PASS)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts, it shall call the related_apis declared for S-011 in screens.json and render their responses."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-SCR-03.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-SCR-04",
+      "title": "S-015 /workspaces/[id]/invite",
+      "category": "full-stack",
+      "label": "NEW",
+      "feature_ids": [
+        "F-004"
+      ],
+      "screen_ids": [
+        "S-015"
+      ],
+      "entity_ids": [
+        "E-043"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-RLS-16"
+      ],
+      "files_changed": [
+        "frontend/src/app/workspaces/[id]/invite/page.tsx",
+        "backend/routers/* (new endpoints as needed)"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While rendered at /workspaces/[id]/invite, the page h1, KPI labels, and section h2s shall match the mock for S-015 (lint #17 PASS)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts, it shall call the related_apis declared for S-015 in screens.json and render their responses."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-SCR-04.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-SCR-05",
+      "title": "S-020 /workspaces/[id]/hearing",
+      "category": "full-stack",
+      "label": "NEW",
+      "feature_ids": [
+        "F-005"
+      ],
+      "screen_ids": [
+        "S-020"
+      ],
+      "entity_ids": [
+        "E-016"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 16,
+      "estimate_sessions": 4,
+      "depends_on": [
+        "T-V3-RLS-02"
+      ],
+      "files_changed": [
+        "frontend/src/app/workspaces/[id]/hearing/page.tsx",
+        "backend/routers/* (new endpoints as needed)"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While rendered at /workspaces/[id]/hearing, the page h1, KPI labels, and section h2s shall match the mock for S-020 (lint #17 PASS)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts, it shall call the related_apis declared for S-020 in screens.json and render their responses."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-SCR-05.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-SCR-06",
+      "title": "S-021 /workspaces/[id]/requirements (EARS editor)",
+      "category": "full-stack",
+      "label": "NEW",
+      "feature_ids": [
+        "F-006"
+      ],
+      "screen_ids": [
+        "S-021"
+      ],
+      "entity_ids": [
+        "E-016"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 16,
+      "estimate_sessions": 4,
+      "depends_on": [
+        "T-V3-DB-07"
+      ],
+      "files_changed": [
+        "frontend/src/app/workspaces/[id]/requirements/page.tsx",
+        "backend/routers/* (new endpoints as needed)"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While rendered at /workspaces/[id]/requirements, the page h1, KPI labels, and section h2s shall match the mock for S-021 (lint #17 PASS)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts, it shall call the related_apis declared for S-021 in screens.json and render their responses."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-SCR-06.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-SCR-07",
+      "title": "S-022 /workspaces/[id]/specs (7 種 HTML report viewer)",
+      "category": "full-stack",
+      "label": "NEW",
+      "feature_ids": [
+        "F-005"
+      ],
+      "screen_ids": [
+        "S-022"
+      ],
+      "entity_ids": [
+        "E-021"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 12,
+      "estimate_sessions": 3,
+      "depends_on": [
+        "T-V3-DB-03"
+      ],
+      "files_changed": [
+        "frontend/src/app/workspaces/[id]/specs/page.tsx",
+        "backend/routers/* (new endpoints as needed)"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While rendered at /workspaces/[id]/specs, the page h1, KPI labels, and section h2s shall match the mock for S-022 (lint #17 PASS)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts, it shall call the related_apis declared for S-022 in screens.json and render their responses."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-SCR-07.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-SCR-08",
+      "title": "S-023 /workspaces/[id]/mocks (GUI/AI/HTML edit)",
+      "category": "full-stack",
+      "label": "NEW",
+      "feature_ids": [
+        "F-005b"
+      ],
+      "screen_ids": [
+        "S-023"
+      ],
+      "entity_ids": [
+        "E-022"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 16,
+      "estimate_sessions": 4,
+      "depends_on": [
+        "T-V3-DB-05",
+        "T-V3-RLS-12"
+      ],
+      "files_changed": [
+        "frontend/src/app/workspaces/[id]/mocks/page.tsx",
+        "backend/routers/* (new endpoints as needed)"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While rendered at /workspaces/[id]/mocks, the page h1, KPI labels, and section h2s shall match the mock for S-023 (lint #17 PASS)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts, it shall call the related_apis declared for S-023 in screens.json and render their responses."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-SCR-08.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-SCR-09",
+      "title": "S-024 /workspaces/[id]/components catalog",
+      "category": "full-stack",
+      "label": "NEW",
+      "feature_ids": [
+        "F-005b"
+      ],
+      "screen_ids": [
+        "S-024"
+      ],
+      "entity_ids": [
+        "E-023"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 8,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-DB-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/workspaces/[id]/components/page.tsx",
+        "backend/routers/* (new endpoints as needed)"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While rendered at /workspaces/[id]/components, the page h1, KPI labels, and section h2s shall match the mock for S-024 (lint #17 PASS)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts, it shall call the related_apis declared for S-024 in screens.json and render their responses."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-SCR-09.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-SCR-10",
+      "title": "S-025 /workspaces/[id]/flow (screen flow map)",
+      "category": "full-stack",
+      "label": "NEW",
+      "feature_ids": [
+        "F-005b"
+      ],
+      "screen_ids": [
+        "S-025"
+      ],
+      "entity_ids": [
+        "E-024"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 8,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-DB-02"
+      ],
+      "files_changed": [
+        "frontend/src/app/workspaces/[id]/flow/page.tsx",
+        "backend/routers/* (new endpoints as needed)"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While rendered at /workspaces/[id]/flow, the page h1, KPI labels, and section h2s shall match the mock for S-025 (lint #17 PASS)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts, it shall call the related_apis declared for S-025 in screens.json and render their responses."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-SCR-10.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-SCR-11",
+      "title": "S-030 /tasks/[id] task detail page",
+      "category": "full-stack",
+      "label": "NEW",
+      "feature_ids": [
+        "F-007"
+      ],
+      "screen_ids": [
+        "S-030"
+      ],
+      "entity_ids": [
+        "E-018"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-RLS-03"
+      ],
+      "files_changed": [
+        "frontend/src/app/tasks/[id]/page.tsx",
+        "backend/routers/* (new endpoints as needed)"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While rendered at /tasks/[id], the page h1, KPI labels, and section h2s shall match the mock for S-030 (lint #17 PASS)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts, it shall call the related_apis declared for S-030 in screens.json and render their responses."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-SCR-11.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-SCR-12",
+      "title": "S-033 /approval/pr PR review",
+      "category": "full-stack",
+      "label": "NEW",
+      "feature_ids": [
+        "F-013"
+      ],
+      "screen_ids": [
+        "S-033"
+      ],
+      "entity_ids": [
+        "E-018"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 12,
+      "estimate_sessions": 3,
+      "depends_on": [
+        "T-V3-RLS-02"
+      ],
+      "files_changed": [
+        "frontend/src/app/approval/pr/page.tsx",
+        "backend/routers/* (new endpoints as needed)"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While rendered at /approval/pr, the page h1, KPI labels, and section h2s shall match the mock for S-033 (lint #17 PASS)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts, it shall call the related_apis declared for S-033 in screens.json and render their responses."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-SCR-12.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-SCR-13",
+      "title": "S-037 /ai-employees/[id] detail",
+      "category": "full-stack",
+      "label": "NEW",
+      "feature_ids": [
+        "F-003"
+      ],
+      "screen_ids": [
+        "S-037"
+      ],
+      "entity_ids": [
+        "E-034"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 8,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-RLS-14"
+      ],
+      "files_changed": [
+        "frontend/src/app/ai-employees/[id]/page.tsx",
+        "backend/routers/* (new endpoints as needed)"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While rendered at /ai-employees/[id], the page h1, KPI labels, and section h2s shall match the mock for S-037 (lint #17 PASS)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts, it shall call the related_apis declared for S-037 in screens.json and render their responses."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-SCR-13.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-SCR-14",
+      "title": "S-042 /client/workspaces/[id] (client portal)",
+      "category": "full-stack",
+      "label": "NEW",
+      "feature_ids": [
+        "F-013"
+      ],
+      "screen_ids": [
+        "S-042"
+      ],
+      "entity_ids": [
+        "E-009"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 12,
+      "estimate_sessions": 3,
+      "depends_on": [
+        "T-V3-RLS-02"
+      ],
+      "files_changed": [
+        "frontend/src/app/client/workspaces/[id]/page.tsx",
+        "backend/routers/* (new endpoints as needed)"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While rendered at /client/workspaces/[id], the page h1, KPI labels, and section h2s shall match the mock for S-042 (lint #17 PASS)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts, it shall call the related_apis declared for S-042 in screens.json and render their responses."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-SCR-14.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-SCR-15",
+      "title": "S-043 client_comment (embedded in S-042)",
+      "category": "full-stack",
+      "label": "NEW",
+      "feature_ids": [
+        "F-013"
+      ],
+      "screen_ids": [
+        "S-043"
+      ],
+      "entity_ids": [
+        "E-033"
+      ],
+      "legacy_task_id": null,
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-SCR-14"
+      ],
+      "files_changed": [
+        "frontend/src/app/client/workspaces/[id]#comments/page.tsx",
+        "backend/routers/* (new endpoints as needed)"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While rendered at /client/workspaces/[id]#comments, the page h1, KPI labels, and section h2s shall match the mock for S-043 (lint #17 PASS)."
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When the page mounts, it shall call the related_apis declared for S-043 in screens.json and render their responses."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-SCR-15.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RF-01",
+      "title": "S-007 account_settings REFACTOR (R-1〜R-4 適用)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [
+        "S-007"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "v1-impl-of-S-007",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-03",
+        "T-V3-INFRA-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/account/settings/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page at /account/settings shall match the mock for S-007 h1/KPI/h2 (lint #17 PASS).",
+          "STATE-DRIVEN: 3-tier acceptance_criteria shall be added to docs/audit/2026-05-15_v3/<TASK_ID>.md."
+        ],
+        "functional": [
+          "UBIQUITOUS: The page shall call only the related_apis declared in screens.json for S-007 (lint #18 PASS).",
+          "UBIQUITOUS: All entity references shall use the new naming (no bf_ prefix, lint #19 PASS)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RF-01.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RF-02",
+      "title": "S-009 profile_settings REFACTOR (R-1〜R-4 適用)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [
+        "S-009"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "v1-impl-of-S-009",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-03",
+        "T-V3-INFRA-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/account/profile/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page at /account/profile shall match the mock for S-009 h1/KPI/h2 (lint #17 PASS).",
+          "STATE-DRIVEN: 3-tier acceptance_criteria shall be added to docs/audit/2026-05-15_v3/<TASK_ID>.md."
+        ],
+        "functional": [
+          "UBIQUITOUS: The page shall call only the related_apis declared in screens.json for S-009 (lint #18 PASS).",
+          "UBIQUITOUS: All entity references shall use the new naming (no bf_ prefix, lint #19 PASS)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RF-02.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RF-03",
+      "title": "S-012 workspace_dashboard REFACTOR (R-1〜R-4 適用)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [
+        "S-012"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "v1-impl-of-S-012",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 8,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-INFRA-03",
+        "T-V3-INFRA-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/workspaces/[id]/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page at /workspaces/[id] shall match the mock for S-012 h1/KPI/h2 (lint #17 PASS).",
+          "STATE-DRIVEN: 3-tier acceptance_criteria shall be added to docs/audit/2026-05-15_v3/<TASK_ID>.md."
+        ],
+        "functional": [
+          "UBIQUITOUS: The page shall call only the related_apis declared in screens.json for S-012 (lint #18 PASS).",
+          "UBIQUITOUS: All entity references shall use the new naming (no bf_ prefix, lint #19 PASS)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RF-03.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RF-04",
+      "title": "S-013 workspace_settings REFACTOR (R-1〜R-4 適用)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [
+        "S-013"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "v1-impl-of-S-013",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-03",
+        "T-V3-INFRA-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/workspaces/[id]/settings/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page at /workspaces/[id]/settings shall match the mock for S-013 h1/KPI/h2 (lint #17 PASS).",
+          "STATE-DRIVEN: 3-tier acceptance_criteria shall be added to docs/audit/2026-05-15_v3/<TASK_ID>.md."
+        ],
+        "functional": [
+          "UBIQUITOUS: The page shall call only the related_apis declared in screens.json for S-013 (lint #18 PASS).",
+          "UBIQUITOUS: All entity references shall use the new naming (no bf_ prefix, lint #19 PASS)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RF-04.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RF-05",
+      "title": "S-014 workspace_members REFACTOR (R-1〜R-4 適用)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [
+        "S-014"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "v1-impl-of-S-014",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-03",
+        "T-V3-INFRA-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/workspaces/[id]/members/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page at /workspaces/[id]/members shall match the mock for S-014 h1/KPI/h2 (lint #17 PASS).",
+          "STATE-DRIVEN: 3-tier acceptance_criteria shall be added to docs/audit/2026-05-15_v3/<TASK_ID>.md."
+        ],
+        "functional": [
+          "UBIQUITOUS: The page shall call only the related_apis declared in screens.json for S-014 (lint #18 PASS).",
+          "UBIQUITOUS: All entity references shall use the new naming (no bf_ prefix, lint #19 PASS)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RF-05.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RF-06",
+      "title": "S-016 phase_management REFACTOR (R-1〜R-4 適用)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [
+        "S-016"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "v1-impl-of-S-016",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 8,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-INFRA-03",
+        "T-V3-INFRA-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/workspaces/[id]/phases/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page at /workspaces/[id]/phases shall match the mock for S-016 h1/KPI/h2 (lint #17 PASS).",
+          "STATE-DRIVEN: 3-tier acceptance_criteria shall be added to docs/audit/2026-05-15_v3/<TASK_ID>.md."
+        ],
+        "functional": [
+          "UBIQUITOUS: The page shall call only the related_apis declared in screens.json for S-016 (lint #18 PASS).",
+          "UBIQUITOUS: All entity references shall use the new naming (no bf_ prefix, lint #19 PASS)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RF-06.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RF-07",
+      "title": "S-017 dependency_graph REFACTOR (R-1〜R-4 適用)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [
+        "S-017"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "v1-impl-of-S-017",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-03",
+        "T-V3-INFRA-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/workspaces/[id]/dependencies/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page at /workspaces/[id]/dependencies shall match the mock for S-017 h1/KPI/h2 (lint #17 PASS).",
+          "STATE-DRIVEN: 3-tier acceptance_criteria shall be added to docs/audit/2026-05-15_v3/<TASK_ID>.md."
+        ],
+        "functional": [
+          "UBIQUITOUS: The page shall call only the related_apis declared in screens.json for S-017 (lint #18 PASS).",
+          "UBIQUITOUS: All entity references shall use the new naming (no bf_ prefix, lint #19 PASS)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RF-07.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RF-08",
+      "title": "S-018 constitution_editor REFACTOR (R-1〜R-4 適用)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [
+        "S-018"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "v1-impl-of-S-018",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-03",
+        "T-V3-INFRA-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/workspaces/[id]/constitution/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page at /workspaces/[id]/constitution shall match the mock for S-018 h1/KPI/h2 (lint #17 PASS).",
+          "STATE-DRIVEN: 3-tier acceptance_criteria shall be added to docs/audit/2026-05-15_v3/<TASK_ID>.md."
+        ],
+        "functional": [
+          "UBIQUITOUS: The page shall call only the related_apis declared in screens.json for S-018 (lint #18 PASS).",
+          "UBIQUITOUS: All entity references shall use the new naming (no bf_ prefix, lint #19 PASS)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RF-08.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RF-09",
+      "title": "S-019 red_line_settings REFACTOR (R-1〜R-4 適用)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [
+        "S-019"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "v1-impl-of-S-019",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-03",
+        "T-V3-INFRA-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/workspaces/[id]/red-lines/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page at /workspaces/[id]/red-lines shall match the mock for S-019 h1/KPI/h2 (lint #17 PASS).",
+          "STATE-DRIVEN: 3-tier acceptance_criteria shall be added to docs/audit/2026-05-15_v3/<TASK_ID>.md."
+        ],
+        "functional": [
+          "UBIQUITOUS: The page shall call only the related_apis declared in screens.json for S-019 (lint #18 PASS).",
+          "UBIQUITOUS: All entity references shall use the new naming (no bf_ prefix, lint #19 PASS)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RF-09.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RF-10",
+      "title": "S-026 design_html_editor REFACTOR (R-1〜R-4 適用)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [
+        "S-026"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "v1-impl-of-S-026",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 8,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-INFRA-03",
+        "T-V3-INFRA-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/workspaces/[id]/design-html/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page at /workspaces/[id]/design-html shall match the mock for S-026 h1/KPI/h2 (lint #17 PASS).",
+          "STATE-DRIVEN: 3-tier acceptance_criteria shall be added to docs/audit/2026-05-15_v3/<TASK_ID>.md."
+        ],
+        "functional": [
+          "UBIQUITOUS: The page shall call only the related_apis declared in screens.json for S-026 (lint #18 PASS).",
+          "UBIQUITOUS: All entity references shall use the new naming (no bf_ prefix, lint #19 PASS)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RF-10.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RF-11",
+      "title": "S-027 task_kanban REFACTOR (R-1〜R-4 適用)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [
+        "S-027"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "v1-impl-of-S-027",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 8,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-INFRA-03",
+        "T-V3-INFRA-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/workspaces/[id]/tasks/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page at /workspaces/[id]/tasks shall match the mock for S-027 h1/KPI/h2 (lint #17 PASS).",
+          "STATE-DRIVEN: 3-tier acceptance_criteria shall be added to docs/audit/2026-05-15_v3/<TASK_ID>.md."
+        ],
+        "functional": [
+          "UBIQUITOUS: The page shall call only the related_apis declared in screens.json for S-027 (lint #18 PASS).",
+          "UBIQUITOUS: All entity references shall use the new naming (no bf_ prefix, lint #19 PASS)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RF-11.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RF-12",
+      "title": "S-028 task_list REFACTOR (R-1〜R-4 適用)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [
+        "S-028"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "v1-impl-of-S-028",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-03",
+        "T-V3-INFRA-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/tasks/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page at /tasks shall match the mock for S-028 h1/KPI/h2 (lint #17 PASS).",
+          "STATE-DRIVEN: 3-tier acceptance_criteria shall be added to docs/audit/2026-05-15_v3/<TASK_ID>.md."
+        ],
+        "functional": [
+          "UBIQUITOUS: The page shall call only the related_apis declared in screens.json for S-028 (lint #18 PASS).",
+          "UBIQUITOUS: All entity references shall use the new naming (no bf_ prefix, lint #19 PASS)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RF-12.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RF-13",
+      "title": "S-029 task_dag_view REFACTOR (R-1〜R-4 適用)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [
+        "S-029"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "v1-impl-of-S-029",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-03",
+        "T-V3-INFRA-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/workspaces/[id]/tasks/dag/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page at /workspaces/[id]/tasks/dag shall match the mock for S-029 h1/KPI/h2 (lint #17 PASS).",
+          "STATE-DRIVEN: 3-tier acceptance_criteria shall be added to docs/audit/2026-05-15_v3/<TASK_ID>.md."
+        ],
+        "functional": [
+          "UBIQUITOUS: The page shall call only the related_apis declared in screens.json for S-029 (lint #18 PASS).",
+          "UBIQUITOUS: All entity references shall use the new naming (no bf_ prefix, lint #19 PASS)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RF-13.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RF-14",
+      "title": "S-031 swarm_grid REFACTOR (R-1〜R-4 適用)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [
+        "S-031"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "v1-impl-of-S-031",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 8,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-INFRA-03",
+        "T-V3-INFRA-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/sessions/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page at /sessions shall match the mock for S-031 h1/KPI/h2 (lint #17 PASS).",
+          "STATE-DRIVEN: 3-tier acceptance_criteria shall be added to docs/audit/2026-05-15_v3/<TASK_ID>.md."
+        ],
+        "functional": [
+          "UBIQUITOUS: The page shall call only the related_apis declared in screens.json for S-031 (lint #18 PASS).",
+          "UBIQUITOUS: All entity references shall use the new naming (no bf_ prefix, lint #19 PASS)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RF-14.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RF-15",
+      "title": "S-032 swarm_session_detail REFACTOR (R-1〜R-4 適用)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [
+        "S-032"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "v1-impl-of-S-032",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 8,
+      "estimate_sessions": 2,
+      "depends_on": [
+        "T-V3-INFRA-03",
+        "T-V3-INFRA-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/sessions/[id]/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page at /sessions/[id] shall match the mock for S-032 h1/KPI/h2 (lint #17 PASS).",
+          "STATE-DRIVEN: 3-tier acceptance_criteria shall be added to docs/audit/2026-05-15_v3/<TASK_ID>.md."
+        ],
+        "functional": [
+          "UBIQUITOUS: The page shall call only the related_apis declared in screens.json for S-032 (lint #18 PASS).",
+          "UBIQUITOUS: All entity references shall use the new naming (no bf_ prefix, lint #19 PASS)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RF-15.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RF-16",
+      "title": "S-034 red_line_approval REFACTOR (R-1〜R-4 適用)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [
+        "S-034"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "v1-impl-of-S-034",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-03",
+        "T-V3-INFRA-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/approval/red-line/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page at /approval/red-line shall match the mock for S-034 h1/KPI/h2 (lint #17 PASS).",
+          "STATE-DRIVEN: 3-tier acceptance_criteria shall be added to docs/audit/2026-05-15_v3/<TASK_ID>.md."
+        ],
+        "functional": [
+          "UBIQUITOUS: The page shall call only the related_apis declared in screens.json for S-034 (lint #18 PASS).",
+          "UBIQUITOUS: All entity references shall use the new naming (no bf_ prefix, lint #19 PASS)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RF-16.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RF-17",
+      "title": "S-035 delivery_approval REFACTOR (R-1〜R-4 適用)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [
+        "S-035"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "v1-impl-of-S-035",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-03",
+        "T-V3-INFRA-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/approval/delivery/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page at /approval/delivery shall match the mock for S-035 h1/KPI/h2 (lint #17 PASS).",
+          "STATE-DRIVEN: 3-tier acceptance_criteria shall be added to docs/audit/2026-05-15_v3/<TASK_ID>.md."
+        ],
+        "functional": [
+          "UBIQUITOUS: The page shall call only the related_apis declared in screens.json for S-035 (lint #18 PASS).",
+          "UBIQUITOUS: All entity references shall use the new naming (no bf_ prefix, lint #19 PASS)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RF-17.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RF-18",
+      "title": "S-036 ai_employees_org_chart REFACTOR (R-1〜R-4 適用)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [
+        "S-036"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "v1-impl-of-S-036",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-03",
+        "T-V3-INFRA-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/ai-employees/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page at /ai-employees shall match the mock for S-036 h1/KPI/h2 (lint #17 PASS).",
+          "STATE-DRIVEN: 3-tier acceptance_criteria shall be added to docs/audit/2026-05-15_v3/<TASK_ID>.md."
+        ],
+        "functional": [
+          "UBIQUITOUS: The page shall call only the related_apis declared in screens.json for S-036 (lint #18 PASS).",
+          "UBIQUITOUS: All entity references shall use the new naming (no bf_ prefix, lint #19 PASS)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RF-18.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RF-19",
+      "title": "S-038 skill_manager REFACTOR (R-1〜R-4 適用)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [
+        "S-038"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "v1-impl-of-S-038",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-03",
+        "T-V3-INFRA-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/skills/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page at /skills shall match the mock for S-038 h1/KPI/h2 (lint #17 PASS).",
+          "STATE-DRIVEN: 3-tier acceptance_criteria shall be added to docs/audit/2026-05-15_v3/<TASK_ID>.md."
+        ],
+        "functional": [
+          "UBIQUITOUS: The page shall call only the related_apis declared in screens.json for S-038 (lint #18 PASS).",
+          "UBIQUITOUS: All entity references shall use the new naming (no bf_ prefix, lint #19 PASS)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RF-19.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RF-20",
+      "title": "S-039 knowledge_base REFACTOR (R-1〜R-4 適用)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [
+        "S-039"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "v1-impl-of-S-039",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-03",
+        "T-V3-INFRA-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/knowledge/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page at /knowledge shall match the mock for S-039 h1/KPI/h2 (lint #17 PASS).",
+          "STATE-DRIVEN: 3-tier acceptance_criteria shall be added to docs/audit/2026-05-15_v3/<TASK_ID>.md."
+        ],
+        "functional": [
+          "UBIQUITOUS: The page shall call only the related_apis declared in screens.json for S-039 (lint #18 PASS).",
+          "UBIQUITOUS: All entity references shall use the new naming (no bf_ prefix, lint #19 PASS)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RF-20.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RF-21",
+      "title": "S-040 cost_dashboard REFACTOR (R-1〜R-4 適用)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [
+        "S-040"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "v1-impl-of-S-040",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-03",
+        "T-V3-INFRA-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/dashboard/costs/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page at /dashboard/costs shall match the mock for S-040 h1/KPI/h2 (lint #17 PASS).",
+          "STATE-DRIVEN: 3-tier acceptance_criteria shall be added to docs/audit/2026-05-15_v3/<TASK_ID>.md."
+        ],
+        "functional": [
+          "UBIQUITOUS: The page shall call only the related_apis declared in screens.json for S-040 (lint #18 PASS).",
+          "UBIQUITOUS: All entity references shall use the new naming (no bf_ prefix, lint #19 PASS)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RF-21.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RF-22",
+      "title": "S-041 audit_log_viewer REFACTOR (R-1〜R-4 適用)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [
+        "S-041"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "v1-impl-of-S-041",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-03",
+        "T-V3-INFRA-06"
+      ],
+      "files_changed": [
+        "frontend/src/app/audit-logs/page.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: The page at /audit-logs shall match the mock for S-041 h1/KPI/h2 (lint #17 PASS).",
+          "STATE-DRIVEN: 3-tier acceptance_criteria shall be added to docs/audit/2026-05-15_v3/<TASK_ID>.md."
+        ],
+        "functional": [
+          "UBIQUITOUS: The page shall call only the related_apis declared in screens.json for S-041 (lint #18 PASS).",
+          "UBIQUITOUS: All entity references shall use the new naming (no bf_ prefix, lint #19 PASS)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RF-22.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-FIX-01",
+      "title": "T-008-04 フェーズ削除 UI 完全実装",
+      "category": "frontend",
+      "label": "FIX",
+      "feature_ids": [
+        "F-008"
+      ],
+      "screen_ids": [
+        "S-016"
+      ],
+      "entity_ids": [
+        "E-013"
+      ],
+      "legacy_task_id": "T-008-04",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-DB-01"
+      ],
+      "files_changed": [
+        "frontend/src/app/workspaces/[id]/phases/_components/PhaseDeleteDialog.tsx"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When the user clicks 'delete' on a phase, a confirmation dialog shall appear with the phase name and dependent task count.",
+          "EVENT-DRIVEN: When confirmed, DELETE /api/workspaces/{id}/phases/{phase_id} shall be called.",
+          "UNWANTED: If the phase has dependent active tasks, the dialog shall block deletion and show the count."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-FIX-01.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-FIX-02",
+      "title": "T-013-04b merge conflict AI 完全実装",
+      "category": "backend",
+      "label": "FIX",
+      "feature_ids": [
+        "F-013"
+      ],
+      "screen_ids": [
+        "S-033"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": "T-013-04b",
+      "phase": 1,
+      "wave": 4,
+      "estimate_hours": 8,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "backend/services/merge_conflict_resolver.py",
+        "tests/test_T-V3-FIX-02.py"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When given two file blobs with conflict markers, the service shall return a proposed resolution string + confidence score.",
+          "UBIQUITOUS: The service shall log all resolutions to audit_logs with input hash + output."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-FIX-02.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-FIX-03",
+      "title": "T-007-03b DAG semantic fix 完全実装 + audit MD",
+      "category": "full-stack",
+      "label": "FIX",
+      "feature_ids": [
+        "F-009"
+      ],
+      "screen_ids": [
+        "S-017",
+        "S-029"
+      ],
+      "entity_ids": [
+        "E-019"
+      ],
+      "legacy_task_id": "T-007-03b",
+      "phase": 1,
+      "wave": 3,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "frontend/src/components/dag/SemanticEdge.tsx",
+        "docs/audit/2026-05-15_v3/T-V3-FIX-03.md"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When the DAG renders task dependencies, semantic edges (data-flow / blocks / refs) shall be styled distinctly.",
+          "UBIQUITOUS: An audit MD shall document the semantic taxonomy."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-FIX-03.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-FIX-04",
+      "title": "T-BTSTRAP-04 build-factory project migrate 実装",
+      "category": "backend",
+      "label": "FIX",
+      "feature_ids": [
+        "F-019"
+      ],
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": "T-BTSTRAP-04",
+      "phase": 1,
+      "wave": 4,
+      "estimate_hours": 6,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "backend/services/build_factory_migrate.py",
+        "tests/test_T-V3-FIX-04.py"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When templates/CHANGELOG.md is updated, the migrate service shall apply diffs to all existing workspaces under management.",
+          "UBIQUITOUS: The service shall be idempotent — re-running with the same CHANGELOG shall be a no-op."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-FIX-04.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-AUDIT-SUMMARY",
+      "title": "v1 legacy freeze 宣言 + v3 移行レポート起票",
+      "category": "doc",
+      "label": "ARCHIVE",
+      "feature_ids": [],
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 2,
+      "wave": 5,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-06"
+      ],
+      "files_changed": [
+        "docs/REVIEW_REPORT_2026-05-16_v3_migration.md"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The report shall declare v1 (docs/task-decomposition/2026-05-09_v1/) as FROZEN; no further updates allowed.",
+          "UBIQUITOUS: The report shall confirm that v3 is the new single source of truth, with all v1 spec gaps (21 drift/未実装画面 + 8 API gap + 28 RLS不足 + 4 確定gap + 5 surplus + 10 命名drift) covered by v3 tasks T-V3-INFRA-* / T-V3-AUTH-* / T-V3-DB-* / T-V3-RLS-* / T-V3-DRIFT-* / T-V3-SCR-* / T-V3-RF-* / T-V3-FIX-* / T-V3-CLEANUP-* / T-V3-RENAME-*.",
+          "UBIQUITOUS: The report shall explicitly drop the 99-task 1:1 audit retrofit (v1 怪しい 63件 + v1 audit 不在 36件) with rationale: v3 CI gates (lint #17-19 + 3-tier AC validator + verify-rls-coverage + validate-audit-md) provide structural leakage prevention without recursive auditing.",
+          "UBIQUITOUS: The report shall list the 4 v1 confirmed gaps (T-008-04 / T-013-04b / T-007-03b / T-BTSTRAP-04) and their v3 mapping (T-V3-FIX-01..04)."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-AUDIT-SUMMARY.md",
+      "notes": "v1 legacy の audit 履歴は freeze。v3 が新規 task で全 gap を直接潰すため、過去 audit の再構築は不要。"
+    },
+    {
+      "id": "T-V3-CLEANUP-01",
+      "title": "ai_employee_config (legacy) 削除 + migration",
+      "category": "db",
+      "label": "ARCHIVE",
+      "feature_ids": [
+        "F-003"
+      ],
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 2,
+      "wave": 6,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-RLS-14"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_drop_ai_employee_config.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The table ai_employee_config shall be DROPped.",
+          "UBIQUITOUS: All references in backend code shall be removed."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-CLEANUP-01.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-CLEANUP-02",
+      "title": "projects (legacy) → phases 移行 + DROP",
+      "category": "db",
+      "label": "ARCHIVE",
+      "feature_ids": [
+        "F-008"
+      ],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-013"
+      ],
+      "legacy_task_id": null,
+      "phase": 2,
+      "wave": 6,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-DB-01"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_drop_projects_legacy.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: All projects data shall be migrated into phase_gates / phases.",
+          "UBIQUITOUS: The projects table shall be DROPped."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-CLEANUP-02.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-CLEANUP-03",
+      "title": "threads (legacy conversation) 削除",
+      "category": "db",
+      "label": "ARCHIVE",
+      "feature_ids": [
+        "F-022"
+      ],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-041"
+      ],
+      "legacy_task_id": null,
+      "phase": 2,
+      "wave": 6,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-RLS-15"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_drop_threads_legacy.sql"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: Data in threads (legacy) shall be migrated into chat_threads (E-041).",
+          "UBIQUITOUS: The threads (legacy) table shall be DROPped."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-CLEANUP-03.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-CLEANUP-04",
+      "title": "dead router 探索 + 削除 (screens.json 参照なし)",
+      "category": "backend",
+      "label": "ARCHIVE",
+      "feature_ids": [],
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 2,
+      "wave": 6,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-04"
+      ],
+      "files_changed": [
+        "backend/routers/* (dead routers removed)"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When lint #18 (screens-API) runs, all backend routers shall be referenced by at least one screen OR documented as infrastructure (in router_index.md).",
+          "UBIQUITOUS: Routers without spec reference and not in the infrastructure list shall be DELETEd."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-CLEANUP-04.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-CLEANUP-05",
+      "title": "onlook/penpot 完全削除 確認",
+      "category": "infra",
+      "label": "ARCHIVE",
+      "feature_ids": [],
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 2,
+      "wave": 6,
+      "estimate_hours": 1,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The repo root shall not contain onlook/ or penpot/ folders.",
+          "UBIQUITOUS: lint-mock.sh check #3 shall PASS."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-CLEANUP-05.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RENAME-01",
+      "title": "bf_tasks → tasks rename + ORM",
+      "category": "db",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-018"
+      ],
+      "legacy_task_id": null,
+      "phase": 2,
+      "wave": 6,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-DB-09"
+      ],
+      "files_changed": [
+        "supabase/migrations/2026051500_rename_bf_tasks.sql",
+        "backend/models/task.py"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: bf_tasks shall be renamed to tasks. All references updated."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RENAME-01.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RENAME-02",
+      "title": "bf_constitutions → constitutions rename",
+      "category": "db",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-017"
+      ],
+      "legacy_task_id": null,
+      "phase": 2,
+      "wave": 6,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-DB-08"
+      ],
+      "files_changed": [],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: bf_constitutions shall be renamed to constitutions."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RENAME-02.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RENAME-03",
+      "title": "bf_acceptance_criteria → acceptance_criteria",
+      "category": "db",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-016"
+      ],
+      "legacy_task_id": null,
+      "phase": 2,
+      "wave": 6,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-DB-07"
+      ],
+      "files_changed": [],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: bf_acceptance_criteria shall be renamed."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RENAME-03.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RENAME-04",
+      "title": "bf_features → features rename",
+      "category": "db",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 2,
+      "wave": 6,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-DB-10"
+      ],
+      "files_changed": [],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: bf_features shall be renamed or dropped per dead-code review."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RENAME-04.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RENAME-05",
+      "title": "bf_mocks → mocks (or split into screens / components)",
+      "category": "db",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [],
+      "entity_ids": [
+        "E-022",
+        "E-023"
+      ],
+      "legacy_task_id": null,
+      "phase": 2,
+      "wave": 6,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-DB-05",
+        "T-V3-DB-06"
+      ],
+      "files_changed": [],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: bf_mocks shall be split into screens + components per ADR-014."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RENAME-05.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RENAME-06",
+      "title": "bf_project_tables migration を ADR-014 準拠に書き換え",
+      "category": "db",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 2,
+      "wave": 6,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-02"
+      ],
+      "files_changed": [
+        "supabase/migrations/20260510000001_bf_project_tables.sql (refactor)"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The migration file shall be updated to use spec naming."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RENAME-06.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RENAME-07",
+      "title": "SQLAlchemy model class 名整合 (PascalCase 強制)",
+      "category": "backend",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 2,
+      "wave": 6,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05"
+      ],
+      "files_changed": [
+        "backend/models/*.py"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: All model classes shall use PascalCase matching entities.json."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RENAME-07.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RENAME-08",
+      "title": "API response schema 整合 (snake_case JSON, PascalCase TS type)",
+      "category": "full-stack",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 2,
+      "wave": 6,
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-RENAME-07"
+      ],
+      "files_changed": [
+        "backend/schemas/*.py",
+        "frontend/src/lib/types/*.ts"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: API JSON shall use snake_case; frontend TS types shall use PascalCase generated from entities.json."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RENAME-08.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RENAME-09",
+      "title": "TypeScript types 自動生成 (pnpm codegen from entities.json)",
+      "category": "infra",
+      "label": "NEW",
+      "feature_ids": [],
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 2,
+      "wave": 6,
+      "estimate_hours": 8,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "frontend/scripts/codegen.ts",
+        "frontend/src/lib/types/generated.ts"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When `pnpm run codegen` is invoked, the script shall regenerate frontend/src/lib/types/generated.ts from entities.json.",
+          "UBIQUITOUS: The CI shall fail if generated.ts is out of sync with entities.json."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RENAME-09.md",
+      "notes": ""
+    },
+    {
+      "id": "T-V3-RENAME-10",
+      "title": "lint #19 baseline 化 + CI gate",
+      "category": "infra",
+      "label": "REFACTOR",
+      "feature_ids": [],
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": 2,
+      "wave": 6,
+      "estimate_hours": 2,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-INFRA-05",
+        "T-V3-RENAME-01",
+        "T-V3-RENAME-02",
+        "T-V3-RENAME-03",
+        "T-V3-RENAME-04",
+        "T-V3-RENAME-05"
+      ],
+      "files_changed": [
+        ".github/workflows/ci.yml"
+      ],
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When CI runs, lint #19 shall be invoked.",
+          "UNWANTED: If any bf_ prefix returns, the CI shall fail."
+        ],
+        "regression": [
+          "The system shall pass pytest on touched test files (>= 1 dedicated test_*.py).",
+          "The system shall pass ruff (Python) and ESLint (TS) on touched files.",
+          "The system shall pass pyright --strict with 0 errors on touched modules.",
+          "The system shall maintain coverage >= 70% on touched files.",
+          "The system shall pass all lint-mock.sh checks (1..19)."
+        ]
+      },
+      "rls_policies_required": [],
+      "spec_links": [],
+      "audit_md_path": "docs/audit/2026-05-15_v3/T-V3-RENAME-10.md",
+      "notes": ""
+    }
+  ]
+}

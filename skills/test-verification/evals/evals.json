@@ -1,0 +1,94 @@
+{
+  "skill_name": "test-verification",
+  "version": "v3-2026-05-15",
+  "description": "テスト戦略設計スキルのテスト (v3: 3-tier AC マッピング + EARS 自動生成 + 8 CI gate + RLS 4 ロール × OK/NG + Schemathesis/Pact)",
+  "evals": [
+    {
+      "id": "tv-eval-1",
+      "title": "STEP 1 で tickets.json + ears-ac-seed.json pull + 3-tier AC マッピング",
+      "prompt": "STEP 1 でテスト戦略を設計してほしい。task-decomposition の tickets.json (187 件 / 3-tier AC 込み) と api-design の ears-ac-seed.json (24 endpoint / 96 AC) が出てる。8 CI gate 設定済。",
+      "expected_behavior": [
+        "STEP 1 形式で出力 (会話的前置きなし)",
+        "v3: 入力情報に tickets.json + ears-ac-seed.json + entities.json + roles.json の path を listing",
+        "v3: 3-tier AC (structural / functional / regression) をテストレベルに 1:1 マッピング",
+        "v3: structural → lint #17 mock-impl-diff",
+        "v3: functional → unit + contract + RLS",
+        "v3: regression → CI gate 自動化",
+        "v3: EARS 自動生成方針 (EVENT-DRIVEN → 正常 / UNWANTED → 異常)",
+        "STEP 2 へ で止まる"
+      ],
+      "assertions": [
+        {"id": "format_no_preface", "check": "応答冒頭が '##' で始まる"},
+        {"id": "v3_input_paths_listed", "check": "tickets.json + ears-ac-seed.json + entities.json + roles.json の path を listing"},
+        {"id": "v3_3tier_mapping", "check": "structural / functional / regression を test レベルに 1:1 マッピング"},
+        {"id": "v3_structural_lint17", "check": "structural → lint #17 mock-impl-diff を明示"},
+        {"id": "v3_functional_unit_contract_rls", "check": "functional → unit + contract + RLS を明示"},
+        {"id": "v3_regression_ci_gate", "check": "regression → CI gate 自動化を明示"},
+        {"id": "v3_ears_auto_gen", "check": "EARS 自動生成方針 (EVENT-DRIVEN → 正常 / UNWANTED → 異常)"},
+        {"id": "stops_at_step1", "check": "STEP 2 を勝手に開始しない"}
+      ]
+    },
+    {
+      "id": "tv-eval-2",
+      "title": "STEP 2 で EARS → test 自動生成 + RLS 4 ロール × OK/NG マトリクス",
+      "prompt": "STEP 2 へ。テスト設計を。",
+      "expected_behavior": [
+        "v3: EARS AC → test case 自動生成スクリプトを明示 (scripts/generate-tests-from-ears.py)",
+        "v3: EVENT-DRIVEN → test_<endpoint>_<event>()",
+        "v3: UNWANTED → test_<endpoint>_<condition>_rejected()",
+        "v3: RLS test: 4 ロール (owner/admin/member/guest) × 7 操作 (SELECT own/others, INSERT, UPDATE own/others, DELETE own/others) マトリクス",
+        "v3: verify-rls-coverage script で entity ごとに網羅検証",
+        "v3: Schemathesis (OpenAPI fuzz) + Pact (consumer/provider) を contract test に採用",
+        "STEP 3 へ で止まる"
+      ],
+      "assertions": [
+        {"id": "v3_ears_gen_script", "check": "scripts/generate-tests-from-ears.py を明示"},
+        {"id": "v3_event_driven_pattern", "check": "EVENT-DRIVEN → test_<endpoint>_<event>() 命名規則"},
+        {"id": "v3_unwanted_pattern", "check": "UNWANTED → test_<endpoint>_<condition>_rejected() 命名規則"},
+        {"id": "v3_rls_4roles_7ops", "check": "4 ロール × 7 操作 マトリクス"},
+        {"id": "v3_verify_rls_coverage", "check": "verify-rls-coverage script を明示"},
+        {"id": "v3_schemathesis_pact", "check": "Schemathesis + Pact を contract test に採用"},
+        {"id": "stops_at_step2", "check": "STEP 3 を勝手に開始しない"}
+      ]
+    },
+    {
+      "id": "tv-eval-3",
+      "title": "STEP 3 で 8 CI gate 全列挙 + auto-merge 設定",
+      "prompt": "STEP 3 へ。8 CI gate を全部設定したい。",
+      "expected_behavior": [
+        "v3: 8 gate を全列挙 (lint-mock / AC validator / RLS coverage / audit MD / pytest cov ≥70% / pyright / tsc / mock-impl-diff)",
+        "v3: 各 gate の tool / 失敗条件を明示",
+        "v3: auto-merge job が 8 gate 全 pass で発動",
+        "v3: 連続 3 失敗で human エスカ",
+        "v3: pytest cov の 70% を明示",
+        "STEP 4 へ で止まる"
+      ],
+      "assertions": [
+        {"id": "v3_8_gates_listed", "check": "8 CI gate を全列挙 (lint-mock/AC/RLS/audit/pytest/pyright/tsc/mock-impl-diff)"},
+        {"id": "v3_gate_tools_explicit", "check": "各 gate の tool / 失敗条件を明示"},
+        {"id": "v3_auto_merge_8_gates", "check": "auto-merge job が 8 gate 全 pass で発動"},
+        {"id": "v3_consecutive_failure", "check": "連続 3 失敗で human エスカ"},
+        {"id": "v3_coverage_70", "check": "pytest cov 70% 閾値を明示"},
+        {"id": "stops_at_step3", "check": "STEP 4 を勝手に開始しない"}
+      ]
+    },
+    {
+      "id": "tv-eval-4-v3-new",
+      "title": "v3 新規: gate-config.yml + ears-test-mapping.json 出力 (4 形式)",
+      "prompt": "STEP 4 へ。最終出力を。",
+      "expected_behavior": [
+        "出力① テスト計画書 (Markdown)",
+        "出力② テスト設計 JSON",
+        "v3 出力③ gate-config.yml (GitHub Actions 8 gate 設定)",
+        "v3 出力④ ears-test-mapping.json (EARS AC ↔ test ID 対応)",
+        "v3: gate-config.yml の 8 job 構成と auto-merge job",
+        "v3: ears-test-mapping.json に ears_ac_id / test_id / test_file / test_function / gate を含む"
+      ],
+      "assertions": [
+        {"id": "output_count_4", "check": "出力 4 形式 (既存 2 + gate-config.yml + ears-test-mapping.json) すべて言及"},
+        {"id": "v3_gate_config_yml", "check": "gate-config.yml の 8 job + auto-merge job"},
+        {"id": "v3_ears_test_mapping_json", "check": "ears-test-mapping.json に ears_ac_id / test_id / test_file / test_function / gate を含む"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-061 仕様書 PDF — Build-Factory</title>
+<meta name="bf-screen-id" content="S-061"><meta name="bf-screen-name" content="export_spec_pdf"><meta name="bf-category" content="export"><meta name="bf-status" content="wip"><meta name="bf-version" content="v3">
+<script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>tailwind.config={theme:{extend:{colors:{eb:{50:'#f0faf5',500:'#1a6648',600:'#155238'}},fontFamily:{sans:['"Noto Sans JP"','sans-serif'],mono:['"JetBrains Mono"','monospace']}}}};</script>
+<style>body{font-family:'Noto Sans JP',sans-serif;line-height:1.7}.mono{font-family:'JetBrains Mono',monospace}@media print{.no-print{display:none!important}}</style>
+</head>
+<body class="bg-slate-200 min-h-screen">
+<a href="../index.html" style="position:fixed; top:12px; right:12px; z-index:1000; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.95); border:1px solid #e2e8f0; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:600; color:#1a6648; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.06);"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Index に戻る</span></a>
+<!-- PDF preview toolbar -->
+<div class="no-print sticky top-0 bg-slate-900 text-white px-4 py-2 flex items-center gap-3 z-10">
+  <span class="text-xs font-semibold">PDF Preview</span>
+  <span class="text-xs opacity-70">build-factory-spec-v2.0.pdf · A4 · 24 pages</span>
+  <div class="ml-auto flex items-center gap-2">
+    <button class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded flex items-center gap-1"><i data-lucide="printer" class="w-3 h-3"></i>印刷</button>
+    <button class="text-xs bg-eb-500 hover:bg-eb-600 px-3 py-1 rounded font-semibold flex items-center gap-1"><i data-lucide="download" class="w-3 h-3"></i>PDF ダウンロード</button>
+  </div>
+</div>
+<!-- A4 page -->
+<div class="max-w-[800px] mx-auto my-6 bg-white shadow-xl p-12" style="aspect-ratio: 1/1.414; min-height: 1130px;">
+  <header class="border-b-2 border-eb-500 pb-4 mb-6">
+    <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-md bg-eb-500 flex items-center justify-center"><i data-lucide="factory" class="w-4 h-4 text-white"></i></div><span class="text-sm font-bold">Build-Factory</span></div>
+      <span class="text-xs mono text-slate-500">v 2.0 · 2026-05-13</span>
+    </div>
+    <h1 class="text-3xl font-bold">受託 EC 構築 #4<br><span class="text-xl font-normal text-slate-600">— 要件定義書 —</span></h1>
+    <div class="text-sm text-slate-600 mt-2">作成: masato@engine-base.com · 株式会社 ENGINE BASE</div>
+  </header>
+
+  <section class="mb-6">
+    <h2 class="text-xl font-bold border-l-4 border-eb-500 pl-3 mb-3">1. プロジェクト概要</h2>
+    <p class="text-sm leading-relaxed">ABC 社向けの BtoC EC サイト構築。Phase 1 (基盤) → Phase 2 (機能実装) → Phase 3 (テスト + 納品) の 3 フェーズで進行。</p>
+    <div class="grid grid-cols-3 gap-3 mt-4">
+      <div class="border border-slate-200 rounded p-3"><div class="text-[10px] uppercase text-slate-500 font-bold">想定 MAU</div><div class="text-lg font-bold mono">50,000</div></div>
+      <div class="border border-slate-200 rounded p-3"><div class="text-[10px] uppercase text-slate-500 font-bold">商品数</div><div class="text-lg font-bold mono">5,000</div></div>
+      <div class="border border-slate-200 rounded p-3"><div class="text-[10px] uppercase text-slate-500 font-bold">納期</div><div class="text-lg font-bold mono">3 ヶ月</div></div>
+    </div>
+  </section>
+
+  <section class="mb-6">
+    <h2 class="text-xl font-bold border-l-4 border-eb-500 pl-3 mb-3">2. Must 要件 (34 項目)</h2>
+    <h3 class="text-base font-bold mb-2">M-1 商品検索・閲覧</h3>
+    <p class="text-sm leading-relaxed mb-2">商品カテゴリ / 価格帯 / キーワードによる検索。商品詳細・在庫表示。</p>
+    <div class="bg-eb-50 border-l-4 border-eb-500 p-3 text-sm mb-3 rounded-r"><strong>AC-M1-1 (EVENT-DRIVEN):</strong> When キーワード検索が実行された時、the system shall 商品 list を 300ms 以内に返却する。</div>
+    <h3 class="text-base font-bold mb-2 mt-4">M-2 カート / 決済</h3>
+    <p class="text-sm leading-relaxed">Stripe を使った決済 / 商品追加 / 削除 / 数量変更。</p>
+  </section>
+
+  <footer class="absolute bottom-12 left-12 right-12 border-t border-slate-200 pt-3 flex justify-between text-[10px] text-slate-500 mono">
+    <span>build-factory-spec-v2.0</span>
+    <span>Page 1 / 24</span>
+    <span>© ENGINE BASE</span>
+  </footer>
+</div>
+<script>lucide.createIcons();</script>
+</body></html>
