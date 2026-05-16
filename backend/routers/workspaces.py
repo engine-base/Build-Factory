@@ -1,5 +1,5 @@
 """
-workspaces.py — Workspace API + メンバー / 招待管理
+workspaces.py — Workspace API + メンバー / 招待管理 + F-007 task bulk ops
 
 GET    /api/workspaces                       user 参加全 workspace
 GET    /api/workspaces?account_id=N          account 配下の一覧
@@ -15,13 +15,21 @@ DELETE /api/workspaces/{id}/members/{user}   削除
 
 POST   /api/workspaces/{id}/invitations      招待作成
 POST   /api/invitations/accept                招待受諾（token + user_id）
+
+F-007 task bulk ops (T-V3-B-11):
+POST   /api/workspaces/{id}/tasks/bulk-play       選択 task を dep 順に play
+POST   /api/workspaces/{id}/tasks/bulk-archive    選択 task を archive (status=cancelled)
+GET    /api/workspaces/{id}/tasks/export.csv      workspace 配下 task を CSV 出力
+GET    /api/workspaces/{id}/tasks/dag             task と dep を DAG 形式で返す
 """
 
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel
+from fastapi.responses import PlainTextResponse
+from pydantic import BaseModel, Field
 
+from services import task_workspace_service as tws
 from services import workspace_service as ws
 
 router = APIRouter(prefix="/api/workspaces", tags=["workspaces"])
@@ -832,3 +840,142 @@ async def signup_with_invitation(body: SignupRequest):
         "workspace_id": result["workspace_id"],
         "role": result["role"],
     }
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# T-V3-B-11 / F-007: workspace-scoped task bulk ops
+#
+# 4 endpoint:
+#   POST /api/workspaces/{id}/tasks/bulk-play       (member)
+#   POST /api/workspaces/{id}/tasks/bulk-archive    (workspace_admin)
+#   GET  /api/workspaces/{id}/tasks/export.csv      (member)
+#   GET  /api/workspaces/{id}/tasks/dag             (member)
+#
+# Auth: actor_user_id 必須 (Unauthorized → 401). workspace_member でなければ 403.
+# Service 例外 ↦ HTTP status:
+#   Unauthorized       → 401
+#   Forbidden          → 403
+#   WorkspaceNotFound  → 404
+#   ValidationFailed   → 422
+#   RateLimited        → 429
+# ══════════════════════════════════════════════════════════════════════════
+
+
+class BulkPlayRequest(BaseModel):
+    task_ids: list[int] = Field(..., min_length=1, max_length=200)
+    actor_user_id: Optional[str] = None
+    max_parallel: int = Field(5, ge=1, le=50)
+
+
+class BulkArchiveRequest(BaseModel):
+    task_ids: list[int] = Field(..., min_length=1, max_length=500)
+    actor_user_id: Optional[str] = None
+
+
+def _map_tws_exc(exc: Exception) -> HTTPException:
+    """task_workspace_service の例外 → HTTPException (with code/message)."""
+    if isinstance(exc, tws.Unauthorized):
+        return _error("tasks.unauthorized", str(exc), status_code=401)
+    if isinstance(exc, tws.Forbidden):
+        return _error("tasks.forbidden", str(exc), status_code=403)
+    if isinstance(exc, tws.WorkspaceNotFound):
+        return _error("tasks.workspace_not_found", str(exc), status_code=404)
+    if isinstance(exc, tws.RateLimited):
+        return _error("tasks.rate_limited", str(exc), status_code=429)
+    if isinstance(exc, tws.ValidationFailed):
+        return _error("tasks.validation_failed", str(exc), status_code=422)
+    return _error("tasks.internal_error", str(exc), status_code=500)
+
+
+@router.post("/{workspace_id}/tasks/bulk-play")
+async def bulk_play_tasks(workspace_id: int, body: BulkPlayRequest):
+    """T-V3-B-11 AC-F1/F2/F3/F4/F5/F6.
+
+    EVENT-DRIVEN (AC-F1/F3): task_ids を topo sort 順に session spawn.
+    UNWANTED   (AC-F2): max_parallel 超過分は queued count.
+    UNWANTED   (AC-F4): actor_user_id 不在 → 401.
+    UNWANTED   (AC-F5): pydantic validation 失敗 → 422 (FastAPI 自動).
+    UNWANTED   (AC-F6): rate limit (10/min/workspace) → 429.
+    """
+    if workspace_id <= 0:
+        raise _error("tasks.invalid_workspace_id",
+                     "workspace_id must be > 0", status_code=422)
+    try:
+        result = await tws.bulk_play(
+            workspace_id, body.task_ids,
+            actor_user_id=body.actor_user_id,
+            max_parallel=body.max_parallel,
+        )
+    except Exception as e:
+        raise _map_tws_exc(e) from e
+    return result
+
+
+@router.post("/{workspace_id}/tasks/bulk-archive")
+async def bulk_archive_tasks(workspace_id: int, body: BulkArchiveRequest):
+    """T-V3-B-11 AC-F7/F8/F9.
+
+    EVENT-DRIVEN (AC-F7): 選択 task を archive (status=cancelled) → archived_count.
+    UNWANTED   (AC-F8): actor_user_id 不在 → 401.
+    UNWANTED   (AC-F9): pydantic validation 失敗 → 422.
+    """
+    if workspace_id <= 0:
+        raise _error("tasks.invalid_workspace_id",
+                     "workspace_id must be > 0", status_code=422)
+    try:
+        result = await tws.bulk_archive(
+            workspace_id, body.task_ids,
+            actor_user_id=body.actor_user_id,
+        )
+    except Exception as e:
+        raise _map_tws_exc(e) from e
+    return result
+
+
+@router.get("/{workspace_id}/tasks/export.csv")
+async def export_tasks_csv(
+    workspace_id: int,
+    actor_user_id: Optional[str] = Query(None),
+):
+    """T-V3-B-11 AC-F10/F11.
+
+    EVENT-DRIVEN (AC-F10): text/csv body (RFC 4180 + utf-8 + LF).
+    UNWANTED   (AC-F11): actor_user_id 不在 → 401.
+    """
+    if workspace_id <= 0:
+        raise _error("tasks.invalid_workspace_id",
+                     "workspace_id must be > 0", status_code=422)
+    try:
+        csv_text = await tws.export_csv(
+            workspace_id, actor_user_id=actor_user_id,
+        )
+    except Exception as e:
+        raise _map_tws_exc(e) from e
+    return PlainTextResponse(
+        content=csv_text,
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition":
+                 f'attachment; filename="tasks-ws{workspace_id}.csv"'},
+    )
+
+
+@router.get("/{workspace_id}/tasks/dag")
+async def get_tasks_dag(
+    workspace_id: int,
+    actor_user_id: Optional[str] = Query(None),
+):
+    """T-V3-B-11 AC-F12/F13.
+
+    EVENT-DRIVEN (AC-F12): {nodes: TaskNode[], edges: DAGEdge[]} を返す.
+    UNWANTED   (AC-F13): actor_user_id 不在 → 401.
+    """
+    if workspace_id <= 0:
+        raise _error("tasks.invalid_workspace_id",
+                     "workspace_id must be > 0", status_code=422)
+    try:
+        result = await tws.get_dag(
+            workspace_id, actor_user_id=actor_user_id,
+        )
+    except Exception as e:
+        raise _map_tws_exc(e) from e
+    return result
