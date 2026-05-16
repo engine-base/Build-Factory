@@ -1,8 +1,11 @@
-"""T-017-03: cost-summary endpoint for 8-tab dashboard.
+"""T-017-03 / T-V3-B-23: cost-summary endpoint for 8-tab dashboard + CSV export.
 
 cost_logs を 8 dimension で aggregate して frontend に返す:
   overview / provider / model / workspace / persona / skill /
   period_daily / session
+
+T-V3-B-23 (F-017) で追加:
+  - GET /api/observability/cost-summary/export.csv  (CSV export, auth required)
 
 設計境界:
   - 既存 cost_service.py + cost_logs schema を REUSE (無改変).
@@ -13,14 +16,18 @@ cost_logs を 8 dimension で aggregate して frontend に返す:
 """
 from __future__ import annotations
 
+import csv
+import io
 import logging
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import Response
 from pydantic import BaseModel
 
 from services import cost_service
+from services.auth_middleware import require_user
 
 logger = logging.getLogger(__name__)
 
@@ -221,3 +228,94 @@ async def get_cost_summary(
     to_iso = _validate_iso(to, "to")
     summary = await _fetch_summary(dim, from_iso, to_iso)
     return summary.model_dump()
+
+
+# ──────────────────────────────────────────────────────────────────────
+# T-V3-B-23 / F-017: cost-summary CSV export
+# ──────────────────────────────────────────────────────────────────────
+
+
+def _validate_date_query(value: Optional[str], field: str) -> Optional[str]:
+    """date (YYYY-MM-DD) or ISO-8601 を受け付け ISO-8601 (UTC) 文字列で返す.
+
+    T-V3-B-23 AC-F5: features.json で from/to は 'date?' (date only).
+    後方互換のため datetime も許容.
+    """
+    if value is None or value == "":
+        return None
+    try:
+        # date-only (YYYY-MM-DD) を midnight UTC として解釈
+        if len(value) == 10 and value.count("-") == 2:
+            dt = datetime.fromisoformat(value).replace(tzinfo=timezone.utc)
+        else:
+            dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                raise ValueError("naive datetime not allowed")
+        return dt.astimezone(timezone.utc).isoformat()
+    except (ValueError, TypeError) as e:
+        raise _error(
+            "cost_dashboard.invalid_date_range",
+            f"{field} must be date or ISO-8601 with timezone, got {value!r}: {e}",
+        )
+
+
+@router.get("/cost-summary/export.csv")
+async def export_cost_summary_csv(
+    dimension: str = Query("overview"),
+    workspace_id: Optional[str] = Query(None),
+    from_: Optional[str] = Query(None, alias="from"),
+    to: Optional[str] = Query(None),
+    user: dict = Depends(require_user),
+) -> Response:
+    """T-V3-B-23 AC-F5/F6 (F-017): CSV export of cost-summary aggregation.
+
+    Requires authenticated caller (Bearer token). Returns text/csv with
+    workspace_admin-style aggregation (label,cost_usd,input_tokens,
+    output_tokens,share).
+
+    AC-F5: EVENT-DRIVEN — When called with valid inputs, return 2xx
+           with csv_body matching features.json#F-017 contract.
+    AC-F6: UNWANTED — If called without valid auth token, return 401
+           (enforced by Depends(require_user)).
+    """
+    dim = _validate_dimension(dimension)
+    from_iso = _validate_date_query(from_, "from")
+    to_iso = _validate_date_query(to, "to")
+    summary = await _fetch_summary(dim, from_iso, to_iso)
+
+    # CSV body 生成 (RFC 4180 quoting via csv module)
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow([
+        "label", "cost_usd", "input_tokens", "output_tokens", "share",
+    ])
+    for item in summary.items:
+        writer.writerow([
+            item.label,
+            f"{item.cost_usd:.6f}",
+            item.input_tokens,
+            item.output_tokens,
+            f"{item.share:.6f}",
+        ])
+    # summary footer 行
+    writer.writerow([
+        "__TOTAL__",
+        f"{summary.total_usd:.6f}",
+        summary.total_input_tokens,
+        summary.total_output_tokens,
+        "1.000000",
+    ])
+
+    csv_body = buf.getvalue()
+    filename = f"cost-summary-{dim}.csv"
+    if workspace_id:
+        filename = f"cost-summary-{dim}-ws{workspace_id}.csv"
+    return Response(
+        content=csv_body,
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "X-Bf-Feature-Id": "F-017",
+            "X-Bf-Task-Id": "T-V3-B-23",
+        },
+    )

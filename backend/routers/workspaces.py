@@ -19,10 +19,12 @@ POST   /api/invitations/accept                招待受諾（token + user_id）
 
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
 
+from services import token_limit_service as tls
 from services import workspace_service as ws
+from services.auth_middleware import require_user
 
 router = APIRouter(prefix="/api/workspaces", tags=["workspaces"])
 
@@ -246,6 +248,92 @@ async def get_workspace_dashboard(
         return await wd.get_dashboard_stats(workspace_id)
     except wd.DashboardStatsError as e:
         raise _error("workspaces.invalid", str(e))
+
+
+# ──────────────────────────────────────────────────────────────────────
+# T-V3-B-23 / F-017: POST /api/workspaces/{id}/token-limit
+# ──────────────────────────────────────────────────────────────────────
+
+
+class TokenLimitRequest(BaseModel):
+    """T-V3-B-23 AC-F9: pydantic 検証で 422 を返す.
+
+    Pydantic がまず型を弾く (`limit_usd_per_month: float` で str / null は 422).
+    値域 (>= 0) は service 層で再検証.
+    """
+    limit_usd_per_month: float = Field(..., description="USD/月の上限")
+
+
+@router.post("/{workspace_id}/token-limit", status_code=201)
+async def set_workspace_token_limit(
+    workspace_id: int,
+    body: TokenLimitRequest,
+    user: dict = Depends(require_user),
+):
+    """T-V3-B-23 AC-F7/F8/F9 (F-017): workspace 単位の月次 LLM コスト上限を upsert.
+
+    Contract (features.json#F-017 + openapi.yaml POST /api/workspaces/{id}/token-limit):
+      Input  : { "limit_usd_per_month": number }
+      Output : 201 + { "limit_usd_per_month": number, "updated_at": iso8601,
+                        "workspace_id": int, "provider_key": "anthropic" }
+
+    AC-F7 EVENT-DRIVEN : 認証済 + valid body で 201 + 上記 contract.
+    AC-F8 UNWANTED     : auth 無し → 401 (Depends(require_user)).
+    AC-F9 UNWANTED     : body validation 失敗 → 422 (pydantic) または field-level
+                         エラーマップ.
+    """
+    if workspace_id is None or workspace_id <= 0:
+        raise _error("workspaces.invalid_id", "workspace_id must be > 0")
+    actor = None
+    if isinstance(user, dict):
+        actor = user.get("user_metadata", {}).get("slug") or user.get("sub")
+
+    try:
+        result = await tls.set_token_limit(
+            workspace_id,
+            body.limit_usd_per_month,
+            actor_user_id=actor,
+        )
+    except tls.InvalidLimitError as e:
+        # AC-F9 field-level error map
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "code": "workspaces.token_limit.invalid",
+                "message": str(e),
+                "errors": {"limit_usd_per_month": str(e)},
+            },
+        )
+    except tls.WorkspaceNotFoundError as e:
+        raise _error(
+            "workspaces.not_found", str(e), status_code=404,
+        )
+    except Exception as e:
+        raise _error(
+            "workspaces.token_limit.persist_failed",
+            f"failed to persist token_limit: {e}",
+            status_code=500,
+        )
+
+    return result
+
+
+@router.get("/{workspace_id}/token-limit")
+async def get_workspace_token_limit(
+    workspace_id: int,
+    user: dict = Depends(require_user),
+):
+    """T-V3-B-23 補完: 設定済 limit を返す. 未設定なら 404."""
+    if workspace_id is None or workspace_id <= 0:
+        raise _error("workspaces.invalid_id", "workspace_id must be > 0")
+    row = await tls.get_token_limit(workspace_id)
+    if not row:
+        raise _error(
+            "workspaces.token_limit.not_found",
+            f"token_limit not set for workspace {workspace_id}",
+            status_code=404,
+        )
+    return row
 
 
 # ── members ────────────────────────────────
