@@ -1,0 +1,1156 @@
+{
+  "version": "v3",
+  "project": "Build-Factory",
+  "profile": "skills/task-decomposition/references/profiles/build-factory.md",
+  "phase_target": "Phase 1 末尾 (Wave 4 / Group D Drift fix)",
+  "created_at": "2026-05-16",
+  "group": "D",
+  "summary": {
+    "total_tasks": 15,
+    "by_group": {"D-1 (entity drift)": 4, "D-2 (RLS/policy 補完)": 4, "D-3 (API drift)": 2, "D-4 (screen drift)": 1, "D-NEW (new entity formalization)": 3, "D-CLOSE (validation)": 1},
+    "by_category": {"db": 8, "backend": 3, "frontend": 1, "test": 0, "infra": 2, "cleanup": 1},
+    "by_label": {"NEW": 0, "REFACTOR": 11, "REUSE": 0, "ARCHIVE": 1, "FIX": 3},
+    "by_deliverable_layer": {"foundation": 0, "backend": 9, "ui": 1, "polish": 5},
+    "by_phase": {"Phase 1 末尾": 15},
+    "by_wave": {"4": 15},
+    "drift_coverage": {
+      "entity_table_rename_or_align": 6,
+      "entity_bf_prefix_drift": 4,
+      "entity_type_enum_drift": 6,
+      "entity_twin_table_archive": 4,
+      "entity_new_25": 25,
+      "api_method_mismatch": 5,
+      "api_high_non_method": 2,
+      "api_medium_low_low_priority": 3,
+      "screen_h1_kpi_drift": 9
+    },
+    "total_estimate_hours": 56,
+    "total_estimate_sessions": 15,
+    "parallel_capacity_used": 6,
+    "real_time_estimate_hours": 12,
+    "notes": "本 Group は全 Wave 1-3 (Group A/B/C) 完了後の Wave 4 で実行。`depends_on` には wildcard 表現でなく Group A/B/C tickets を個別列挙する代わりに上位コーディネータが `wave: 4` をブロックして直列化する。"
+  },
+  "tasks": [
+    {
+      "id": "T-V3-D-01",
+      "title": "Entity table_name rename + spec alignment (E-008 Skill / E-021 ArtifactVersion / E-012 Phase): drift summary high 9 件のうち rename 系 3 件を batch 化",
+      "category": "db",
+      "label": "REFACTOR",
+      "feature_id": "F-002",
+      "screen_ids": ["S-038"],
+      "entity_ids": ["E-008 Skill", "E-021 ArtifactVersion", "E-012 Phase"],
+      "legacy_task_id": null,
+      "phase": "Phase 1 末尾",
+      "wave": 4,
+      "group": "D-1",
+      "deliverable_layer": "backend",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "supabase/migrations/20260516120000_entity_rename_alignment.sql (new)",
+        "backend/app/models/skill.py (modify)",
+        "backend/app/models/artifact.py (modify)",
+        "backend/app/models/phase.py (modify)",
+        "docs/decisions/ADR-013-entity-table-naming-alignment.md (new)",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json (modify: spec_table_name align)",
+        "backend/tests/migrations/test_entity_rename_alignment.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "supabase/migrations/20260516120000_entity_rename_alignment.sql",
+          "backend/app/models/skill.py",
+          "backend/app/models/artifact.py",
+          "backend/app/models/phase.py",
+          "docs/decisions/ADR-013-entity-table-naming-alignment.md",
+          "docs/functional-breakdown/2026-05-16_v3/entities.json",
+          "backend/tests/migrations/test_entity_rename_alignment.py"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md"
+        ],
+        "forbidden": [
+          "frontend/",
+          "scripts/lint-mock.sh"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The migration shall ensure that the 3 affected entities (E-008 Skill, E-021 ArtifactVersion, E-012 Phase) have a single canonical table_name reflected in both supabase/migrations and entities.json spec_table_name fields.",
+          "EVENT-DRIVEN: When the migration is applied to a fresh database, all 3 tables (skill_definitions, artifact_events, bf_phases) shall exist with the exact column set defined in entities.json fields[].",
+          "EVENT-DRIVEN: When the migration is applied on an existing v1 database where the legacy table name still exists, the system shall perform `ALTER TABLE ... RENAME TO ...` (not DROP+CREATE) so that data is preserved.",
+          "UNWANTED: If a foreign-key constraint references the legacy table name after rename, the migration shall not commit and shall raise a relation-not-found error to force the operator to add FK cascade renames.",
+          "UNWANTED: If `python3 scripts/verify-rls-coverage.py` reports a missing RLS policy for any of the renamed tables, the regression gate shall fail."
+        ],
+        "regression": [
+          "The system shall pass `pytest backend/tests/migrations/test_entity_rename_alignment.py -v` with 0 failures.",
+          "The system shall pass `alembic upgrade head` and `alembic downgrade -1` in dry-run for migration 20260516120000.",
+          "The system shall pass `pyright --strict backend/app/models/` with 0 errors.",
+          "The system shall pass `bash scripts/lint-mock.sh` with 19/19 rules OK (entity-table-naming rule #19 must be green).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-d-drift.json` for entry T-V3-D-01.",
+          "The system shall pass `python3 scripts/verify-rls-coverage.py` for the 3 affected tables.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-D-01`."
+        ]
+      },
+      "access_policies_required": [
+        "skill_definitions:skill_definitions_service_role_all",
+        "skill_definitions:skill_definitions_account_member_select",
+        "skill_definitions:skill_definitions_account_owner_write",
+        "artifact_events:artifact_events_service_role_all",
+        "bf_phases:bf_phases_service_role_all",
+        "bf_phases:bf_phases_workspace_member_select",
+        "bf_phases:bf_phases_workspace_member_write"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md#3-high-drift-9-件",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json#E-008",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json#E-021",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json#E-012"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-D-01.md",
+      "branch": "claude/T-V3-D-01",
+      "risk_flags": ["breaking_change: ALTER TABLE rename on production"]
+    },
+    {
+      "id": "T-V3-D-02",
+      "title": "bf_ prefix entities decision: keep-or-rename batch (E-014 Task / E-015 TaskDependency / E-016 AcceptanceCriterion / E-017 Constitution)",
+      "category": "db",
+      "label": "REFACTOR",
+      "feature_id": "F-006",
+      "screen_ids": ["S-027", "S-028", "S-030"],
+      "entity_ids": ["E-014 Task", "E-015 TaskDependency", "E-016 AcceptanceCriterion", "E-017 Constitution"],
+      "legacy_task_id": null,
+      "phase": "Phase 1 末尾",
+      "wave": 4,
+      "group": "D-1",
+      "deliverable_layer": "backend",
+      "estimate_hours": 5,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "docs/decisions/ADR-014-bf-prefix-decision.md (new)",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json (modify: align spec_table_name with bf_ prefix per ADR-014)",
+        "scripts/lint-mock.sh (modify: rule #19 entity-table-naming allow bf_ prefix for E-014/15/16/17)",
+        "scripts/tests/test-lint-mock-rule19.sh (new)",
+        "backend/tests/integration/test_bf_prefix_alignment.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "docs/decisions/ADR-014-bf-prefix-decision.md",
+          "docs/functional-breakdown/2026-05-16_v3/entities.json",
+          "scripts/lint-mock.sh",
+          "scripts/tests/test-lint-mock-rule19.sh",
+          "backend/tests/integration/test_bf_prefix_alignment.py"
+        ],
+        "shared_no_concurrent_edit": [
+          "scripts/lint-mock.sh"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md",
+          "skills/task-decomposition/references/profiles/build-factory.md"
+        ],
+        "forbidden": [
+          "frontend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The system shall persist a single canonical naming decision for bf_ prefixed tables (bf_tasks / bf_task_dependencies / bf_acceptance_criteria / bf_constitutions) via ADR-014.",
+          "EVENT-DRIVEN: When ADR-014 chooses `keep bf_ prefix as final` (current de-facto state), the system shall update entities.json E-014/15/16/17 spec_table_name to match impl_table (bf_tasks etc.) and shall not rename any DB table.",
+          "OPTIONAL: Where ADR-014 chooses `strip bf_ prefix`, the system shall enqueue a follow-up task T-V3-J-* (Polish phase) for migration with FK cascade and shall not perform the rename within this Phase 1 末尾 task.",
+          "UNWANTED: If lint rule #19 (entity-table-naming) continues to flag the 4 bf_ tables as drift after ADR-014 decision, the regression gate shall fail."
+        ],
+        "regression": [
+          "The system shall pass `pytest backend/tests/integration/test_bf_prefix_alignment.py -v` with 0 failures.",
+          "The system shall pass `bash scripts/lint-mock.sh` with rule #19 (entity-table-naming) showing OK for E-014/15/16/17.",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-d-drift.json` for entry T-V3-D-02.",
+          "The system shall pass `bash scripts/tests/test-lint-mock-rule19.sh` (regression test for the lint rule update).",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-D-02`."
+        ]
+      },
+      "access_policies_required": [
+        "bf_tasks:bf_tasks_service_role_all",
+        "bf_task_dependencies:bf_task_dependencies_service_role_all",
+        "bf_acceptance_criteria:bf_acceptance_criteria_service_role_all",
+        "bf_constitutions:bf_constitutions_service_role_all"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md#4-medium-drift-11-件",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json#E-014"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-D-02.md",
+      "branch": "claude/T-V3-D-02",
+      "risk_flags": ["policy_decision: ADR required before code change"]
+    },
+    {
+      "id": "T-V3-D-03",
+      "title": "Entity type/enum drift fix (E-002 Account / E-003 AccountMember / E-004 Workspace / E-005 WorkspaceMember / E-020 Artifact / E-025 Session): enum/PK width 6 件 batch",
+      "category": "db",
+      "label": "REFACTOR",
+      "feature_id": "F-004",
+      "screen_ids": ["S-006", "S-008", "S-012"],
+      "entity_ids": ["E-002 Account", "E-003 AccountMember", "E-004 Workspace", "E-005 WorkspaceMember", "E-020 Artifact", "E-025 Session"],
+      "legacy_task_id": null,
+      "phase": "Phase 1 末尾",
+      "wave": 4,
+      "group": "D-1",
+      "deliverable_layer": "backend",
+      "estimate_hours": 6,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "supabase/migrations/20260516130000_enum_pk_alignment.sql (new)",
+        "backend/app/models/account.py (modify)",
+        "backend/app/models/workspace.py (modify)",
+        "backend/app/models/artifact.py (modify)",
+        "backend/app/models/session.py (modify)",
+        "backend/tests/migrations/test_enum_pk_alignment.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "supabase/migrations/20260516130000_enum_pk_alignment.sql",
+          "backend/app/models/account.py",
+          "backend/app/models/workspace.py",
+          "backend/app/models/artifact.py",
+          "backend/app/models/session.py",
+          "backend/tests/migrations/test_enum_pk_alignment.py"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/entities.json"
+        ],
+        "forbidden": [
+          "frontend/",
+          "supabase/migrations/20260516120000_entity_rename_alignment.sql"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The migration shall align 6 entity table column types with entities.json spec (Account.plan ENUM(free,pro,team,enterprise) / AccountMember.role ENUM / Workspace.is_confidential boolean + slug text UNIQUE / WorkspaceMember.role ENUM / Artifact.type ENUM / Session.status ENUM 7 values).",
+          "EVENT-DRIVEN: When the migration is applied, all 6 tables shall have CHECK constraints (or pgsql ENUM) for the listed enum columns matching the entity spec exactly.",
+          "UNWANTED: If existing row data violates the new constraint (e.g. legacy account.plan = 'unknown'), the migration shall raise and the operator must remediate before re-running.",
+          "UNWANTED: If the PK width drift (BIGSERIAL → uuid v7) cannot be applied non-destructively, the system shall enqueue a follow-up Polish-phase task instead of forcing destructive rewrite."
+        ],
+        "regression": [
+          "The system shall pass `pytest backend/tests/migrations/test_enum_pk_alignment.py -v` with 0 failures.",
+          "The system shall pass `pyright --strict backend/app/models/` with 0 errors.",
+          "The system shall pass `bash scripts/lint-mock.sh` 19/19 OK.",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-d-drift.json` for entry T-V3-D-03.",
+          "The system shall pass `python3 scripts/verify-rls-coverage.py` for the 6 affected tables.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-D-03`."
+        ]
+      },
+      "access_policies_required": [
+        "accounts:accounts_service_role_all",
+        "account_members:account_members_service_role_all",
+        "workspaces:workspaces_service_role_all",
+        "workspace_members:workspace_members_service_role_all",
+        "artifacts:artifacts_service_role_all",
+        "sessions:sessions_service_role_all"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md#4-medium-drift-11-件",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json#E-002"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-D-03.md",
+      "branch": "claude/T-V3-D-03",
+      "risk_flags": ["breaking_change: enum CHECK constraint on existing rows"]
+    },
+    {
+      "id": "T-V3-D-04",
+      "title": "Twin tables ARCHIVE batch (E-014 legacy tasks / E-007 ai_employee_config / E-027 pull_requests / E-032 repos): 二重実装 4 件解消",
+      "category": "cleanup",
+      "label": "ARCHIVE",
+      "feature_id": null,
+      "screen_ids": [],
+      "entity_ids": ["E-014 Task (legacy)", "E-007 AIEmployee (legacy ai_employee_config)", "E-027 PR (legacy pull_requests)", "E-032 GithubRepo (legacy repos)"],
+      "legacy_task_id": null,
+      "phase": "Phase 1 末尾",
+      "wave": 4,
+      "group": "D-1",
+      "deliverable_layer": "polish",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": ["T-V3-D-01", "T-V3-D-03"],
+      "files_changed": [
+        "supabase/migrations/20260516140000_archive_legacy_twins.sql (new)",
+        "backend/app/models/legacy/ (delete directory)",
+        "backend/routers/legacy_tasks.py (delete)",
+        "backend/routers/legacy_pull_requests.py (delete)",
+        "backend/routers/legacy_repos.py (delete)",
+        "backend/routers/legacy_ai_employee_config.py (delete)",
+        "backend/tests/migrations/test_archive_legacy_twins.py (new)",
+        "docs/decisions/ADR-015-legacy-twin-table-archive.md (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "supabase/migrations/20260516140000_archive_legacy_twins.sql",
+          "backend/tests/migrations/test_archive_legacy_twins.py",
+          "docs/decisions/ADR-015-legacy-twin-table-archive.md"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md"
+        ],
+        "forbidden": [
+          "frontend/",
+          "supabase/migrations/20260512200000_ai_hierarchy_clone_tables.sql"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The migration shall mark 4 legacy tables (tasks, ai_employee_config, pull_requests, repos) as ARCHIVE by renaming them to `_archived_<name>` (not DROP) so that audit history is preserved.",
+          "EVENT-DRIVEN: When a query references one of the 4 legacy tables via the deleted router/model paths, the system shall return HTTP 410 Gone via the modern equivalent endpoint (bf_tasks / ai_employees / prs / github_repos).",
+          "EVENT-DRIVEN: When `bash scripts/lint-mock.sh` rule #3 (archive-residue) runs, the system shall find 0 residue (the 4 legacy router files and model directory are fully removed from source).",
+          "UNWANTED: If any active foreign key still references the 4 legacy tables, the migration shall raise relation-error and shall not commit until all FKs are remapped."
+        ],
+        "regression": [
+          "The system shall pass `pytest backend/tests/migrations/test_archive_legacy_twins.py -v` with 0 failures.",
+          "The system shall pass `bash scripts/lint-mock.sh` rule #3 (archive-residue) with 0 residue.",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-d-drift.json` for entry T-V3-D-04.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-D-04`."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md#2-critical-drift-3-件",
+        "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md#6-推奨対応-下流-task-decomposition-への流し込み"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-D-04.md",
+      "branch": "claude/T-V3-D-04",
+      "risk_flags": ["destructive: legacy table rename, data preserved via _archived_ prefix"]
+    },
+    {
+      "id": "T-V3-D-05",
+      "title": "RLS policy 補完 batch 1 — AI hierarchy / clone family (E-044 AIClone / E-045 AIHierarchy / E-046 AIPersona)",
+      "category": "db",
+      "label": "REFACTOR",
+      "feature_id": "F-003",
+      "screen_ids": ["S-036", "S-037"],
+      "entity_ids": ["E-044 AIClone", "E-045 AIHierarchy", "E-046 AIPersona"],
+      "legacy_task_id": null,
+      "phase": "Phase 1 末尾",
+      "wave": 4,
+      "group": "D-2",
+      "deliverable_layer": "backend",
+      "estimate_hours": 3,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "supabase/migrations/20260516150000_rls_ai_family.sql (new)",
+        "backend/tests/integration/test_rls_ai_family.py (new)",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json (modify: append access_control_policies for E-044/45/46)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "supabase/migrations/20260516150000_rls_ai_family.sql",
+          "backend/tests/integration/test_rls_ai_family.py",
+          "docs/functional-breakdown/2026-05-16_v3/entities.json"
+        ],
+        "shared_no_concurrent_edit": [
+          "docs/functional-breakdown/2026-05-16_v3/entities.json"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md"
+        ],
+        "forbidden": [
+          "frontend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The migration shall add at least 2 RLS policies (service_role_all + tenant_scoped_select) per table for ai_clones / ai_hierarchies / ai_personas.",
+          "EVENT-DRIVEN: When an authenticated user queries ai_clones for an account they are not a member of, the system shall return 0 rows (RLS denies).",
+          "EVENT-DRIVEN: When a service_role token queries ai_clones, the system shall return all rows regardless of tenant scope.",
+          "UNWANTED: If `python3 scripts/verify-rls-coverage.py` reports policy_count < 2 for any of the 3 tables, the regression gate shall fail."
+        ],
+        "regression": [
+          "The system shall pass `pytest backend/tests/integration/test_rls_ai_family.py -v` with 0 failures.",
+          "The system shall pass `python3 scripts/verify-rls-coverage.py` for the 3 affected tables (policy_count >= 2 each).",
+          "The system shall pass `bash scripts/lint-mock.sh` 19/19 OK.",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-d-drift.json` for entry T-V3-D-05.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-D-05`."
+        ]
+      },
+      "access_policies_required": [
+        "ai_clones:ai_clones_service_role_all",
+        "ai_clones:ai_clones_account_member_select",
+        "ai_hierarchies:ai_hierarchies_service_role_all",
+        "ai_hierarchies:ai_hierarchies_account_member_select",
+        "ai_personas:ai_personas_service_role_all",
+        "ai_personas:ai_personas_account_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md#5-new-migration-only-25-件",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json#E-044"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-D-05.md",
+      "branch": "claude/T-V3-D-05"
+    },
+    {
+      "id": "T-V3-D-06",
+      "title": "RLS policy 補完 batch 2 — auth & profile family (E-047〜E-055: user_clone_optin / user_deletion_requests / user_profiles / encrypted_secrets / auth_sessions / oauth_connections / user_2fa_secrets / user_2fa_recovery_codes / auth_audit_log) 9 件",
+      "category": "db",
+      "label": "REFACTOR",
+      "feature_id": "F-001",
+      "screen_ids": ["S-001", "S-002", "S-003", "S-004", "S-007", "S-009"],
+      "entity_ids": [
+        "E-047 UserCloneOptin",
+        "E-048 UserDeletionRequest",
+        "E-049 UserProfile",
+        "E-050 EncryptedSecret",
+        "E-051 AuthSession",
+        "E-052 OAuthConnection",
+        "E-053 User2FASecret",
+        "E-054 User2FARecoveryCode",
+        "E-055 AuthAuditLog"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1 末尾",
+      "wave": 4,
+      "group": "D-2",
+      "deliverable_layer": "backend",
+      "estimate_hours": 5,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "supabase/migrations/20260516160000_rls_auth_profile_family.sql (new)",
+        "backend/tests/integration/test_rls_auth_profile_family.py (new)",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json (modify: append access_control_policies for E-047〜E-055)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "supabase/migrations/20260516160000_rls_auth_profile_family.sql",
+          "backend/tests/integration/test_rls_auth_profile_family.py",
+          "docs/functional-breakdown/2026-05-16_v3/entities.json"
+        ],
+        "shared_no_concurrent_edit": [
+          "docs/functional-breakdown/2026-05-16_v3/entities.json"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md"
+        ],
+        "forbidden": [
+          "frontend/",
+          "supabase/migrations/20260516150000_rls_ai_family.sql"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The migration shall add at least 2 RLS policies (service_role_all + owner_scoped) per table for the 9 auth/profile tables.",
+          "EVENT-DRIVEN: When an authenticated user queries user_profiles where user_id != auth.uid(), the system shall return 0 rows (owner-scoped policy denies).",
+          "EVENT-DRIVEN: When a user queries auth_audit_log for events outside their account, the system shall return 0 rows.",
+          "UNWANTED: If `python3 scripts/verify-rls-coverage.py` reports policy_count < 2 for any of the 9 affected tables, the regression gate shall fail.",
+          "UNWANTED: If encrypted_secrets exposes its `secret_value` column to non-service_role queries, the regression gate shall fail."
+        ],
+        "regression": [
+          "The system shall pass `pytest backend/tests/integration/test_rls_auth_profile_family.py -v` with 0 failures.",
+          "The system shall pass `python3 scripts/verify-rls-coverage.py` for the 9 affected tables (policy_count >= 2 each).",
+          "The system shall pass `bash scripts/lint-mock.sh` 19/19 OK.",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-d-drift.json` for entry T-V3-D-06.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-D-06`."
+        ]
+      },
+      "access_policies_required": [
+        "user_profiles:user_profiles_service_role_all",
+        "user_profiles:user_profiles_owner_only",
+        "encrypted_secrets:encrypted_secrets_service_role_all",
+        "auth_sessions:auth_sessions_service_role_all",
+        "auth_sessions:auth_sessions_owner_only",
+        "oauth_connections:oauth_connections_owner_only",
+        "user_2fa_secrets:user_2fa_secrets_owner_only",
+        "user_2fa_recovery_codes:user_2fa_recovery_codes_owner_only",
+        "auth_audit_log:auth_audit_log_account_member_select",
+        "user_clone_optin:user_clone_optin_owner_only",
+        "user_deletion_requests:user_deletion_requests_owner_only"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md#5-new-migration-only-25-件"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-D-06.md",
+      "branch": "claude/T-V3-D-06",
+      "risk_flags": ["security_critical: 2FA secret + encrypted_secrets table policies"]
+    },
+    {
+      "id": "T-V3-D-07",
+      "title": "RLS policy 補完 batch 3 — bf_project family (E-056 BFProject 〜 E-060 BFConstitutionRevision + E-061 SessionArtifact)",
+      "category": "db",
+      "label": "REFACTOR",
+      "feature_id": "F-008",
+      "screen_ids": ["S-012", "S-013", "S-016"],
+      "entity_ids": [
+        "E-056 BFProject",
+        "E-057 BFFeature",
+        "E-058 BFMock",
+        "E-059 BFDelivery",
+        "E-060 BFConstitutionRevision",
+        "E-061 SessionArtifact"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1 末尾",
+      "wave": 4,
+      "group": "D-2",
+      "deliverable_layer": "backend",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "supabase/migrations/20260516170000_rls_bf_project_family.sql (new)",
+        "backend/tests/integration/test_rls_bf_project_family.py (new)",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json (modify: append access_control_policies for E-056〜E-061)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "supabase/migrations/20260516170000_rls_bf_project_family.sql",
+          "backend/tests/integration/test_rls_bf_project_family.py",
+          "docs/functional-breakdown/2026-05-16_v3/entities.json"
+        ],
+        "shared_no_concurrent_edit": [
+          "docs/functional-breakdown/2026-05-16_v3/entities.json"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md"
+        ],
+        "forbidden": [
+          "frontend/",
+          "supabase/migrations/20260516160000_rls_auth_profile_family.sql"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The migration shall add at least 2 RLS policies (service_role_all + workspace_scoped) per table for bf_projects / bf_features / bf_mocks / bf_deliveries / bf_constitution_revisions / session_artifacts.",
+          "EVENT-DRIVEN: When an authenticated user queries bf_projects for a workspace they are not a member of, the system shall return 0 rows.",
+          "EVENT-DRIVEN: When a service_role token queries any of the 6 tables, the system shall return all rows.",
+          "UNWANTED: If `python3 scripts/verify-rls-coverage.py` reports policy_count < 2 for any of the 6 affected tables, the regression gate shall fail."
+        ],
+        "regression": [
+          "The system shall pass `pytest backend/tests/integration/test_rls_bf_project_family.py -v` with 0 failures.",
+          "The system shall pass `python3 scripts/verify-rls-coverage.py` for the 6 affected tables (policy_count >= 2 each).",
+          "The system shall pass `bash scripts/lint-mock.sh` 19/19 OK.",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-d-drift.json` for entry T-V3-D-07.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-D-07`."
+        ]
+      },
+      "access_policies_required": [
+        "bf_projects:bf_projects_service_role_all",
+        "bf_projects:bf_projects_workspace_member_select",
+        "bf_features:bf_features_workspace_member_select",
+        "bf_mocks:bf_mocks_workspace_member_select",
+        "bf_deliveries:bf_deliveries_workspace_member_select",
+        "bf_constitution_revisions:bf_constitution_revisions_workspace_member_select",
+        "session_artifacts:session_artifacts_workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md#5-new-migration-only-25-件"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-D-07.md",
+      "branch": "claude/T-V3-D-07"
+    },
+    {
+      "id": "T-V3-D-08",
+      "title": "RLS policy 補完 batch 4 — design & infrastructure family (E-062〜E-068: design_frames / design_canvas_state / design_mocks / approval_queue / checkpoints / schema_versions / knowledge_base)",
+      "category": "db",
+      "label": "REFACTOR",
+      "feature_id": "F-005b",
+      "screen_ids": ["S-023", "S-024", "S-025", "S-026"],
+      "entity_ids": [
+        "E-062 DesignFrame",
+        "E-063 DesignCanvasState",
+        "E-064 DesignMock",
+        "E-065 ApprovalQueue",
+        "E-066 Checkpoint",
+        "E-067 SchemaVersion",
+        "E-068 KnowledgeBase"
+      ],
+      "legacy_task_id": null,
+      "phase": "Phase 1 末尾",
+      "wave": 4,
+      "group": "D-2",
+      "deliverable_layer": "backend",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "supabase/migrations/20260516180000_rls_design_infra_family.sql (new)",
+        "backend/tests/integration/test_rls_design_infra_family.py (new)",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json (modify: append access_control_policies for E-062〜E-068)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "supabase/migrations/20260516180000_rls_design_infra_family.sql",
+          "backend/tests/integration/test_rls_design_infra_family.py",
+          "docs/functional-breakdown/2026-05-16_v3/entities.json"
+        ],
+        "shared_no_concurrent_edit": [
+          "docs/functional-breakdown/2026-05-16_v3/entities.json"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md"
+        ],
+        "forbidden": [
+          "frontend/",
+          "supabase/migrations/20260516170000_rls_bf_project_family.sql"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The migration shall add at least 2 RLS policies per table for the 7 design/infra tables.",
+          "EVENT-DRIVEN: When an authenticated user queries design_frames for a workspace they are not a member of, the system shall return 0 rows.",
+          "EVENT-DRIVEN: When a service_role token queries schema_versions, the system shall return all rows (schema_versions is system-internal but readable for ops).",
+          "OPTIONAL: Where knowledge_base is configured as workspace-scoped, the system shall enforce workspace_id IN (workspace_members) for SELECT.",
+          "UNWANTED: If `python3 scripts/verify-rls-coverage.py` reports policy_count < 2 for any of the 7 affected tables, the regression gate shall fail."
+        ],
+        "regression": [
+          "The system shall pass `pytest backend/tests/integration/test_rls_design_infra_family.py -v` with 0 failures.",
+          "The system shall pass `python3 scripts/verify-rls-coverage.py` for the 7 affected tables (policy_count >= 2 each).",
+          "The system shall pass `bash scripts/lint-mock.sh` 19/19 OK.",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-d-drift.json` for entry T-V3-D-08.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-D-08`."
+        ]
+      },
+      "access_policies_required": [
+        "design_frames:design_frames_workspace_member_select",
+        "design_canvas_state:design_canvas_state_workspace_member_select",
+        "design_mocks:design_mocks_workspace_member_select",
+        "approval_queue:approval_queue_workspace_member_select",
+        "checkpoints:checkpoints_workspace_member_select",
+        "schema_versions:schema_versions_service_role_all",
+        "knowledge_base:knowledge_base_workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md#5-new-migration-only-25-件"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-D-08.md",
+      "branch": "claude/T-V3-D-08"
+    },
+    {
+      "id": "T-V3-D-09",
+      "title": "API method mismatch fix batch — 5 endpoints (PUT vs PATCH 統一 / GET vs POST 統一)",
+      "category": "backend",
+      "label": "FIX",
+      "feature_id": "F-004",
+      "screen_ids": ["S-006", "S-008", "S-012", "S-013", "S-030", "S-037"],
+      "entity_ids": ["E-002 Account", "E-004 Workspace", "E-007 AIEmployee", "E-014 Task", "E-006 WorkspaceInvitation"],
+      "legacy_task_id": null,
+      "phase": "Phase 1 末尾",
+      "wave": 4,
+      "group": "D-3",
+      "deliverable_layer": "backend",
+      "estimate_hours": 3,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "backend/routers/accounts.py (modify: add PUT alias for PATCH /api/accounts/{id})",
+        "backend/routers/workspaces.py (modify: add PUT alias for PATCH /api/workspaces/{id}; add GET /api/workspaces/{id}/invitations)",
+        "backend/routers/ai_employees.py (modify: add PUT alias for PATCH /api/ai-employees/{id})",
+        "backend/routers/tasks.py (modify: add PUT alias for PATCH /api/tasks/{id})",
+        "backend/tests/integration/test_api_method_alignment.py (new)",
+        "docs/decisions/ADR-016-api-method-alignment.md (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/routers/accounts.py",
+          "backend/routers/workspaces.py",
+          "backend/routers/ai_employees.py",
+          "backend/routers/tasks.py",
+          "backend/tests/integration/test_api_method_alignment.py",
+          "docs/decisions/ADR-016-api-method-alignment.md"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+          "docs/functional-breakdown/2026-05-16_v3/features.json"
+        ],
+        "forbidden": [
+          "frontend/",
+          "supabase/migrations/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The backend shall accept both PUT and PATCH for /api/accounts/{id}, /api/workspaces/{id}, /api/ai-employees/{id}, /api/tasks/{id} returning the same handler result.",
+          "EVENT-DRIVEN: When the mock issues `PUT /api/accounts/{id}` with a valid body, the backend shall return 200 with the updated resource (matching prior PATCH semantics).",
+          "EVENT-DRIVEN: When the mock issues `GET /api/workspaces/{id}/invitations`, the backend shall return 200 with the list of pending invitations.",
+          "OPTIONAL: Where the policy chooses to standardize on PATCH (REST convention), ADR-016 shall record this decision and shall enqueue a future deprecation task to remove the PUT alias after frontend migrates.",
+          "UNWANTED: If any of the 5 mock-declared endpoints (PUT /accounts/{id}, PUT /workspaces/{id}, PUT /ai-employees/{id}, PUT /tasks/{id}, GET /workspaces/{id}/invitations) returns 404 or 405, the regression gate shall fail."
+        ],
+        "regression": [
+          "The system shall pass `pytest backend/tests/integration/test_api_method_alignment.py -v` with 0 failures (5 endpoints × happy path + 5 × unauthorized = 10 cases minimum).",
+          "The system shall pass `pyright --strict backend/routers/` with 0 errors.",
+          "The system shall pass `bash scripts/lint-mock.sh` rule #18 (screens-API) with 0 mock-impl mismatch for the 5 endpoints.",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-d-drift.json` for entry T-V3-D-09.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-D-09`."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md#high-詳細-method-mismatch"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-D-09.md",
+      "branch": "claude/T-V3-D-09"
+    },
+    {
+      "id": "T-V3-D-10",
+      "title": "API high non-method drift (2 endpoints: POST /api/me/api-tokens / POST /api/workspaces/{id}/exports) と medium 1 件 (GET /api/design-system/tokens)",
+      "category": "backend",
+      "label": "FIX",
+      "feature_id": "F-030",
+      "screen_ids": ["S-064", "S-061", "S-062", "S-024"],
+      "entity_ids": ["E-030 APIKey", "E-020 Artifact", "E-023 Component"],
+      "legacy_task_id": null,
+      "phase": "Phase 1 末尾",
+      "wave": 4,
+      "group": "D-3",
+      "deliverable_layer": "backend",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "backend/routers/me_api_tokens.py (new)",
+        "backend/routers/workspace_exports.py (new)",
+        "backend/routers/design_system.py (new)",
+        "backend/services/api_token_service.py (new)",
+        "backend/services/export_service.py (new)",
+        "backend/tests/integration/test_api_token_endpoint.py (new)",
+        "backend/tests/integration/test_workspace_exports.py (new)",
+        "backend/tests/integration/test_design_system_tokens.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/routers/me_api_tokens.py",
+          "backend/routers/workspace_exports.py",
+          "backend/routers/design_system.py",
+          "backend/services/api_token_service.py",
+          "backend/services/export_service.py",
+          "backend/tests/integration/test_api_token_endpoint.py",
+          "backend/tests/integration/test_workspace_exports.py",
+          "backend/tests/integration/test_design_system_tokens.py"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md"
+        ],
+        "forbidden": [
+          "frontend/",
+          "supabase/migrations/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When the mock issues `POST /api/me/api-tokens` with a valid scope, the backend shall return 201 with `{ token: <opaque>, expires_at: <iso> }` and shall record the token hash (never the plaintext) in api_keys table.",
+          "EVENT-DRIVEN: When the mock issues `POST /api/workspaces/{id}/exports` with `kind: 'spec_pdf' | 'delivery_report'`, the backend shall enqueue an export job and return 202 with `{ job_id: <uuid> }`.",
+          "EVENT-DRIVEN: When the mock issues `GET /api/design-system/tokens`, the backend shall return the design token catalog (color / typography / spacing / icons) sourced from docs/mocks/2026-05-09_v1/design-tokens.md.",
+          "UNWANTED: If `POST /api/me/api-tokens` ever returns the plaintext token a second time after creation (i.e. it must be display-once), the regression gate shall fail.",
+          "UNWANTED: If `POST /api/workspaces/{id}/exports` is called without workspace membership, the backend shall return 403."
+        ],
+        "regression": [
+          "The system shall pass `pytest backend/tests/integration/test_api_token_endpoint.py backend/tests/integration/test_workspace_exports.py backend/tests/integration/test_design_system_tokens.py -v` with 0 failures.",
+          "The system shall pass `pyright --strict backend/routers/me_api_tokens.py backend/routers/workspace_exports.py backend/routers/design_system.py` with 0 errors.",
+          "The system shall pass `bash scripts/lint-mock.sh` rule #18 (screens-API) with 0 mismatch for these 3 endpoints.",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-d-drift.json` for entry T-V3-D-10.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-D-10`."
+        ]
+      },
+      "access_policies_required": [
+        "api_keys:api_keys_owner_only"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md#high-詳細-method-mismatch",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md#medium-詳細"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-D-10.md",
+      "branch": "claude/T-V3-D-10",
+      "risk_flags": ["security_critical: api_token display-once contract"]
+    },
+    {
+      "id": "T-V3-D-11",
+      "title": "Screen h1 / KPI / section drift fix (9 hint-match screens: S-007 / S-009 / S-028 / S-031 / S-036 / S-038 / S-039 / S-040 / S-041)",
+      "category": "frontend",
+      "label": "REFACTOR",
+      "feature_id": "F-023",
+      "screen_ids": ["S-007", "S-009", "S-028", "S-031", "S-036", "S-038", "S-039", "S-040", "S-041"],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": "Phase 1 末尾",
+      "wave": 4,
+      "group": "D-4",
+      "deliverable_layer": "ui",
+      "estimate_hours": 6,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "frontend/src/app/settings/account/page.tsx (modify: align h1 + KPI labels with S-007 mock)",
+        "frontend/src/app/settings/profile/page.tsx (modify: align h1 + KPI labels with S-009 mock)",
+        "frontend/src/app/tasks/page.tsx (modify: align h1 with S-028 mock)",
+        "frontend/src/app/dashboard/swarm/page.tsx (modify: align h1 + KPI labels with S-031 mock)",
+        "frontend/src/app/ai-employees/page.tsx (modify: align h1 + KPI labels with S-036 mock)",
+        "frontend/src/app/skills/page.tsx (modify: align h1 + KPI labels with S-038 mock)",
+        "frontend/src/app/knowledge/page.tsx (modify: align h1 with S-039 mock)",
+        "frontend/src/app/dashboard/costs/page.tsx (modify: align h1 + KPI labels with S-040 mock)",
+        "frontend/src/app/audit-logs/page.tsx (modify: align h1 with S-041 mock)",
+        "frontend/__tests__/screen-drift-fix.test.tsx (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/app/settings/account/page.tsx",
+          "frontend/src/app/settings/profile/page.tsx",
+          "frontend/src/app/tasks/page.tsx",
+          "frontend/src/app/dashboard/swarm/page.tsx",
+          "frontend/src/app/ai-employees/page.tsx",
+          "frontend/src/app/skills/page.tsx",
+          "frontend/src/app/knowledge/page.tsx",
+          "frontend/src/app/dashboard/costs/page.tsx",
+          "frontend/src/app/audit-logs/page.tsx",
+          "frontend/__tests__/screen-drift-fix.test.tsx"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": [
+          "docs/mocks/2026-05-15_v3/",
+          "docs/functional-breakdown/2026-05-16_v3/screen-drift-summary.md",
+          "docs/functional-breakdown/2026-05-16_v3/screens.json"
+        ],
+        "forbidden": [
+          "backend/",
+          "supabase/migrations/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While each of the 9 pages (S-007 / S-009 / S-028 / S-031 / S-036 / S-038 / S-039 / S-040 / S-041) is rendered, the system shall display an h1 element whose text matches the corresponding mock h1 verbatim (per scripts/lint-mock-impl-diff.py).",
+          "STATE-DRIVEN: While each of the 9 pages is rendered, the system shall display KPI labels that match the mock's `[data-kpi-label]` set as a multiset (case-sensitive).",
+          "STATE-DRIVEN: While each of the 9 pages is rendered, the system shall display section h2 headings whose text set matches the mock's section h2 set."
+        ],
+        "functional": [
+          "UNWANTED: If `bash scripts/lint-mock-impl-diff.sh S-007 S-009 S-028 S-031 S-036 S-038 S-039 S-040 S-041` reports any h1 / KPI label / section h2 mismatch, the regression gate shall fail.",
+          "EVENT-DRIVEN: When a screen is updated to align with the mock, the system shall keep all existing API calls and behavior tests passing (no functional regression)."
+        ],
+        "regression": [
+          "The system shall pass `cd frontend && pnpm test __tests__/screen-drift-fix.test.tsx` with 0 failures.",
+          "The system shall pass `cd frontend && tsc --noEmit && pnpm run lint` with 0 errors.",
+          "The system shall pass `bash scripts/lint-mock-impl-diff.sh S-007 S-009 S-028 S-031 S-036 S-038 S-039 S-040 S-041` with 0 mismatch.",
+          "The system shall pass `bash scripts/lint-mock.sh` 19/19 OK (rule #17 mock-impl-diff green).",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-d-drift.json` for entry T-V3-D-11.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-D-11`."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/screen-drift-summary.md#exists-一覧-group-d-候補--hint-match",
+        "docs/mocks/2026-05-15_v3/"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-D-11.md",
+      "branch": "claude/T-V3-D-11"
+    },
+    {
+      "id": "T-V3-D-12",
+      "title": "NEW entity formalization batch 1 — Critical drift entities (E-009 SkillExecution / E-013 PhaseGate / E-010 UserKnowledgeNamespace): impl 無し → 新規 migration + RLS + entity 正式化",
+      "category": "db",
+      "label": "FIX",
+      "feature_id": "F-002",
+      "screen_ids": ["S-038", "S-016", "S-039"],
+      "entity_ids": ["E-009 SkillExecution", "E-013 PhaseGate", "E-010 UserKnowledgeNamespace"],
+      "legacy_task_id": null,
+      "phase": "Phase 1 末尾",
+      "wave": 4,
+      "group": "D-NEW",
+      "deliverable_layer": "backend",
+      "estimate_hours": 5,
+      "estimate_sessions": 2,
+      "depends_on": [],
+      "files_changed": [
+        "supabase/migrations/20260516190000_critical_new_entities.sql (new)",
+        "backend/app/models/skill_execution.py (new)",
+        "backend/app/models/phase_gate.py (new)",
+        "backend/app/models/user_knowledge_namespace.py (new)",
+        "backend/tests/integration/test_critical_new_entities.py (new)",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json (modify: clear `legacy_drift_notes.impl_table = null` flag for E-009/13/10)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "supabase/migrations/20260516190000_critical_new_entities.sql",
+          "backend/app/models/skill_execution.py",
+          "backend/app/models/phase_gate.py",
+          "backend/app/models/user_knowledge_namespace.py",
+          "backend/tests/integration/test_critical_new_entities.py",
+          "docs/functional-breakdown/2026-05-16_v3/entities.json"
+        ],
+        "shared_no_concurrent_edit": [
+          "docs/functional-breakdown/2026-05-16_v3/entities.json"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md"
+        ],
+        "forbidden": [
+          "frontend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The migration shall create 3 new tables (skill_executions / phase_gates / user_knowledge_namespaces) matching the column set defined in entities.json E-009 / E-013 / E-010 fields[].",
+          "EVENT-DRIVEN: When a skill is executed via /api/skills/{id}/test, the system shall record a row in skill_executions with workspace_id + skill_id + ai_employee_id + cost + tokens + status + langfuse_trace_id.",
+          "EVENT-DRIVEN: When a phase gate is checked and passes, the system shall record passed_at + passed_by in phase_gates.",
+          "EVENT-DRIVEN: When a user knowledge namespace is created, the system shall enforce uniqueness on (user_id, namespace_id) and shall record scope (private/account/workspace).",
+          "UNWANTED: If `python3 scripts/verify-rls-coverage.py` reports policy_count < 2 for any of the 3 new tables, the regression gate shall fail."
+        ],
+        "regression": [
+          "The system shall pass `pytest backend/tests/integration/test_critical_new_entities.py -v` with 0 failures.",
+          "The system shall pass `pyright --strict backend/app/models/skill_execution.py backend/app/models/phase_gate.py backend/app/models/user_knowledge_namespace.py` with 0 errors.",
+          "The system shall pass `python3 scripts/verify-rls-coverage.py` for the 3 new tables (policy_count >= 2 each).",
+          "The system shall pass `bash scripts/lint-mock.sh` 19/19 OK.",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-d-drift.json` for entry T-V3-D-12.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-D-12`."
+        ]
+      },
+      "access_policies_required": [
+        "skill_executions:skill_executions_service_role_all",
+        "skill_executions:skill_executions_workspace_member_select",
+        "phase_gates:phase_gates_service_role_all",
+        "phase_gates:phase_gates_workspace_member_select",
+        "user_knowledge_namespaces:user_knowledge_namespaces_service_role_all",
+        "user_knowledge_namespaces:user_knowledge_namespaces_owner_only"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md#2-critical-drift-3-件",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json#E-009"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-D-12.md",
+      "branch": "claude/T-V3-D-12"
+    },
+    {
+      "id": "T-V3-D-13",
+      "title": "NEW entity formalization batch 2 — Screen-Component pair (E-023 Component / E-024 ScreenComponent / E-022 Screen-vs-BFMock merge decision)",
+      "category": "db",
+      "label": "FIX",
+      "feature_id": "F-005b",
+      "screen_ids": ["S-024", "S-023"],
+      "entity_ids": ["E-023 Component", "E-024 ScreenComponent", "E-022 Screen"],
+      "legacy_task_id": null,
+      "phase": "Phase 1 末尾",
+      "wave": 4,
+      "group": "D-NEW",
+      "deliverable_layer": "backend",
+      "estimate_hours": 4,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "supabase/migrations/20260516200000_components_screen_components.sql (new)",
+        "backend/app/models/component.py (new)",
+        "backend/app/models/screen_component.py (new)",
+        "backend/tests/integration/test_components_screen_components.py (new)",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json (modify: deprecate E-022 Screen, merge into E-058 BFMock; clear impl_table flags for E-023/E-024)",
+        "docs/decisions/ADR-017-screen-vs-bfmock-merge.md (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "supabase/migrations/20260516200000_components_screen_components.sql",
+          "backend/app/models/component.py",
+          "backend/app/models/screen_component.py",
+          "backend/tests/integration/test_components_screen_components.py",
+          "docs/functional-breakdown/2026-05-16_v3/entities.json",
+          "docs/decisions/ADR-017-screen-vs-bfmock-merge.md"
+        ],
+        "shared_no_concurrent_edit": [
+          "docs/functional-breakdown/2026-05-16_v3/entities.json"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md"
+        ],
+        "forbidden": [
+          "frontend/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The migration shall create components / screen_components tables and shall record the decision in ADR-017 that E-022 Screen is merged into E-058 BFMock (entity merger, not a new table).",
+          "EVENT-DRIVEN: When a component is added to the catalog, the system shall enforce uniqueness on (workspace_id, name, version).",
+          "EVENT-DRIVEN: When a screen_component link is created, the system shall enforce FK to screens (= bf_mocks per ADR-017) and components.",
+          "UNWANTED: If entities.json still references E-022 as an active entity after this task, the regression gate shall fail (E-022 must be marked deprecated and pointed to E-058)."
+        ],
+        "regression": [
+          "The system shall pass `pytest backend/tests/integration/test_components_screen_components.py -v` with 0 failures.",
+          "The system shall pass `pyright --strict backend/app/models/component.py backend/app/models/screen_component.py` with 0 errors.",
+          "The system shall pass `python3 scripts/verify-rls-coverage.py` for components / screen_components (policy_count >= 2 each).",
+          "The system shall pass `bash scripts/lint-mock.sh` 19/19 OK.",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-d-drift.json` for entry T-V3-D-13.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-D-13`."
+        ]
+      },
+      "access_policies_required": [
+        "components:components_workspace_member_select",
+        "screen_components:screen_components_workspace_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md#2-critical-drift-3-件",
+        "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md#3-high-drift-9-件"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-D-13.md",
+      "branch": "claude/T-V3-D-13"
+    },
+    {
+      "id": "T-V3-D-14",
+      "title": "AuditLog 二重実装 統合 (E-037 AuditLog: audit_logs 汎用 + auth_audit_log 専用 → 単一 audit_logs + source 列)",
+      "category": "db",
+      "label": "REFACTOR",
+      "feature_id": "F-018",
+      "screen_ids": ["S-041"],
+      "entity_ids": ["E-037 AuditLog", "E-055 AuthAuditLog"],
+      "legacy_task_id": null,
+      "phase": "Phase 1 末尾",
+      "wave": 4,
+      "group": "D-NEW",
+      "deliverable_layer": "backend",
+      "estimate_hours": 3,
+      "estimate_sessions": 1,
+      "depends_on": ["T-V3-D-06"],
+      "files_changed": [
+        "supabase/migrations/20260516210000_audit_log_unification.sql (new)",
+        "backend/app/models/audit_log.py (modify)",
+        "backend/services/audit_service.py (modify)",
+        "backend/tests/integration/test_audit_log_unification.py (new)",
+        "docs/decisions/ADR-018-audit-log-unification.md (new)",
+        "docs/functional-breakdown/2026-05-16_v3/entities.json (modify: deprecate E-055 auth_audit_log; merge into E-037 with source enum)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "supabase/migrations/20260516210000_audit_log_unification.sql",
+          "backend/app/models/audit_log.py",
+          "backend/services/audit_service.py",
+          "backend/tests/integration/test_audit_log_unification.py",
+          "docs/decisions/ADR-018-audit-log-unification.md",
+          "docs/functional-breakdown/2026-05-16_v3/entities.json"
+        ],
+        "shared_no_concurrent_edit": [
+          "docs/functional-breakdown/2026-05-16_v3/entities.json"
+        ],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md"
+        ],
+        "forbidden": [
+          "frontend/",
+          "supabase/migrations/20260510000000_auth_tables.sql"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The system shall provide a single audit_logs table with a `source` column (enum: 'auth' | 'workspace' | 'system' | 'cost' | 'red_line') and shall migrate all rows from auth_audit_log into audit_logs with source='auth'.",
+          "EVENT-DRIVEN: When the migration is applied, all existing auth_audit_log rows shall appear in audit_logs with source='auth' and original timestamps preserved.",
+          "EVENT-DRIVEN: When any service writes to the unified audit_logs table, the system shall enforce a CHECK constraint on the source column.",
+          "UNWANTED: If a query targets the legacy auth_audit_log table after the migration, the system shall route the call to audit_logs via a VIEW (backward compatibility for 1 release cycle)."
+        ],
+        "regression": [
+          "The system shall pass `pytest backend/tests/integration/test_audit_log_unification.py -v` with 0 failures.",
+          "The system shall pass `pyright --strict backend/app/models/audit_log.py backend/services/audit_service.py` with 0 errors.",
+          "The system shall pass `python3 scripts/verify-rls-coverage.py` for audit_logs (policy_count >= 2).",
+          "The system shall pass `bash scripts/lint-mock.sh` 19/19 OK.",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-d-drift.json` for entry T-V3-D-14.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-D-14`."
+        ]
+      },
+      "access_policies_required": [
+        "audit_logs:audit_logs_service_role_all",
+        "audit_logs:audit_logs_account_member_select"
+      ],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md#4-medium-drift-11-件"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-D-14.md",
+      "branch": "claude/T-V3-D-14"
+    },
+    {
+      "id": "T-V3-D-15",
+      "title": "Drift closure validation — 全 drift 修正完了後の最終検証 + lint #19 entity-table-naming 100% green + RLS coverage 100% + screens-API 0 mismatch",
+      "category": "infra",
+      "label": "FIX",
+      "feature_id": null,
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": "Phase 1 末尾",
+      "wave": 4,
+      "group": "D-CLOSE",
+      "deliverable_layer": "polish",
+      "estimate_hours": 3,
+      "estimate_sessions": 1,
+      "depends_on": [
+        "T-V3-D-01",
+        "T-V3-D-02",
+        "T-V3-D-03",
+        "T-V3-D-04",
+        "T-V3-D-05",
+        "T-V3-D-06",
+        "T-V3-D-07",
+        "T-V3-D-08",
+        "T-V3-D-09",
+        "T-V3-D-10",
+        "T-V3-D-11",
+        "T-V3-D-12",
+        "T-V3-D-13",
+        "T-V3-D-14"
+      ],
+      "files_changed": [
+        "docs/functional-breakdown/2026-05-16_v3/drift-closure-report.md (new)",
+        "scripts/check-drift-closure.py (new)",
+        "scripts/tests/test-check-drift-closure.sh (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "docs/functional-breakdown/2026-05-16_v3/drift-closure-report.md",
+          "scripts/check-drift-closure.py",
+          "scripts/tests/test-check-drift-closure.sh"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": [
+          "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md",
+          "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+          "docs/functional-breakdown/2026-05-16_v3/screen-drift-summary.md",
+          "docs/functional-breakdown/2026-05-16_v3/entities.json"
+        ],
+        "forbidden": [
+          "backend/",
+          "frontend/",
+          "supabase/migrations/"
+        ]
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The drift-closure-report.md shall enumerate all 62 v3-tracked drifts (entity 48 + API 5 method + 9 high-non-method + screen 9) with status DONE / DEFERRED / WONTFIX for each.",
+          "EVENT-DRIVEN: When `python3 scripts/check-drift-closure.py` is run, the system shall exit 0 only if every drift recorded in entity-drift-summary / api-drift-summary / screen-drift-summary maps to a DONE task in tickets-group-d-drift.json.",
+          "UNWANTED: If any entity in entities.json still has `legacy_drift_notes.impl_table = '(missing)'` after this task, the regression gate shall fail.",
+          "UNWANTED: If `bash scripts/lint-mock.sh` rule #19 (entity-table-naming) or rule #18 (screens-API) emits any drift, the regression gate shall fail.",
+          "UNWANTED: If `python3 scripts/verify-rls-coverage.py` reports any v3 entity with policy_count < 2, the regression gate shall fail (excluding entities explicitly tagged status='deferred_p2' in entities.json)."
+        ],
+        "regression": [
+          "The system shall pass `python3 scripts/check-drift-closure.py` with exit 0.",
+          "The system shall pass `bash scripts/tests/test-check-drift-closure.sh` (self-test fixtures).",
+          "The system shall pass `bash scripts/lint-mock.sh` 19/19 OK.",
+          "The system shall pass `python3 scripts/verify-rls-coverage.py` with 0 violations.",
+          "The system shall pass `python3 scripts/validate-tickets.py --check-file docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-d-drift.json` with 0 issues.",
+          "The system shall pass `bash scripts/audit-md-check.sh T-V3-D-15`."
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "docs/functional-breakdown/2026-05-16_v3/entity-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/api-drift-summary.md",
+        "docs/functional-breakdown/2026-05-16_v3/screen-drift-summary.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-D-15.md",
+      "branch": "claude/T-V3-D-15"
+    }
+  ]
+}
