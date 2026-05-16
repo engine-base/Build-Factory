@@ -114,6 +114,9 @@ from routers.screens_components import router as screens_components_router
 from routers.unified_search import router as unified_search_router
 from routers.intent_classifier import router as intent_classifier_router
 from routers.intent_router import router as intent_router_router
+# T-V3-B-17: Red-lines backend (F-012)
+from routers.red_lines import router as red_lines_router
+from routers.violations import router as violations_router
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 
@@ -279,6 +282,9 @@ app.include_router(screens_components_router)
 app.include_router(unified_search_router)
 app.include_router(intent_classifier_router)
 app.include_router(intent_router_router)
+# T-V3-B-17: Red-lines backend (F-012) — workspace-prefixed red_lines + global violations
+app.include_router(red_lines_router)
+app.include_router(violations_router)
 
 
 @app.get("/health")
