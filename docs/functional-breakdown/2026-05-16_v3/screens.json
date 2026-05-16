@@ -1,0 +1,5295 @@
+{
+  "version": "v3",
+  "project": "Build-Factory",
+  "created_at": "2026-05-16",
+  "drift_detection_mode": true,
+  "skill": "functional-breakdown",
+  "screen_count": 64,
+  "items": [
+    {
+      "id": "S-001",
+      "name": "ログイン",
+      "screen_name": "login",
+      "category": "auth",
+      "mock_path": "docs/mocks/2026-05-15_v3/auth/S-001-login.html",
+      "meta_tags": {
+        "bf-screen-id": "S-001",
+        "bf-screen-name": "login",
+        "bf-category": "auth",
+        "bf-feature-id": [
+          "F-001",
+          "F-021"
+        ],
+        "bf-task-ids": [
+          "T-V3-AUTH-08",
+          "T-V3-AUTH-01"
+        ],
+        "bf-entities": [
+          "E-001",
+          "E-038"
+        ],
+        "bf-related-apis": [
+          "POST /api/auth/login",
+          "POST /api/auth/mfa/verify"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-001",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "ログイン",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "email",
+        "password",
+        "2fa_code (条件付き)"
+      ],
+      "layout": "form",
+      "actions": [
+        {
+          "name": "sign_in",
+          "endpoint": null
+        },
+        {
+          "name": "forgot_password",
+          "endpoint": null
+        },
+        {
+          "name": "go_to_signup",
+          "endpoint": null
+        },
+        {
+          "name": "oauth_anthropic",
+          "endpoint": null
+        },
+        {
+          "name": "oauth_google",
+          "endpoint": null
+        },
+        {
+          "name": "oauth_github",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "idle",
+        "submitting",
+        "mfa_required",
+        "error"
+      ],
+      "transitions": [
+        "account_dashboard or workspace_dashboard (last visited)"
+      ],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "public"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "POST /api/auth/login",
+        "POST /api/auth/mfa/verify"
+      ],
+      "related_entities": [
+        "E-001",
+        "E-038"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-001"
+      }
+    },
+    {
+      "id": "S-002",
+      "name": "サインアップ",
+      "screen_name": "signup",
+      "category": "auth",
+      "mock_path": "docs/mocks/2026-05-15_v3/auth/S-002-signup.html",
+      "meta_tags": {
+        "bf-screen-id": "S-002",
+        "bf-screen-name": "signup",
+        "bf-category": "auth",
+        "bf-feature-id": [
+          "F-001",
+          "F-004"
+        ],
+        "bf-task-ids": [
+          "T-V3-AUTH-09",
+          "T-V3-AUTH-02"
+        ],
+        "bf-entities": [
+          "E-001",
+          "E-002",
+          "E-008",
+          "E-043"
+        ],
+        "bf-related-apis": [
+          "POST /api/auth/signup",
+          "GET /api/invitations/{token}"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-002",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "アカウント作成",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "email",
+        "password",
+        "display_name",
+        "invite_token (optional)",
+        "tos_agree",
+        "privacy_agree"
+      ],
+      "layout": "form",
+      "actions": [
+        {
+          "name": "sign_up",
+          "endpoint": null
+        },
+        {
+          "name": "go_to_login",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [
+        "account_dashboard (新規 account 作成) or workspace_invite_accept"
+      ],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "public"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "POST /api/auth/signup",
+        "GET /api/invitations/{token}"
+      ],
+      "related_entities": [
+        "E-001",
+        "E-002",
+        "E-008",
+        "E-043"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-002"
+      }
+    },
+    {
+      "id": "S-003",
+      "name": "パスワード再設定",
+      "screen_name": "password_reset",
+      "category": "auth",
+      "mock_path": "docs/mocks/2026-05-15_v3/auth/S-003-password-reset.html",
+      "meta_tags": {
+        "bf-screen-id": "S-003",
+        "bf-screen-name": "password_reset",
+        "bf-category": "auth",
+        "bf-feature-id": [
+          "F-001"
+        ],
+        "bf-task-ids": [
+          "T-V3-AUTH-10",
+          "T-V3-AUTH-03"
+        ],
+        "bf-entities": [
+          "E-001",
+          "E-039"
+        ],
+        "bf-related-apis": [
+          "POST /api/auth/password-reset"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-003",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "パスワード再設定",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "email",
+        "new_password (確認画面)"
+      ],
+      "layout": "form",
+      "actions": [
+        {
+          "name": "request_reset",
+          "endpoint": null
+        },
+        {
+          "name": "set_new_password",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "public"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "POST /api/auth/password-reset"
+      ],
+      "related_entities": [
+        "E-001",
+        "E-039"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-003"
+      }
+    },
+    {
+      "id": "S-004",
+      "name": "MFA セットアップ",
+      "screen_name": "mfa_setup",
+      "category": "auth",
+      "mock_path": "docs/mocks/2026-05-15_v3/auth/S-004-mfa-setup.html",
+      "meta_tags": {
+        "bf-screen-id": "S-004",
+        "bf-screen-name": "mfa_setup",
+        "bf-category": "auth",
+        "bf-feature-id": [
+          "F-001"
+        ],
+        "bf-task-ids": [
+          "T-V3-AUTH-11",
+          "T-V3-AUTH-04",
+          "T-V3-AUTH-05"
+        ],
+        "bf-entities": [
+          "E-001"
+        ],
+        "bf-related-apis": [
+          "POST /api/auth/mfa/enroll",
+          "POST /api/auth/mfa/verify"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-004",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "2 段階認証 (MFA) を有効化",
+      "kpi_labels": [],
+      "section_h2_texts": [
+        "Step 1. 認証アプリで QR をスキャン",
+        "Step 2. 6 桁のコードで確認"
+      ],
+      "fields": [
+        "totp_qr_code",
+        "verification_code",
+        "backup_codes"
+      ],
+      "layout": "wizard",
+      "actions": [
+        {
+          "name": "enroll_totp",
+          "endpoint": null
+        },
+        {
+          "name": "verify",
+          "endpoint": null
+        },
+        {
+          "name": "regenerate_backup_codes",
+          "endpoint": null
+        },
+        {
+          "name": "disable_2fa",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "POST /api/auth/mfa/enroll",
+        "POST /api/auth/mfa/verify"
+      ],
+      "related_entities": [
+        "E-001"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-004"
+      }
+    },
+    {
+      "id": "S-005",
+      "name": "OAuth コールバック",
+      "screen_name": "oauth_callback",
+      "category": "auth",
+      "mock_path": "docs/mocks/2026-05-15_v3/auth/S-005-oauth-callback.html",
+      "meta_tags": {
+        "bf-screen-id": "S-005",
+        "bf-screen-name": "oauth_callback",
+        "bf-category": "auth",
+        "bf-feature-id": [
+          "F-001"
+        ],
+        "bf-task-ids": [
+          "T-V3-AUTH-12",
+          "T-V3-AUTH-06"
+        ],
+        "bf-entities": [
+          "E-001",
+          "E-040"
+        ],
+        "bf-related-apis": [
+          "GET /api/auth/oauth/{provider}/callback"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-005",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "ログイン中...",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "state",
+        "code"
+      ],
+      "layout": "list",
+      "actions": [
+        {
+          "name": "complete_oauth",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/auth/oauth/{provider}/callback"
+      ],
+      "related_entities": [
+        "E-001",
+        "E-040"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-005"
+      }
+    },
+    {
+      "id": "S-006",
+      "name": "10 案件 俯瞰",
+      "screen_name": "account_dashboard",
+      "category": "account",
+      "mock_path": "docs/mocks/2026-05-15_v3/account/S-006-account-dashboard.html",
+      "meta_tags": {
+        "bf-screen-id": "S-006",
+        "bf-screen-name": "account_dashboard",
+        "bf-category": "account",
+        "bf-feature-id": [
+          "F-024",
+          "F-018",
+          "F-008",
+          "F-007",
+          "F-017"
+        ],
+        "bf-task-ids": [
+          "T-V3-DRIFT-01",
+          "T-V3-DRIFT-02",
+          "T-V3-RF-03"
+        ],
+        "bf-entities": [
+          "E-008",
+          "E-009",
+          "E-018",
+          "E-025",
+          "E-027",
+          "E-029"
+        ],
+        "bf-related-apis": [
+          "GET /api/accounts/{id}/dashboard"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-006",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "10 案件 俯瞰",
+      "kpi_labels": [
+        "Active Projects",
+        "Running Sessions",
+        "Monthly Cost",
+        "Anomalies (24h)"
+      ],
+      "section_h2_texts": [
+        "Pending Reviews",
+        "Phase 進捗",
+        "完了タスク (7d)",
+        "全 Workspaces (10 案件並走中)",
+        "AI 社員 使用率（今週）",
+        "直近の Activity"
+      ],
+      "fields": [
+        "hero_active_projects",
+        "hero_running_sessions",
+        "hero_monthly_cost",
+        "hero_anomaly_count",
+        "panel_pending_reviews",
+        "panel_phase_progress",
+        "panel_completed_tasks_7d",
+        "panel_ai_employee_usage",
+        "sub_audit_recent",
+        "sub_clone_optin_count",
+        "sub_swarm_status_per_ws"
+      ],
+      "layout": "dashboard",
+      "actions": [
+        {
+          "name": "jump_to_workspace",
+          "endpoint": null
+        },
+        {
+          "name": "filter_period",
+          "endpoint": null
+        },
+        {
+          "name": "export_dashboard_html",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "account_owner",
+        "workspace_admin (全 ws を見せる)",
+        "monitor (configurable)"
+      ],
+      "edit_roles": [
+        "account_owner",
+        "workspace_admin (全 ws を見せる)"
+      ],
+      "related_apis": [
+        "GET /api/accounts/{id}/dashboard"
+      ],
+      "related_entities": [
+        "E-008",
+        "E-009",
+        "E-018",
+        "E-025",
+        "E-027",
+        "E-029"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-006"
+      }
+    },
+    {
+      "id": "S-007",
+      "name": "アカウント設定",
+      "screen_name": "account_settings",
+      "category": "account",
+      "mock_path": "docs/mocks/2026-05-15_v3/account/S-007-account-settings.html",
+      "meta_tags": {
+        "bf-screen-id": "S-007",
+        "bf-screen-name": "account_settings",
+        "bf-category": "account",
+        "bf-feature-id": [
+          "F-004"
+        ],
+        "bf-task-ids": [
+          "T-V3-RF-01"
+        ],
+        "bf-entities": [
+          "E-008",
+          "E-001"
+        ],
+        "bf-related-apis": [
+          "GET /api/accounts/{id}",
+          "PUT /api/accounts/{id}",
+          "POST /api/accounts/{id}/transfer-owner",
+          "DELETE /api/accounts/{id}"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-007",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "アカウント設定",
+      "kpi_labels": [],
+      "section_h2_texts": [
+        "基本情報",
+        "プラン / 課金",
+        "所有者 (Account Owner)",
+        "Danger Zone"
+      ],
+      "fields": [
+        "account_name",
+        "type",
+        "plan",
+        "billing_method",
+        "owner_user",
+        "danger_zone"
+      ],
+      "layout": "list",
+      "actions": [
+        {
+          "name": "update_plan",
+          "endpoint": null
+        },
+        {
+          "name": "transfer_owner",
+          "endpoint": null
+        },
+        {
+          "name": "delete_account",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "account_owner"
+      ],
+      "edit_roles": [
+        "account_owner"
+      ],
+      "related_apis": [
+        "GET /api/accounts/{id}",
+        "PUT /api/accounts/{id}",
+        "POST /api/accounts/{id}/transfer-owner",
+        "DELETE /api/accounts/{id}"
+      ],
+      "related_entities": [
+        "E-008",
+        "E-001"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "exists",
+        "impl_path": "frontend/src/app/settings/account/page.tsx",
+        "diff_severity": "low",
+        "recommendation": "Group D で h1 / KPI / section の lint diff を実行し、必要に応じて改修",
+        "task_id_seed": "T-V3-DRIFT-007"
+      }
+    },
+    {
+      "id": "S-008",
+      "name": "メンバー管理",
+      "screen_name": "account_members",
+      "category": "account",
+      "mock_path": "docs/mocks/2026-05-15_v3/account/S-008-account-members.html",
+      "meta_tags": {
+        "bf-screen-id": "S-008",
+        "bf-screen-name": "account_members",
+        "bf-category": "account",
+        "bf-feature-id": [
+          "F-004",
+          "F-021"
+        ],
+        "bf-task-ids": [
+          "T-V3-SCR-01"
+        ],
+        "bf-entities": [
+          "E-001",
+          "E-002",
+          "E-043"
+        ],
+        "bf-related-apis": [
+          "GET /api/accounts/{id}/members",
+          "POST /api/accounts/{id}/invitations",
+          "DELETE /api/accounts/{id}/members/{user_id}"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-008",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "メンバー管理",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "member_list",
+        "role_distribution"
+      ],
+      "layout": "form",
+      "actions": [
+        {
+          "name": "invite_admin",
+          "endpoint": null
+        },
+        {
+          "name": "remove_member",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "account_owner"
+      ],
+      "edit_roles": [
+        "account_owner"
+      ],
+      "related_apis": [
+        "GET /api/accounts/{id}/members",
+        "POST /api/accounts/{id}/invitations",
+        "DELETE /api/accounts/{id}/members/{user_id}"
+      ],
+      "related_entities": [
+        "E-001",
+        "E-002",
+        "E-043"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-008"
+      }
+    },
+    {
+      "id": "S-009",
+      "name": "プロフィール設定",
+      "screen_name": "profile_settings",
+      "category": "account",
+      "mock_path": "docs/mocks/2026-05-15_v3/account/S-009-profile-settings.html",
+      "meta_tags": {
+        "bf-screen-id": "S-009",
+        "bf-screen-name": "profile_settings",
+        "bf-category": "account",
+        "bf-feature-id": [
+          "F-022",
+          "F-023"
+        ],
+        "bf-task-ids": [
+          "T-V3-RF-02"
+        ],
+        "bf-entities": [
+          "E-001",
+          "E-010",
+          "E-040"
+        ],
+        "bf-related-apis": [
+          "GET /api/me",
+          "PUT /api/me",
+          "POST /api/me/api-keys",
+          "DELETE /api/me/oauth/{provider}"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-009",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "プロフィール設定",
+      "kpi_labels": [],
+      "section_h2_texts": [
+        "プロフィール",
+        "通知設定",
+        "LLM プロバイダ (BYOK)",
+        "OAuth 連携",
+        "ユーザークローン (高本さんの判断基準を学習)",
+        "Danger Zone"
+      ],
+      "fields": [
+        "display_name",
+        "avatar",
+        "timezone",
+        "language",
+        "notification_prefs",
+        "api_keys (BYOK)",
+        "oauth_connections",
+        "user_clone_opt_in",
+        "default_llm_provider",
+        "danger_zone (delete account)"
+      ],
+      "layout": "form",
+      "actions": [
+        {
+          "name": "update_profile",
+          "endpoint": null
+        },
+        {
+          "name": "add_api_key",
+          "endpoint": null
+        },
+        {
+          "name": "revoke_oauth",
+          "endpoint": null
+        },
+        {
+          "name": "toggle_clone_opt_in",
+          "endpoint": null
+        },
+        {
+          "name": "request_data_export (GDPR)",
+          "endpoint": null
+        },
+        {
+          "name": "request_account_deletion",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated (own only)"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/me",
+        "PUT /api/me",
+        "POST /api/me/api-keys",
+        "DELETE /api/me/oauth/{provider}"
+      ],
+      "related_entities": [
+        "E-001",
+        "E-010",
+        "E-040"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "exists",
+        "impl_path": "frontend/src/app/settings/profile/page.tsx",
+        "diff_severity": "low",
+        "recommendation": "Group D で h1 / KPI / section の lint diff を実行し、必要に応じて改修",
+        "task_id_seed": "T-V3-DRIFT-009"
+      }
+    },
+    {
+      "id": "S-010",
+      "name": "通知 Inbox",
+      "screen_name": "notifications_inbox",
+      "category": "account",
+      "mock_path": "docs/mocks/2026-05-15_v3/account/S-010-notifications-inbox.html",
+      "meta_tags": {
+        "bf-screen-id": "S-010",
+        "bf-screen-name": "notifications_inbox",
+        "bf-category": "account",
+        "bf-feature-id": [
+          "F-018"
+        ],
+        "bf-task-ids": [
+          "T-V3-SCR-02"
+        ],
+        "bf-entities": [
+          "E-042"
+        ],
+        "bf-related-apis": [
+          "GET /api/notifications",
+          "POST /api/notifications/{id}/read",
+          "POST /api/notifications/read-all"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-010",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "通知 Inbox(3 未読)",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "notification_list",
+        "category_filter",
+        "mark_as_read"
+      ],
+      "layout": "list",
+      "actions": [
+        {
+          "name": "mark_all_read",
+          "endpoint": null
+        },
+        {
+          "name": "filter_by_category",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated (own only)"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/notifications",
+        "POST /api/notifications/{id}/read",
+        "POST /api/notifications/read-all"
+      ],
+      "related_entities": [
+        "E-042"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-010"
+      }
+    },
+    {
+      "id": "S-011",
+      "name": "グローバル検索 (Cmd+K)",
+      "screen_name": "global_search",
+      "category": "account",
+      "mock_path": "docs/mocks/2026-05-15_v3/account/S-011-global-search.html",
+      "meta_tags": {
+        "bf-screen-id": "S-011",
+        "bf-screen-name": "global_search",
+        "bf-category": "account",
+        "bf-feature-id": [
+          "F-024"
+        ],
+        "bf-task-ids": [
+          "T-V3-SCR-03"
+        ],
+        "bf-entities": [
+          "E-001",
+          "E-008",
+          "E-009",
+          "E-018",
+          "E-022",
+          "E-029"
+        ],
+        "bf-related-apis": [
+          "GET /api/search?q={query}&category={cat}"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-011",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "query",
+        "category_filter",
+        "results_grouped"
+      ],
+      "layout": "list",
+      "actions": [
+        {
+          "name": "search",
+          "endpoint": null
+        },
+        {
+          "name": "jump_to_result",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/search?q={query}&category={cat}"
+      ],
+      "related_entities": [
+        "E-001",
+        "E-008",
+        "E-009",
+        "E-018",
+        "E-022",
+        "E-029"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-011"
+      }
+    },
+    {
+      "id": "S-012",
+      "name": "案件ダッシュボード",
+      "screen_name": "workspace_dashboard",
+      "category": "workspace",
+      "mock_path": "docs/mocks/2026-05-15_v3/workspace/S-012-workspace-dashboard.html",
+      "meta_tags": {
+        "bf-screen-id": "S-012",
+        "bf-screen-name": "workspace_dashboard",
+        "bf-category": "workspace",
+        "bf-feature-id": [
+          "F-006",
+          "F-007",
+          "F-008",
+          "F-026"
+        ],
+        "bf-task-ids": [
+          "T-V3-RF-03"
+        ],
+        "bf-entities": [
+          "E-009",
+          "E-018",
+          "E-025",
+          "E-013",
+          "E-017"
+        ],
+        "bf-related-apis": [
+          "GET /api/workspaces/{id}/dashboard",
+          "POST /api/workspaces/{id}/play-all"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-012",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "Build-Factory dogfood",
+      "kpi_labels": [
+        "Spec",
+        "Task",
+        "Moat / Safety",
+        "Settings",
+        "Workspace",
+        "Phase 進捗",
+        "Tasks",
+        "Running Sessions"
+      ],
+      "section_h2_texts": [
+        "現在のフェーズ: Phase 1 (実装)",
+        "Constitution",
+        "最近のタスク",
+        "Pending Reviews (3)",
+        "Running Sessions (5)"
+      ],
+      "fields": [
+        "progress_summary",
+        "current_phase",
+        "recent_tasks",
+        "pending_reviews",
+        "running_sessions",
+        "constitution_summary"
+      ],
+      "layout": "dashboard",
+      "actions": [
+        {
+          "name": "jump_to_phase",
+          "endpoint": null
+        },
+        {
+          "name": "jump_to_task",
+          "endpoint": null
+        },
+        {
+          "name": "trigger_play_all",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_workspace_members"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/workspaces/{id}/dashboard",
+        "POST /api/workspaces/{id}/play-all"
+      ],
+      "related_entities": [
+        "E-009",
+        "E-018",
+        "E-025",
+        "E-013",
+        "E-017"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-012"
+      }
+    },
+    {
+      "id": "S-013",
+      "name": "案件設定",
+      "screen_name": "workspace_settings",
+      "category": "workspace",
+      "mock_path": "docs/mocks/2026-05-15_v3/workspace/S-013-workspace-settings.html",
+      "meta_tags": {
+        "bf-screen-id": "S-013",
+        "bf-screen-name": "workspace_settings",
+        "bf-category": "workspace",
+        "bf-feature-id": [
+          "F-004"
+        ],
+        "bf-task-ids": [
+          "T-V3-RF-04"
+        ],
+        "bf-entities": [
+          "E-009"
+        ],
+        "bf-related-apis": [
+          "GET /api/workspaces/{id}",
+          "PUT /api/workspaces/{id}",
+          "DELETE /api/workspaces/{id}"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-013",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "案件設定",
+      "kpi_labels": [],
+      "section_h2_texts": [
+        "基本情報",
+        "トークン / コスト制限",
+        "外部連携",
+        "Danger Zone"
+      ],
+      "fields": [
+        "name",
+        "project_meta",
+        "is_confidential",
+        "token_limit",
+        "integration_links",
+        "WorkspaceSetting JSONB"
+      ],
+      "layout": "form",
+      "actions": [
+        {
+          "name": "update_settings",
+          "endpoint": null
+        },
+        {
+          "name": "delete_workspace",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "workspace_admin"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/workspaces/{id}",
+        "PUT /api/workspaces/{id}",
+        "DELETE /api/workspaces/{id}"
+      ],
+      "related_entities": [
+        "E-009"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-013"
+      }
+    },
+    {
+      "id": "S-014",
+      "name": "案件メンバー",
+      "screen_name": "workspace_members",
+      "category": "workspace",
+      "mock_path": "docs/mocks/2026-05-15_v3/workspace/S-014-workspace-members.html",
+      "meta_tags": {
+        "bf-screen-id": "S-014",
+        "bf-screen-name": "workspace_members",
+        "bf-category": "workspace",
+        "bf-feature-id": [
+          "F-004",
+          "F-021"
+        ],
+        "bf-task-ids": [
+          "T-V3-RF-05"
+        ],
+        "bf-entities": [
+          "E-003",
+          "E-001"
+        ],
+        "bf-related-apis": [
+          "GET /api/workspaces/{id}/members",
+          "PUT /api/workspaces/{id}/members/{user_id}/role",
+          "DELETE /api/workspaces/{id}/members/{user_id}"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-014",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "案件メンバー",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "member_list",
+        "role",
+        "custom_permissions UI",
+        "visible_tabs (client)",
+        "last_active"
+      ],
+      "layout": "form",
+      "actions": [
+        {
+          "name": "change_role",
+          "endpoint": null
+        },
+        {
+          "name": "edit_custom_permissions",
+          "endpoint": null
+        },
+        {
+          "name": "remove_member",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "workspace_admin"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/workspaces/{id}/members",
+        "PUT /api/workspaces/{id}/members/{user_id}/role",
+        "DELETE /api/workspaces/{id}/members/{user_id}"
+      ],
+      "related_entities": [
+        "E-003",
+        "E-001"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-014"
+      }
+    },
+    {
+      "id": "S-015",
+      "name": "メンバー招待",
+      "screen_name": "workspace_invite",
+      "category": "workspace",
+      "mock_path": "docs/mocks/2026-05-15_v3/workspace/S-015-workspace-invite.html",
+      "meta_tags": {
+        "bf-screen-id": "S-015",
+        "bf-screen-name": "workspace_invite",
+        "bf-category": "workspace",
+        "bf-feature-id": [
+          "F-004"
+        ],
+        "bf-task-ids": [
+          "T-V3-SCR-04"
+        ],
+        "bf-entities": [
+          "E-043"
+        ],
+        "bf-related-apis": [
+          "POST /api/workspaces/{id}/invitations",
+          "GET /api/workspaces/{id}/invitations",
+          "DELETE /api/workspaces/{id}/invitations/{token}"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-015",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "メンバーを招待",
+      "kpi_labels": [],
+      "section_h2_texts": [
+        "新規招待",
+        "送信済み招待 (pending)"
+      ],
+      "fields": [
+        "email",
+        "role",
+        "custom_permissions_template",
+        "visible_tabs (client)",
+        "expires_at"
+      ],
+      "layout": "form",
+      "actions": [
+        {
+          "name": "send_invite",
+          "endpoint": null
+        },
+        {
+          "name": "regenerate_token",
+          "endpoint": null
+        },
+        {
+          "name": "revoke_invite",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "contributor (invite_client only)"
+      ],
+      "edit_roles": [
+        "workspace_admin",
+        "contributor (invite_client only)"
+      ],
+      "related_apis": [
+        "POST /api/workspaces/{id}/invitations",
+        "GET /api/workspaces/{id}/invitations",
+        "DELETE /api/workspaces/{id}/invitations/{token}"
+      ],
+      "related_entities": [
+        "E-043"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-015"
+      }
+    },
+    {
+      "id": "S-016",
+      "name": "フェーズ管理",
+      "screen_name": "phase_management",
+      "category": "moat",
+      "mock_path": "docs/mocks/2026-05-15_v3/moat/S-016-phase-management.html",
+      "meta_tags": {
+        "bf-screen-id": "S-016",
+        "bf-screen-name": "phase_management",
+        "bf-category": "moat",
+        "bf-feature-id": [
+          "F-008"
+        ],
+        "bf-task-ids": [
+          "T-V3-RF-06",
+          "T-V3-DB-01",
+          "T-V3-FIX-01"
+        ],
+        "bf-entities": [
+          "E-013",
+          "E-014"
+        ],
+        "bf-related-apis": [
+          "GET /api/workspaces/{id}/phases",
+          "POST /api/workspaces/{id}/phases",
+          "POST /api/workspaces/{id}/phases/{phase_id}/gate"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-016",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "フェーズ管理",
+      "kpi_labels": [],
+      "section_h2_texts": [
+        "Phase Timeline"
+      ],
+      "fields": [
+        "phase_list",
+        "phase_gates",
+        "gantt",
+        "task_assignment_per_phase"
+      ],
+      "layout": "grid",
+      "actions": [
+        {
+          "name": "create_phase",
+          "endpoint": null
+        },
+        {
+          "name": "edit_gate_condition",
+          "endpoint": null
+        },
+        {
+          "name": "move_task",
+          "endpoint": null
+        },
+        {
+          "name": "trigger_phase_gate",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "contributor"
+      ],
+      "edit_roles": [
+        "workspace_admin",
+        "contributor"
+      ],
+      "related_apis": [
+        "GET /api/workspaces/{id}/phases",
+        "POST /api/workspaces/{id}/phases",
+        "POST /api/workspaces/{id}/phases/{phase_id}/gate"
+      ],
+      "related_entities": [
+        "E-013",
+        "E-014"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-016"
+      }
+    },
+    {
+      "id": "S-017",
+      "name": "依存グラフ",
+      "screen_name": "dependency_graph",
+      "category": "moat",
+      "mock_path": "docs/mocks/2026-05-15_v3/moat/S-017-dependency-graph.html",
+      "meta_tags": {
+        "bf-screen-id": "S-017",
+        "bf-screen-name": "dependency_graph",
+        "bf-category": "moat",
+        "bf-feature-id": [
+          "F-009"
+        ],
+        "bf-task-ids": [
+          "T-V3-RF-07",
+          "T-V3-FIX-03"
+        ],
+        "bf-entities": [
+          "E-019",
+          "E-018"
+        ],
+        "bf-related-apis": [
+          "GET /api/workspaces/{id}/dependencies",
+          "POST /api/workspaces/{id}/dependencies",
+          "POST /api/workspaces/{id}/dependencies/impact-analysis"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-017",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "依存グラフ (DAG)",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "dag_view (React Flow)",
+        "filter_by_phase",
+        "highlight_impact"
+      ],
+      "layout": "react-flow-canvas",
+      "actions": [
+        {
+          "name": "add_dependency",
+          "endpoint": null
+        },
+        {
+          "name": "remove_dependency",
+          "endpoint": null
+        },
+        {
+          "name": "trigger_impact_analysis",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_workspace_members (view)",
+        "workspace_admin/contributor (edit)"
+      ],
+      "edit_roles": [
+        "workspace_admin/contributor (edit)"
+      ],
+      "related_apis": [
+        "GET /api/workspaces/{id}/dependencies",
+        "POST /api/workspaces/{id}/dependencies",
+        "POST /api/workspaces/{id}/dependencies/impact-analysis"
+      ],
+      "related_entities": [
+        "E-019",
+        "E-018"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-017"
+      }
+    },
+    {
+      "id": "S-018",
+      "name": "Constitution エディタ",
+      "screen_name": "constitution_editor",
+      "category": "safety",
+      "mock_path": "docs/mocks/2026-05-15_v3/moat/S-018-constitution-editor.html",
+      "meta_tags": {
+        "bf-screen-id": "S-018",
+        "bf-screen-name": "constitution_editor",
+        "bf-category": "safety",
+        "bf-feature-id": [
+          "F-026"
+        ],
+        "bf-task-ids": [
+          "T-V3-RF-08",
+          "T-V3-DB-08"
+        ],
+        "bf-entities": [
+          "E-017",
+          "E-021"
+        ],
+        "bf-related-apis": [
+          "GET /api/workspaces/{id}/constitution",
+          "POST /api/workspaces/{id}/constitution/versions",
+          "POST /api/workspaces/{id}/constitution/versions/{v}/approve"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-018",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "Constitution エディタ",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "content_md",
+        "version_history",
+        "current_version_indicator"
+      ],
+      "layout": "split-pane (editor + preview)",
+      "actions": [
+        {
+          "name": "edit_constitution",
+          "endpoint": null
+        },
+        {
+          "name": "create_new_version",
+          "endpoint": null
+        },
+        {
+          "name": "view_diff",
+          "endpoint": null
+        },
+        {
+          "name": "approve_version",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "workspace_admin"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/workspaces/{id}/constitution",
+        "POST /api/workspaces/{id}/constitution/versions",
+        "POST /api/workspaces/{id}/constitution/versions/{v}/approve"
+      ],
+      "related_entities": [
+        "E-017",
+        "E-021"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-018"
+      }
+    },
+    {
+      "id": "S-019",
+      "name": "赤線設定",
+      "screen_name": "red_line_settings",
+      "category": "safety",
+      "mock_path": "docs/mocks/2026-05-15_v3/moat/S-019-red-line-settings.html",
+      "meta_tags": {
+        "bf-screen-id": "S-019",
+        "bf-screen-name": "red_line_settings",
+        "bf-category": "safety",
+        "bf-feature-id": [
+          "F-012"
+        ],
+        "bf-task-ids": [
+          "T-V3-RF-09"
+        ],
+        "bf-entities": [
+          "E-030"
+        ],
+        "bf-related-apis": [
+          "GET /api/workspaces/{id}/red-lines",
+          "POST /api/workspaces/{id}/red-lines",
+          "POST /api/workspaces/{id}/red-lines/test"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-019",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "赤線設定",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "red_line_list",
+        "category",
+        "pattern",
+        "severity",
+        "auto_block"
+      ],
+      "layout": "list",
+      "actions": [
+        {
+          "name": "add_red_line",
+          "endpoint": null
+        },
+        {
+          "name": "edit_red_line",
+          "endpoint": null
+        },
+        {
+          "name": "test_pattern",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "workspace_admin"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/workspaces/{id}/red-lines",
+        "POST /api/workspaces/{id}/red-lines",
+        "POST /api/workspaces/{id}/red-lines/test"
+      ],
+      "related_entities": [
+        "E-030"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-019"
+      }
+    },
+    {
+      "id": "S-020",
+      "name": "ヒアリングセッション",
+      "screen_name": "hearing_session",
+      "category": "spec",
+      "mock_path": "docs/mocks/2026-05-15_v3/spec/S-020-hearing-session.html",
+      "meta_tags": {
+        "bf-screen-id": "S-020",
+        "bf-screen-name": "hearing_session",
+        "bf-category": "spec",
+        "bf-feature-id": [
+          "F-005"
+        ],
+        "bf-task-ids": [
+          "T-V3-SCR-05"
+        ],
+        "bf-entities": [
+          "E-016",
+          "E-032",
+          "E-033"
+        ],
+        "bf-related-apis": [
+          "WS /ws/hearing/{session_id}",
+          "POST /api/workspaces/{id}/hearing/save"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-020",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "ヒアリングセッション",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "chat_thread",
+        "step_indicator (4-step)",
+        "ai_response_preview"
+      ],
+      "layout": "list",
+      "actions": [
+        {
+          "name": "send_message",
+          "endpoint": null
+        },
+        {
+          "name": "advance_step",
+          "endpoint": null
+        },
+        {
+          "name": "save_artifact",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "contributor",
+        "client (read + comment)"
+      ],
+      "edit_roles": [
+        "workspace_admin",
+        "contributor"
+      ],
+      "related_apis": [
+        "WS /ws/hearing/{session_id}",
+        "POST /api/workspaces/{id}/hearing/save"
+      ],
+      "related_entities": [
+        "E-016",
+        "E-032",
+        "E-033"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-020"
+      }
+    },
+    {
+      "id": "S-021",
+      "name": "要件エディタ",
+      "screen_name": "requirements_editor",
+      "category": "spec",
+      "mock_path": "docs/mocks/2026-05-15_v3/spec/S-021-requirements-editor.html",
+      "meta_tags": {
+        "bf-screen-id": "S-021",
+        "bf-screen-name": "requirements_editor",
+        "bf-category": "spec",
+        "bf-feature-id": [
+          "F-006",
+          "F-025"
+        ],
+        "bf-task-ids": [
+          "T-V3-SCR-06"
+        ],
+        "bf-entities": [
+          "E-016",
+          "E-021"
+        ],
+        "bf-related-apis": [
+          "GET /api/workspaces/{id}/requirements",
+          "PUT /api/workspaces/{id}/requirements",
+          "POST /api/workspaces/{id}/requirements/versions"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-021",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "要件エディタ",
+      "kpi_labels": [],
+      "section_h2_texts": [
+        "2. 機能要件 (Must)"
+      ],
+      "fields": [
+        "requirements_doc_html",
+        "ears_notation_helper",
+        "version_history"
+      ],
+      "layout": "split-pane (editor + preview)",
+      "actions": [
+        {
+          "name": "edit",
+          "endpoint": null
+        },
+        {
+          "name": "add_acceptance_criterion (EARS)",
+          "endpoint": null
+        },
+        {
+          "name": "save_version",
+          "endpoint": null
+        },
+        {
+          "name": "publish",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "contributor"
+      ],
+      "edit_roles": [
+        "workspace_admin",
+        "contributor"
+      ],
+      "related_apis": [
+        "GET /api/workspaces/{id}/requirements",
+        "PUT /api/workspaces/{id}/requirements",
+        "POST /api/workspaces/{id}/requirements/versions"
+      ],
+      "related_entities": [
+        "E-016",
+        "E-021"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-021"
+      }
+    },
+    {
+      "id": "S-022",
+      "name": "仕様書ビューア",
+      "screen_name": "spec_viewer",
+      "category": "spec",
+      "mock_path": "docs/mocks/2026-05-15_v3/spec/S-022-spec-viewer.html",
+      "meta_tags": {
+        "bf-screen-id": "S-022",
+        "bf-screen-name": "spec_viewer",
+        "bf-category": "spec",
+        "bf-feature-id": [
+          "F-005",
+          "F-015"
+        ],
+        "bf-task-ids": [
+          "T-V3-SCR-07"
+        ],
+        "bf-entities": [
+          "E-021",
+          "E-016"
+        ],
+        "bf-related-apis": [
+          "GET /api/workspaces/{id}/specs",
+          "GET /api/workspaces/{id}/specs/{spec_id}/comments",
+          "POST /api/workspaces/{id}/specs/{spec_id}/comments"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-022",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "仕様書ビューア",
+      "kpi_labels": [],
+      "section_h2_texts": [
+        "1. プロジェクト概要",
+        "2. Must 要件 (34 項目)"
+      ],
+      "fields": [
+        "html_preview",
+        "linked_screens",
+        "linked_tasks",
+        "comments"
+      ],
+      "layout": "split-pane (viewer + side)",
+      "actions": [
+        {
+          "name": "add_comment",
+          "endpoint": null
+        },
+        {
+          "name": "share_link",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_workspace_members + client"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/workspaces/{id}/specs",
+        "GET /api/workspaces/{id}/specs/{spec_id}/comments",
+        "POST /api/workspaces/{id}/specs/{spec_id}/comments"
+      ],
+      "related_entities": [
+        "E-021",
+        "E-016"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-022"
+      }
+    },
+    {
+      "id": "S-023",
+      "name": "画面モックビューア",
+      "screen_name": "screen_mock_viewer",
+      "category": "spec",
+      "mock_path": "docs/mocks/2026-05-15_v3/spec/S-023-screen-mock-viewer.html",
+      "meta_tags": {
+        "bf-screen-id": "S-023",
+        "bf-screen-name": "screen_mock_viewer",
+        "bf-category": "spec",
+        "bf-feature-id": [
+          "F-005b"
+        ],
+        "bf-task-ids": [
+          "T-V3-SCR-08",
+          "T-V3-DB-05"
+        ],
+        "bf-entities": [
+          "E-022",
+          "E-023"
+        ],
+        "bf-related-apis": [
+          "GET /api/workspaces/{id}/mocks",
+          "GET /api/workspaces/{id}/mocks/{screen_id}"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-023",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "画面モックビューア",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "mock_html_iframe",
+        "linked_spec",
+        "used_components",
+        "responsive_preview",
+        "comments"
+      ],
+      "layout": "split-pane (viewer + side)",
+      "actions": [
+        {
+          "name": "add_comment",
+          "endpoint": null
+        },
+        {
+          "name": "switch_screen",
+          "endpoint": null
+        },
+        {
+          "name": "edit_in_grapesjs (P1.5)",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_workspace_members + client"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/workspaces/{id}/mocks",
+        "GET /api/workspaces/{id}/mocks/{screen_id}"
+      ],
+      "related_entities": [
+        "E-022",
+        "E-023"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-023"
+      }
+    },
+    {
+      "id": "S-024",
+      "name": "コンポーネントカタログ",
+      "screen_name": "component_catalog",
+      "category": "spec",
+      "mock_path": "docs/mocks/2026-05-15_v3/spec/S-024-component-catalog.html",
+      "meta_tags": {
+        "bf-screen-id": "S-024",
+        "bf-screen-name": "component_catalog",
+        "bf-category": "spec",
+        "bf-feature-id": [
+          "F-005b"
+        ],
+        "bf-task-ids": [
+          "T-V3-SCR-09",
+          "T-V3-DB-06"
+        ],
+        "bf-entities": [
+          "E-023",
+          "E-024"
+        ],
+        "bf-related-apis": [
+          "GET /api/workspaces/{id}/components",
+          "GET /api/workspaces/{id}/components/{id}/usage"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-024",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "コンポーネントカタログ",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "component_grid",
+        "preview",
+        "usage_count",
+        "screens_using"
+      ],
+      "layout": "form",
+      "actions": [
+        {
+          "name": "filter_by_type",
+          "endpoint": null
+        },
+        {
+          "name": "view_detail",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_workspace_members"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/workspaces/{id}/components",
+        "GET /api/workspaces/{id}/components/{id}/usage"
+      ],
+      "related_entities": [
+        "E-023",
+        "E-024"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-024"
+      }
+    },
+    {
+      "id": "S-025",
+      "name": "画面遷移マップ",
+      "screen_name": "screen_flow_map",
+      "category": "spec",
+      "mock_path": "docs/mocks/2026-05-15_v3/spec/S-025-screen-flow-map.html",
+      "meta_tags": {
+        "bf-screen-id": "S-025",
+        "bf-screen-name": "screen_flow_map",
+        "bf-category": "spec",
+        "bf-feature-id": [
+          "F-005b"
+        ],
+        "bf-task-ids": [
+          "T-V3-SCR-10",
+          "T-V3-DB-02"
+        ],
+        "bf-entities": [
+          "E-022",
+          "E-024"
+        ],
+        "bf-related-apis": [
+          "GET /api/workspaces/{id}/screen-flow"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-025",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "画面遷移マップ",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "svg_flow_map",
+        "screen_links",
+        "navigation_paths"
+      ],
+      "layout": "react-flow-canvas",
+      "actions": [
+        {
+          "name": "zoom",
+          "endpoint": null
+        },
+        {
+          "name": "click_screen_jump",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_workspace_members + client"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/workspaces/{id}/screen-flow"
+      ],
+      "related_entities": [
+        "E-022",
+        "E-024"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-025"
+      }
+    },
+    {
+      "id": "S-026",
+      "name": "HTML エディタ",
+      "screen_name": "design_html_editor",
+      "category": "spec",
+      "mock_path": "docs/mocks/2026-05-15_v3/spec/S-026-design-html-editor.html",
+      "meta_tags": {
+        "bf-screen-id": "S-026",
+        "bf-screen-name": "design_html_editor",
+        "bf-category": "spec",
+        "bf-feature-id": [
+          "F-005b"
+        ],
+        "bf-task-ids": [
+          "T-V3-RF-10"
+        ],
+        "bf-entities": [
+          "E-022",
+          "E-021"
+        ],
+        "bf-related-apis": [
+          "GET /api/workspaces/{id}/mocks/{screen_id}/html",
+          "PUT /api/workspaces/{id}/mocks/{screen_id}/html",
+          "POST /api/workspaces/{id}/mocks/{screen_id}/ai-edit"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-026",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "HTML エディタ",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "grapesjs_canvas",
+        "component_panel",
+        "style_panel",
+        "ai_chat_panel",
+        "version_list"
+      ],
+      "layout": "split-pane (editor + preview)",
+      "actions": [
+        {
+          "name": "drag_drop",
+          "endpoint": null
+        },
+        {
+          "name": "ai_edit (natural language)",
+          "endpoint": null
+        },
+        {
+          "name": "copy_as_prompt",
+          "endpoint": null
+        },
+        {
+          "name": "save_version",
+          "endpoint": null
+        },
+        {
+          "name": "preview_responsive",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "contributor"
+      ],
+      "edit_roles": [
+        "workspace_admin",
+        "contributor"
+      ],
+      "related_apis": [
+        "GET /api/workspaces/{id}/mocks/{screen_id}/html",
+        "PUT /api/workspaces/{id}/mocks/{screen_id}/html",
+        "POST /api/workspaces/{id}/mocks/{screen_id}/ai-edit"
+      ],
+      "related_entities": [
+        "E-022",
+        "E-021"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-026"
+      }
+    },
+    {
+      "id": "S-027",
+      "name": "タスク Kanban",
+      "screen_name": "task_kanban",
+      "category": "task",
+      "mock_path": "docs/mocks/2026-05-15_v3/task/S-027-task-kanban.html",
+      "meta_tags": {
+        "bf-screen-id": "S-027",
+        "bf-screen-name": "task_kanban",
+        "bf-category": "task",
+        "bf-feature-id": [
+          "F-007"
+        ],
+        "bf-task-ids": [
+          "T-V3-RF-11"
+        ],
+        "bf-entities": [
+          "E-018",
+          "E-019"
+        ],
+        "bf-related-apis": [
+          "GET /api/workspaces/{id}/tasks?group_by=feature",
+          "POST /api/tasks/{id}/play",
+          "POST /api/workspaces/{id}/tasks/play-all"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-027",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "タスク Kanban",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "6_columns (triage/todo/ready/in_progress/blocked/done)",
+        "task_cards",
+        "filter",
+        "search"
+      ],
+      "layout": "kanban-accordion",
+      "actions": [
+        {
+          "name": "drag_to_column",
+          "endpoint": null
+        },
+        {
+          "name": "play_button (▶︎)",
+          "endpoint": null
+        },
+        {
+          "name": "play_all (multi-select)",
+          "endpoint": null
+        },
+        {
+          "name": "filter",
+          "endpoint": null
+        },
+        {
+          "name": "sort",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_workspace_members + client (read tab-progress)"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/workspaces/{id}/tasks?group_by=feature",
+        "POST /api/tasks/{id}/play",
+        "POST /api/workspaces/{id}/tasks/play-all"
+      ],
+      "related_entities": [
+        "E-018",
+        "E-019"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-027"
+      }
+    },
+    {
+      "id": "S-028",
+      "name": "タスクリスト",
+      "screen_name": "task_list",
+      "category": "task",
+      "mock_path": "docs/mocks/2026-05-15_v3/task/S-028-task-list.html",
+      "meta_tags": {
+        "bf-screen-id": "S-028",
+        "bf-screen-name": "task_list",
+        "bf-category": "task",
+        "bf-feature-id": [
+          "F-007"
+        ],
+        "bf-task-ids": [
+          "T-V3-RF-12"
+        ],
+        "bf-entities": [
+          "E-018"
+        ],
+        "bf-related-apis": [
+          "GET /api/workspaces/{id}/tasks",
+          "POST /api/workspaces/{id}/tasks/bulk-play",
+          "POST /api/workspaces/{id}/tasks/bulk-archive",
+          "GET /api/workspaces/{id}/tasks/export.csv"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-028",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "タスクリスト",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "table_view",
+        "sort_columns",
+        "bulk_actions"
+      ],
+      "layout": "form",
+      "actions": [
+        {
+          "name": "bulk_play",
+          "endpoint": null
+        },
+        {
+          "name": "bulk_archive",
+          "endpoint": null
+        },
+        {
+          "name": "csv_export",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "(同 S-027)"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/workspaces/{id}/tasks",
+        "POST /api/workspaces/{id}/tasks/bulk-play",
+        "POST /api/workspaces/{id}/tasks/bulk-archive",
+        "GET /api/workspaces/{id}/tasks/export.csv"
+      ],
+      "related_entities": [
+        "E-018"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "exists",
+        "impl_path": "frontend/src/app/tasks/page.tsx",
+        "diff_severity": "low",
+        "recommendation": "Group D で h1 / KPI / section の lint diff を実行し、必要に応じて改修",
+        "task_id_seed": "T-V3-DRIFT-028"
+      }
+    },
+    {
+      "id": "S-029",
+      "name": "タスク DAG",
+      "screen_name": "task_dag_view",
+      "category": "task",
+      "mock_path": "docs/mocks/2026-05-15_v3/task/S-029-task-dag-view.html",
+      "meta_tags": {
+        "bf-screen-id": "S-029",
+        "bf-screen-name": "task_dag_view",
+        "bf-category": "task",
+        "bf-feature-id": [
+          "F-007",
+          "F-009"
+        ],
+        "bf-task-ids": [
+          "T-V3-RF-13",
+          "T-V3-FIX-03"
+        ],
+        "bf-entities": [
+          "E-018",
+          "E-019"
+        ],
+        "bf-related-apis": [
+          "GET /api/workspaces/{id}/tasks/dag"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-029",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "タスク DAG",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "dag (React Flow)",
+        "phase_filter",
+        "status_color"
+      ],
+      "layout": "react-flow-canvas",
+      "actions": [
+        {
+          "name": "click_task_jump",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "(同 S-027)"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/workspaces/{id}/tasks/dag"
+      ],
+      "related_entities": [
+        "E-018",
+        "E-019"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-029"
+      }
+    },
+    {
+      "id": "S-030",
+      "name": "タスク詳細",
+      "screen_name": "task_detail",
+      "category": "task",
+      "mock_path": "docs/mocks/2026-05-15_v3/task/S-030-task-detail.html",
+      "meta_tags": {
+        "bf-screen-id": "S-030",
+        "bf-screen-name": "task_detail",
+        "bf-category": "task",
+        "bf-feature-id": [
+          "F-006",
+          "F-007",
+          "F-025"
+        ],
+        "bf-task-ids": [
+          "T-V3-SCR-11"
+        ],
+        "bf-entities": [
+          "E-018",
+          "E-016",
+          "E-019",
+          "E-025"
+        ],
+        "bf-related-apis": [
+          "GET /api/tasks/{id}",
+          "PUT /api/tasks/{id}",
+          "POST /api/tasks/{id}/play",
+          "POST /api/sessions/{id}/kill",
+          "POST /api/tasks/{id}/comments"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-030",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "POST /api/auth/signup 実装",
+      "kpi_labels": [],
+      "section_h2_texts": [
+        "Description",
+        "受け入れ基準 (EARS / 5 件)",
+        "セッション履歴 (3)",
+        "コメント (2)"
+      ],
+      "fields": [
+        "title",
+        "description",
+        "ears_acceptance_criteria",
+        "dependencies",
+        "related_screen",
+        "session_history",
+        "play_button",
+        "comments"
+      ],
+      "layout": "split-pane (list + detail)",
+      "actions": [
+        {
+          "name": "edit",
+          "endpoint": null
+        },
+        {
+          "name": "play (▶︎)",
+          "endpoint": null
+        },
+        {
+          "name": "kill_session",
+          "endpoint": null
+        },
+        {
+          "name": "add_comment",
+          "endpoint": null
+        },
+        {
+          "name": "block_resolve",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "(同 S-027)"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/tasks/{id}",
+        "PUT /api/tasks/{id}",
+        "POST /api/tasks/{id}/play",
+        "POST /api/sessions/{id}/kill",
+        "POST /api/tasks/{id}/comments"
+      ],
+      "related_entities": [
+        "E-018",
+        "E-016",
+        "E-019",
+        "E-025"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-030"
+      }
+    },
+    {
+      "id": "S-031",
+      "name": "Swarm 並列実行",
+      "screen_name": "swarm_grid",
+      "category": "execution",
+      "mock_path": "docs/mocks/2026-05-15_v3/task/S-031-swarm-grid.html",
+      "meta_tags": {
+        "bf-screen-id": "S-031",
+        "bf-screen-name": "swarm_grid",
+        "bf-category": "execution",
+        "bf-feature-id": [
+          "F-010c",
+          "F-010d"
+        ],
+        "bf-task-ids": [
+          "T-V3-RF-14"
+        ],
+        "bf-entities": [
+          "E-025",
+          "E-026",
+          "E-027"
+        ],
+        "bf-related-apis": [
+          "GET /api/workspaces/{id}/sessions",
+          "WS /ws/sessions/{id}/log",
+          "POST /api/sessions/{id}/kill",
+          "POST /api/workspaces/{id}/sessions/kill-all"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-031",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "Swarm 並列実行",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "session_grid (4x4 default, configurable 4/9/16/64)",
+        "live_log_preview_per_cell",
+        "cost_running_total",
+        "filter"
+      ],
+      "layout": "swarm-grid",
+      "actions": [
+        {
+          "name": "click_to_zoom",
+          "endpoint": null
+        },
+        {
+          "name": "kill_all",
+          "endpoint": null
+        },
+        {
+          "name": "pause_all",
+          "endpoint": null
+        },
+        {
+          "name": "change_grid_size",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "contributor"
+      ],
+      "edit_roles": [
+        "workspace_admin",
+        "contributor"
+      ],
+      "related_apis": [
+        "GET /api/workspaces/{id}/sessions",
+        "WS /ws/sessions/{id}/log",
+        "POST /api/sessions/{id}/kill",
+        "POST /api/workspaces/{id}/sessions/kill-all"
+      ],
+      "related_entities": [
+        "E-025",
+        "E-026",
+        "E-027"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "exists",
+        "impl_path": "frontend/src/app/dashboard/swarm/page.tsx",
+        "diff_severity": "low",
+        "recommendation": "Group D で h1 / KPI / section の lint diff を実行し、必要に応じて改修",
+        "task_id_seed": "T-V3-DRIFT-031"
+      }
+    },
+    {
+      "id": "S-032",
+      "name": "セッション詳細",
+      "screen_name": "swarm_session_detail",
+      "category": "execution",
+      "mock_path": "docs/mocks/2026-05-15_v3/task/S-032-swarm-session-detail.html",
+      "meta_tags": {
+        "bf-screen-id": "S-032",
+        "bf-screen-name": "swarm_session_detail",
+        "bf-category": "execution",
+        "bf-feature-id": [
+          "F-010c",
+          "F-010d",
+          "F-010b"
+        ],
+        "bf-task-ids": [
+          "T-V3-RF-15"
+        ],
+        "bf-entities": [
+          "E-025",
+          "E-026",
+          "E-027",
+          "E-028"
+        ],
+        "bf-related-apis": [
+          "GET /api/sessions/{id}",
+          "WS /ws/sessions/{id}/log",
+          "POST /api/sessions/{id}/pause",
+          "POST /api/sessions/{id}/resume",
+          "POST /api/sessions/{id}/rollback"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-032",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "full_screen_log_stream",
+        "tool_calls",
+        "cost",
+        "tokens",
+        "status",
+        "checkpoint_list (resume)"
+      ],
+      "layout": "split-pane (list + detail)",
+      "actions": [
+        {
+          "name": "pause",
+          "endpoint": null
+        },
+        {
+          "name": "resume",
+          "endpoint": null
+        },
+        {
+          "name": "kill",
+          "endpoint": null
+        },
+        {
+          "name": "rerun",
+          "endpoint": null
+        },
+        {
+          "name": "manual_fix",
+          "endpoint": null
+        },
+        {
+          "name": "rollback_to_checkpoint",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "(同 S-031)"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/sessions/{id}",
+        "WS /ws/sessions/{id}/log",
+        "POST /api/sessions/{id}/pause",
+        "POST /api/sessions/{id}/resume",
+        "POST /api/sessions/{id}/rollback"
+      ],
+      "related_entities": [
+        "E-025",
+        "E-026",
+        "E-027",
+        "E-028"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-032"
+      }
+    },
+    {
+      "id": "S-033",
+      "name": "PR レビュー",
+      "screen_name": "pr_review",
+      "category": "review",
+      "mock_path": "docs/mocks/2026-05-15_v3/review/S-033-pr-review.html",
+      "meta_tags": {
+        "bf-screen-id": "S-033",
+        "bf-screen-name": "pr_review",
+        "bf-category": "review",
+        "bf-feature-id": [
+          "F-013"
+        ],
+        "bf-task-ids": [
+          "T-V3-SCR-12"
+        ],
+        "bf-entities": [
+          "E-018"
+        ],
+        "bf-related-apis": [
+          "GET /api/workspaces/{id}/prs/{pr_number}",
+          "POST /api/prs/{id}/approve",
+          "POST /api/prs/{id}/comments",
+          "POST /api/prs/{id}/merge"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-033",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "feat: requirements editor + EARS notation parser",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "github_pr_diff",
+        "html_review_artifact",
+        "ai_review_summary",
+        "comments"
+      ],
+      "layout": "grid",
+      "actions": [
+        {
+          "name": "approve",
+          "endpoint": null
+        },
+        {
+          "name": "request_changes",
+          "endpoint": null
+        },
+        {
+          "name": "comment",
+          "endpoint": null
+        },
+        {
+          "name": "merge",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "contributor",
+        "monitor"
+      ],
+      "edit_roles": [
+        "workspace_admin",
+        "contributor"
+      ],
+      "related_apis": [
+        "GET /api/workspaces/{id}/prs/{pr_number}",
+        "POST /api/prs/{id}/approve",
+        "POST /api/prs/{id}/comments",
+        "POST /api/prs/{id}/merge"
+      ],
+      "related_entities": [
+        "E-018"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-033"
+      }
+    },
+    {
+      "id": "S-034",
+      "name": "赤線承認",
+      "screen_name": "red_line_approval",
+      "category": "safety",
+      "mock_path": "docs/mocks/2026-05-15_v3/moat/S-034-red-line-approval.html",
+      "meta_tags": {
+        "bf-screen-id": "S-034",
+        "bf-screen-name": "red_line_approval",
+        "bf-category": "safety",
+        "bf-feature-id": [
+          "F-012"
+        ],
+        "bf-task-ids": [
+          "T-V3-RF-16"
+        ],
+        "bf-entities": [
+          "E-031",
+          "E-030",
+          "E-025"
+        ],
+        "bf-related-apis": [
+          "GET /api/workspaces/{id}/violations",
+          "POST /api/violations/{id}/approve",
+          "POST /api/violations/{id}/reject"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-034",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "赤線承認キュー",
+      "kpi_labels": [],
+      "section_h2_texts": [
+        "処理済み履歴 (24h)"
+      ],
+      "fields": [
+        "violation_queue",
+        "context_snapshot",
+        "severity",
+        "session_link"
+      ],
+      "layout": "list",
+      "actions": [
+        {
+          "name": "approve_continue",
+          "endpoint": null
+        },
+        {
+          "name": "reject_block",
+          "endpoint": null
+        },
+        {
+          "name": "mark_false_positive",
+          "endpoint": null
+        },
+        {
+          "name": "view_constitution",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "monitor"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/workspaces/{id}/violations",
+        "POST /api/violations/{id}/approve",
+        "POST /api/violations/{id}/reject"
+      ],
+      "related_entities": [
+        "E-031",
+        "E-030",
+        "E-025"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-034"
+      }
+    },
+    {
+      "id": "S-035",
+      "name": "納品承認",
+      "screen_name": "delivery_approval",
+      "category": "review",
+      "mock_path": "docs/mocks/2026-05-15_v3/review/S-035-delivery-approval.html",
+      "meta_tags": {
+        "bf-screen-id": "S-035",
+        "bf-screen-name": "delivery_approval",
+        "bf-category": "review",
+        "bf-feature-id": [
+          "F-013",
+          "F-015"
+        ],
+        "bf-task-ids": [
+          "T-V3-RF-17"
+        ],
+        "bf-entities": [
+          "E-018"
+        ],
+        "bf-related-apis": [
+          "GET /api/workspaces/{id}/delivery",
+          "POST /api/workspaces/{id}/delivery/approve",
+          "POST /api/workspaces/{id}/delivery/send-client"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-035",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "納品承認",
+      "kpi_labels": [],
+      "section_h2_texts": [
+        "Phase 1 dogfood セットアップ完成",
+        "納品 Checklist",
+        "テスト結果サマリー",
+        "納品成果物 HTML プレビュー",
+        "クライアント受入状況"
+      ],
+      "fields": [
+        "all_tasks_done_check",
+        "test_results",
+        "delivery_html_preview",
+        "client_acceptance_status"
+      ],
+      "layout": "list",
+      "actions": [
+        {
+          "name": "approve_delivery",
+          "endpoint": null
+        },
+        {
+          "name": "request_revision",
+          "endpoint": null
+        },
+        {
+          "name": "send_to_client",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "workspace_admin",
+        "monitor"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/workspaces/{id}/delivery",
+        "POST /api/workspaces/{id}/delivery/approve",
+        "POST /api/workspaces/{id}/delivery/send-client"
+      ],
+      "related_entities": [
+        "E-018"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-035"
+      }
+    },
+    {
+      "id": "S-036",
+      "name": "AI 社員 組織図",
+      "screen_name": "ai_employees_org_chart",
+      "category": "ai_management",
+      "mock_path": "docs/mocks/2026-05-15_v3/ai/S-036-ai-employees-org-chart.html",
+      "meta_tags": {
+        "bf-screen-id": "S-036",
+        "bf-screen-name": "ai_employees_org_chart",
+        "bf-category": "ai_management",
+        "bf-feature-id": [
+          "F-003",
+          "F-022"
+        ],
+        "bf-task-ids": [
+          "T-V3-RF-18",
+          "T-V3-DRIFT-04"
+        ],
+        "bf-entities": [
+          "E-034"
+        ],
+        "bf-related-apis": [
+          "GET /api/ai-employees/org-chart",
+          "POST /api/ai-employees",
+          "POST /api/ai-employees/{id}/clone-from-user"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-036",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "AI 社員 組織図",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "org_tree (React Flow tree)",
+        "hierarchy_levels",
+        "department_filter",
+        "personal_clones_section"
+      ],
+      "layout": "react-flow-canvas",
+      "actions": [
+        {
+          "name": "create_employee",
+          "endpoint": null
+        },
+        {
+          "name": "edit_hierarchy",
+          "endpoint": null
+        },
+        {
+          "name": "clone_user_to_employee (opt-in confirmed)",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "account_owner",
+        "workspace_admin"
+      ],
+      "edit_roles": [
+        "account_owner",
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/ai-employees/org-chart",
+        "POST /api/ai-employees",
+        "POST /api/ai-employees/{id}/clone-from-user"
+      ],
+      "related_entities": [
+        "E-034"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "exists",
+        "impl_path": "frontend/src/app/ai-employees/page.tsx",
+        "diff_severity": "low",
+        "recommendation": "Group D で h1 / KPI / section の lint diff を実行し、必要に応じて改修",
+        "task_id_seed": "T-V3-DRIFT-036"
+      }
+    },
+    {
+      "id": "S-037",
+      "name": "AI 社員 詳細",
+      "screen_name": "ai_employee_detail",
+      "category": "ai_management",
+      "mock_path": "docs/mocks/2026-05-15_v3/ai/S-037-ai-employee-detail.html",
+      "meta_tags": {
+        "bf-screen-id": "S-037",
+        "bf-screen-name": "ai_employee_detail",
+        "bf-category": "ai_management",
+        "bf-feature-id": [
+          "F-003",
+          "F-022"
+        ],
+        "bf-task-ids": [
+          "T-V3-SCR-13"
+        ],
+        "bf-entities": [
+          "E-034",
+          "E-035",
+          "E-036"
+        ],
+        "bf-related-apis": [
+          "GET /api/ai-employees/{id}",
+          "PUT /api/ai-employees/{id}",
+          "POST /api/ai-employees/{id}/test"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-037",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "devon (Senior Dev)",
+      "kpi_labels": [],
+      "section_h2_texts": [
+        "Persona / System Prompt",
+        "スキル (8)",
+        "実行履歴 (今月 87 件)"
+      ],
+      "fields": [
+        "persona",
+        "system_prompt",
+        "skills (multi-select)",
+        "department",
+        "parent_employee",
+        "execution_history",
+        "cost_summary"
+      ],
+      "layout": "split-pane (list + detail)",
+      "actions": [
+        {
+          "name": "edit",
+          "endpoint": null
+        },
+        {
+          "name": "test_invocation",
+          "endpoint": null
+        },
+        {
+          "name": "deactivate",
+          "endpoint": null
+        },
+        {
+          "name": "view_clone_source (if cloned)",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "(同 S-036)"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/ai-employees/{id}",
+        "PUT /api/ai-employees/{id}",
+        "POST /api/ai-employees/{id}/test"
+      ],
+      "related_entities": [
+        "E-034",
+        "E-035",
+        "E-036"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-037"
+      }
+    },
+    {
+      "id": "S-038",
+      "name": "スキルマネージャ",
+      "screen_name": "skill_manager",
+      "category": "ai_management",
+      "mock_path": "docs/mocks/2026-05-15_v3/ai/S-038-skill-manager.html",
+      "meta_tags": {
+        "bf-screen-id": "S-038",
+        "bf-screen-name": "skill_manager",
+        "bf-category": "ai_management",
+        "bf-feature-id": [
+          "F-002",
+          "F-003"
+        ],
+        "bf-task-ids": [
+          "T-V3-RF-19"
+        ],
+        "bf-entities": [
+          "E-035"
+        ],
+        "bf-related-apis": [
+          "GET /api/skills",
+          "POST /api/skills",
+          "POST /api/skills/{id}/test",
+          "POST /api/skills/{id}/archive"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-038",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "スキルマネージャ",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "skill_list",
+        "active/archive_toggle",
+        "version",
+        "category_filter",
+        "skill_creator_btn"
+      ],
+      "layout": "list",
+      "actions": [
+        {
+          "name": "edit_skill_md",
+          "endpoint": null
+        },
+        {
+          "name": "archive",
+          "endpoint": null
+        },
+        {
+          "name": "restore",
+          "endpoint": null
+        },
+        {
+          "name": "create_new (skill-creator)",
+          "endpoint": null
+        },
+        {
+          "name": "test",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "(同 S-036)"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/skills",
+        "POST /api/skills",
+        "POST /api/skills/{id}/test",
+        "POST /api/skills/{id}/archive"
+      ],
+      "related_entities": [
+        "E-035"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "exists",
+        "impl_path": "frontend/src/app/skills/page.tsx",
+        "diff_severity": "low",
+        "recommendation": "Group D で h1 / KPI / section の lint diff を実行し、必要に応じて改修",
+        "task_id_seed": "T-V3-DRIFT-038"
+      }
+    },
+    {
+      "id": "S-039",
+      "name": "ナレッジベース",
+      "screen_name": "knowledge_base",
+      "category": "knowledge",
+      "mock_path": "docs/mocks/2026-05-15_v3/ops/S-039-knowledge-base.html",
+      "meta_tags": {
+        "bf-screen-id": "S-039",
+        "bf-screen-name": "knowledge_base",
+        "bf-category": "knowledge",
+        "bf-feature-id": [
+          "F-016"
+        ],
+        "bf-task-ids": [
+          "T-V3-RF-20"
+        ],
+        "bf-entities": [
+          "E-041"
+        ],
+        "bf-related-apis": [
+          "GET /api/workspaces/{id}/knowledge",
+          "GET /api/workspaces/{id}/knowledge/search"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-039",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "ナレッジベース",
+      "kpi_labels": [],
+      "section_h2_texts": [
+        "原則",
+        "PostgreSQL session GUC で current_user 管理",
+        "FastAPI dependency で GUC 設定"
+      ],
+      "fields": [
+        "obsidian_vault_browser",
+        "search",
+        "categories (good/bad/external)",
+        "auto_curated_section"
+      ],
+      "layout": "list",
+      "actions": [
+        {
+          "name": "search",
+          "endpoint": null
+        },
+        {
+          "name": "open_in_obsidian",
+          "endpoint": null
+        },
+        {
+          "name": "tag",
+          "endpoint": null
+        },
+        {
+          "name": "export",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_workspace_members"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/workspaces/{id}/knowledge",
+        "GET /api/workspaces/{id}/knowledge/search"
+      ],
+      "related_entities": [
+        "E-041"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "exists",
+        "impl_path": "frontend/src/app/knowledge/page.tsx",
+        "diff_severity": "low",
+        "recommendation": "Group D で h1 / KPI / section の lint diff を実行し、必要に応じて改修",
+        "task_id_seed": "T-V3-DRIFT-039"
+      }
+    },
+    {
+      "id": "S-040",
+      "name": "コスト ダッシュボード",
+      "screen_name": "cost_dashboard",
+      "category": "ops",
+      "mock_path": "docs/mocks/2026-05-15_v3/ops/S-040-cost-dashboard.html",
+      "meta_tags": {
+        "bf-screen-id": "S-040",
+        "bf-screen-name": "cost_dashboard",
+        "bf-category": "ops",
+        "bf-feature-id": [
+          "F-017"
+        ],
+        "bf-task-ids": [
+          "T-V3-RF-21",
+          "T-V3-DRIFT-05"
+        ],
+        "bf-entities": [
+          "E-027",
+          "E-028"
+        ],
+        "bf-related-apis": [
+          "GET /api/observability/cost-summary",
+          "GET /api/observability/cost-summary/export.csv",
+          "POST /api/workspaces/{id}/token-limit"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-040",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "コスト ダッシュボード",
+      "kpi_labels": [
+        "Ops",
+        "今月コスト",
+        "トークン (今月)",
+        "セッション平均"
+      ],
+      "section_h2_texts": [
+        "案件別コスト",
+        "AI 社員別コスト",
+        "日別コスト推移 (15 日)"
+      ],
+      "fields": [
+        "8_tabs"
+      ],
+      "layout": "dashboard",
+      "actions": [
+        {
+          "name": "filter",
+          "endpoint": null
+        },
+        {
+          "name": "export_csv",
+          "endpoint": null
+        },
+        {
+          "name": "set_token_limit",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "account_owner",
+        "workspace_admin",
+        "monitor"
+      ],
+      "edit_roles": [
+        "account_owner",
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/observability/cost-summary",
+        "GET /api/observability/cost-summary/export.csv",
+        "POST /api/workspaces/{id}/token-limit"
+      ],
+      "related_entities": [
+        "E-027",
+        "E-028"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "exists",
+        "impl_path": "frontend/src/app/dashboard/costs/page.tsx",
+        "diff_severity": "low",
+        "recommendation": "Group D で h1 / KPI / section の lint diff を実行し、必要に応じて改修",
+        "task_id_seed": "T-V3-DRIFT-040"
+      }
+    },
+    {
+      "id": "S-041",
+      "name": "監査ログ",
+      "screen_name": "audit_log_viewer",
+      "category": "ops",
+      "mock_path": "docs/mocks/2026-05-15_v3/ops/S-041-audit-log-viewer.html",
+      "meta_tags": {
+        "bf-screen-id": "S-041",
+        "bf-screen-name": "audit_log_viewer",
+        "bf-category": "ops",
+        "bf-feature-id": [
+          "F-018"
+        ],
+        "bf-task-ids": [
+          "T-V3-RF-22"
+        ],
+        "bf-entities": [
+          "E-029"
+        ],
+        "bf-related-apis": [
+          "GET /api/audit-logs",
+          "GET /api/audit-logs/export.csv",
+          "GET /api/audit-logs/export.json"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-041",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "監査ログ",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "log_list",
+        "filter (user/action/target/time)",
+        "before_after_diff"
+      ],
+      "layout": "split-pane (viewer + side)",
+      "actions": [
+        {
+          "name": "search",
+          "endpoint": null
+        },
+        {
+          "name": "export_csv",
+          "endpoint": null
+        },
+        {
+          "name": "export_json",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "account_owner",
+        "workspace_admin",
+        "monitor"
+      ],
+      "edit_roles": [
+        "account_owner",
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/audit-logs",
+        "GET /api/audit-logs/export.csv",
+        "GET /api/audit-logs/export.json"
+      ],
+      "related_entities": [
+        "E-029"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "exists",
+        "impl_path": "frontend/src/app/audit-logs/page.tsx",
+        "diff_severity": "low",
+        "recommendation": "Group D で h1 / KPI / section の lint diff を実行し、必要に応じて改修",
+        "task_id_seed": "T-V3-DRIFT-041"
+      }
+    },
+    {
+      "id": "S-042",
+      "name": "クライアントポータル",
+      "screen_name": "client_workspace",
+      "category": "client",
+      "mock_path": "docs/mocks/2026-05-15_v3/client/S-042-client-workspace.html",
+      "meta_tags": {
+        "bf-screen-id": "S-042",
+        "bf-screen-name": "client_workspace",
+        "bf-category": "client",
+        "bf-feature-id": [
+          "F-013",
+          "F-021"
+        ],
+        "bf-task-ids": [
+          "T-V3-SCR-14"
+        ],
+        "bf-entities": [
+          "E-009",
+          "E-021"
+        ],
+        "bf-related-apis": [
+          "GET /api/client/workspaces/{token}",
+          "GET /api/client/workspaces/{token}/spec",
+          "POST /api/client/comments"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-042",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "案件進捗状況",
+      "kpi_labels": [],
+      "section_h2_texts": [
+        "Phase 2: 統合テスト + 受入",
+        "最近の更新",
+        "担当チーム",
+        "納期",
+        "フェーズ進捗"
+      ],
+      "fields": [
+        "overview_tab",
+        "spec_tab",
+        "mock_tab",
+        "progress_tab (read)",
+        "review_tab (with comments)"
+      ],
+      "layout": "list",
+      "actions": [
+        {
+          "name": "view",
+          "endpoint": null
+        },
+        {
+          "name": "comment_on_spec",
+          "endpoint": null
+        },
+        {
+          "name": "comment_on_mock",
+          "endpoint": null
+        },
+        {
+          "name": "approve_phase_gate (if granted)",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "client (visible_tabs only)"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/client/workspaces/{token}",
+        "GET /api/client/workspaces/{token}/spec",
+        "POST /api/client/comments"
+      ],
+      "related_entities": [
+        "E-009",
+        "E-021"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-042"
+      }
+    },
+    {
+      "id": "S-043",
+      "name": "クライアントコメント",
+      "screen_name": "client_comment",
+      "category": "client",
+      "mock_path": "docs/mocks/2026-05-15_v3/client/S-043-client-comment.html",
+      "meta_tags": {
+        "bf-screen-id": "S-043",
+        "bf-screen-name": "client_comment",
+        "bf-category": "client",
+        "bf-feature-id": [
+          "F-013"
+        ],
+        "bf-task-ids": [
+          "T-V3-SCR-15"
+        ],
+        "bf-entities": [
+          "E-033"
+        ],
+        "bf-related-apis": [
+          "GET /api/client/comments/{thread_id}",
+          "POST /api/client/comments",
+          "POST /api/comments/{id}/resolve"
+        ],
+        "bf-spec-link": "../../../functional-breakdown/2026-05-09_v1/screens.json#S-043",
+        "bf-design-link": "../../design-system/DESIGN.md",
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "M-1 認証で SAML SSO 対応も必要では？",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [
+        "comment_thread",
+        "linked_artifact (spec/mock)",
+        "@mention"
+      ],
+      "layout": "list",
+      "actions": [
+        {
+          "name": "post_comment",
+          "endpoint": null
+        },
+        {
+          "name": "reply",
+          "endpoint": null
+        },
+        {
+          "name": "mark_resolved (workspace_admin only)",
+          "endpoint": null
+        }
+      ],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "client"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "GET /api/client/comments/{thread_id}",
+        "POST /api/client/comments",
+        "POST /api/comments/{id}/resolve"
+      ],
+      "related_entities": [
+        "E-033"
+      ],
+      "status": "decided",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-043"
+      }
+    },
+    {
+      "id": "S-044",
+      "name": "404 Not Found",
+      "screen_name": "not_found_404",
+      "category": "system",
+      "mock_path": "docs/mocks/2026-05-15_v3/system/S-044-not-found-404.html",
+      "meta_tags": {
+        "bf-screen-id": "S-044",
+        "bf-screen-name": "not_found_404",
+        "bf-category": "system",
+        "bf-feature-id": [
+          "F-system"
+        ],
+        "bf-task-ids": [
+          "T-V3-SYS-01"
+        ],
+        "bf-entities": [],
+        "bf-related-apis": [
+          "N/A (static page)"
+        ],
+        "bf-spec-link": null,
+        "bf-design-link": null,
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "ページが見つかりません",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [],
+      "layout": "list",
+      "actions": [],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [
+        "N/A (static page)"
+      ],
+      "related_entities": [],
+      "status": "wip",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-044"
+      }
+    },
+    {
+      "id": "S-045",
+      "name": "500 Server Error",
+      "screen_name": "server_error_500",
+      "category": "system",
+      "mock_path": "docs/mocks/2026-05-15_v3/system/S-045-server-error-500.html",
+      "meta_tags": {
+        "bf-screen-id": "S-045",
+        "bf-screen-name": "server_error_500",
+        "bf-category": "system",
+        "bf-feature-id": [
+          "F-system"
+        ],
+        "bf-task-ids": [],
+        "bf-entities": [],
+        "bf-related-apis": [],
+        "bf-spec-link": null,
+        "bf-design-link": null,
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "サーバーエラー",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [],
+      "layout": "list",
+      "actions": [],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [],
+      "related_entities": [],
+      "status": "wip",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-045"
+      }
+    },
+    {
+      "id": "S-046",
+      "name": "403 Forbidden",
+      "screen_name": "forbidden_403",
+      "category": "system",
+      "mock_path": "docs/mocks/2026-05-15_v3/system/S-046-forbidden-403.html",
+      "meta_tags": {
+        "bf-screen-id": "S-046",
+        "bf-screen-name": "forbidden_403",
+        "bf-category": "system",
+        "bf-feature-id": [],
+        "bf-task-ids": [],
+        "bf-entities": [],
+        "bf-related-apis": [],
+        "bf-spec-link": null,
+        "bf-design-link": null,
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "アクセス権限がありません",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [],
+      "layout": "list",
+      "actions": [],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [],
+      "related_entities": [],
+      "status": "wip",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-046"
+      }
+    },
+    {
+      "id": "S-047",
+      "name": "Maintenance",
+      "screen_name": "maintenance",
+      "category": "system",
+      "mock_path": "docs/mocks/2026-05-15_v3/system/S-047-maintenance.html",
+      "meta_tags": {
+        "bf-screen-id": "S-047",
+        "bf-screen-name": "maintenance",
+        "bf-category": "system",
+        "bf-feature-id": [],
+        "bf-task-ids": [],
+        "bf-entities": [],
+        "bf-related-apis": [],
+        "bf-spec-link": null,
+        "bf-design-link": null,
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "メンテナンス中",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [],
+      "layout": "list",
+      "actions": [],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [],
+      "related_entities": [],
+      "status": "wip",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-047"
+      }
+    },
+    {
+      "id": "S-048",
+      "name": "ようこそ",
+      "screen_name": "welcome_first_login",
+      "category": "onboarding",
+      "mock_path": "docs/mocks/2026-05-15_v3/onboarding/S-048-welcome-first-login.html",
+      "meta_tags": {
+        "bf-screen-id": "S-048",
+        "bf-screen-name": "welcome_first_login",
+        "bf-category": "onboarding",
+        "bf-feature-id": [],
+        "bf-task-ids": [],
+        "bf-entities": [],
+        "bf-related-apis": [],
+        "bf-spec-link": null,
+        "bf-design-link": null,
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "Build-Factory へようこそ",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [],
+      "layout": "list",
+      "actions": [],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [],
+      "related_entities": [],
+      "status": "wip",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-048"
+      }
+    },
+    {
+      "id": "S-049",
+      "name": "案件セットアップ",
+      "screen_name": "workspace_setup_wizard",
+      "category": "onboarding",
+      "mock_path": "docs/mocks/2026-05-15_v3/onboarding/S-049-workspace-setup-wizard.html",
+      "meta_tags": {
+        "bf-screen-id": "S-049",
+        "bf-screen-name": "workspace_setup_wizard",
+        "bf-category": "onboarding",
+        "bf-feature-id": [],
+        "bf-task-ids": [],
+        "bf-entities": [],
+        "bf-related-apis": [],
+        "bf-spec-link": null,
+        "bf-design-link": null,
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "最初の案件を作成",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [],
+      "layout": "wizard",
+      "actions": [],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [],
+      "related_entities": [],
+      "status": "wip",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-049"
+      }
+    },
+    {
+      "id": "S-050",
+      "name": "AI 社員紹介",
+      "screen_name": "ai_employee_intro",
+      "category": "onboarding",
+      "mock_path": "docs/mocks/2026-05-15_v3/onboarding/S-050-ai-employee-intro.html",
+      "meta_tags": {
+        "bf-screen-id": "S-050",
+        "bf-screen-name": "ai_employee_intro",
+        "bf-category": "onboarding",
+        "bf-feature-id": [],
+        "bf-task-ids": [],
+        "bf-entities": [],
+        "bf-related-apis": [],
+        "bf-spec-link": null,
+        "bf-design-link": null,
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "AI 社員チームと一緒に",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [],
+      "layout": "list",
+      "actions": [],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [],
+      "related_entities": [],
+      "status": "wip",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-050"
+      }
+    },
+    {
+      "id": "S-051",
+      "name": "削除確認",
+      "screen_name": "confirm_delete",
+      "category": "dialog",
+      "mock_path": "docs/mocks/2026-05-15_v3/dialog/S-051-confirm-delete.html",
+      "meta_tags": {
+        "bf-screen-id": "S-051",
+        "bf-screen-name": "confirm_delete",
+        "bf-category": "dialog",
+        "bf-feature-id": [],
+        "bf-task-ids": [],
+        "bf-entities": [],
+        "bf-related-apis": [],
+        "bf-spec-link": null,
+        "bf-design-link": null,
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "",
+      "kpi_labels": [],
+      "section_h2_texts": [
+        "フェーズを削除しますか?"
+      ],
+      "fields": [],
+      "layout": "list",
+      "actions": [],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [],
+      "related_entities": [],
+      "status": "wip",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-051"
+      }
+    },
+    {
+      "id": "S-052",
+      "name": "未保存警告",
+      "screen_name": "unsaved_changes",
+      "category": "dialog",
+      "mock_path": "docs/mocks/2026-05-15_v3/dialog/S-052-unsaved-changes.html",
+      "meta_tags": {
+        "bf-screen-id": "S-052",
+        "bf-screen-name": "unsaved_changes",
+        "bf-category": "dialog",
+        "bf-feature-id": [],
+        "bf-task-ids": [],
+        "bf-entities": [],
+        "bf-related-apis": [],
+        "bf-spec-link": null,
+        "bf-design-link": null,
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "",
+      "kpi_labels": [],
+      "section_h2_texts": [
+        "変更が保存されていません"
+      ],
+      "fields": [],
+      "layout": "list",
+      "actions": [],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [],
+      "related_entities": [],
+      "status": "wip",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-052"
+      }
+    },
+    {
+      "id": "S-053",
+      "name": "MFA コード入力",
+      "screen_name": "mfa_challenge",
+      "category": "dialog",
+      "mock_path": "docs/mocks/2026-05-15_v3/dialog/S-053-mfa-challenge.html",
+      "meta_tags": {
+        "bf-screen-id": "S-053",
+        "bf-screen-name": "mfa_challenge",
+        "bf-category": "dialog",
+        "bf-feature-id": [],
+        "bf-task-ids": [],
+        "bf-entities": [],
+        "bf-related-apis": [],
+        "bf-spec-link": null,
+        "bf-design-link": null,
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "",
+      "kpi_labels": [],
+      "section_h2_texts": [
+        "2 段階認証"
+      ],
+      "fields": [],
+      "layout": "form",
+      "actions": [],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [],
+      "related_entities": [],
+      "status": "wip",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-053"
+      }
+    },
+    {
+      "id": "S-054",
+      "name": "セッション切れ",
+      "screen_name": "session_expired",
+      "category": "dialog",
+      "mock_path": "docs/mocks/2026-05-15_v3/dialog/S-054-session-expired.html",
+      "meta_tags": {
+        "bf-screen-id": "S-054",
+        "bf-screen-name": "session_expired",
+        "bf-category": "dialog",
+        "bf-feature-id": [],
+        "bf-task-ids": [],
+        "bf-entities": [],
+        "bf-related-apis": [],
+        "bf-spec-link": null,
+        "bf-design-link": null,
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "",
+      "kpi_labels": [],
+      "section_h2_texts": [
+        "セッションの有効期限が切れました"
+      ],
+      "fields": [],
+      "layout": "list",
+      "actions": [],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [],
+      "related_entities": [],
+      "status": "wip",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-054"
+      }
+    },
+    {
+      "id": "S-055",
+      "name": "Danger Zone",
+      "screen_name": "danger_zone",
+      "category": "dialog",
+      "mock_path": "docs/mocks/2026-05-15_v3/dialog/S-055-danger-zone.html",
+      "meta_tags": {
+        "bf-screen-id": "S-055",
+        "bf-screen-name": "danger_zone",
+        "bf-category": "dialog",
+        "bf-feature-id": [],
+        "bf-task-ids": [],
+        "bf-entities": [],
+        "bf-related-apis": [],
+        "bf-spec-link": null,
+        "bf-design-link": null,
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "",
+      "kpi_labels": [],
+      "section_h2_texts": [
+        "アカウントを完全削除"
+      ],
+      "fields": [],
+      "layout": "list",
+      "actions": [],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [],
+      "related_entities": [],
+      "status": "wip",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-055"
+      }
+    },
+    {
+      "id": "S-056",
+      "name": "サインアップ確認メール",
+      "screen_name": "email_signup_verify",
+      "category": "email",
+      "mock_path": "docs/mocks/2026-05-15_v3/email/S-056-email-signup-verify.html",
+      "meta_tags": {
+        "bf-screen-id": "S-056",
+        "bf-screen-name": "email_signup_verify",
+        "bf-category": "email",
+        "bf-feature-id": [],
+        "bf-task-ids": [],
+        "bf-entities": [],
+        "bf-related-apis": [],
+        "bf-spec-link": null,
+        "bf-design-link": null,
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "ようこそ、masato さん",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [],
+      "layout": "email-template",
+      "actions": [],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [],
+      "related_entities": [],
+      "status": "wip",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-056"
+      }
+    },
+    {
+      "id": "S-057",
+      "name": "パスワードリセットメール",
+      "screen_name": "email_password_reset",
+      "category": "email",
+      "mock_path": "docs/mocks/2026-05-15_v3/email/S-057-email-password-reset.html",
+      "meta_tags": {
+        "bf-screen-id": "S-057",
+        "bf-screen-name": "email_password_reset",
+        "bf-category": "email",
+        "bf-feature-id": [],
+        "bf-task-ids": [],
+        "bf-entities": [],
+        "bf-related-apis": [],
+        "bf-spec-link": null,
+        "bf-design-link": null,
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "パスワード再設定リクエスト",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [],
+      "layout": "email-template",
+      "actions": [],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [],
+      "related_entities": [],
+      "status": "wip",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-057"
+      }
+    },
+    {
+      "id": "S-058",
+      "name": "招待メール",
+      "screen_name": "email_invitation",
+      "category": "email",
+      "mock_path": "docs/mocks/2026-05-15_v3/email/S-058-email-invitation.html",
+      "meta_tags": {
+        "bf-screen-id": "S-058",
+        "bf-screen-name": "email_invitation",
+        "bf-category": "email",
+        "bf-feature-id": [],
+        "bf-task-ids": [],
+        "bf-entities": [],
+        "bf-related-apis": [],
+        "bf-spec-link": null,
+        "bf-design-link": null,
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "masato さんから案件への招待",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [],
+      "layout": "email-template",
+      "actions": [],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [],
+      "related_entities": [],
+      "status": "wip",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-058"
+      }
+    },
+    {
+      "id": "S-059",
+      "name": "タスク通知",
+      "screen_name": "email_task_notification",
+      "category": "email",
+      "mock_path": "docs/mocks/2026-05-15_v3/email/S-059-email-task-notification.html",
+      "meta_tags": {
+        "bf-screen-id": "S-059",
+        "bf-screen-name": "email_task_notification",
+        "bf-category": "email",
+        "bf-feature-id": [],
+        "bf-task-ids": [],
+        "bf-entities": [],
+        "bf-related-apis": [],
+        "bf-spec-link": null,
+        "bf-design-link": null,
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "タスク assigned",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [],
+      "layout": "email-template",
+      "actions": [],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [],
+      "related_entities": [],
+      "status": "wip",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-059"
+      }
+    },
+    {
+      "id": "S-060",
+      "name": "週次サマリー",
+      "screen_name": "email_weekly_summary",
+      "category": "email",
+      "mock_path": "docs/mocks/2026-05-15_v3/email/S-060-email-weekly-summary.html",
+      "meta_tags": {
+        "bf-screen-id": "S-060",
+        "bf-screen-name": "email_weekly_summary",
+        "bf-category": "email",
+        "bf-feature-id": [],
+        "bf-task-ids": [],
+        "bf-entities": [],
+        "bf-related-apis": [],
+        "bf-spec-link": null,
+        "bf-design-link": null,
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "今週の進捗サマリー",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [],
+      "layout": "email-template",
+      "actions": [],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [],
+      "related_entities": [],
+      "status": "wip",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-060"
+      }
+    },
+    {
+      "id": "S-061",
+      "name": "仕様書 PDF",
+      "screen_name": "export_spec_pdf",
+      "category": "export",
+      "mock_path": "docs/mocks/2026-05-15_v3/export/S-061-export-spec-pdf.html",
+      "meta_tags": {
+        "bf-screen-id": "S-061",
+        "bf-screen-name": "export_spec_pdf",
+        "bf-category": "export",
+        "bf-feature-id": [],
+        "bf-task-ids": [],
+        "bf-entities": [],
+        "bf-related-apis": [],
+        "bf-spec-link": null,
+        "bf-design-link": null,
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "受託 EC 構築 #4— 要件定義書 —",
+      "kpi_labels": [],
+      "section_h2_texts": [
+        "1. プロジェクト概要",
+        "2. Must 要件 (34 項目)"
+      ],
+      "fields": [],
+      "layout": "list",
+      "actions": [],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [],
+      "related_entities": [],
+      "status": "wip",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-061"
+      }
+    },
+    {
+      "id": "S-062",
+      "name": "納品レポート",
+      "screen_name": "export_delivery_report",
+      "category": "export",
+      "mock_path": "docs/mocks/2026-05-15_v3/export/S-062-export-delivery-report.html",
+      "meta_tags": {
+        "bf-screen-id": "S-062",
+        "bf-screen-name": "export_delivery_report",
+        "bf-category": "export",
+        "bf-feature-id": [],
+        "bf-task-ids": [],
+        "bf-entities": [],
+        "bf-related-apis": [],
+        "bf-spec-link": null,
+        "bf-design-link": null,
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "Phase 1 納品レポート— 受託 EC 構築 #4 / 基盤実装フェーズ —",
+      "kpi_labels": [],
+      "section_h2_texts": [
+        "1. 納品物サマリー",
+        "2. 実装内容",
+        "3. 検証結果",
+        "4. 受入確認"
+      ],
+      "fields": [],
+      "layout": "table",
+      "actions": [],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [],
+      "related_entities": [],
+      "status": "wip",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-062"
+      }
+    },
+    {
+      "id": "S-063",
+      "name": "検索結果",
+      "screen_name": "search_results",
+      "category": "extras",
+      "mock_path": "docs/mocks/2026-05-15_v3/extras/S-063-search-results.html",
+      "meta_tags": {
+        "bf-screen-id": "S-063",
+        "bf-screen-name": "search_results",
+        "bf-category": "extras",
+        "bf-feature-id": [],
+        "bf-task-ids": [],
+        "bf-entities": [],
+        "bf-related-apis": [],
+        "bf-spec-link": null,
+        "bf-design-link": null,
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "",
+      "kpi_labels": [],
+      "section_h2_texts": [],
+      "fields": [],
+      "layout": "form",
+      "actions": [],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [],
+      "related_entities": [],
+      "status": "wip",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-063"
+      }
+    },
+    {
+      "id": "S-064",
+      "name": "API トークン管理",
+      "screen_name": "api_tokens",
+      "category": "extras",
+      "mock_path": "docs/mocks/2026-05-15_v3/extras/S-064-api-tokens.html",
+      "meta_tags": {
+        "bf-screen-id": "S-064",
+        "bf-screen-name": "api_tokens",
+        "bf-category": "extras",
+        "bf-feature-id": [],
+        "bf-task-ids": [],
+        "bf-entities": [],
+        "bf-related-apis": [],
+        "bf-spec-link": null,
+        "bf-design-link": null,
+        "bf-status": "wip",
+        "bf-version": "v3"
+      },
+      "h1_text": "Personal Access Tokens",
+      "kpi_labels": [],
+      "section_h2_texts": [
+        "Scopes リファレンス"
+      ],
+      "fields": [],
+      "layout": "table",
+      "actions": [],
+      "states": [
+        "loading",
+        "loaded",
+        "error"
+      ],
+      "transitions": [],
+      "responsive_breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "access_roles": [
+        "all_authenticated"
+      ],
+      "edit_roles": [
+        "workspace_admin"
+      ],
+      "related_apis": [],
+      "related_entities": [],
+      "status": "wip",
+      "legacy_drift_notes": {
+        "detected_at": "2026-05-16",
+        "layer": "screen",
+        "impl_status": "missing",
+        "diff_severity": "medium",
+        "recommendation": "Group C で新規実装 (frontend page 未作成)",
+        "task_id_seed": "T-V3-NEW-064"
+      }
+    }
+  ]
+}
