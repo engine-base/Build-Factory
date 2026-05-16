@@ -83,6 +83,20 @@
 
 ---
 
+## Phase gate criteria: foundation
+
+Build-Factory v3 Foundation phase の gate 判定基準 (scripts/check-phase-gate.py 用)。
+
+| criterion_name | tool_command | evidence_path | description |
+|---|---|---|---|
+| lint-mock | `bash scripts/lint-mock.sh` |  | mock lint 19 rule (絵文字 / AGPL / ARCHIVE 残留 / tickets メタ / secrets / domain-boundaries 等) |
+| validate-tickets | `python3 scripts/validate-tickets.py` |  | tickets.json の EARS AC + 必須メタ検証 |
+| audit-md-check | `bash scripts/audit-md-check.sh` |  | docs/audit 配下の audit MD 完成状態 (3-tier + impl line 範囲) を検証 |
+
+> 全 criterion が green になった時点で Foundation phase 完了。Backend phase に進む。
+
+---
+
 ## meta タグ schema
 
 - `bf_meta` = `<meta name="screen-id|feature-id|task-ids|entities|phase">` (mock HTML 埋め込み)
