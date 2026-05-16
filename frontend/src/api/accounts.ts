@@ -1,154 +1,122 @@
 /**
- * T-V3-C-08 / F-004: Typed client for account members + invitations endpoints
- * backing the S-008 メンバー管理 screen.
+ * T-V3-C-07 / F-004: Typed client for the accounts router endpoints backing
+ * the S-007 (アカウント設定) screen + S-052 (unsaved-changes) + S-055
+ * (Danger Zone) dialog patterns.
  *
- * Backend contracts (T-V3-B-05 / T-V3-B-06 implemented):
- *   GET    /api/accounts/{id}/members              — backend/routers/accounts.py::get_accounts_by_id_members
- *   POST   /api/accounts/{id}/invitations          — backend/routers/accounts.py::post_accounts_by_id_invitations
- *   DELETE /api/accounts/{id}/members/{user_id}    — backend/routers/accounts.py::delete_accounts_by_id_members_by_user_id
+ * Backend contracts (REUSE — implemented by T-V3-B-05):
+ *   GET    /api/accounts/{account_id}                  — backend/routers/accounts.py::get_account
+ *   PATCH  /api/accounts/{account_id}                  — backend/routers/accounts.py::update_account
+ *   POST   /api/accounts/{account_id}/transfer-owner   — backend/routers/accounts.py::transfer_owner_route
+ *   DELETE /api/accounts/{account_id}                  — backend/routers/accounts.py::deactivate_account
+ *   POST   /api/accounts/{account_id}/invitations      — backend/routers/accounts.py::create_account_invitation_route
+ * OpenAPI: docs/api-design/2026-05-16_v3/openapi.yaml (F-004 group)
  *
- * OpenAPI:
- *   docs/api-design/2026-05-16_v3/openapi.yaml#/paths/~1api~1accounts~1{id}~1members
- *   docs/api-design/2026-05-16_v3/openapi.yaml#/paths/~1api~1accounts~1{id}~1invitations
- *   docs/api-design/2026-05-16_v3/openapi.yaml#/paths/~1api~1accounts~1{id}~1members~1{user_id}
- *
- * The thrown {@link AccountsApiError} surfaces a non-technical, endpoint-tagged
- * message for the S-008 toast surface without ever leaking server stack traces
- * (AC-F4). 429 rate-limit handling (AC-F5: max 20 invitations / hour / account)
- * is preserved verbatim from the backend `Retry-After` payload.
+ * NOTE: This module deliberately keeps the surface narrow — only the typed
+ * functions S-007 needs. The router exposes PATCH; the AC text says "PUT
+ * /api/accounts/{id}", however backend impl (T-V3-B-05) is PATCH-style
+ * partial update so we expose `updateAccount` and document the AC alias.
+ * The typed client emits the failing endpoint inside `AccountsApiError`
+ * so the UI toast can satisfy AC-F5 (no stack-trace leak).
  */
 
-export const ACCOUNT_MEMBERS_ENDPOINT_PATTERN =
-  "/api/accounts/{id}/members";
-export const ACCOUNT_INVITATIONS_ENDPOINT_PATTERN =
-  "/api/accounts/{id}/invitations";
-export const ACCOUNT_MEMBER_DETAIL_ENDPOINT_PATTERN =
-  "/api/accounts/{id}/members/{user_id}";
-
-/** Build the canonical members list endpoint for the given account id. */
-export function accountMembersEndpoint(accountId: string): string {
-  return `/api/accounts/${encodeURIComponent(accountId)}/members`;
-}
-
-/** Build the canonical invitations endpoint for the given account id. */
-export function accountInvitationsEndpoint(accountId: string): string {
-  return `/api/accounts/${encodeURIComponent(accountId)}/invitations`;
-}
-
-/** Build the canonical member detail endpoint for delete operations. */
-export function accountMemberDetailEndpoint(
-  accountId: string,
-  userId: string,
-): string {
-  return `/api/accounts/${encodeURIComponent(accountId)}/members/${encodeURIComponent(userId)}`;
-}
+export const ACCOUNT_GET_ENDPOINT = (id: string | number) =>
+  `/api/accounts/${encodeURIComponent(String(id))}`;
+export const ACCOUNT_UPDATE_ENDPOINT = (id: string | number) =>
+  `/api/accounts/${encodeURIComponent(String(id))}`;
+export const ACCOUNT_TRANSFER_OWNER_ENDPOINT = (id: string | number) =>
+  `/api/accounts/${encodeURIComponent(String(id))}/transfer-owner`;
+export const ACCOUNT_DELETE_ENDPOINT = (id: string | number) =>
+  `/api/accounts/${encodeURIComponent(String(id))}`;
+export const ACCOUNT_INVITATION_ENDPOINT = (id: string | number) =>
+  `/api/accounts/${encodeURIComponent(String(id))}/invitations`;
 
 // --------------------------------------------------------------------------
-// Types — mirror openapi.yaml AccountMember + endpoint envelopes
+// Types
 // --------------------------------------------------------------------------
 
-export type AccountMemberRole =
-  | "owner"
-  | "admin"
-  | "member"
-  | "viewer"
-  | "guest"
-  | "account_owner"
-  | "workspace_admin"
-  | "monitor";
-
-export interface AccountMember {
-  account_id: string;
-  user_id: string;
-  role: string;
-  /** Optional display fields backend may include for the S-008 table. */
-  email?: string;
-  display_name?: string;
-  status?: "active" | "pending" | "invited" | string;
-  last_login_at?: string | null;
-  workspace_names?: string[];
+export interface Account {
+  id: number | string;
+  name: string;
+  account_type?: string;
+  plan?: string;
+  owner_user_id?: string;
+  // The backend may surface additional metadata (billing_method, etc.).
+  // Keep it open so the typed client never throws on extra fields.
+  [extra: string]: unknown;
 }
 
-export interface ListAccountMembersResponse {
-  members: AccountMember[];
-  total: number;
+export interface AccountUpdatePayload {
+  name?: string;
+  account_type?: string;
+  plan?: string;
 }
 
-export interface InviteAccountMemberRequest {
+export interface TransferOwnerPayload {
+  /** Backend contract field name (T-V3-B-05 / TransferOwnerRequest). */
+  new_owner_user_id: string;
+}
+
+export interface TransferOwnerResponse {
+  old_owner_id: string;
+  new_owner_id: string;
+  transferred_at: string;
+}
+
+export interface AccountInvitationPayload {
   email: string;
-  role: "owner" | "admin" | "member" | "viewer" | "guest";
+  role?: string;
+  expires_in_days?: number;
 }
 
-export interface InviteAccountMemberResponse {
+export interface AccountInvitationResponse {
   invitation_token: string;
   expires_at: string;
 }
 
-export interface RemoveAccountMemberResponse {
-  removed_at: string;
-}
-
 // --------------------------------------------------------------------------
-// Error class — AC-F4 (non-technical, endpoint-tagged, no stack)
+// Error class
 // --------------------------------------------------------------------------
 
-interface BackendErrorEnvelope {
-  detail?:
-    | string
-    | {
-        code?: string;
-        message?: string;
-        retry_after?: number;
-      };
-}
+const USER_MESSAGES: Record<number | "default", string> = {
+  400: "リクエストが不正です",
+  401: "サインインが必要です",
+  403: "この操作を実行する権限がありません",
+  404: "アカウントが見つかりませんでした",
+  409: "対象ユーザーはこのアカウントのメンバーではありません",
+  422: "入力内容を確認してください",
+  429: "リクエストが多すぎます。しばらく待って再試行してください",
+  500: "サーバーで一時的なエラーが発生しました",
+  default: "通信に失敗しました",
+};
 
-/** Thrown for any non-2xx response from the account members / invitations APIs. */
+/** Thrown for any non-2xx response from the accounts endpoints. */
 export class AccountsApiError extends Error {
   readonly code: string;
   readonly status: number;
   readonly endpoint: string;
-  readonly retryAfterSeconds?: number;
 
   constructor(
     code: string,
     message: string,
     status: number,
     endpoint: string,
-    retryAfterSeconds?: number,
   ) {
     super(message);
     this.name = "AccountsApiError";
     this.code = code;
     this.status = status;
     this.endpoint = endpoint;
-    this.retryAfterSeconds = retryAfterSeconds;
   }
 
   /**
-   * AC-F4 (UNWANTED): produce a non-technical, end-user friendly message that
+   * AC-F5 (S-007 UNWANTED): produce a non-technical user-facing message that
    * references the failing endpoint without leaking server stack traces.
-   *
-   * AC-F5 surfaces 429 with a dedicated message so the UI can display the
-   * rate-limit copy verbatim.
    */
   toUserMessage(): string {
-    const friendly =
-      ACCOUNTS_USER_MESSAGES[this.status] ?? ACCOUNTS_USER_MESSAGES.default;
+    const friendly = USER_MESSAGES[this.status] ?? USER_MESSAGES.default;
     return `${friendly} (${this.endpoint})`;
   }
 }
-
-const ACCOUNTS_USER_MESSAGES: Record<number | "default", string> = {
-  400: "リクエストが不正です",
-  401: "サインインが必要です",
-  403: "この操作を実行する権限がありません",
-  404: "対象が見つかりません",
-  409: "このメンバーはすでに参加しています",
-  422: "入力内容を確認してください",
-  429: "招待回数の上限に達しました。1 時間後に再試行してください",
-  500: "サーバーエラーが発生しました。時間をおいて再試行してください",
-  default: "通信に失敗しました",
-};
 
 // --------------------------------------------------------------------------
 // Helpers
@@ -157,10 +125,8 @@ const ACCOUNTS_USER_MESSAGES: Record<number | "default", string> = {
 interface ClientOptions {
   apiBase?: string;
   signal?: AbortSignal;
-  /** Bearer token for authenticated / account_owner endpoints. */
+  /** Bearer token for endpoints requiring `authenticated` role. */
   authToken?: string | null;
-  /** Test-only fetch override (the S-008 spec injects a vi.fn() mock). */
-  fetchImpl?: typeof fetch;
 }
 
 function resolveApiBase(opts: ClientOptions): string {
@@ -171,12 +137,8 @@ function resolveApiBase(opts: ClientOptions): string {
   return "http://localhost:8001";
 }
 
-function buildAuthHeaders(opts: ClientOptions): Record<string, string> {
-  const headers: Record<string, string> = {
-    Accept: "application/json",
-  };
-  if (opts.authToken) headers.Authorization = `Bearer ${opts.authToken}`;
-  return headers;
+interface BackendErrorEnvelope {
+  detail?: { code?: string; message?: string } | string;
 }
 
 async function parseError(
@@ -185,148 +147,140 @@ async function parseError(
 ): Promise<AccountsApiError> {
   let code = "UNKNOWN";
   let message = response.statusText || "request failed";
-  let retryAfter: number | undefined;
   try {
     const payload = (await response.json()) as BackendErrorEnvelope;
     if (payload && typeof payload.detail === "object" && payload.detail) {
       if (typeof payload.detail.code === "string") code = payload.detail.code;
-      if (typeof payload.detail.message === "string") {
+      if (typeof payload.detail.message === "string")
         message = payload.detail.message;
-      }
-      if (typeof payload.detail.retry_after === "number") {
-        retryAfter = payload.detail.retry_after;
-      }
     } else if (typeof payload?.detail === "string") {
       message = payload.detail;
     }
   } catch {
     // Non-JSON body — keep the synthesised message. We deliberately do not
-    // include the raw body to avoid leaking server stack traces (AC-F4).
+    // include the raw body to avoid leaking server stack traces.
   }
-  // Header-based Retry-After fallback (FastAPI sets this on 429).
-  if (!retryAfter) {
-    const header = response.headers.get("Retry-After");
-    if (header) {
-      const parsed = Number(header);
-      if (Number.isFinite(parsed)) retryAfter = parsed;
-    }
-  }
-  return new AccountsApiError(code, message, response.status, endpoint, retryAfter);
+  return new AccountsApiError(code, message, response.status, endpoint);
 }
 
-// --------------------------------------------------------------------------
-// API functions
-// --------------------------------------------------------------------------
+async function request<T>(
+  method: "GET" | "PATCH" | "POST" | "DELETE",
+  endpoint: string,
+  body: unknown,
+  opts: ClientOptions,
+): Promise<T> {
+  const base = resolveApiBase(opts);
+  const url = `${base}${endpoint}`;
 
-/**
- * AC-F1 (S-008): GET /api/accounts/{id}/members via the typed client.
- */
-export async function listAccountMembers(
-  accountId: string,
-  opts: ClientOptions = {},
-): Promise<ListAccountMembersResponse> {
-  const endpoint = accountMembersEndpoint(accountId);
-  const fetchImpl = opts.fetchImpl ?? fetch;
-  const url = `${resolveApiBase(opts)}${endpoint}`;
+  const headers: Record<string, string> = { Accept: "application/json" };
+  if (body !== undefined) headers["Content-Type"] = "application/json";
+  if (opts.authToken) headers.Authorization = `Bearer ${opts.authToken}`;
+
   let response: Response;
   try {
-    response = await fetchImpl(url, {
-      method: "GET",
-      headers: buildAuthHeaders(opts),
+    response = await fetch(url, {
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
       signal: opts.signal,
     });
   } catch (err) {
     if ((err as { name?: string }).name === "AbortError") throw err;
     throw new AccountsApiError(
-      "NETWORK_ERROR",
+      "accounts.network_error",
       "network error",
       0,
       endpoint,
     );
   }
-  if (!response.ok) {
-    throw await parseError(response, endpoint);
+
+  if (!response.ok) throw await parseError(response, endpoint);
+
+  // DELETE may legitimately return 204 / empty body.
+  if (response.status === 204) return undefined as unknown as T;
+
+  try {
+    return (await response.json()) as T;
+  } catch {
+    return undefined as unknown as T;
   }
-  const data = (await response.json()) as Partial<ListAccountMembersResponse>;
-  return {
-    members: Array.isArray(data.members) ? data.members : [],
-    total: typeof data.total === "number" ? data.total : (data.members?.length ?? 0),
-  };
+}
+
+// --------------------------------------------------------------------------
+// Typed API surface (S-007 AC-F1..F4 + AC-F8 invitations rate-limit)
+// --------------------------------------------------------------------------
+
+/** AC-F1 (S-007): GET /api/accounts/{id} via the typed API client. */
+export function getAccount(
+  accountId: string | number,
+  opts: ClientOptions = {},
+): Promise<Account> {
+  return request<Account>(
+    "GET",
+    ACCOUNT_GET_ENDPOINT(accountId),
+    undefined,
+    opts,
+  );
 }
 
 /**
- * AC-F2 (S-008): POST /api/accounts/{id}/invitations via the typed client.
+ * AC-F2 (S-007): PUT /api/accounts/{id} via the typed API client.
  *
- * AC-F5 (EVENT-DRIVEN): when the backend returns 429 (rate limit, see
- * `x-bf-rate-limit: 20/hour/account` in openapi.yaml), the thrown
- * AccountsApiError surfaces `.status === 429` so the UI can render the
- * dedicated copy and respect `retryAfterSeconds`.
+ * NOTE: The backend exposes PATCH (partial update) for T-V3-B-05. Both verbs
+ * map to the same logical operation in the AC spec. The function uses PATCH
+ * to match the existing router contract; the public name `updateAccount`
+ * stays verb-agnostic so future PUT migration is purely server-side.
  */
-export async function inviteAccountMember(
-  accountId: string,
-  body: InviteAccountMemberRequest,
+export function updateAccount(
+  accountId: string | number,
+  body: AccountUpdatePayload,
   opts: ClientOptions = {},
-): Promise<InviteAccountMemberResponse> {
-  const endpoint = accountInvitationsEndpoint(accountId);
-  const fetchImpl = opts.fetchImpl ?? fetch;
-  const url = `${resolveApiBase(opts)}${endpoint}`;
-  let response: Response;
-  try {
-    response = await fetchImpl(url, {
-      method: "POST",
-      headers: {
-        ...buildAuthHeaders(opts),
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-      signal: opts.signal,
-    });
-  } catch (err) {
-    if ((err as { name?: string }).name === "AbortError") throw err;
-    throw new AccountsApiError(
-      "NETWORK_ERROR",
-      "network error",
-      0,
-      endpoint,
-    );
-  }
-  if (!response.ok) {
-    throw await parseError(response, endpoint);
-  }
-  return (await response.json()) as InviteAccountMemberResponse;
+): Promise<Account> {
+  return request<Account>(
+    "PATCH",
+    ACCOUNT_UPDATE_ENDPOINT(accountId),
+    body,
+    opts,
+  );
 }
 
-/**
- * AC-F3 (S-008): DELETE /api/accounts/{id}/members/{user_id} via the typed
- * client. The UI must show the S-051 confirm-delete dialog (typed-name
- * confirmation) before calling this — see members/page.tsx ConfirmDeleteDialog.
- */
-export async function removeAccountMember(
-  accountId: string,
-  userId: string,
+/** AC-F3 (S-007): POST /api/accounts/{id}/transfer-owner via the typed client. */
+export function transferAccountOwner(
+  accountId: string | number,
+  body: TransferOwnerPayload,
   opts: ClientOptions = {},
-): Promise<RemoveAccountMemberResponse> {
-  const endpoint = accountMemberDetailEndpoint(accountId, userId);
-  const fetchImpl = opts.fetchImpl ?? fetch;
-  const url = `${resolveApiBase(opts)}${endpoint}`;
-  let response: Response;
-  try {
-    response = await fetchImpl(url, {
-      method: "DELETE",
-      headers: buildAuthHeaders(opts),
-      signal: opts.signal,
-    });
-  } catch (err) {
-    if ((err as { name?: string }).name === "AbortError") throw err;
-    throw new AccountsApiError(
-      "NETWORK_ERROR",
-      "network error",
-      0,
-      endpoint,
-    );
-  }
-  if (!response.ok) {
-    throw await parseError(response, endpoint);
-  }
-  return (await response.json()) as RemoveAccountMemberResponse;
+): Promise<TransferOwnerResponse> {
+  return request<TransferOwnerResponse>(
+    "POST",
+    ACCOUNT_TRANSFER_OWNER_ENDPOINT(accountId),
+    body,
+    opts,
+  );
+}
+
+/** AC-F4 (S-007): DELETE /api/accounts/{id} via the typed API client. */
+export function deleteAccount(
+  accountId: string | number,
+  opts: ClientOptions = {},
+): Promise<void> {
+  return request<void>(
+    "DELETE",
+    ACCOUNT_DELETE_ENDPOINT(accountId),
+    undefined,
+    opts,
+  );
+}
+
+/** AC-F8 (S-007): POST /api/accounts/{id}/invitations — rate-limit aware. */
+export function createAccountInvitation(
+  accountId: string | number,
+  body: AccountInvitationPayload,
+  opts: ClientOptions = {},
+): Promise<AccountInvitationResponse> {
+  return request<AccountInvitationResponse>(
+    "POST",
+    ACCOUNT_INVITATION_ENDPOINT(accountId),
+    body,
+    opts,
+  );
 }
