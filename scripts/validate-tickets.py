@@ -10,9 +10,16 @@
 - entities : 関連 DB テーブル
 
 CI / 実装着手前に必ず実行する。
+
+v3 拡張 (T-FOUNDATION-05): --check-file <path> で任意 tickets.json を検証する.
+v3 schema (acceptance_criteria が dict / 3-tier structural/functional/regression) も
+受け付ける. v3 では sprint/feature/layer は無いが代わりに wave/phase/deliverable_layer
+を要求する.
 """
 from __future__ import annotations
-import json, sys
+import argparse
+import json
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -21,7 +28,6 @@ TICKETS_PATH = ROOT / "docs/task-decomposition/2026-05-09_v1/tickets.json"
 
 def validate_ticket(t: dict) -> list[str]:
     issues: list[str] = []
-    tid = t.get("id", "?")
     label = t.get("label", "")
 
     # 必須フィールド (既存)
@@ -65,7 +71,123 @@ def validate_ticket(t: dict) -> list[str]:
     return issues
 
 
+# ----------------------------------------------------------------
+# v3 schema validator (--check-file <path> 専用)
+# ----------------------------------------------------------------
+
+_V3_REQUIRED_FIELDS = (
+    "id",
+    "title",
+    "category",
+    "label",
+    "phase",
+    "wave",
+    "group",
+    "deliverable_layer",
+    "files_changed",
+    "work_package_boundary",
+    "acceptance_criteria",
+    "audit_md_path",
+    "branch",
+)
+
+
+def _validate_v3_ticket(t: dict) -> list[str]:
+    """v3 (3-tier AC) schema 検証. validate_ticket とは別系統."""
+    issues: list[str] = []
+
+    for f in _V3_REQUIRED_FIELDS:
+        if f not in t:
+            issues.append(f"missing {f}")
+            continue
+        # None 許容: feature_id / legacy_task_id 等は task によって None
+        if t[f] is None and f not in ("id", "title"):
+            continue
+        if f in ("files_changed",) and not isinstance(t[f], list):
+            issues.append(f"{f} must be a list")
+
+    # acceptance_criteria は 3-tier dict
+    ac = t.get("acceptance_criteria")
+    if not isinstance(ac, dict):
+        issues.append("acceptance_criteria must be a dict {structural, functional, regression}")
+    else:
+        for tier in ("structural", "functional", "regression"):
+            if tier not in ac:
+                issues.append(f"acceptance_criteria.{tier} missing")
+            elif not isinstance(ac[tier], list):
+                issues.append(f"acceptance_criteria.{tier} must be a list")
+        # functional は最低 1 件必要 (3-tier core)
+        if isinstance(ac.get("functional"), list) and len(ac["functional"]) == 0:
+            issues.append("acceptance_criteria.functional is empty (min 1 EARS AC)")
+        # regression も最低 1 件 (CI gate)
+        if isinstance(ac.get("regression"), list) and len(ac["regression"]) == 0:
+            issues.append("acceptance_criteria.regression is empty (min 1 gate)")
+
+    # work_package_boundary は 4 key dict
+    wpb = t.get("work_package_boundary")
+    if isinstance(wpb, dict):
+        for k in ("editable", "shared_no_concurrent_edit", "readonly", "forbidden"):
+            if k not in wpb:
+                issues.append(f"work_package_boundary.{k} missing")
+            elif not isinstance(wpb[k], list):
+                issues.append(f"work_package_boundary.{k} must be a list")
+    else:
+        issues.append("work_package_boundary must be a dict")
+
+    return issues
+
+
+def _check_file(path: Path) -> int:
+    """任意 tickets.json を v3 schema で検証 (drift-tickets-W<N>.json 等も対象)."""
+    if not path.exists():
+        print(f"NG: file not found: {path}", file=sys.stderr)
+        return 1
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        print(f"NG: invalid JSON: {exc}", file=sys.stderr)
+        return 1
+    if not isinstance(data, dict) or "tasks" not in data:
+        print("NG: top-level must be an object with 'tasks' array", file=sys.stderr)
+        return 1
+    tasks = data["tasks"]
+    if not isinstance(tasks, list):
+        print("NG: 'tasks' must be a list", file=sys.stderr)
+        return 1
+
+    total_issues = 0
+    print("=" * 60)
+    print(f"v3 tickets.json validation: {path}")
+    print("=" * 60)
+    print(f"Total tasks: {len(tasks)}")
+    for t in tasks:
+        issues = _validate_v3_ticket(t)
+        if issues:
+            total_issues += 1
+            tid = t.get("id", "?")
+            print(f"  {tid}: {', '.join(issues)}")
+    if total_issues > 0:
+        print(f"NG: {total_issues}/{len(tasks)} tasks have issues.")
+        return 1
+    print("OK: all tasks pass v3 schema validation.")
+    return 0
+
+
 def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="validate-tickets — tickets.json メタ + EARS AC を検証",
+    )
+    parser.add_argument(
+        "--check-file",
+        type=Path,
+        default=None,
+        help="v3 tickets.json (drift-tickets 等) を schema 検証する (legacy 経路 bypass)",
+    )
+    args = parser.parse_args()
+
+    if args.check_file is not None:
+        return _check_file(args.check_file)
+
     data = json.loads(TICKETS_PATH.read_text())
     tickets = data.get("tickets", [])
     critical = data.get("critical_path", [])
@@ -88,7 +210,7 @@ def main() -> int:
                 sample_issues.append((tid, issues))
 
     print("=" * 60)
-    print(f"tickets.json validation report")
+    print("tickets.json validation report")
     print("=" * 60)
     print(f"Total tickets       : {len(tickets)}")
     print(f"Tickets with issues : {total_issues}")
