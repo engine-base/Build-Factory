@@ -102,6 +102,80 @@ class KillAllSessionsResponse(BaseModel):
     killed_count: int = Field(..., ge=0, description="kill された session 件数.")
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# T-V3-B-16: AC-F1〜AC-F9 — pause / resume / rollback DTO
+# OpenAPI: /api/sessions/{id}/pause, /resume, /rollback (F-010)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class PauseSessionResponse(BaseModel):
+    """POST /api/sessions/{id}/pause の response shape.
+
+    OpenAPI yaml:
+        properties:
+          paused_at: string format date-time
+          checkpoint_id: string format uuid
+    """
+
+    paused_at: str = Field(..., description="pause 実行時刻 (ISO-8601).")
+    checkpoint_id: str = Field(
+        ..., description="保存された checkpoint の UUID (rollback 時に参照)."
+    )
+
+
+class ResumeRequest(BaseModel):
+    """POST /api/sessions/{id}/resume の request body.
+
+    OpenAPI yaml:
+        properties:
+          checkpoint_id: string format uuid nullable
+    """
+
+    checkpoint_id: Optional[str] = Field(
+        None,
+        description="復元する checkpoint UUID (省略時は最新 checkpoint).",
+    )
+
+
+class ResumeSessionResponse(BaseModel):
+    """POST /api/sessions/{id}/resume の response shape.
+
+    OpenAPI yaml:
+        properties:
+          resumed_at: string format date-time
+    """
+
+    resumed_at: str = Field(..., description="resume 実行時刻 (ISO-8601).")
+
+
+class RollbackRequest(BaseModel):
+    """POST /api/sessions/{id}/rollback の request body.
+
+    OpenAPI yaml:
+        properties:
+          checkpoint_id: string format uuid (required)
+        required: [checkpoint_id]
+    """
+
+    checkpoint_id: str = Field(
+        ...,
+        description="復元先 checkpoint UUID (必須).",
+    )
+
+
+class RollbackSessionResponse(BaseModel):
+    """POST /api/sessions/{id}/rollback の response shape.
+
+    OpenAPI yaml:
+        properties:
+          rolled_back_at: string format date-time
+    """
+
+    rolled_back_at: str = Field(
+        ..., description="rollback 実行時刻 (ISO-8601).",
+    )
+
+
 # Status filter (GET /api/workspaces/{id}/sessions?status=...).
 VALID_SESSION_STATUS_FILTER: tuple[str, ...] = (
     "running", "paused", "crashed", "completed",
@@ -114,5 +188,10 @@ __all__ = (
     "SessionDetailResponse",
     "KillSessionResponse",
     "KillAllSessionsResponse",
+    "PauseSessionResponse",
+    "ResumeRequest",
+    "ResumeSessionResponse",
+    "RollbackRequest",
+    "RollbackSessionResponse",
     "VALID_SESSION_STATUS_FILTER",
 )
