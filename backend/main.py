@@ -121,6 +121,7 @@ from routers.unified_search import router as unified_search_router
 from routers.intent_classifier import router as intent_classifier_router
 from routers.intent_router import router as intent_router_router
 from routers.mocks import router as mocks_router  # T-V3-B-08 / F-005b
+from routers.onboarding import router as onboarding_router  # T-V3-B-29 / F-027
 from scheduler.scheduler import scheduler, load_jobs_from_db
 from integrations.slack_client import start_slack, stop_slack
 
@@ -294,6 +295,7 @@ app.include_router(intent_classifier_router)
 app.include_router(intent_router_router)
 app.include_router(auth_router)
 app.include_router(mocks_router)  # T-V3-B-08 / F-005b
+app.include_router(onboarding_router)  # T-V3-B-29 / F-027
 
 
 @app.get("/health")
