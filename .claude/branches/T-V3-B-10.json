@@ -1,0 +1,64 @@
+{
+  "version": "v3",
+  "task_id": "T-V3-B-10",
+  "title": "GitHub integration backend (PR + HTML diff) (F-013)",
+  "branch": "claude/T-V3-B-10",
+  "phase": "Phase 1A",
+  "wave": "W1",
+  "group": "B",
+  "deliverable_layer": "backend",
+  "estimate_hours": 4,
+  "session_meta": {
+    "subagent_type": "general-purpose",
+    "isolation": "worktree",
+    "model_preference": "sonnet",
+    "spec_links": [
+      "docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json#T-V3-B-10",
+      "docs/audit/2026-05-16_v3/T-V3-B-10.md",
+      "docs/functional-breakdown/2026-05-16_v3/features.json#F-013"
+    ],
+    "required_reads": [
+      "docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json",
+      "docs/audit/2026-05-16_v3/T-V3-B-10.md",
+      "docs/functional-breakdown/2026-05-16_v3/features.json",
+      "docs/functional-breakdown/2026-05-16_v3/entities.json"
+    ]
+  },
+  "work_package_boundary": {
+    "editable": [
+      "backend/app/routers/f_013.py",
+      "backend/app/services/f_013.py",
+      "backend/app/schemas/f_013.py",
+      "backend/tests/routers/test_f_013.py",
+      "backend/tests/services/test_f_013.py"
+    ],
+    "shared_no_concurrent_edit": [
+      "backend/app/main.py",
+      "backend/app/router.py"
+    ],
+    "readonly": [
+      "docs/functional-breakdown/2026-05-16_v3/",
+      "docs/api-design/",
+      "supabase/migrations/"
+    ],
+    "forbidden": [
+      "frontend/",
+      "scripts/",
+      ".github/workflows/"
+    ]
+  },
+  "depends_on": [],
+  "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-B-10.md",
+  "ci_gates": [
+    "lint-mock",
+    "AC-validator",
+    "RLS-coverage",
+    "audit-md",
+    "pytest-cov-70",
+    "pyright",
+    "tsc",
+    "mock-impl-diff"
+  ],
+  "final_state": "pending",
+  "failure_count": 0
+}

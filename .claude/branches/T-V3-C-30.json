@@ -1,0 +1,66 @@
+{
+  "version": "v3",
+  "task_id": "T-V3-C-30",
+  "title": "S-030 cost dashboard UI (F-017)",
+  "branch": "claude/T-V3-C-30",
+  "phase": "Phase 1B",
+  "wave": "W5",
+  "group": "C",
+  "deliverable_layer": "ui",
+  "estimate_hours": 3,
+  "session_meta": {
+    "subagent_type": "general-purpose",
+    "isolation": "worktree",
+    "model_preference": "sonnet",
+    "spec_links": [
+      "docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json#T-V3-C-30",
+      "docs/audit/2026-05-16_v3/T-V3-C-30.md",
+      "docs/functional-breakdown/2026-05-16_v3/features.json#F-017",
+      "docs/functional-breakdown/2026-05-16_v3/screens.json#S-030"
+    ],
+    "required_reads": [
+      "docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json",
+      "docs/audit/2026-05-16_v3/T-V3-C-30.md",
+      "docs/functional-breakdown/2026-05-16_v3/features.json",
+      "docs/functional-breakdown/2026-05-16_v3/screens.json"
+    ]
+  },
+  "work_package_boundary": {
+    "editable": [
+      "frontend/app/s-030/page.tsx",
+      "frontend/app/s-030/layout.tsx",
+      "frontend/components/f_017/",
+      "frontend/__tests__/s-030.test.tsx"
+    ],
+    "shared_no_concurrent_edit": [
+      "frontend/app/layout.tsx",
+      "frontend/lib/api-client.ts"
+    ],
+    "readonly": [
+      "docs/mocks/2026-05-09_v1/",
+      "docs/functional-breakdown/2026-05-16_v3/",
+      "backend/app/routers/"
+    ],
+    "forbidden": [
+      "backend/",
+      "scripts/",
+      ".github/workflows/"
+    ]
+  },
+  "depends_on": [
+    "T-V3-B-12"
+  ],
+  "audit_md_path": "docs/audit/2026-05-16_v3/T-V3-C-30.md",
+  "ci_gates": [
+    "lint-mock",
+    "AC-validator",
+    "RLS-coverage",
+    "audit-md",
+    "pytest-cov-70",
+    "pyright",
+    "tsc",
+    "mock-impl-diff"
+  ],
+  "final_state": "pending",
+  "failure_count": 0
+}
