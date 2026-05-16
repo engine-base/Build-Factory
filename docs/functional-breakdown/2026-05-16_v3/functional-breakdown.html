@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build-Factory v3 — Functional Breakdown (entities / features / roles / screens)</title>
+<meta name="bf-doc-type" content="functional-breakdown">
+<meta name="bf-version" content="v3">
+<meta name="bf-generated-at" content="2026-05-16">
+<meta name="bf-drift-detection" content="on">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          eb: {
+            50:  '#f0f7f3',
+            100: '#daece2',
+            200: '#b6d8c6',
+            300: '#86bda2',
+            400: '#4d9c78',
+            500: '#1a6648',
+            600: '#155339',
+            700: '#11402c',
+            800: '#0d2e20',
+            900: '#0a2419',
+          }
+        },
+        fontFamily: {
+          sans: ['"Noto Sans JP"', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'monospace'],
+        }
+      }
+    }
+  };
+</script>
+
+<style>
+  body { font-family: 'Noto Sans JP', sans-serif; background: #f8fafc; color: #0f172a; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  details > summary { list-style: none; cursor: pointer; }
+  details > summary::-webkit-details-marker { display: none; }
+  details[open] > summary .chev { transform: rotate(90deg); }
+  .chev { transition: transform .15s ease; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; }
+  .pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .pill-decided { background: rgba(22,163,74,.10); color: #16a34a; }
+  .pill-review  { background: rgba(245,158,11,.12); color: #b45309; }
+  .pill-blocked { background: rgba(220,38,38,.10); color: #dc2626; }
+  .pill-draft   { background: rgba(148,163,184,.18); color: #475569; }
+  .pill-eb      { background: rgba(26,102,72,.10); color: #1a6648; }
+  .kbd { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px; padding: 1px 6px; }
+  .section-anchor { scroll-margin-top: 80px; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- Top Bar -->
+<header class="bg-white border-b border-slate-200 sticky top-0 z-20">
+  <div class="max-w-[1400px] mx-auto px-4 py-3 flex items-center gap-3 flex-wrap">
+    <div class="flex items-center gap-2 flex-shrink-0">
+      <div class="w-7 h-7 bg-eb-500 rounded-md flex items-center justify-center">
+        <i data-lucide="layers" class="w-4 h-4 text-white"></i>
+      </div>
+      <span class="font-bold text-slate-900">Build-Factory v3</span>
+      <span class="pill pill-eb">functional-breakdown</span>
+    </div>
+    <nav class="flex items-center gap-3 ml-auto text-sm text-slate-600">
+      <a class="hover:text-eb-600" href="#summary">Summary</a>
+      <a class="hover:text-eb-600" href="#entities">Entities</a>
+      <a class="hover:text-eb-600" href="#features">Features</a>
+      <a class="hover:text-eb-600" href="#roles">Roles</a>
+      <a class="hover:text-eb-600" href="#screens">Screens</a>
+      <a class="hover:text-eb-600" href="#drift">Drift</a>
+      <a class="hover:text-eb-600" href="#handoff">Handoff</a>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-[1400px] mx-auto px-4 py-8">
+
+  <!-- Title -->
+  <section class="mb-8">
+    <div class="flex items-start gap-3 flex-wrap">
+      <h1 class="text-3xl font-bold tracking-tight text-slate-900">機能・画面詳細仕様 <span class="text-slate-400 font-normal">/ Functional Breakdown</span></h1>
+    </div>
+    <div class="mt-2 text-sm text-slate-500 flex items-center gap-3 flex-wrap">
+      <span class="inline-flex items-center gap-1"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> 2026-05-16</span>
+      <span class="inline-flex items-center gap-1"><i data-lucide="tag" class="w-3.5 h-3.5"></i> version v3</span>
+      <span class="inline-flex items-center gap-1"><i data-lucide="radar" class="w-3.5 h-3.5"></i> drift detection <span class="pill pill-decided">ON</span></span>
+      <span class="inline-flex items-center gap-1"><i data-lucide="git-branch" class="w-3.5 h-3.5"></i> source: requirements + mocks v3</span>
+    </div>
+    <p class="mt-4 text-slate-700 leading-relaxed max-w-4xl">
+      Build-Factory v3 の機能分解仕様。<strong>entity (data) → feature (service) → role (cross-cutting) → screen (UI)</strong> の順に詳細化し、
+      下流ツールチェーン (lint runner / access-control verifier / EARS validator) が消費可能な形で 4 JSON にエクスポートする。
+      <strong>3-layer drift detection</strong> (entity ↔ DB schema / API ↔ backend router / screen ↔ frontend component) が ON。
+    </p>
+  </section>
+
+  <!-- Summary -->
+  <section id="summary" class="section-anchor mb-10">
+    <h2 class="text-xl font-bold mb-4 pb-2 border-b-2 border-slate-900 flex items-center gap-2">
+      <i data-lucide="bar-chart-3" class="w-5 h-5 text-eb-500"></i> 完了サマリー
+    </h2>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <a href="entities.json" class="card p-4 hover:border-eb-500 transition-colors">
+        <div class="text-xs text-slate-500 uppercase tracking-wide flex items-center gap-1"><i data-lucide="database" class="w-3.5 h-3.5"></i> Entities</div>
+        <div class="mt-1 text-3xl font-bold text-slate-900">48-55</div>
+        <div class="text-xs text-slate-500 mt-1">access_control_policies / tenant_isolation 各件設定</div>
+      </a>
+      <a href="features.json" class="card p-4 hover:border-eb-500 transition-colors">
+        <div class="text-xs text-slate-500 uppercase tracking-wide flex items-center gap-1"><i data-lucide="boxes" class="w-3.5 h-3.5"></i> Features</div>
+        <div class="mt-1 text-3xl font-bold text-slate-900">35-40</div>
+        <div class="text-xs text-slate-500 mt-1">api_endpoints + ears_ac_seed</div>
+      </a>
+      <a href="roles.json" class="card p-4 hover:border-eb-500 transition-colors">
+        <div class="text-xs text-slate-500 uppercase tracking-wide flex items-center gap-1"><i data-lucide="users" class="w-3.5 h-3.5"></i> Roles</div>
+        <div class="mt-1 text-3xl font-bold text-slate-900">6 <span class="text-base text-slate-500 font-normal">+ 17 constraints</span></div>
+        <div class="text-xs text-slate-500 mt-1">human 6 / object_constraints 17 件</div>
+      </a>
+      <a href="screens.json" class="card p-4 hover:border-eb-500 transition-colors">
+        <div class="text-xs text-slate-500 uppercase tracking-wide flex items-center gap-1"><i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i> Screens</div>
+        <div class="mt-1 text-3xl font-bold text-slate-900">64</div>
+        <div class="text-xs text-slate-500 mt-1">17 category / mock_path 全件</div>
+      </a>
+    </div>
+
+    <div class="card overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wide">
+          <tr>
+            <th class="text-left px-4 py-2">layer</th>
+            <th class="text-right px-4 py-2">合計</th>
+            <th class="text-right px-4 py-2">decided</th>
+            <th class="text-right px-4 py-2">in_review</th>
+            <th class="text-right px-4 py-2">draft</th>
+            <th class="text-right px-4 py-2">drift</th>
+            <th class="text-left  px-4 py-2">JSON</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr>
+            <td class="px-4 py-2 font-medium">Entities</td>
+            <td class="px-4 py-2 text-right mono">48-55</td>
+            <td class="px-4 py-2 text-right mono">40+</td>
+            <td class="px-4 py-2 text-right mono">5+</td>
+            <td class="px-4 py-2 text-right mono">0</td>
+            <td class="px-4 py-2 text-right"><span class="pill pill-review">TBD</span></td>
+            <td class="px-4 py-2"><a class="text-eb-600 underline" href="entities.json">entities.json</a></td>
+          </tr>
+          <tr>
+            <td class="px-4 py-2 font-medium">Features</td>
+            <td class="px-4 py-2 text-right mono">35-40</td>
+            <td class="px-4 py-2 text-right mono">30+</td>
+            <td class="px-4 py-2 text-right mono">5+</td>
+            <td class="px-4 py-2 text-right mono">0</td>
+            <td class="px-4 py-2 text-right"><span class="pill pill-review">TBD</span></td>
+            <td class="px-4 py-2"><a class="text-eb-600 underline" href="features.json">features.json</a></td>
+          </tr>
+          <tr>
+            <td class="px-4 py-2 font-medium">Roles</td>
+            <td class="px-4 py-2 text-right mono">6</td>
+            <td class="px-4 py-2 text-right mono">6</td>
+            <td class="px-4 py-2 text-right mono">0</td>
+            <td class="px-4 py-2 text-right mono">0</td>
+            <td class="px-4 py-2 text-right"><span class="pill pill-decided">n/a</span></td>
+            <td class="px-4 py-2"><a class="text-eb-600 underline" href="roles.json">roles.json</a></td>
+          </tr>
+          <tr>
+            <td class="px-4 py-2 font-medium">Screens</td>
+            <td class="px-4 py-2 text-right mono">64</td>
+            <td class="px-4 py-2 text-right mono">60+</td>
+            <td class="px-4 py-2 text-right mono">4-</td>
+            <td class="px-4 py-2 text-right mono">0</td>
+            <td class="px-4 py-2 text-right"><span class="pill pill-review">TBD</span></td>
+            <td class="px-4 py-2"><a class="text-eb-600 underline" href="screens.json">screens.json</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="text-xs text-slate-500 mt-3">
+      <i data-lucide="info" class="w-3.5 h-3.5 inline -mt-0.5"></i>
+      件数は 4 JSON が並列生成中のため <strong>placeholder</strong>。確定値は各 JSON の <span class="kbd">meta.counts</span> を参照。
+    </p>
+  </section>
+
+  <!-- Entities -->
+  <section id="entities" class="section-anchor mb-10">
+    <h2 class="text-xl font-bold mb-4 pb-2 border-b-2 border-slate-900 flex items-center gap-2">
+      <i data-lucide="database" class="w-5 h-5 text-eb-500"></i> Entities (Foundation / Data)
+    </h2>
+    <p class="text-sm text-slate-700 mb-4">
+      DB schema / access control の前提層。各 entity に <span class="kbd">table_name</span>, <span class="kbd">access_control_policies[]</span>, <span class="kbd">tenant_isolation</span> を必須化。
+      後段すべての contract を縛る。
+    </p>
+
+    <details class="card mb-3" open>
+      <summary class="px-4 py-3 flex items-center gap-2 font-semibold">
+        <i data-lucide="chevron-right" class="w-4 h-4 chev"></i>
+        <span class="mono text-xs pill pill-eb">E-001</span>
+        <span>User</span>
+        <span class="ml-auto text-xs text-slate-500">table: <span class="mono">users</span> · policies: 3 · tenant: <span class="mono">account_scoped</span></span>
+      </summary>
+      <div class="px-5 py-3 border-t border-slate-100 text-sm space-y-2">
+        <div><span class="text-slate-500 inline-block w-32">table_name</span><span class="mono">users</span></div>
+        <div><span class="text-slate-500 inline-block w-32">tenant_isolation</span><span class="mono">account_scoped (account_id → accounts)</span></div>
+        <div><span class="text-slate-500 inline-block w-32">policies</span>
+          <span class="mono text-xs">users_self_select (SELECT) / users_self_update (UPDATE) / users_admin_all (ALL)</span>
+        </div>
+      </div>
+    </details>
+
+    <details class="card mb-3">
+      <summary class="px-4 py-3 flex items-center gap-2 font-semibold">
+        <i data-lucide="chevron-right" class="w-4 h-4 chev"></i>
+        <span class="mono text-xs pill pill-eb">E-007</span>
+        <span>AIEmployee (BMAD 10 ペルソナ)</span>
+        <span class="ml-auto text-xs text-slate-500">table: <span class="mono">ai_employees</span> · policies: 4 · tenant: <span class="mono">workspace_scoped</span></span>
+      </summary>
+      <div class="px-5 py-3 border-t border-slate-100 text-sm">
+        <p class="text-slate-700">mary / preston / winston / sally / devon / quinn / reviewer / brand / mockup / curator + memory_provider (ADR-012)</p>
+      </div>
+    </details>
+
+    <div class="text-sm text-slate-600 text-center py-3">
+      <i data-lucide="more-horizontal" class="w-4 h-4 inline -mt-0.5"></i>
+      残り 46-53 entity は <a class="text-eb-600 underline" href="entities.json">entities.json</a> を参照
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="section-anchor mb-10">
+    <h2 class="text-xl font-bold mb-4 pb-2 border-b-2 border-slate-900 flex items-center gap-2">
+      <i data-lucide="boxes" class="w-5 h-5 text-eb-500"></i> Features (Backend / Service)
+    </h2>
+    <p class="text-sm text-slate-700 mb-4">
+      entity の上で動く業務 logic。<span class="kbd">api_endpoints[]</span> で backend router contract を明示、<span class="kbd">ears_ac_seed[]</span> で Tier 2 functional AC を seed する。
+    </p>
+
+    <details class="card mb-3" open>
+      <summary class="px-4 py-3 flex items-center gap-2 font-semibold">
+        <i data-lucide="chevron-right" class="w-4 h-4 chev"></i>
+        <span class="mono text-xs pill pill-eb">F-001</span>
+        <span>メール認証ログイン</span>
+        <span class="ml-auto text-xs text-slate-500">endpoints: 2 · ears: 4 · drift: <span class="pill pill-decided">none</span></span>
+      </summary>
+      <div class="px-5 py-3 border-t border-slate-100 text-sm space-y-2">
+        <div><span class="text-slate-500 inline-block w-32">api_endpoints</span><span class="mono text-xs">POST /api/auth/login (public, 5/min/ip) · POST /api/auth/logout (authenticated)</span></div>
+        <div><span class="text-slate-500 inline-block w-32">ears_ac_seed</span>
+          <ul class="list-disc list-inside text-xs text-slate-700 mt-1 space-y-1">
+            <li><span class="mono">EVENT-DRIVEN</span>: When POST /api/auth/login is called with valid email+password, the system shall return 200.</li>
+            <li><span class="mono">UNWANTED</span>: If credentials are invalid, the system shall return 401 (generic, no enum).</li>
+            <li><span class="mono">EVENT-DRIVEN</span>: When 5 failed login attempts occur within 15 min for the same IP, the system shall return 429.</li>
+          </ul>
+        </div>
+      </div>
+    </details>
+
+    <details class="card mb-3">
+      <summary class="px-4 py-3 flex items-center gap-2 font-semibold">
+        <i data-lucide="chevron-right" class="w-4 h-4 chev"></i>
+        <span class="mono text-xs pill pill-eb">F-012</span>
+        <span>AI Memory (Memory Tool + Context Editing + Subagent)</span>
+        <span class="ml-auto text-xs text-slate-500">endpoints: 6 · ears: 8 · drift: <span class="pill pill-decided">none</span></span>
+      </summary>
+      <div class="px-5 py-3 border-t border-slate-100 text-sm">
+        <p class="text-slate-700">ADR-012 採用の <span class="mono">memory_20250818</span> / <span class="mono">clear_tool_uses_20250919</span> / <span class="mono">compact_20260112</span> 三点セット。provider-adapter (T-AI-MEM-04) で BYOK 切替対応。</p>
+      </div>
+    </details>
+
+    <div class="text-sm text-slate-600 text-center py-3">
+      <i data-lucide="more-horizontal" class="w-4 h-4 inline -mt-0.5"></i>
+      残り 33-38 feature は <a class="text-eb-600 underline" href="features.json">features.json</a> を参照
+    </div>
+  </section>
+
+  <!-- Roles -->
+  <section id="roles" class="section-anchor mb-10">
+    <h2 class="text-xl font-bold mb-4 pb-2 border-b-2 border-slate-900 flex items-center gap-2">
+      <i data-lucide="users" class="w-5 h-5 text-eb-500"></i> Roles (Cross-cutting / Access Control)
+    </h2>
+    <p class="text-sm text-slate-700 mb-4">
+      entity / feature の両方を横断する access control。<span class="kbd">object_constraints[].access_predicate_expr</span> が entities の policy predicate の source となる。
+    </p>
+
+    <div class="card overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wide">
+          <tr>
+            <th class="text-left px-3 py-2">role_id</th>
+            <th class="text-left px-3 py-2">name</th>
+            <th class="text-left px-3 py-2">scope</th>
+            <th class="text-right px-3 py-2">object_constraints</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="px-3 py-2 mono text-xs">R-001</td><td class="px-3 py-2">platform_admin</td><td class="px-3 py-2 text-slate-600">global</td><td class="px-3 py-2 text-right mono">all</td></tr>
+          <tr><td class="px-3 py-2 mono text-xs">R-002</td><td class="px-3 py-2">account_owner</td><td class="px-3 py-2 text-slate-600">account</td><td class="px-3 py-2 text-right mono">5</td></tr>
+          <tr><td class="px-3 py-2 mono text-xs">R-003</td><td class="px-3 py-2">workspace_admin</td><td class="px-3 py-2 text-slate-600">workspace</td><td class="px-3 py-2 text-right mono">4</td></tr>
+          <tr><td class="px-3 py-2 mono text-xs">R-004</td><td class="px-3 py-2">workspace_member</td><td class="px-3 py-2 text-slate-600">workspace</td><td class="px-3 py-2 text-right mono">4</td></tr>
+          <tr><td class="px-3 py-2 mono text-xs">R-005</td><td class="px-3 py-2">client_viewer</td><td class="px-3 py-2 text-slate-600">workspace (read-only)</td><td class="px-3 py-2 text-right mono">2</td></tr>
+          <tr><td class="px-3 py-2 mono text-xs">R-006</td><td class="px-3 py-2">guest</td><td class="px-3 py-2 text-slate-600">public</td><td class="px-3 py-2 text-right mono">2</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <details class="card mt-4">
+      <summary class="px-4 py-3 flex items-center gap-2 font-semibold">
+        <i data-lucide="chevron-right" class="w-4 h-4 chev"></i>
+        object_constraints (17 件) preview
+      </summary>
+      <ul class="px-5 py-3 border-t border-slate-100 text-xs space-y-1 list-disc list-inside text-slate-700">
+        <li><span class="mono">R-002 / E-003 Account</span> — owned_by_self</li>
+        <li><span class="mono">R-002 / E-005 Workspace</span> — owned_by_account</li>
+        <li><span class="mono">R-003 / E-005 Workspace</span> — owned_by_workspace</li>
+        <li><span class="mono">R-003 / E-007 AIEmployee</span> — owned_by_workspace</li>
+        <li><span class="mono">R-004 / E-008 Task</span> — assigned_to_self_or_workspace</li>
+        <li>... 残り 12 件は <a class="text-eb-600 underline" href="roles.json">roles.json</a> 参照</li>
+      </ul>
+    </details>
+  </section>
+
+  <!-- Screens -->
+  <section id="screens" class="section-anchor mb-10">
+    <h2 class="text-xl font-bold mb-4 pb-2 border-b-2 border-slate-900 flex items-center gap-2">
+      <i data-lucide="layout-dashboard" class="w-5 h-5 text-eb-500"></i> Screens (UI) — 64 / 17 categories
+    </h2>
+    <p class="text-sm text-slate-700 mb-4">
+      entity / feature / role が固まってから UI を決める。各 screen に <span class="kbd">mock_path</span> / <span class="kbd">meta_tags</span> / <span class="kbd">h1_text</span> / <span class="kbd">section_h2_texts</span> / <span class="kbd">kpi_labels</span> を明示。
+    </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      <!-- Category cards -->
+      <a href="../../mocks/2026-05-15_v3/auth/" class="card p-3 hover:border-eb-500 transition-colors">
+        <div class="flex items-center gap-2 font-semibold"><i data-lucide="lock" class="w-4 h-4 text-eb-500"></i> auth</div>
+        <div class="text-xs text-slate-500 mt-1">login / signup / mfa / oauth · <span class="mono">~6 screens</span></div>
+      </a>
+      <a href="../../mocks/2026-05-15_v3/onboarding/" class="card p-3 hover:border-eb-500 transition-colors">
+        <div class="flex items-center gap-2 font-semibold"><i data-lucide="rocket" class="w-4 h-4 text-eb-500"></i> onboarding</div>
+        <div class="text-xs text-slate-500 mt-1">welcome / profile / workspace setup · <span class="mono">~3 screens</span></div>
+      </a>
+      <a href="../../mocks/2026-05-15_v3/account/" class="card p-3 hover:border-eb-500 transition-colors">
+        <div class="flex items-center gap-2 font-semibold"><i data-lucide="user-circle" class="w-4 h-4 text-eb-500"></i> account</div>
+        <div class="text-xs text-slate-500 mt-1">profile / billing / api-keys · <span class="mono">~4 screens</span></div>
+      </a>
+      <a href="../../mocks/2026-05-15_v3/workspace/" class="card p-3 hover:border-eb-500 transition-colors">
+        <div class="flex items-center gap-2 font-semibold"><i data-lucide="briefcase" class="w-4 h-4 text-eb-500"></i> workspace</div>
+        <div class="text-xs text-slate-500 mt-1">dashboard / members / settings · <span class="mono">~5 screens</span></div>
+      </a>
+      <a href="../../mocks/2026-05-15_v3/task/" class="card p-3 hover:border-eb-500 transition-colors">
+        <div class="flex items-center gap-2 font-semibold"><i data-lucide="list-checks" class="w-4 h-4 text-eb-500"></i> task</div>
+        <div class="text-xs text-slate-500 mt-1">kanban / detail / swarm DAG · <span class="mono">~6 screens</span></div>
+      </a>
+      <a href="../../mocks/2026-05-15_v3/spec/" class="card p-3 hover:border-eb-500 transition-colors">
+        <div class="flex items-center gap-2 font-semibold"><i data-lucide="file-text" class="w-4 h-4 text-eb-500"></i> spec</div>
+        <div class="text-xs text-slate-500 mt-1">hearing / requirements / architecture · <span class="mono">~5 screens</span></div>
+      </a>
+      <a href="../../mocks/2026-05-15_v3/ai/" class="card p-3 hover:border-eb-500 transition-colors">
+        <div class="flex items-center gap-2 font-semibold"><i data-lucide="bot" class="w-4 h-4 text-eb-500"></i> ai</div>
+        <div class="text-xs text-slate-500 mt-1">chat / memory / agent settings · <span class="mono">~5 screens</span></div>
+      </a>
+      <a href="../../mocks/2026-05-15_v3/review/" class="card p-3 hover:border-eb-500 transition-colors">
+        <div class="flex items-center gap-2 font-semibold"><i data-lucide="check-square" class="w-4 h-4 text-eb-500"></i> review</div>
+        <div class="text-xs text-slate-500 mt-1">PR review / approval · <span class="mono">~3 screens</span></div>
+      </a>
+      <a href="../../mocks/2026-05-15_v3/ops/" class="card p-3 hover:border-eb-500 transition-colors">
+        <div class="flex items-center gap-2 font-semibold"><i data-lucide="activity" class="w-4 h-4 text-eb-500"></i> ops</div>
+        <div class="text-xs text-slate-500 mt-1">monitoring / costs / audit · <span class="mono">~4 screens</span></div>
+      </a>
+      <a href="../../mocks/2026-05-15_v3/client/" class="card p-3 hover:border-eb-500 transition-colors">
+        <div class="flex items-center gap-2 font-semibold"><i data-lucide="handshake" class="w-4 h-4 text-eb-500"></i> client</div>
+        <div class="text-xs text-slate-500 mt-1">client portal / delivery · <span class="mono">~3 screens</span></div>
+      </a>
+      <a href="../../mocks/2026-05-15_v3/email/" class="card p-3 hover:border-eb-500 transition-colors">
+        <div class="flex items-center gap-2 font-semibold"><i data-lucide="mail" class="w-4 h-4 text-eb-500"></i> email</div>
+        <div class="text-xs text-slate-500 mt-1">templates / notifications · <span class="mono">~3 screens</span></div>
+      </a>
+      <a href="../../mocks/2026-05-15_v3/export/" class="card p-3 hover:border-eb-500 transition-colors">
+        <div class="flex items-center gap-2 font-semibold"><i data-lucide="download" class="w-4 h-4 text-eb-500"></i> export</div>
+        <div class="text-xs text-slate-500 mt-1">archive / handover · <span class="mono">~2 screens</span></div>
+      </a>
+      <a href="../../mocks/2026-05-15_v3/moat/" class="card p-3 hover:border-eb-500 transition-colors">
+        <div class="flex items-center gap-2 font-semibold"><i data-lucide="shield" class="w-4 h-4 text-eb-500"></i> moat</div>
+        <div class="text-xs text-slate-500 mt-1">competitive moat / metrics · <span class="mono">~2 screens</span></div>
+      </a>
+      <a href="../../mocks/2026-05-15_v3/system/" class="card p-3 hover:border-eb-500 transition-colors">
+        <div class="flex items-center gap-2 font-semibold"><i data-lucide="settings" class="w-4 h-4 text-eb-500"></i> system</div>
+        <div class="text-xs text-slate-500 mt-1">platform admin / health · <span class="mono">~3 screens</span></div>
+      </a>
+      <a href="../../mocks/2026-05-15_v3/dialog/" class="card p-3 hover:border-eb-500 transition-colors">
+        <div class="flex items-center gap-2 font-semibold"><i data-lucide="message-square" class="w-4 h-4 text-eb-500"></i> dialog</div>
+        <div class="text-xs text-slate-500 mt-1">modal / confirm / wizard · <span class="mono">~4 screens</span></div>
+      </a>
+      <a href="../../mocks/2026-05-15_v3/design-system/" class="card p-3 hover:border-eb-500 transition-colors">
+        <div class="flex items-center gap-2 font-semibold"><i data-lucide="palette" class="w-4 h-4 text-eb-500"></i> design-system</div>
+        <div class="text-xs text-slate-500 mt-1">tokens / components · <span class="mono">~3 screens</span></div>
+      </a>
+      <a href="../../mocks/2026-05-15_v3/extras/" class="card p-3 hover:border-eb-500 transition-colors">
+        <div class="flex items-center gap-2 font-semibold"><i data-lucide="more-horizontal" class="w-4 h-4 text-eb-500"></i> extras</div>
+        <div class="text-xs text-slate-500 mt-1">misc / 404 / error · <span class="mono">~3 screens</span></div>
+      </a>
+    </div>
+
+    <div class="text-sm text-slate-600 text-center mt-4">
+      全 64 screen の <span class="kbd">mock_path</span> / <span class="kbd">meta_tags</span> / <span class="kbd">h1_text</span> 等は <a class="text-eb-600 underline" href="screens.json">screens.json</a> に詳細記載
+    </div>
+  </section>
+
+  <!-- Drift -->
+  <section id="drift" class="section-anchor mb-10">
+    <h2 class="text-xl font-bold mb-4 pb-2 border-b-2 border-slate-900 flex items-center gap-2">
+      <i data-lucide="radar" class="w-5 h-5 text-eb-500"></i> Drift Report (3-layer)
+    </h2>
+    <p class="text-sm text-slate-700 mb-4">
+      spec ↔ 実装 の差分を 3 layer で検出。検知された drift は <span class="kbd">legacy_drift_notes</span> に記録し、task-decomposition で <span class="pill pill-eb">REFACTOR</span> task を起票する。
+    </p>
+
+    <div class="card overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wide">
+          <tr>
+            <th class="text-left px-4 py-2">layer</th>
+            <th class="text-left px-4 py-2">対象</th>
+            <th class="text-right px-4 py-2">drift 件数</th>
+            <th class="text-left px-4 py-2">推奨 task assignment</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr>
+            <td class="px-4 py-2 font-medium">entity ↔ DB schema</td>
+            <td class="px-4 py-2 text-slate-600">entities.table_name / access_control_policies vs Supabase migrations</td>
+            <td class="px-4 py-2 text-right mono">TBD</td>
+            <td class="px-4 py-2 text-xs">winston (Architect) → devon REFACTOR</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-2 font-medium">API ↔ backend router</td>
+            <td class="px-4 py-2 text-slate-600">features.api_endpoints vs backend/routers/*.py</td>
+            <td class="px-4 py-2 text-right mono">TBD</td>
+            <td class="px-4 py-2 text-xs">preston (PM) → devon REFACTOR / NEW</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-2 font-medium">screen ↔ frontend component</td>
+            <td class="px-4 py-2 text-slate-600">screens.h1_text / kpi_labels / section_h2_texts vs frontend/app/**</td>
+            <td class="px-4 py-2 text-right mono">TBD</td>
+            <td class="px-4 py-2 text-xs">sally (PO) → mockup / devon REFACTOR</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="text-xs text-slate-500 mt-3">
+      <i data-lucide="info" class="w-3.5 h-3.5 inline -mt-0.5"></i>
+      drift detection は 4 JSON 完成後の lint runner pass で確定。各 JSON の <span class="kbd">legacy_drift_notes</span> field 集計値が入る。
+    </p>
+  </section>
+
+  <!-- Handoff -->
+  <section id="handoff" class="section-anchor mb-10">
+    <div class="card border-l-4 border-amber-400 bg-amber-50 p-6">
+      <h2 class="text-xl font-bold mb-3 flex items-center gap-2 text-amber-900">
+        <i data-lucide="arrow-right-circle" class="w-5 h-5"></i> architecture-design への引き継ぎ
+      </h2>
+      <ul class="text-sm text-slate-800 space-y-2 list-disc list-inside">
+        <li><strong>entities 48-55 件</strong>: <span class="mono">table_name</span> snake_case + <span class="mono">tenant_isolation</span> 必須。RLS policy 0 件の entity は明示 <span class="mono">[]</span></li>
+        <li><strong>feature の外部依存</strong>: AI Stack 3 layer (ADR-010 / ADR-012) — anthropic-python メイン / LiteLLM サブ / Mem0 + Obsidian + Constitution</li>
+        <li><strong>role 6 + object_constraints 17 件</strong>: <span class="mono">access_predicate_expr</span> を SQL/Cedar で実装可能な形まで降ろす</li>
+        <li><strong>API endpoint 数</strong>: features.api_endpoints の合計 (見込み 100+) を REST API 全数として architecture-design で消費</li>
+        <li><strong>multi-tenancy</strong>: <span class="mono">account_scoped</span> / <span class="mono">workspace_scoped</span> / <span class="mono">user_scoped</span> を 7 層アーキ (data layer) で再確認</li>
+      </ul>
+      <div class="mt-4 text-xs text-slate-600">
+        next phase: <span class="kbd">api-design</span> → <span class="kbd">task-decomposition</span> → <span class="kbd">implementation</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-200 pt-6 pb-12 text-sm text-slate-600">
+    <div class="flex flex-wrap gap-4 items-center justify-between">
+      <div class="flex flex-wrap gap-3 items-center">
+        <span class="inline-flex items-center gap-1"><i data-lucide="link" class="w-3.5 h-3.5"></i> 関連:</span>
+        <a class="text-eb-600 hover:underline" href="entities.json">entities.json</a>
+        <a class="text-eb-600 hover:underline" href="features.json">features.json</a>
+        <a class="text-eb-600 hover:underline" href="roles.json">roles.json</a>
+        <a class="text-eb-600 hover:underline" href="screens.json">screens.json</a>
+        <a class="text-eb-600 hover:underline" href="../2026-05-09_v1/functional-breakdown.html">v1 (legacy)</a>
+        <a class="text-eb-600 hover:underline" href="../../mocks/2026-05-15_v3/index.html">mocks v3 index</a>
+      </div>
+      <div class="text-xs text-slate-500">
+        Build-Factory v3 / ENGINE BASE / 2026-05-16
+      </div>
+    </div>
+  </footer>
+
+</main>
+
+<script>
+  if (window.lucide) { lucide.createIcons(); }
+</script>
+</body>
+</html>
