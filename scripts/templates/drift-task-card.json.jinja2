@@ -1,0 +1,36 @@
+{
+  "id": "{{ id }}",
+  "title": "{{ title }}",
+  "category": "infra",
+  "label": "FIX",
+  "feature_id": null,
+  "screen_ids": {{ screen_ids_json }},
+  "entity_ids": [],
+  "legacy_task_id": null,
+  "phase": "{{ phase }}",
+  "wave": "{{ target_wave }}",
+  "wave_priority": "Second",
+  "group": "{{ group }}",
+  "deliverable_layer": "{{ deliverable_layer }}",
+  "estimate_hours": 1,
+  "estimate_sessions": 1,
+  "depends_on": [],
+  "files_changed": {{ files_changed_json }},
+  "work_package_boundary": {
+    "editable": {{ editable_json }},
+    "shared_no_concurrent_edit": [],
+    "readonly": [],
+    "forbidden": []
+  },
+  "acceptance_criteria": {
+    "structural": {{ structural_json }},
+    "functional": {{ functional_json }},
+    "regression": {{ regression_json }}
+  },
+  "access_policies_required": [],
+  "spec_links": {{ spec_links_json }},
+  "audit_md_path": "{{ audit_md_path }}",
+  "branch": "{{ branch }}",
+  "drift_source": {{ drift_source_json }},
+  "risk_flags": ["drift_fix"]
+}

@@ -1,0 +1,32 @@
+{
+  "drift_count": 3,
+  "drifts": [
+    {
+      "rule_id": "mock-impl-diff",
+      "screen_id": "S-001",
+      "field": "feature-id",
+      "mock_value": "F-001",
+      "impl_value": "F-002",
+      "severity": "warning",
+      "kind": "value_mismatch"
+    },
+    {
+      "rule_id": "screens-API",
+      "screen_id": "S-002",
+      "field": "related_apis",
+      "mock_value": "GET /api/workspaces",
+      "impl_value": null,
+      "severity": "error",
+      "kind": "missing_in_impl"
+    },
+    {
+      "rule_id": "entity-table-naming",
+      "screen_id": "S-003",
+      "field": "table_name",
+      "mock_value": "workspaces",
+      "impl_value": "workspace",
+      "severity": "error",
+      "kind": "value_mismatch"
+    }
+  ]
+}

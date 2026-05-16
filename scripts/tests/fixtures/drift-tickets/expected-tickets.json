@@ -1,0 +1,228 @@
+{
+  "version": "v3",
+  "project": "Build-Factory",
+  "source_wave": "W1",
+  "target_wave": "W2",
+  "generated_at": "2026-05-16",
+  "summary": {
+    "total_tasks": 3,
+    "by_deliverable_layer": {
+      "ui": 1,
+      "backend": 2
+    },
+    "by_rule_id": {
+      "mock-impl-diff": 1,
+      "screens-API": 1,
+      "entity-table-naming": 1
+    }
+  },
+  "tasks": [
+    {
+      "id": "T-DRIFT-W1-001",
+      "title": "Fix drift: feature-id for S-001",
+      "category": "infra",
+      "label": "FIX",
+      "feature_id": null,
+      "screen_ids": [
+        "S-001"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": "Foundation",
+      "wave": "W2",
+      "wave_priority": "Second",
+      "group": "D",
+      "deliverable_layer": "ui",
+      "estimate_hours": 1,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "frontend/src/screens/S-001.tsx"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "frontend/src/screens/S-001.tsx"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": [],
+        "forbidden": []
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the violation persists, the system shall expose a drift entry matching the source: rule_id=mock-impl-diff, screen_id=S-001, field=feature-id, mock_value=\"F-001\", impl_value=\"F-002\", severity=warning, kind=value_mismatch"
+        ],
+        "functional": [
+          "UBIQUITOUS: The system shall align feature-id between mock(S-001) and impl(frontend/src/screens/S-001.tsx) to value: \"F-001\"",
+          "EVENT-DRIVEN: When the impl file is updated, the rule_id=mock-impl-diff lint check shall report 0 violations for this (screen_id, field) pair.",
+          "UNWANTED: If the alignment regresses, the CI gate shall fail with rule_id=mock-impl-diff drift re-detected."
+        ],
+        "regression": [
+          "bash scripts/lint-mock.sh PASS",
+          "python3 scripts/validate-tickets.py PASS",
+          "python3 scripts/lint-mock-impl-diff.py --strict PASS",
+          "bash scripts/pre-commit-check.sh PASS",
+          "pyright --strict 0 errors (backend) / tsc --noEmit 0 errors (frontend)",
+          "bash scripts/audit-md-check.sh <task_id> PASS"
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "skills/integration/references/v3-core.md#主軸-3-drift-fix--drift-fix-queue-流し込み",
+        "skills/integration/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-DRIFT-W1-001.md",
+      "branch": "claude/T-DRIFT-W1-001",
+      "drift_source": {
+        "source_wave": "W1",
+        "rule_id": "mock-impl-diff",
+        "screen_id": "S-001",
+        "field": "feature-id",
+        "mock_value": "F-001",
+        "impl_value": "F-002",
+        "severity": "warning",
+        "kind": "value_mismatch"
+      },
+      "risk_flags": [
+        "drift_fix"
+      ]
+    },
+    {
+      "id": "T-DRIFT-W1-002",
+      "title": "Fix drift: related_apis for S-002",
+      "category": "infra",
+      "label": "FIX",
+      "feature_id": null,
+      "screen_ids": [
+        "S-002"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": "Foundation",
+      "wave": "W2",
+      "wave_priority": "Second",
+      "group": "D",
+      "deliverable_layer": "backend",
+      "estimate_hours": 1,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "backend/app/routers/S-002.py"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/routers/S-002.py"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": [],
+        "forbidden": []
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the violation persists, the system shall expose a drift entry matching the source: rule_id=screens-API, screen_id=S-002, field=related_apis, mock_value=\"GET /api/workspaces\", impl_value=null, severity=error, kind=missing_in_impl"
+        ],
+        "functional": [
+          "UBIQUITOUS: The system shall align related_apis between mock(S-002) and impl(backend/app/routers/S-002.py) to value: \"GET /api/workspaces\"",
+          "EVENT-DRIVEN: When the impl file is updated, the rule_id=screens-API lint check shall report 0 violations for this (screen_id, field) pair.",
+          "UNWANTED: If the alignment regresses, the CI gate shall fail with rule_id=screens-API drift re-detected."
+        ],
+        "regression": [
+          "bash scripts/lint-mock.sh PASS",
+          "python3 scripts/validate-tickets.py PASS",
+          "python3 scripts/lint-mock-impl-diff.py --strict PASS",
+          "bash scripts/pre-commit-check.sh PASS",
+          "pyright --strict 0 errors (backend) / tsc --noEmit 0 errors (frontend)",
+          "bash scripts/audit-md-check.sh <task_id> PASS"
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "skills/integration/references/v3-core.md#主軸-3-drift-fix--drift-fix-queue-流し込み",
+        "skills/integration/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-DRIFT-W1-002.md",
+      "branch": "claude/T-DRIFT-W1-002",
+      "drift_source": {
+        "source_wave": "W1",
+        "rule_id": "screens-API",
+        "screen_id": "S-002",
+        "field": "related_apis",
+        "mock_value": "GET /api/workspaces",
+        "impl_value": null,
+        "severity": "error",
+        "kind": "missing_in_impl"
+      },
+      "risk_flags": [
+        "drift_fix"
+      ]
+    },
+    {
+      "id": "T-DRIFT-W1-003",
+      "title": "Fix drift: table_name for S-003",
+      "category": "infra",
+      "label": "FIX",
+      "feature_id": null,
+      "screen_ids": [
+        "S-003"
+      ],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": "Foundation",
+      "wave": "W2",
+      "wave_priority": "Second",
+      "group": "D",
+      "deliverable_layer": "backend",
+      "estimate_hours": 1,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "backend/app/models/S-003.py"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "backend/app/models/S-003.py"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": [],
+        "forbidden": []
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While the violation persists, the system shall expose a drift entry matching the source: rule_id=entity-table-naming, screen_id=S-003, field=table_name, mock_value=\"workspaces\", impl_value=\"workspace\", severity=error, kind=value_mismatch"
+        ],
+        "functional": [
+          "UBIQUITOUS: The system shall align table_name between mock(S-003) and impl(backend/app/models/S-003.py) to value: \"workspaces\"",
+          "EVENT-DRIVEN: When the impl file is updated, the rule_id=entity-table-naming lint check shall report 0 violations for this (screen_id, field) pair.",
+          "UNWANTED: If the alignment regresses, the CI gate shall fail with rule_id=entity-table-naming drift re-detected."
+        ],
+        "regression": [
+          "bash scripts/lint-mock.sh PASS",
+          "python3 scripts/validate-tickets.py PASS",
+          "python3 scripts/lint-mock-impl-diff.py --strict PASS",
+          "bash scripts/pre-commit-check.sh PASS",
+          "pyright --strict 0 errors (backend) / tsc --noEmit 0 errors (frontend)",
+          "bash scripts/audit-md-check.sh <task_id> PASS"
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "skills/integration/references/v3-core.md#主軸-3-drift-fix--drift-fix-queue-流し込み",
+        "skills/integration/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-DRIFT-W1-003.md",
+      "branch": "claude/T-DRIFT-W1-003",
+      "drift_source": {
+        "source_wave": "W1",
+        "rule_id": "entity-table-naming",
+        "screen_id": "S-003",
+        "field": "table_name",
+        "mock_value": "workspaces",
+        "impl_value": "workspace",
+        "severity": "error",
+        "kind": "value_mismatch"
+      },
+      "risk_flags": [
+        "drift_fix"
+      ]
+    }
+  ]
+}
