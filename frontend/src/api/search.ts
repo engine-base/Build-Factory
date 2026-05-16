@@ -1,221 +1,191 @@
 /**
- * T-V3-C-06 / F-024 / S-006: Typed client for the account dashboard endpoint.
+ * T-V3-C-11 / F-024: Typed client for GET /api/search (Global Search Cmd+K).
  *
- * Backend contract:
- *   backend/routers/accounts.py::get_accounts_by_id_dashboard (T-V3-B-27)
- *   backend/services/account_dashboard.py::get_account_dashboard
- *   docs/api-design/2026-05-16_v3/openapi.yaml#/paths/~1api~1accounts~1{id}~1dashboard
+ * Backend contract: backend/routers/search.py::search (T-V3-B-27 / T-V3-B-SEARCH-01).
+ * OpenAPI: docs/api-design/2026-05-16_v3/openapi.yaml#/api/search
  *
- * 3-tier AC mapping (T-V3-C-06):
- *   functional.AC-F1 → `getAccountDashboard()` performs GET on the canonical
- *                      endpoint, returning the typed {@link AccountDashboardResponse}.
- *   functional.AC-F2 → 4xx/5xx → throws {@link DashboardApiError} whose
- *                      `toUserMessage()` references the failing endpoint and
- *                      never embeds server stack traces.
- *   functional.AC-F3 → caller receives an aggregate that the backend computes
- *                      across every workspace the caller belongs to inside the
- *                      account (validated server-side).
- *   functional.AC-F4 → 401 + code === "session_expired" → throws
- *                      {@link SessionExpiredError} so the UI can render the
- *                      S-054 dialog and preserve any in-flight form data in
- *                      localStorage.
- *
- * Co-located with the future global search endpoints documented in F-024.
+ * Errors follow the project-wide {detail: {code, message}} contract used by the
+ * FastAPI backend. The thrown SearchApiError surfaces a non-technical message
+ * for the UI toast while preserving the failing endpoint reference, never
+ * leaking server stack traces (AC-F2).
  */
+import type { ReadonlyURLSearchParams } from "next/navigation";
 
-export const ACCOUNT_DASHBOARD_ENDPOINT_PATTERN =
-  "/api/accounts/{id}/dashboard";
+export const SEARCH_ENDPOINT = "/api/search";
 
-/** Build the canonical endpoint path for the given account id. */
-export function accountDashboardEndpoint(accountId: string | number): string {
-  // We intentionally do NOT validate the id here — the backend returns 422 on
-  // bad shape so the caller can render the canonical endpoint inside a toast.
-  return `/api/accounts/${encodeURIComponent(String(accountId))}/dashboard`;
+/** Search hit kind — must stay in sync with openapi.yaml#/components/schemas/SearchHit.kind. */
+export const SEARCH_HIT_KINDS = [
+  "workspace",
+  "task",
+  "spec",
+  "mock",
+  "ai_employee",
+  "skill",
+  "audit_log",
+] as const;
+export type SearchHitKind = (typeof SEARCH_HIT_KINDS)[number];
+
+/** Categories accepted by GET /api/search?category=. */
+export const SEARCH_CATEGORIES = [
+  "tasks",
+  "artifacts",
+  "knowledge",
+  "audit",
+] as const;
+export type SearchCategory = (typeof SEARCH_CATEGORIES)[number];
+
+export interface SearchHit {
+  /** Stable id of the underlying resource (uuid / numeric / route key). */
+  id: string;
+  /** Resource type — drives icon + group heading on S-011. */
+  kind: SearchHitKind | string;
+  /** Display title shown on the first line of the hit row. */
+  title: string;
+  /** Optional excerpt (FTS / vector snippet). */
+  snippet?: string;
+  /** Deep-link URL the UI navigates to on Enter. */
+  url?: string;
+  /** Combined FTS + vector ranking score (AC-F3, openapi `score`). */
+  score?: number;
 }
 
-/** Per-workspace KPI row aggregated by the backend. */
-export interface DashboardWorkspaceSummary {
-  /** Workspace id (numeric in the local backend, UUID-shaped in production). */
-  id: number | string;
-  /** Display name (verbatim from the workspaces table). */
-  name: string;
-  /** Lifecycle status — running / review / idle / archived etc. */
-  status?: string | null;
-  /** Caller's role inside the workspace. */
-  role?: string | null;
-  /** 0..1 phase progress ratio. */
-  progress: number;
-  /** Completed task count in the workspace. */
-  completed_tasks: number;
-  /** Currently running session count. */
-  running_sessions: number;
-  /** Monthly cost in JPY (server pre-aggregated, no client-side currency math). */
-  monthly_cost_jpy: number;
-  /** Pending approval count (Pending Reviews KPI source). */
-  pending_approvals: number;
+export interface SearchResponse {
+  hits: SearchHit[];
+  total: number;
+  /** Backend returns a `{category: count}` map but openapi descriptor allows any object. */
+  categories?: Record<string, number> | unknown;
+  /** Echoes back the normalized query (backend lower-cased / trimmed). */
+  query?: string;
+  /** Remaining tokens in the 60 req/min rate-limit window. */
+  rate_limit_remaining?: number;
 }
 
-/** Account-level KPI aggregate covering every workspace the caller belongs to. */
-export interface DashboardAccountKpi {
-  workspace_count: number;
-  total_progress: number;
-  completed_tasks: number;
-  running_sessions: number;
-  monthly_cost_jpy: number;
-  pending_approvals: number;
-}
-
-/** Shape returned by GET /api/accounts/{id}/dashboard. */
-export interface AccountDashboardResponse {
-  account_id: number | string;
-  workspaces: DashboardWorkspaceSummary[];
-  kpi: DashboardAccountKpi;
-  computed_at: number;
-  duration_ms: number;
-}
-
-/** Backend FastAPI error envelope: `{detail: {code, message, errors?}}`. */
-interface BackendErrorEnvelope {
-  detail?:
-    | string
-    | {
-        code?: string;
-        message?: string;
-        errors?: unknown;
-      };
-}
-
-/** Thrown for any non-2xx response from the dashboard endpoint. */
-export class DashboardApiError extends Error {
-  readonly code: string;
-  readonly status: number;
-  readonly endpoint: string;
+/** Thrown for any non-2xx response from GET /api/search. */
+export class SearchApiError extends Error {
+  code: string;
+  status: number;
+  endpoint: string;
 
   constructor(code: string, message: string, status: number, endpoint: string) {
     super(message);
-    this.name = "DashboardApiError";
+    this.name = "SearchApiError";
     this.code = code;
     this.status = status;
     this.endpoint = endpoint;
   }
 
   /**
-   * AC-F2: produce a non-technical, end-user friendly message tagged with the
-   * failing endpoint. Never embeds stack traces / SQL / exception class names.
+   * AC-F2: produce a non-technical user-facing message that references the
+   * failing endpoint without leaking server stack traces.
    */
   toUserMessage(): string {
-    const friendly = DASHBOARD_USER_MESSAGES[this.status] ?? DASHBOARD_USER_MESSAGES.default;
+    const friendly =
+      SEARCH_USER_MESSAGES[this.status] ?? SEARCH_USER_MESSAGES.default;
     return `${friendly} (${this.endpoint})`;
   }
 }
 
-/**
- * AC-F4 sentinel — backend returned 401 with `code === "session_expired"`.
- * Allows the UI to discriminate from other 401s (auth missing, signature
- * invalid) and render the dedicated S-054 dialog.
- */
-export class SessionExpiredError extends DashboardApiError {
-  constructor(endpoint: string, message = "session expired") {
-    super("session_expired", message, 401, endpoint);
-    this.name = "SessionExpiredError";
-  }
-}
-
-const DASHBOARD_USER_MESSAGES: Record<number | "default", string> = {
-  400: "リクエストに問題があります",
+const SEARCH_USER_MESSAGES: Record<number | "default", string> = {
+  400: "検索クエリが不正です",
   401: "サインインが必要です",
-  403: "このアカウントを閲覧する権限がありません",
-  404: "アカウントが見つかりませんでした",
-  422: "入力内容を確認してください",
-  429: "リクエストが多すぎます。しばらく待って再試行してください",
-  500: "サーバーで一時的なエラーが発生しました",
-  default: "ダッシュボードを読み込めませんでした",
+  403: "この検索を実行する権限がありません",
+  422: "検索条件を確認してください",
+  429: "検索回数の上限に達しました。しばらく待って再試行してください",
+  500: "検索に失敗しました。時間をおいて再試行してください",
+  default: "検索に失敗しました",
 };
 
-function resolveApiBase(apiBase?: string): string {
-  if (apiBase) return apiBase;
-  if (typeof process !== "undefined") {
-    const env = process.env ?? {};
-    if (env.NEXT_PUBLIC_API_URL) return env.NEXT_PUBLIC_API_URL;
-    if (env.NEXT_PUBLIC_API_BASE) return env.NEXT_PUBLIC_API_BASE;
+function resolveApiBase(opts: { apiBase?: string }): string {
+  if (opts.apiBase) return opts.apiBase;
+  if (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_API_BASE) {
+    return process.env.NEXT_PUBLIC_API_BASE;
   }
   return "http://localhost:8001";
 }
 
-export interface AccountDashboardRequestOptions {
+export interface SearchOptions {
+  query: string;
+  category?: SearchCategory | string | null;
+  limit?: number;
   apiBase?: string;
   signal?: AbortSignal;
-  /** Bearer token (required: endpoint demands `member` role). */
-  authToken?: string | null;
-  /** Test seam — defaults to the global `fetch`. */
-  fetchImpl?: typeof fetch;
 }
 
 /**
- * AC-F1: GET /api/accounts/{id}/dashboard via the typed client.
+ * AC-F1: GET /api/search?q={query}&category={cat} via the typed API client.
  *
- * Throws {@link DashboardApiError} on non-2xx (or
- * {@link SessionExpiredError} for the 401 + `session_expired` case) so the
- * caller can surface a toast / S-054 dialog without leaking server traces.
+ * Returns the raw SearchResponse on 2xx. Throws SearchApiError otherwise so
+ * the caller can decide how to surface AC-F2 toasts.
  */
-export async function getAccountDashboard(
-  accountId: string | number,
-  opts: AccountDashboardRequestOptions = {},
-): Promise<AccountDashboardResponse> {
-  const endpoint = accountDashboardEndpoint(accountId);
-  const baseUrl = resolveApiBase(opts.apiBase).replace(/\/$/, "");
-  const url = `${baseUrl}${endpoint}`;
-  const fetchImpl = opts.fetchImpl ?? fetch;
+export async function searchGlobal(
+  opts: SearchOptions,
+): Promise<SearchResponse> {
+  const base = resolveApiBase(opts);
+  const params = new URLSearchParams({ q: opts.query });
+  if (opts.category) params.set("category", String(opts.category));
+  if (typeof opts.limit === "number") params.set("limit", String(opts.limit));
 
-  const headers: Record<string, string> = {
-    Accept: "application/json",
-  };
-  if (opts.authToken) headers.Authorization = `Bearer ${opts.authToken}`;
+  const url = `${base}${SEARCH_ENDPOINT}?${params.toString()}`;
+  const endpointLabel = `${SEARCH_ENDPOINT}?q=…`;
 
-  let response: Response;
+  let resp: Response;
   try {
-    response = await fetchImpl(url, {
+    resp = await fetch(url, {
       method: "GET",
-      headers,
+      headers: { Accept: "application/json" },
       signal: opts.signal,
       credentials: "include",
     });
-  } catch (err) {
-    if (err instanceof Error && err.name === "AbortError") throw err;
-    // network-level failure (no response) — don't leak the cause to the UI.
-    throw new DashboardApiError(
-      "network_error",
+  } catch (e) {
+    if ((e as { name?: string }).name === "AbortError") {
+      throw e;
+    }
+    throw new SearchApiError(
+      "search.network_error",
       "network error",
       0,
-      endpoint,
+      endpointLabel,
     );
   }
 
-  if (!response.ok) {
-    let code = "UNKNOWN_ERROR";
-    let message = response.statusText || "request failed";
+  if (!resp.ok) {
+    let code = "search.unknown";
+    let message = `HTTP ${resp.status}`;
     try {
-      const envelope = (await response.json()) as BackendErrorEnvelope;
-      if (envelope && typeof envelope.detail === "object" && envelope.detail) {
-        if (typeof envelope.detail.code === "string") code = envelope.detail.code;
-        if (typeof envelope.detail.message === "string") {
-          message = envelope.detail.message;
-        }
-      } else if (typeof envelope?.detail === "string") {
-        message = envelope.detail;
+      const data = (await resp.json()) as {
+        detail?: { code?: string; message?: string } | string;
+      };
+      if (typeof data?.detail === "string") {
+        message = data.detail;
+      } else if (data?.detail && typeof data.detail === "object") {
+        if (data.detail.code) code = data.detail.code;
+        if (data.detail.message) message = data.detail.message;
       }
     } catch {
-      // intentionally ignore parse failure — keep generic fallback so we never
-      // forward raw HTML / stack-traced JSON to the UI (AC-F2).
+      // intentionally ignore — keep generic fallback (no server-trace leak).
     }
-
-    // AC-F4: 401 + code "session_expired" is a special sentinel for the UI to
-    // render the S-054 dialog instead of a generic toast.
-    if (response.status === 401 && code === "session_expired") {
-      throw new SessionExpiredError(endpoint, message);
-    }
-    throw new DashboardApiError(code, message, response.status, endpoint);
+    throw new SearchApiError(code, message, resp.status, endpointLabel);
   }
 
-  return (await response.json()) as AccountDashboardResponse;
+  return (await resp.json()) as SearchResponse;
+}
+
+/** Helper for tests / URL deep-links: build the same querystring used by `searchGlobal`. */
+export function buildSearchSearchParams(
+  query: string,
+  category?: SearchCategory | string | null,
+): URLSearchParams {
+  const params = new URLSearchParams({ q: query });
+  if (category) params.set("category", String(category));
+  return params;
+}
+
+/** Reverse of `buildSearchSearchParams`: read query + category from app router params. */
+export function parseSearchSearchParams(
+  searchParams: URLSearchParams | ReadonlyURLSearchParams,
+): { query: string; category: string | null } {
+  return {
+    query: searchParams.get("q") ?? "",
+    category: searchParams.get("category"),
+  };
 }
