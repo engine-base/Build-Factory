@@ -1,0 +1,107 @@
+{
+  "meta": {
+    "project": "Build-Factory",
+    "phase_target": "Foundation (Phase 0)",
+    "created_at": "2026-05-16",
+    "skill_version": "v3-2026-05-16-generalized",
+    "profile": "skills/task-decomposition/references/profiles/build-factory.md",
+    "total_tasks": 8
+  },
+  "context": {
+    "project_type": "SaaS dev platform (Build-Factory v3 dogfood + future external SaaS)",
+    "team_type": "並列 Claude Code session 30-50 (BF profile parallel capacity)",
+    "decomposition_granularity": "1 task = 1 file (script or workflow), 1.5-3h",
+    "done_definition": "3-tier AC (structural + functional + regression) 全 pass + 既存 ci.yml で merge (Phase 0 中)",
+    "deliverable_layer_order": "全 task foundation, Wave 0 内に閉じる"
+  },
+  "decision_log": [
+    {
+      "decision": "Vertical Slice を採用しない (1 task = 1 file)",
+      "reason": "Phase 0 = CI 基盤整備の特殊フェーズで、機能 1 件 = file 1 件。複数 file を組み合わせた slice 化のメリットなし",
+      "alternatives": ["全 6 script を 1 task にまとめる", "scripts/ と workflows/ を 2 task に分ける"],
+      "tradeoffs": "1 task = 1 file は粒度が細かいが、並列度を最大化 (6 並列) + レビュー単位明確化のメリットが上回る"
+    },
+    {
+      "decision": "Group A-1 / A-2 / A-3 の 3 sub-group 採用",
+      "reason": "A-1 = 単独 script / A-2 = Wave/Phase tooling / A-3 = workflow と性質が異なる。Group 内での dependency 構造が見える",
+      "alternatives": ["単一 Group A", "scripts vs workflows の 2 sub-group"],
+      "tradeoffs": "3 sub-group は管理項目が増えるが、A-2 内の互換性 (T-04 ↔ T-05) を明示できる"
+    },
+    {
+      "decision": "Wave 0a 内 priority 分け (First / Second)",
+      "reason": "T-07 が T-01/02/06 に依存する。これらを First wave で起動 → 完了即 T-07 start で全体時間短縮",
+      "alternatives": ["完全並列 (6 task 同時起動)"],
+      "tradeoffs": "Second wave の T-03/04/05 が遅延しても T-07 を block しない設計。完全並列でも OK だが、リソース余裕のあるタイミングで Second を起動可能"
+    },
+    {
+      "decision": "ci-v3.yml は既存 ci.yml と並走 (置換しない)",
+      "reason": "既存 187 task の dogfood 完了済 + Phase 10 進行中で ci.yml への regression リスクを避けたい。並走させて Phase 0 完成後に切替判断",
+      "alternatives": ["ci.yml を直接書き換え", "ci-v3.yml が ci.yml を呼び出す nested 構造"],
+      "tradeoffs": "並走は CI コスト 2x になるが、Phase 0 中の 1-2 週間限定。切替判断後に ci.yml 廃止可能"
+    },
+    {
+      "decision": "audit MD path は docs/audit/2026-05-16_v3/T-FOUNDATION-NN.md",
+      "reason": "BF profile の audit MD 命名規約 (date_v<N>/T-XXX.md) に準拠。2026-05-13_v2 が前運用、2026-05-16_v3 で新運用開始",
+      "alternatives": ["docs/audit/phase0/", "scripts/ 内に .audit.md"],
+      "tradeoffs": "date_v3 prefix で時系列が明確 / 既存運用と統一"
+    },
+    {
+      "decision": "self-test を全 script の Tier 2 STATE-DRIVEN で必須化",
+      "reason": "Phase 0 script は CI gate そのもの → 自己テストできないと信頼性ゼロ。fixture ベースで再現可能なテストを embed",
+      "alternatives": ["pytest 別 file で test", "self-test 不要"],
+      "tradeoffs": "self-test を script に embed すると script が肥大化するが、依存最小化で portable"
+    }
+  ],
+  "task_patterns": [
+    {
+      "pattern_name": "Foundation phase 全 task 並列 + A-3 のみ後段",
+      "applicable_to": "CI 基盤整備 / 全 task が単独 file / file mutex 衝突なし",
+      "description": "Wave 0a で N 並列 (A-1+A-2) → Wave 0b/0c で workflow (A-3) を sequential。並列度を最大化しつつ依存順序を保つ"
+    }
+  ],
+  "risk_flags": [
+    {
+      "task_id": "T-FOUNDATION-07",
+      "risk_type": "max_dependency",
+      "description": "T-01/02/06 の 3 task に依存。1 件遅延で T-07 着手遅延 → Phase 1 開始遅延",
+      "mitigation": "Wave 0a 内 First priority で T-01/02/06 を最優先実行。完成即 T-07 着手"
+    },
+    {
+      "task_id": "T-FOUNDATION-08",
+      "risk_type": "gh_token_scope",
+      "description": "GitHub Actions の standard token (GITHUB_TOKEN) で `pull-requests: write` + `contents: write` が organization 設定で許可されているか不明",
+      "mitigation": "T-08 着手前に organization settings 確認 / 必要なら PAT (secrets.PAT_TOKEN) に切替"
+    },
+    {
+      "task_id": "T-FOUNDATION-04 / T-FOUNDATION-05",
+      "risk_type": "schema_compat",
+      "description": "T-04 が消費する drift entry schema と T-05 が生成する drift entry schema の field 名整合性",
+      "mitigation": "両 task 着手前に共通 schema doc (例: docs/specs/drift-entry-schema.md) を 1 件先行作成 / T-02 出力との 3-way 一致"
+    }
+  ],
+  "research": {
+    "sources": [],
+    "findings": [
+      "BF profile parallel capacity 30-50 に対し本 Phase 0 は 6 並列で余裕",
+      "actionlint は GitHub Actions YAML の syntax / common mistake を検出する standard tool (BF profile 既使用)",
+      "BeautifulSoup4 は frontend/package.json の依存とは別 (Python 側のみ)、backend/pyproject.toml に追加必要"
+    ],
+    "research_date": "2026-05-16"
+  },
+  "next_steps": {
+    "immediate": [
+      "audit MD template 8 件を docs/audit/2026-05-16_v3/ に生成 (T-FOUNDATION-NN.md)",
+      "本 task 分解結果を commit + push + PR + merge to main",
+      "Wave 0a First priority (T-01/02/06) を 3 並列 subagent で起動",
+      "T-01/02/06 完了直後に Second priority (T-03/04/05) を 3 並列起動",
+      "全 Wave 0a 完了後に T-07 起動",
+      "T-07 完了後に T-08 起動",
+      "Phase 0 完了確認 → Phase 1 解禁"
+    ],
+    "long_term": [
+      "Phase 1 で 187 task を再運用 (今度は v3 で / 8 CI gate auto-merge 経由)",
+      "Phase 1.5 で REFACTOR (drift fix 残)",
+      "Phase 2 で SaaS 外部公開"
+    ]
+  }
+}

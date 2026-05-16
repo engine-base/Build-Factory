@@ -1,0 +1,500 @@
+{
+  "version": "v3",
+  "project": "Build-Factory",
+  "profile": "skills/task-decomposition/references/profiles/build-factory.md",
+  "phase_target": "Foundation (Phase 0)",
+  "created_at": "2026-05-16",
+  "summary": {
+    "total_tasks": 8,
+    "by_group": {"A-1": 2, "A-2": 4, "A-3": 2},
+    "by_category": {"frontend": 0, "backend": 0, "db": 0, "test": 0, "infra": 8, "cleanup": 0},
+    "by_label": {"NEW": 8, "REFACTOR": 0, "REUSE": 0, "ARCHIVE": 0, "FIX": 0},
+    "by_deliverable_layer": {"foundation": 8, "backend": 0, "ui": 0, "polish": 0},
+    "by_phase": {"Foundation": 8},
+    "by_wave": {"0a": 6, "0b": 1, "0c": 1},
+    "total_estimate_hours": 18,
+    "total_estimate_sessions": 8,
+    "parallel_capacity_used": 6,
+    "real_time_estimate_hours": 7.5
+  },
+  "tasks": [
+    {
+      "id": "T-FOUNDATION-01",
+      "title": "scripts/audit-md-check.sh (Gate #4 / pre-flight audit MD 存在チェック)",
+      "category": "infra",
+      "label": "NEW",
+      "feature_id": null,
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": "Foundation",
+      "wave": "0a",
+      "wave_priority": "First",
+      "group": "A-1",
+      "deliverable_layer": "foundation",
+      "estimate_hours": 1.5,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "scripts/audit-md-check.sh (new)",
+        "scripts/tests/fixtures/audit-md-valid.md (new)",
+        "scripts/tests/fixtures/audit-md-missing-section.md (new)",
+        "scripts/tests/fixtures/audit-md-generic-phrase.md (new)",
+        "scripts/tests/test-audit-md-check.sh (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "scripts/audit-md-check.sh",
+          "scripts/tests/fixtures/audit-md-valid.md",
+          "scripts/tests/fixtures/audit-md-missing-section.md",
+          "scripts/tests/fixtures/audit-md-generic-phrase.md",
+          "scripts/tests/test-audit-md-check.sh"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": ["docs/audit/2026-05-13_v2/_template.md"],
+        "forbidden": []
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "EVENT-DRIVEN: When `audit-md-check.sh <task_id>` is invoked with an existing valid audit MD at docs/audit/2026-05-16_v3/T-<task_id>.md, the system shall exit with code 0",
+          "UNWANTED: If the audit MD file does not exist for the given task_id, the system shall exit with code 1 and emit `audit MD not found: <path>` to stderr",
+          "UNWANTED: If the audit MD lacks one or more of the three required sections (## Tier 1: Structural / ## Tier 2: Functional / ## Tier 3: Regression), the system shall exit with code 2 and list missing sections",
+          "UNWANTED: If the audit MD contains a generic phrase matching the regex `shall implement T-[A-Z0-9-]+ as specified`, the system shall exit with code 2 and emit `generic phrase detected at line N`",
+          "OPTIONAL: Where the --self-test flag is provided, the system shall run 4 internal fixture cases and exit 0 only if all fixtures behave as expected",
+          "OPTIONAL: Where --all flag is provided, the system shall iterate all task_ids in docs/task-decomposition/*/tickets.json and aggregate exit codes (worst case wins)"
+        ],
+        "regression": [
+          "bash scripts/audit-md-check.sh --self-test PASS (4 fixture cases)",
+          "shellcheck scripts/audit-md-check.sh 0 warnings (severity >= warning)",
+          "bash scripts/pre-commit-check.sh PASS",
+          "bash scripts/lint-mock.sh 12/12 OK",
+          "python3 scripts/validate-tickets.py PASS for this task entry",
+          "docs/audit/2026-05-16_v3/T-FOUNDATION-01.md exists, 3 sections present, no generic phrase (self-application)"
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "skills/distributed-dev/references/v3-core.md",
+        "skills/integration/references/v3-core.md",
+        "skills/task-decomposition/references/profiles/build-factory.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-FOUNDATION-01.md",
+      "branch": "claude/T-FOUNDATION-01",
+      "risk_flags": ["blocker_for: T-FOUNDATION-07"]
+    },
+    {
+      "id": "T-FOUNDATION-02",
+      "title": "scripts/lint-mock-impl-diff.py (Gate #8 / lint #17 mock-impl-diff)",
+      "category": "infra",
+      "label": "NEW",
+      "feature_id": null,
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": "Foundation",
+      "wave": "0a",
+      "wave_priority": "First",
+      "group": "A-1",
+      "deliverable_layer": "foundation",
+      "estimate_hours": 2.5,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "scripts/lint-mock-impl-diff.py (new)",
+        "scripts/tests/fixtures/mock-impl-diff/mock-aligned.html (new)",
+        "scripts/tests/fixtures/mock-impl-diff/mock-drifted.html (new)",
+        "scripts/tests/fixtures/mock-impl-diff/impl-aligned.tsx (new)",
+        "scripts/tests/fixtures/mock-impl-diff/impl-drifted.tsx (new)",
+        "scripts/tests/test-lint-mock-impl-diff.py (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "scripts/lint-mock-impl-diff.py",
+          "scripts/tests/fixtures/mock-impl-diff/mock-aligned.html",
+          "scripts/tests/fixtures/mock-impl-diff/mock-drifted.html",
+          "scripts/tests/fixtures/mock-impl-diff/impl-aligned.tsx",
+          "scripts/tests/fixtures/mock-impl-diff/impl-drifted.tsx",
+          "scripts/tests/test-lint-mock-impl-diff.py"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": ["docs/mocks/2026-05-09_v1/", "frontend/src/"],
+        "forbidden": []
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The system shall extract 5 meta fields (screen-id / feature-id / task-ids / entities / phase) from each mock HTML in --mock-dir",
+          "EVENT-DRIVEN: When the impl file at <impl-dir>/screens/<screen-id>.tsx does not exist, the system shall record a drift entry with error: 'missing_in_impl' and severity: 'error'",
+          "EVENT-DRIVEN: When the meta value differs between mock and impl, the system shall record a drift entry {screen_id, field, mock_value, impl_value, severity: 'warning'}",
+          "OPTIONAL: Where the --strict flag is provided and drift count > 0, the system shall exit with code 1",
+          "UNWANTED: If the mock HTML lacks a required meta field, the system shall record {screen_id, field, error: 'missing_in_mock'} and exit 1 (strict mode)",
+          "STATE-DRIVEN: While --self-test is active, the system shall run 4 fixture cases (aligned / drifted / missing_impl / missing_meta) and exit 0 only if all match expectation"
+        ],
+        "regression": [
+          "python3 scripts/lint-mock-impl-diff.py --self-test PASS (4 fixture cases)",
+          "pyright --strict scripts/lint-mock-impl-diff.py 0 errors",
+          "ruff check scripts/lint-mock-impl-diff.py 0 warnings",
+          "bash scripts/pre-commit-check.sh PASS",
+          "python3 scripts/validate-tickets.py PASS for this task entry",
+          "audit_md_path に Tier 1-3 逐語"
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "skills/functional-breakdown/references/v3-core.md",
+        "skills/test-verification/references/v3-core.md",
+        "docs/mocks/2026-05-09_v1/"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-FOUNDATION-02.md",
+      "branch": "claude/T-FOUNDATION-02",
+      "risk_flags": ["blocker_for: T-FOUNDATION-07"]
+    },
+    {
+      "id": "T-FOUNDATION-03",
+      "title": "scripts/check-wave-mutex.py (Wave 起動前の file-level mutex 検証)",
+      "category": "infra",
+      "label": "NEW",
+      "feature_id": null,
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": "Foundation",
+      "wave": "0a",
+      "wave_priority": "Second",
+      "group": "A-2",
+      "deliverable_layer": "foundation",
+      "estimate_hours": 2,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "scripts/check-wave-mutex.py (new)",
+        "scripts/tests/fixtures/wave-mutex/clean.json (new)",
+        "scripts/tests/fixtures/wave-mutex/conflict.json (new)",
+        "scripts/tests/fixtures/wave-mutex/shared-misuse.json (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "scripts/check-wave-mutex.py",
+          "scripts/tests/fixtures/wave-mutex/clean.json",
+          "scripts/tests/fixtures/wave-mutex/conflict.json",
+          "scripts/tests/fixtures/wave-mutex/shared-misuse.json"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": ["docs/task-decomposition/"],
+        "forbidden": []
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The system shall parse work_package_boundary (editable / shared_no_concurrent_edit / readonly / forbidden) from each task in the specified Wave",
+          "UNWANTED: If two or more tasks in the same Wave declare the same file in editable, the system shall record a mutex_violation entry with both task IDs and the conflicting file",
+          "UNWANTED: If a task declares a file in forbidden that another task in the same Wave declares in editable, the system shall record a forbidden_violation entry",
+          "EVENT-DRIVEN: When --strict is set and any violation is found, the system shall exit with code 1",
+          "UNWANTED: If tickets.json schema is invalid (missing required fields), the system shall exit 2 with 'invalid tickets schema' message",
+          "STATE-DRIVEN: While --self-test is active, the system shall verify 3 fixtures (clean / conflict / shared-misuse) behave as expected"
+        ],
+        "regression": [
+          "python3 scripts/check-wave-mutex.py --self-test PASS (3 fixtures)",
+          "pyright --strict 0 errors",
+          "ruff check 0 warnings",
+          "bash scripts/pre-commit-check.sh PASS",
+          "python3 scripts/validate-tickets.py PASS for this task entry",
+          "audit_md_path に Tier 1-3 逐語"
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": ["skills/distributed-dev/references/v3-core.md"],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-FOUNDATION-03.md",
+      "branch": "claude/T-FOUNDATION-03",
+      "risk_flags": []
+    },
+    {
+      "id": "T-FOUNDATION-04",
+      "title": "scripts/wave-integration-report.py (Wave 完了集計レポート生成)",
+      "category": "infra",
+      "label": "NEW",
+      "feature_id": null,
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": "Foundation",
+      "wave": "0a",
+      "wave_priority": "Second",
+      "group": "A-2",
+      "deliverable_layer": "foundation",
+      "estimate_hours": 2.5,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "scripts/wave-integration-report.py (new)",
+        "scripts/templates/wave-integration-report.md.jinja2 (new)",
+        "scripts/tests/fixtures/wave-report/small-3task.json (new)",
+        "scripts/tests/fixtures/wave-report/large-30task.json (new)",
+        "scripts/tests/fixtures/wave-report/expected-small.md (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "scripts/wave-integration-report.py",
+          "scripts/templates/wave-integration-report.md.jinja2",
+          "scripts/tests/fixtures/wave-report/small-3task.json",
+          "scripts/tests/fixtures/wave-report/large-30task.json",
+          "scripts/tests/fixtures/wave-report/expected-small.md"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": [".claude/branches/"],
+        "forbidden": []
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "STATE-DRIVEN: While rendering Markdown, the system shall include the sections defined in skills/integration/references/v3-core.md Wave Integration Report スキーマ (概要 / auto-merge 集計 / 連続失敗の原因分析 / drift 検出 / 統合先 git state)"
+        ],
+        "functional": [
+          "UBIQUITOUS: The system shall categorize each task into exactly one of {auto-merged / retried / escalated / rolled-back} based on branch-package.json.final_state",
+          "UBIQUITOUS: The system shall sum task counts by deliverable_layer field (foundation / backend / ui / polish)",
+          "EVENT-DRIVEN: When a task has failure_count >= 3, the system shall include it in the failure analysis section with gate ID and error reason",
+          "EVENT-DRIVEN: When drift entries exist in <branch-packages>/_drift.json, the system shall include drift count by rule_id; when the file is absent, the system shall report drift = 0 with a stderr warning",
+          "OPTIONAL: Where --format json is provided, the system shall emit the same data as JSON instead of Markdown",
+          "STATE-DRIVEN: While --self-test is active, the system shall verify 2 fixture cases produce reports byte-identical to expected goldens"
+        ],
+        "regression": [
+          "python3 scripts/wave-integration-report.py --self-test PASS (2 fixtures)",
+          "pyright --strict 0 errors",
+          "ruff check 0 warnings",
+          "bash scripts/pre-commit-check.sh PASS",
+          "python3 scripts/validate-tickets.py PASS",
+          "audit_md_path に Tier 1-3 逐語"
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": ["skills/integration/references/v3-core.md"],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-FOUNDATION-04.md",
+      "branch": "claude/T-FOUNDATION-04",
+      "risk_flags": ["schema_compat: T-FOUNDATION-05 (drift entry field 名)"]
+    },
+    {
+      "id": "T-FOUNDATION-05",
+      "title": "scripts/generate-drift-tickets.py (lint 違反 → drift task 自動生成)",
+      "category": "infra",
+      "label": "NEW",
+      "feature_id": null,
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": "Foundation",
+      "wave": "0a",
+      "wave_priority": "Second",
+      "group": "A-2",
+      "deliverable_layer": "foundation",
+      "estimate_hours": 2,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "scripts/generate-drift-tickets.py (new)",
+        "scripts/templates/drift-task-card.json.jinja2 (new)",
+        "scripts/tests/fixtures/drift-tickets/lint-output-3-violations.json (new)",
+        "scripts/tests/fixtures/drift-tickets/expected-tickets.json (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "scripts/generate-drift-tickets.py",
+          "scripts/templates/drift-task-card.json.jinja2",
+          "scripts/tests/fixtures/drift-tickets/lint-output-3-violations.json",
+          "scripts/tests/fixtures/drift-tickets/expected-tickets.json"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": ["docs/task-decomposition/"],
+        "forbidden": []
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The system shall read lint violations from --lint-output JSON, expecting fields rule_id / screen_id / mock_value / impl_value",
+          "EVENT-DRIVEN: When a violation is found, the system shall emit one drift task with id: T-DRIFT-W<source>-<seq>, target_wave: W<target>, and deliverable_layer derived from rule_id (mock-impl-diff → ui / screens-API → backend / entity-table-naming → backend)",
+          "UBIQUITOUS: The system shall generate a 3-tier AC seed where Tier 1 contains the violation diff verbatim, Tier 2 specifies the alignment requirement in EARS UBIQUITOUS form, and Tier 3 contains the standard regression gate set from the project profile",
+          "UNWANTED: If the lint output JSON schema is invalid (missing required fields), the system shall exit 1 with 'invalid lint output schema' and refuse to generate",
+          "UNWANTED: If a violation has an unknown rule_id, the system shall emit a warning to stderr and skip that entry while continuing with the rest",
+          "STATE-DRIVEN: While --self-test is active, the system shall produce output byte-identical to the expected golden file"
+        ],
+        "regression": [
+          "python3 scripts/generate-drift-tickets.py --self-test PASS",
+          "pyright --strict 0 errors",
+          "ruff check 0 warnings",
+          "生成された drift-tickets.json が python3 scripts/validate-tickets.py --check-file <path> PASS",
+          "bash scripts/pre-commit-check.sh PASS",
+          "audit_md_path に Tier 1-3 逐語"
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "skills/integration/references/v3-core.md",
+        "skills/task-decomposition/references/v3-core.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-FOUNDATION-05.md",
+      "branch": "claude/T-FOUNDATION-05",
+      "risk_flags": ["schema_compat: T-FOUNDATION-02 (lint output field 名)"]
+    },
+    {
+      "id": "T-FOUNDATION-06",
+      "title": "scripts/check-phase-gate.py (Phase gate 機械判定)",
+      "category": "infra",
+      "label": "NEW",
+      "feature_id": null,
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": "Foundation",
+      "wave": "0a",
+      "wave_priority": "First",
+      "group": "A-2",
+      "deliverable_layer": "foundation",
+      "estimate_hours": 2.5,
+      "estimate_sessions": 1,
+      "depends_on": [],
+      "files_changed": [
+        "scripts/check-phase-gate.py (new)",
+        "scripts/templates/phase-gate-decision.json.jinja2 (new)",
+        "scripts/tests/fixtures/phase-gate/profile-all-pass.md (new)",
+        "scripts/tests/fixtures/phase-gate/profile-one-fail.md (new)"
+      ],
+      "work_package_boundary": {
+        "editable": [
+          "scripts/check-phase-gate.py",
+          "scripts/templates/phase-gate-decision.json.jinja2",
+          "scripts/tests/fixtures/phase-gate/profile-all-pass.md",
+          "scripts/tests/fixtures/phase-gate/profile-one-fail.md"
+        ],
+        "shared_no_concurrent_edit": [],
+        "readonly": ["skills/*/references/profiles/"],
+        "forbidden": []
+      },
+      "acceptance_criteria": {
+        "structural": [],
+        "functional": [
+          "UBIQUITOUS: The system shall accept --phase from {foundation, backend, ui, polish, release} and refuse other values with exit code 2 and 'unknown phase: <value>'",
+          "EVENT-DRIVEN: When a criterion's tool_command exits 0, the system shall record {name, status: 'green', evidence: <command output snippet up to 200 chars>}",
+          "EVENT-DRIVEN: When all criteria for the phase are green, the system shall set decision: 'OPEN_GATE' and exit 0",
+          "UNWANTED: If any criterion fails (non-zero exit or evidence file missing), the system shall set decision: 'BLOCKED', populate block_release_until with failing criteria list, and exit 1",
+          "EVENT-DRIVEN: When the profile lacks criteria for the requested phase, the system shall set decision: 'PENDING' and exit 0",
+          "STATE-DRIVEN: While --self-test is active, the system shall verify 2 fixtures (all-pass → OPEN_GATE / one-fail → BLOCKED) behave as expected"
+        ],
+        "regression": [
+          "python3 scripts/check-phase-gate.py --self-test PASS",
+          "pyright --strict 0 errors",
+          "ruff check 0 warnings",
+          "bash scripts/pre-commit-check.sh PASS",
+          "python3 scripts/validate-tickets.py PASS",
+          "audit_md_path に Tier 1-3 逐語"
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": ["skills/integration/references/v3-core.md"],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-FOUNDATION-06.md",
+      "branch": "claude/T-FOUNDATION-06",
+      "risk_flags": ["blocker_for: T-FOUNDATION-07"]
+    },
+    {
+      "id": "T-FOUNDATION-07",
+      "title": ".github/workflows/ci-v3.yml (8 CI gate を 4 段階 job で構成)",
+      "category": "infra",
+      "label": "NEW",
+      "feature_id": null,
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": "Foundation",
+      "wave": "0b",
+      "group": "A-3",
+      "deliverable_layer": "foundation",
+      "estimate_hours": 3,
+      "estimate_sessions": 1,
+      "depends_on": ["T-FOUNDATION-01", "T-FOUNDATION-02", "T-FOUNDATION-06"],
+      "files_changed": [".github/workflows/ci-v3.yml (new)"],
+      "work_package_boundary": {
+        "editable": [".github/workflows/ci-v3.yml"],
+        "shared_no_concurrent_edit": [],
+        "readonly": ["scripts/"],
+        "forbidden": [".github/workflows/ci.yml"]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "UBIQUITOUS: The workflow shall declare exactly 5 jobs named gate-foundation / gate-backend / gate-ui / gate-polish / gate-summary (matching the Foundation→Backend→UI→Polish order in skills/test-verification/references/v3-core.md)",
+          "STATE-DRIVEN: While gate-foundation is running, the system shall execute steps named lint-mock / validate-tickets / audit-md-check in order"
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When a PR is opened against main or synchronized, the workflow shall trigger and start gate-foundation",
+          "UNWANTED: If gate-foundation outputs passed != true, the system shall not start gate-backend (and subsequent gates)",
+          "EVENT-DRIVEN: When all 4 gates pass, the gate-summary job shall set outputs.passed: true and upload gate-summary artifact containing {passed: true, gates: [...]}",
+          "UNWANTED: If any gate exceeds its declared timeout (15/20/15/10 min), GitHub Actions shall cancel it and gate-summary shall set passed: false",
+          "STATE-DRIVEN: While the workflow is running, concurrency.cancel-in-progress: true shall cancel any prior run on the same ref"
+        ],
+        "regression": [
+          "actionlint .github/workflows/ci-v3.yml 0 errors",
+          "dry-run on the present PR で 4 gate 全 pass を確認",
+          "既存 .github/workflows/ci.yml の動作に regression なし (並走確認)",
+          "bash scripts/pre-commit-check.sh PASS",
+          "python3 scripts/validate-tickets.py PASS",
+          "audit_md_path に Tier 1-3 逐語"
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": [
+        "skills/test-verification/references/v3-core.md",
+        "skills/schedule-design/references/v3-core.md"
+      ],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-FOUNDATION-07.md",
+      "branch": "claude/T-FOUNDATION-07",
+      "risk_flags": ["blocker_for: T-FOUNDATION-08", "max_dependency: 3 (T-01/02/06)"]
+    },
+    {
+      "id": "T-FOUNDATION-08",
+      "title": ".github/workflows/auto-merge.yml (全 gate green で auto-merge + 連続 3 失敗 human エスカ)",
+      "category": "infra",
+      "label": "NEW",
+      "feature_id": null,
+      "screen_ids": [],
+      "entity_ids": [],
+      "legacy_task_id": null,
+      "phase": "Foundation",
+      "wave": "0c",
+      "group": "A-3",
+      "deliverable_layer": "foundation",
+      "estimate_hours": 2,
+      "estimate_sessions": 1,
+      "depends_on": ["T-FOUNDATION-07"],
+      "files_changed": [".github/workflows/auto-merge.yml (new)"],
+      "work_package_boundary": {
+        "editable": [".github/workflows/auto-merge.yml"],
+        "shared_no_concurrent_edit": [],
+        "readonly": [],
+        "forbidden": [".github/workflows/ci.yml", ".github/workflows/ci-v3.yml"]
+      },
+      "acceptance_criteria": {
+        "structural": [
+          "UBIQUITOUS: The workflow shall declare exactly 2 jobs: auto-merge and failure-counter",
+          "STATE-DRIVEN: While auto-merge is running, the system shall fetch artifact gate-summary from the corresponding ci-v3.yml run via actions/download-artifact@v4"
+        ],
+        "functional": [
+          "EVENT-DRIVEN: When ci-v3.yml completes with conclusion 'success' and gate-summary.json.passed == true, the workflow shall execute gh pr merge <PR> --auto --squash",
+          "EVENT-DRIVEN: When ci-v3.yml completes with conclusion 'failure', the workflow shall increment the PR's failure counter (label failure-1 → failure-2 → failure-3)",
+          "EVENT-DRIVEN: When the failure counter reaches 3, the workflow shall apply 'needs-human-review' label and assign the PR to a configured team",
+          "UNWANTED: If the PR has 'do-not-auto-merge' label, the system shall not auto-merge regardless of gate status",
+          "UNWANTED: If permissions: pull-requests: write is missing, the workflow shall fail with clear error message indicating missing permission"
+        ],
+        "regression": [
+          "actionlint .github/workflows/auto-merge.yml 0 errors",
+          "dry-run on a fixture PR (label simulation) で 3 連続失敗 → needs-human-review label 付与確認",
+          "dry-run on a fixture PR で全 gate green → auto-merge 動作確認",
+          "bash scripts/pre-commit-check.sh PASS",
+          "python3 scripts/validate-tickets.py PASS",
+          "audit_md_path に Tier 1-3 逐語"
+        ]
+      },
+      "access_policies_required": [],
+      "spec_links": ["skills/schedule-design/references/v3-core.md"],
+      "audit_md_path": "docs/audit/2026-05-16_v3/T-FOUNDATION-08.md",
+      "branch": "claude/T-FOUNDATION-08",
+      "risk_flags": ["completes_phase_0", "unlocks_phase_1", "gh_token_scope_verification_needed"]
+    }
+  ]
+}
