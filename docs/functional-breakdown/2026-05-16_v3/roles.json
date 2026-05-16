@@ -1,0 +1,3186 @@
+{
+  "meta": {
+    "project": "Build-Factory",
+    "version": "v3",
+    "created_at": "2026-05-16",
+    "skill": "functional-breakdown",
+    "phase": "STEP 2 — roles 拡張 (access_predicate_expr 付与)",
+    "v1_baseline": "docs/functional-breakdown/2026-05-09_v1/roles.json",
+    "predicate_language": "PostgreSQL RLS (USING / WITH CHECK)",
+    "matrix_size": "6 roles × 64 screens = 384 cells"
+  },
+  "roles": [
+    {
+      "id": "R-001",
+      "key": "account_owner",
+      "name": "Account Owner",
+      "description": "アカウント所有者・課金責任者・全権限。Build-Factory では `accounts.owner_user_id = auth.uid()` または `account_members.role = 'owner'` で判定",
+      "scope": "account",
+      "user_persona": "高本まさと (Build-Factory CEO / 1 人会社) と外部受託先 SaaS 契約者",
+      "default_users": [
+        "高本まさと"
+      ],
+      "permission_categories": {
+        "SELECT": [
+          "account.*",
+          "workspace.*",
+          "ai_employee.*",
+          "billing.*",
+          "cost.*",
+          "audit.*",
+          "knowledge.*"
+        ],
+        "INSERT": [
+          "workspace.create",
+          "member.invite",
+          "ai_employee.create",
+          "byok_key.add",
+          "constitution.create"
+        ],
+        "UPDATE": [
+          "account.settings",
+          "billing.method",
+          "workspace.*",
+          "role.change",
+          "constitution.publish"
+        ],
+        "DELETE": [
+          "workspace.delete",
+          "member.remove",
+          "account.transfer_owner"
+        ],
+        "EXECUTE": [
+          "session.run",
+          "swarm.run",
+          "delivery.approve",
+          "red_line.approve",
+          "owner.transfer"
+        ]
+      },
+      "decided_at": "2026-05-09",
+      "status": "decided"
+    },
+    {
+      "id": "R-002",
+      "key": "workspace_admin",
+      "name": "Workspace Admin",
+      "description": "WS 管理者・編集 / 削除 / 招待 / 権限変更可（攻め）",
+      "scope": "workspace",
+      "user_persona": "内部 PM / クライアント側 IT 責任者",
+      "permission_categories": {
+        "SELECT": [
+          "workspace.own",
+          "ai_employee.own",
+          "cost.own",
+          "audit.own",
+          "knowledge.own"
+        ],
+        "INSERT": [
+          "task.create",
+          "phase.create",
+          "member.invite",
+          "constitution.create",
+          "mock.create",
+          "spec.create"
+        ],
+        "UPDATE": [
+          "workspace.settings",
+          "task.*",
+          "spec.*",
+          "constitution.publish",
+          "role.change_within_ws",
+          "red_line.config",
+          "byok_key.workspace"
+        ],
+        "DELETE": [
+          "workspace.delete",
+          "task.delete",
+          "member.remove_within_ws"
+        ],
+        "EXECUTE": [
+          "session.run",
+          "swarm.run",
+          "delivery.approve",
+          "red_line.approve",
+          "phase.gate"
+        ]
+      },
+      "decided_at": "2026-05-09",
+      "status": "decided"
+    },
+    {
+      "id": "R-003",
+      "key": "contributor",
+      "name": "Contributor",
+      "description": "開発担当・編集 / 実行 / 承認（PR）/ 閲覧",
+      "scope": "workspace",
+      "user_persona": "開発者 / 内部 Dev / 外部委託",
+      "permission_categories": {
+        "SELECT": [
+          "workspace.own",
+          "task.own_ws",
+          "spec.own_ws",
+          "knowledge.own_ws"
+        ],
+        "INSERT": [
+          "task.comment",
+          "spec.draft",
+          "mock.draft",
+          "client.invite_only"
+        ],
+        "UPDATE": [
+          "task.own_assigned",
+          "spec.draft",
+          "mock.draft",
+          "byok_key.own"
+        ],
+        "DELETE": [],
+        "EXECUTE": [
+          "session.run_own",
+          "swarm.run_own",
+          "session.kill_own",
+          "pr.approve"
+        ]
+      },
+      "decided_at": "2026-05-09",
+      "status": "decided"
+    },
+    {
+      "id": "R-004",
+      "key": "viewer",
+      "name": "Viewer",
+      "description": "閲覧のみ・コメント不可",
+      "scope": "workspace",
+      "user_persona": "オブザーバー (経営層 read-only / 監査人)",
+      "permission_categories": {
+        "SELECT": [
+          "workspace.own",
+          "task.own_ws",
+          "spec.own_ws"
+        ],
+        "INSERT": [],
+        "UPDATE": [],
+        "DELETE": [],
+        "EXECUTE": []
+      },
+      "decided_at": "2026-05-09",
+      "status": "decided"
+    },
+    {
+      "id": "R-005",
+      "key": "client",
+      "name": "Client",
+      "description": "受託案件発注者・visible_tabs ON/OFF 制限版・コメント可",
+      "scope": "workspace + tab_visibility",
+      "user_persona": "Build-Factory が回す受託案件のクライアント側担当者",
+      "permission_categories": {
+        "SELECT": [
+          "workspace.own_via_visible_tabs",
+          "spec.public",
+          "mock.public",
+          "progress.read"
+        ],
+        "INSERT": [
+          "comment.spec",
+          "comment.mock"
+        ],
+        "UPDATE": [
+          "comment.own"
+        ],
+        "DELETE": [
+          "comment.own"
+        ],
+        "EXECUTE": [
+          "phase.gate_if_granted"
+        ]
+      },
+      "decided_at": "2026-05-09",
+      "status": "decided"
+    },
+    {
+      "id": "R-006",
+      "key": "monitor",
+      "name": "Monitor",
+      "description": "監視担当・全閲覧 + 承認専門（守り）・編集 / 削除 / 招待は不可",
+      "scope": "workspace (cross-ws if configured)",
+      "user_persona": "QA / セキュリティ責任者 / 監査担当",
+      "permission_categories": {
+        "SELECT": [
+          "workspace.own",
+          "task.own_ws",
+          "spec.own_ws",
+          "audit.own",
+          "cost.own"
+        ],
+        "INSERT": [
+          "pr.review_comment"
+        ],
+        "UPDATE": [],
+        "DELETE": [],
+        "EXECUTE": [
+          "session.kill_any",
+          "pr.approve",
+          "red_line.approve",
+          "delivery.approve"
+        ]
+      },
+      "added_in": "v2.1",
+      "decided_at": "2026-05-09",
+      "status": "decided"
+    }
+  ],
+  "role_relationship": "completely_parallel (admin = 攻め / monitor = 守り / 1 user に複数付与可・custom_permissions は OR 評価)",
+  "tabs": [
+    {
+      "id": "tab-overview",
+      "name": "概要",
+      "client_default_visible": true
+    },
+    {
+      "id": "tab-spec",
+      "name": "仕様",
+      "client_default_visible": true
+    },
+    {
+      "id": "tab-mock",
+      "name": "モック",
+      "client_default_visible": true
+    },
+    {
+      "id": "tab-progress",
+      "name": "進捗（タスク/フェーズ）",
+      "client_default_visible": true,
+      "client_edit": false
+    },
+    {
+      "id": "tab-review",
+      "name": "レビュー",
+      "client_default_visible": true,
+      "client_can_comment": true
+    },
+    {
+      "id": "tab-knowledge",
+      "name": "ナレッジ",
+      "client_default_visible": false
+    },
+    {
+      "id": "tab-cost",
+      "name": "コスト",
+      "client_default_visible": false
+    },
+    {
+      "id": "tab-audit",
+      "name": "監査",
+      "client_default_visible": false
+    },
+    {
+      "id": "tab-members",
+      "name": "メンバー",
+      "client_default_visible": false
+    },
+    {
+      "id": "tab-settings",
+      "name": "設定",
+      "client_default_visible": false
+    },
+    {
+      "id": "tab-ai-employees",
+      "name": "AI 社員管理",
+      "client_default_visible": false
+    }
+  ],
+  "matrix": {
+    "account_owner": {
+      "S-001": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-002": {
+        "read": true,
+        "create": true,
+        "update": false,
+        "delete": false
+      },
+      "S-003": {
+        "read": true,
+        "create": false,
+        "update": true,
+        "delete": false
+      },
+      "S-004": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-005": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-006": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-007": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-008": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-009": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-010": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-011": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-012": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-013": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-014": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-015": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-016": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-017": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-018": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-019": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-020": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-021": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-022": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-023": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-024": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-025": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-026": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-027": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-028": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-029": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-030": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-031": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-032": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-033": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-034": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-035": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-036": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-037": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-038": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-039": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-040": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-041": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-042": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-043": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-044": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-045": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-046": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-047": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-048": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-049": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-050": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-051": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-052": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-053": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-054": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-055": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-056": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-057": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-058": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-059": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-060": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-061": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-062": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-063": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-064": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      }
+    },
+    "workspace_admin": {
+      "S-001": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-002": {
+        "read": true,
+        "create": true,
+        "update": false,
+        "delete": false
+      },
+      "S-003": {
+        "read": true,
+        "create": false,
+        "update": true,
+        "delete": false
+      },
+      "S-004": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-005": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-006": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-007": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-008": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-009": {
+        "read": true,
+        "create": false,
+        "update": true,
+        "delete": false
+      },
+      "S-010": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-011": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-012": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-013": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-014": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-015": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-016": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-017": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-018": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-019": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-020": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-021": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-022": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-023": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-024": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-025": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-026": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-027": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-028": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-029": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-030": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-031": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-032": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-033": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-034": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-035": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-036": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-037": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-038": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-039": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-040": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-041": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-042": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-043": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-044": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-045": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-046": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-047": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-048": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-049": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-050": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-051": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-052": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-053": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-054": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-055": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-056": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-057": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-058": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-059": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-060": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-061": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-062": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-063": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-064": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      }
+    },
+    "contributor": {
+      "S-001": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-002": {
+        "read": true,
+        "create": true,
+        "update": false,
+        "delete": false
+      },
+      "S-003": {
+        "read": true,
+        "create": false,
+        "update": true,
+        "delete": false
+      },
+      "S-004": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-005": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-006": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-007": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-008": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-009": {
+        "read": true,
+        "create": false,
+        "update": true,
+        "delete": false
+      },
+      "S-010": {
+        "read": true,
+        "create": false,
+        "update": true,
+        "delete": false
+      },
+      "S-011": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-012": {
+        "read": true,
+        "create": false,
+        "update": true,
+        "delete": false
+      },
+      "S-013": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-014": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-015": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-016": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-017": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-018": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-019": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-020": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-021": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-022": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-023": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-024": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-025": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-026": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-027": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-028": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-029": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-030": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-031": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-032": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-033": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-034": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-035": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-036": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-037": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-038": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-039": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-040": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-041": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-042": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-043": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-044": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-045": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-046": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-047": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-048": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-049": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-050": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-051": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-052": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-053": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-054": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-055": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-056": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-057": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-058": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-059": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-060": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-061": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-062": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-063": {
+        "read": true,
+        "create": true,
+        "update": false,
+        "delete": false
+      },
+      "S-064": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      }
+    },
+    "viewer": {
+      "S-001": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-002": {
+        "read": true,
+        "create": true,
+        "update": false,
+        "delete": false
+      },
+      "S-003": {
+        "read": true,
+        "create": false,
+        "update": true,
+        "delete": false
+      },
+      "S-004": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-005": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-006": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-007": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-008": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-009": {
+        "read": true,
+        "create": false,
+        "update": true,
+        "delete": false
+      },
+      "S-010": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-011": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-012": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-013": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-014": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-015": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-016": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-017": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-018": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-019": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-020": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-021": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-022": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-023": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-024": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-025": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-026": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-027": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-028": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-029": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-030": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-031": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-032": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-033": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-034": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-035": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-036": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-037": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-038": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-039": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-040": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-041": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-042": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-043": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-044": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-045": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-046": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-047": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-048": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-049": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-050": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-051": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-052": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-053": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-054": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-055": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-056": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-057": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-058": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-059": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-060": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-061": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-062": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-063": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-064": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      }
+    },
+    "client": {
+      "S-001": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-002": {
+        "read": true,
+        "create": true,
+        "update": false,
+        "delete": false
+      },
+      "S-003": {
+        "read": true,
+        "create": false,
+        "update": true,
+        "delete": false
+      },
+      "S-004": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-005": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-006": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-007": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-008": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-009": {
+        "read": true,
+        "create": false,
+        "update": true,
+        "delete": false
+      },
+      "S-010": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-011": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-012": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-013": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-014": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-015": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-016": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-017": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-018": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-019": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-020": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-021": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-022": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-023": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-024": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-025": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-026": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-027": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-028": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-029": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-030": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-031": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-032": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-033": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-034": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-035": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-036": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-037": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-038": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-039": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-040": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-041": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-042": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-043": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-044": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-045": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-046": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-047": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-048": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-049": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-050": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-051": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-052": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-053": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-054": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-055": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-056": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-057": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-058": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-059": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-060": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-061": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-062": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-063": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+      },
+      "S-064": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      }
+    },
+    "monitor": {
+      "S-001": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-002": {
+        "read": true,
+        "create": true,
+        "update": false,
+        "delete": false
+      },
+      "S-003": {
+        "read": true,
+        "create": false,
+        "update": true,
+        "delete": false
+      },
+      "S-004": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-005": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-006": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-007": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-008": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-009": {
+        "read": true,
+        "create": false,
+        "update": true,
+        "delete": false
+      },
+      "S-010": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-011": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-012": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-013": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-014": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-015": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-016": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-017": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-018": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-019": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-020": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-021": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-022": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-023": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-024": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-025": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-026": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-027": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-028": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-029": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-030": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-031": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-032": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-033": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-034": {
+        "read": true,
+        "create": false,
+        "update": true,
+        "delete": false
+      },
+      "S-035": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      "S-036": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-037": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-038": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-039": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-040": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-041": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-042": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-043": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-044": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-045": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-046": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-047": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-048": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-049": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-050": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-051": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-052": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-053": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-054": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-055": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-056": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-057": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-058": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-059": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-060": {
+        "read": false,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-061": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-062": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-063": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      },
+      "S-064": {
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      }
+    }
+  },
+  "object_constraints": [
+    {
+      "id": "OC-001",
+      "name": "account_owner_strip_prevention",
+      "applies_to": "account_members",
+      "role": "account_owner",
+      "operation": "DELETE",
+      "access_predicate_expr": "NOT (role = 'owner' AND (SELECT COUNT(*) FROM account_members WHERE account_id = OLD.account_id AND role = 'owner') = 1)",
+      "rationale": "account_owner は剥奪不可（最後の owner を消すと account が孤児化）。owner 移譲が先に必要",
+      "enforce": "API + DB trigger",
+      "migration_reference": "supabase/migrations/20260510000002_rls_full_enforcement.sql:L39-47 (bf_is_account_owner helper)"
+    },
+    {
+      "id": "OC-002",
+      "name": "self_permission_strip_block",
+      "applies_to": "workspace_members",
+      "role": "workspace_admin",
+      "operation": "UPDATE",
+      "access_predicate_expr": "NOT (user_id = auth.uid()::text AND OLD.role = 'admin' AND NEW.role != 'admin' AND (SELECT COUNT(*) FROM workspace_members WHERE workspace_id = OLD.workspace_id AND role = 'admin') = 1)",
+      "rationale": "self-permission strip は他 admin が居なければ block（workspace を admin-less にしない）",
+      "enforce": "API guard",
+      "migration_reference": "supabase/migrations/20260510000002_rls_full_enforcement.sql:L54-60"
+    },
+    {
+      "id": "OC-003",
+      "name": "workspace_admin_zero_prevention",
+      "applies_to": "workspace_members",
+      "role": "workspace_admin",
+      "operation": "DELETE",
+      "access_predicate_expr": "NOT (OLD.role = 'admin' AND (SELECT COUNT(*) FROM workspace_members WHERE workspace_id = OLD.workspace_id AND role = 'admin') = 1)",
+      "rationale": "workspace 内に admin が 0 になることを禁止",
+      "enforce": "API + UI 警告",
+      "migration_reference": "supabase/migrations/20260510000002_rls_full_enforcement.sql:L54-60"
+    },
+    {
+      "id": "OC-004",
+      "name": "monitor_readonly_enforcement",
+      "applies_to": "all_tables",
+      "role": "monitor",
+      "operation": "INSERT/UPDATE/DELETE",
+      "access_predicate_expr": "FALSE",
+      "rationale": "monitor は edit / delete / invite_member 不可。RLS + custom_permissions OR 評価で deny を強制",
+      "enforce": "RLS + custom_permissions 評価",
+      "migration_reference": "supabase/migrations/20260510000002_rls_full_enforcement.sql:L57 (FOR ALL TO postgres, service_role only)"
+    },
+    {
+      "id": "OC-005",
+      "name": "client_visible_tabs_only",
+      "applies_to": "workspace_members",
+      "role": "client",
+      "operation": "SELECT",
+      "access_predicate_expr": "user_id = auth.uid()::text AND workspace_id IN (SELECT workspace_id FROM workspace_members WHERE user_id = auth.uid()::text AND role = 'client' AND visible_tabs ? CURRENT_TAB)",
+      "rationale": "client は visible_tabs に含まれないタブの API エンドポイント全 403",
+      "enforce": "RLS + API middleware",
+      "migration_reference": "supabase/migrations/20260510000002_rls_full_enforcement.sql:L58-60"
+    },
+    {
+      "id": "OC-006",
+      "name": "viewer_edit_override_warning",
+      "applies_to": "workspace_members",
+      "role": "viewer",
+      "operation": "UPDATE",
+      "access_predicate_expr": "user_id = auth.uid()::text AND (custom_permissions->>'edit_spec')::boolean IS DISTINCT FROM TRUE",
+      "rationale": "viewer に edit_* 権限を override で付与した場合は警告（一貫性チェック）",
+      "enforce": "UI 警告",
+      "migration_reference": "supabase/migrations/20260510000002_rls_full_enforcement.sql (custom_permissions JSONB column on workspace_members)"
+    },
+    {
+      "id": "OC-007",
+      "name": "monitor_admin_combination",
+      "applies_to": "workspace_members",
+      "role": "monitor|workspace_admin",
+      "operation": "ALL",
+      "access_predicate_expr": "user_id = auth.uid()::text AND (role = ANY(ARRAY['admin','monitor']) OR custom_permissions ?| ARRAY['admin','monitor'])",
+      "rationale": "monitor + admin の両方を 1 user に付与可（OR 評価で攻め+守りを兼任）",
+      "enforce": "custom_permissions JSONB OR-merge",
+      "migration_reference": "supabase/migrations/20260510000002_rls_full_enforcement.sql:L57-60"
+    },
+    {
+      "id": "OC-008",
+      "name": "account_member_select",
+      "applies_to": "accounts",
+      "role": "all_roles",
+      "operation": "SELECT",
+      "access_predicate_expr": "owner_user_id = auth.uid()::text OR id IN (SELECT account_id FROM account_members WHERE user_id = auth.uid()::text)",
+      "rationale": "所属メンバーのみ自分の account を読める",
+      "enforce": "RLS",
+      "migration_reference": "supabase/migrations/20260510000002_rls_full_enforcement.sql:L74-79 (accounts_member_read)"
+    },
+    {
+      "id": "OC-009",
+      "name": "account_owner_update_only",
+      "applies_to": "accounts",
+      "role": "account_owner",
+      "operation": "UPDATE",
+      "access_predicate_expr": "owner_user_id = auth.uid()::text",
+      "rationale": "account 編集は owner のみ（billing / plan 等）",
+      "enforce": "RLS",
+      "migration_reference": "supabase/migrations/20260510000002_rls_full_enforcement.sql:L80-83 (accounts_owner_write)"
+    },
+    {
+      "id": "OC-010",
+      "name": "workspace_member_select",
+      "applies_to": "workspaces",
+      "role": "all_workspace_roles",
+      "operation": "SELECT",
+      "access_predicate_expr": "bf_can_access_workspace(id) OR bf_is_account_owner(account_id)",
+      "rationale": "workspace_members 経由 + AC-4 OPTIONAL: account_owner はクロス workspace 読み取り可",
+      "enforce": "RLS",
+      "migration_reference": "supabase/migrations/20260510000002_rls_full_enforcement.sql:L94-102 (workspaces_member_read)"
+    },
+    {
+      "id": "OC-011",
+      "name": "workspace_scoped_full_access",
+      "applies_to": "bf_projects|bf_phases|bf_features|bf_tasks|threads|artifacts|repos|design_frames|design_mocks",
+      "role": "all_workspace_roles",
+      "operation": "ALL",
+      "access_predicate_expr": "bf_can_access_workspace(workspace_id)",
+      "rationale": "workspace 配下の主要 entity は workspace_members に居れば read/write 可（role による細分は custom_permissions OR 評価で実施）",
+      "enforce": "RLS",
+      "migration_reference": "supabase/migrations/20260510000001_bf_project_tables.sql:L261-265 (bf_projects_member), 20260510000002_rls_full_enforcement.sql:L121-203"
+    },
+    {
+      "id": "OC-012",
+      "name": "knowledge_visibility_select",
+      "applies_to": "knowledge_base",
+      "role": "all_authenticated",
+      "operation": "SELECT",
+      "access_predicate_expr": "visibility = 'public' OR (visibility IN ('account_shared','member_shared') AND account_id IN (SELECT account_id FROM account_members WHERE user_id = (auth.jwt() ->> 'sub'))) OR (visibility = 'private' AND owner_user_id = (auth.jwt() -> 'user_metadata' ->> 'slug')) OR (visibility = 'ai_only' AND account_id IN (SELECT account_id FROM account_members WHERE user_id = (auth.jwt() ->> 'sub')))",
+      "rationale": "knowledge_base は visibility 列で 4 段階アクセス制御（public/account_shared/private/ai_only）",
+      "enforce": "RLS",
+      "migration_reference": "supabase/migrations/20260501220300_rls_skeleton.sql:L20-62 (kb_public_read / kb_account_shared_read / kb_private_read / kb_ai_only_read)"
+    },
+    {
+      "id": "OC-013",
+      "name": "user_self_only",
+      "applies_to": "users|auth_sessions|user_2fa_secrets|user_2fa_recovery_codes|oauth_connections",
+      "role": "all_authenticated",
+      "operation": "ALL",
+      "access_predicate_expr": "auth.uid() = user_id OR auth.uid() = id",
+      "rationale": "認証関連 entity は本人のみ read/write 可",
+      "enforce": "RLS",
+      "migration_reference": "supabase/migrations/20260510000000_auth_tables.sql:L159-218 (users_self_read/write, auth_sessions_self, 2fa_self, oauth_self)"
+    },
+    {
+      "id": "OC-014",
+      "name": "audit_log_member_read",
+      "applies_to": "audit_logs|conversation_log|approval_queue|reviews",
+      "role": "monitor|workspace_admin|account_owner",
+      "operation": "SELECT",
+      "access_predicate_expr": "workspace_id IS NULL OR bf_can_access_workspace(workspace_id)",
+      "rationale": "audit / conversation / approval / review は workspace member 全員が SELECT 可（monitor 守り役の前提）",
+      "enforce": "RLS",
+      "migration_reference": "supabase/migrations/20260510000001_bf_project_tables.sql:L352-353 (audit_member_read), 20260510000002_rls_full_enforcement.sql:L130-131,170-171,210-211"
+    },
+    {
+      "id": "OC-015",
+      "name": "service_role_bypass",
+      "applies_to": "all_tables",
+      "role": "service",
+      "operation": "ALL",
+      "access_predicate_expr": "TRUE",
+      "rationale": "service_role (backend trusted code) は全 record アクセス可（AC-3 STATE: trusted backend code のみ）",
+      "enforce": "RLS",
+      "migration_reference": "supabase/migrations/20260510000002_rls_full_enforcement.sql:L57,65,73,88,96,107 (FOR ALL TO postgres, service_role)"
+    },
+    {
+      "id": "OC-016",
+      "name": "legacy_table_lockdown",
+      "applies_to": "invoices|pipeline|contacts|contracts|outsource_jobs|brand_assets|seo_reports|kpi_records|expenses|sns_posts|pl_records|cf_forecasts|cs_feedback|tools_inventory|portfolio_items|weekly_reviews|monthly_reviews|okr|outreach_log|task_log|task_questions|workflow_runs|workflow_steps|skill_definitions",
+      "role": "authenticated",
+      "operation": "ALL",
+      "access_predicate_expr": "FALSE",
+      "rationale": "legacy single-user table は scope 列を持たず authenticated 不可（service_role 専用ロックダウン）。multi-tenant 化は別 migration で対応",
+      "enforce": "RLS",
+      "migration_reference": "supabase/migrations/20260510000002_rls_full_enforcement.sql:L228-251 (DO $$ FOREACH legacy_tables LOOP)"
+    },
+    {
+      "id": "OC-017",
+      "name": "workspace_invitation_member_read",
+      "applies_to": "workspace_invitations",
+      "role": "all_workspace_roles",
+      "operation": "SELECT",
+      "access_predicate_expr": "bf_can_access_workspace(workspace_id)",
+      "rationale": "workspace_invitations は同一 ws の member が SELECT 可（client は visible_tabs で更に絞る）",
+      "enforce": "RLS",
+      "migration_reference": "supabase/migrations/20260510000002_rls_full_enforcement.sql:L62-68 (workspace_invitations_member)"
+    }
+  ],
+  "rls_design_summary": "全テーブルに workspace_id NOT NULL + RLS で workspace_members 経由の所属チェック + custom_permissions JSONB でロール default + 個別 override を OR 評価。helper: bf_can_access_workspace(ws_id) / bf_is_account_owner(acc_id) (SECURITY DEFINER) で predicate を一元化。",
+  "screens_referenced": [
+    {
+      "id": "S-001",
+      "name": "login",
+      "category": "auth",
+      "source": "v1"
+    },
+    {
+      "id": "S-002",
+      "name": "signup",
+      "category": "auth",
+      "source": "v1"
+    },
+    {
+      "id": "S-003",
+      "name": "password_reset",
+      "category": "auth",
+      "source": "v1"
+    },
+    {
+      "id": "S-004",
+      "name": "mfa_setup",
+      "category": "auth",
+      "source": "v1"
+    },
+    {
+      "id": "S-005",
+      "name": "oauth_callback",
+      "category": "auth",
+      "source": "v1"
+    },
+    {
+      "id": "S-006",
+      "name": "account_dashboard",
+      "category": "account",
+      "source": "v1"
+    },
+    {
+      "id": "S-007",
+      "name": "account_settings",
+      "category": "account",
+      "source": "v1"
+    },
+    {
+      "id": "S-008",
+      "name": "account_members",
+      "category": "account",
+      "source": "v1"
+    },
+    {
+      "id": "S-009",
+      "name": "profile_settings",
+      "category": "account",
+      "source": "v1"
+    },
+    {
+      "id": "S-010",
+      "name": "notifications_inbox",
+      "category": "account",
+      "source": "v1"
+    },
+    {
+      "id": "S-011",
+      "name": "global_search",
+      "category": "account",
+      "source": "v1"
+    },
+    {
+      "id": "S-012",
+      "name": "workspace_dashboard",
+      "category": "workspace",
+      "source": "v1"
+    },
+    {
+      "id": "S-013",
+      "name": "workspace_settings",
+      "category": "workspace",
+      "source": "v1"
+    },
+    {
+      "id": "S-014",
+      "name": "workspace_members",
+      "category": "workspace",
+      "source": "v1"
+    },
+    {
+      "id": "S-015",
+      "name": "workspace_invite",
+      "category": "workspace",
+      "source": "v1"
+    },
+    {
+      "id": "S-016",
+      "name": "phase_management",
+      "category": "moat",
+      "source": "v1"
+    },
+    {
+      "id": "S-017",
+      "name": "dependency_graph",
+      "category": "moat",
+      "source": "v1"
+    },
+    {
+      "id": "S-018",
+      "name": "constitution_editor",
+      "category": "safety",
+      "source": "v1"
+    },
+    {
+      "id": "S-019",
+      "name": "red_line_settings",
+      "category": "safety",
+      "source": "v1"
+    },
+    {
+      "id": "S-020",
+      "name": "hearing_session",
+      "category": "spec",
+      "source": "v1"
+    },
+    {
+      "id": "S-021",
+      "name": "requirements_editor",
+      "category": "spec",
+      "source": "v1"
+    },
+    {
+      "id": "S-022",
+      "name": "spec_viewer",
+      "category": "spec",
+      "source": "v1"
+    },
+    {
+      "id": "S-023",
+      "name": "screen_mock_viewer",
+      "category": "spec",
+      "source": "v1"
+    },
+    {
+      "id": "S-024",
+      "name": "component_catalog",
+      "category": "spec",
+      "source": "v1"
+    },
+    {
+      "id": "S-025",
+      "name": "screen_flow_map",
+      "category": "spec",
+      "source": "v1"
+    },
+    {
+      "id": "S-026",
+      "name": "design_html_editor",
+      "category": "spec",
+      "source": "v1"
+    },
+    {
+      "id": "S-027",
+      "name": "task_kanban",
+      "category": "task",
+      "source": "v1"
+    },
+    {
+      "id": "S-028",
+      "name": "task_list",
+      "category": "task",
+      "source": "v1"
+    },
+    {
+      "id": "S-029",
+      "name": "task_dag_view",
+      "category": "task",
+      "source": "v1"
+    },
+    {
+      "id": "S-030",
+      "name": "task_detail",
+      "category": "task",
+      "source": "v1"
+    },
+    {
+      "id": "S-031",
+      "name": "swarm_grid",
+      "category": "execution",
+      "source": "v1"
+    },
+    {
+      "id": "S-032",
+      "name": "swarm_session_detail",
+      "category": "execution",
+      "source": "v1"
+    },
+    {
+      "id": "S-033",
+      "name": "pr_review",
+      "category": "review",
+      "source": "v1"
+    },
+    {
+      "id": "S-034",
+      "name": "red_line_approval",
+      "category": "safety",
+      "source": "v1"
+    },
+    {
+      "id": "S-035",
+      "name": "delivery_approval",
+      "category": "review",
+      "source": "v1"
+    },
+    {
+      "id": "S-036",
+      "name": "ai_employees_org_chart",
+      "category": "ai_management",
+      "source": "v1"
+    },
+    {
+      "id": "S-037",
+      "name": "ai_employee_detail",
+      "category": "ai_management",
+      "source": "v1"
+    },
+    {
+      "id": "S-038",
+      "name": "skill_manager",
+      "category": "ai_management",
+      "source": "v1"
+    },
+    {
+      "id": "S-039",
+      "name": "knowledge_base",
+      "category": "knowledge",
+      "source": "v1"
+    },
+    {
+      "id": "S-040",
+      "name": "cost_dashboard",
+      "category": "ops",
+      "source": "v1"
+    },
+    {
+      "id": "S-041",
+      "name": "audit_log_viewer",
+      "category": "ops",
+      "source": "v1"
+    },
+    {
+      "id": "S-042",
+      "name": "client_workspace",
+      "category": "client",
+      "source": "v1"
+    },
+    {
+      "id": "S-043",
+      "name": "client_comment",
+      "category": "client",
+      "source": "v1"
+    },
+    {
+      "id": "S-044",
+      "name": "memory_viewer",
+      "category": "ai_management",
+      "source": "v3-added"
+    },
+    {
+      "id": "S-045",
+      "name": "memory_tool_settings",
+      "category": "ai_management",
+      "source": "v3-added"
+    },
+    {
+      "id": "S-046",
+      "name": "context_editing_config",
+      "category": "ai_management",
+      "source": "v3-added"
+    },
+    {
+      "id": "S-047",
+      "name": "subagent_memory",
+      "category": "ai_management",
+      "source": "v3-added"
+    },
+    {
+      "id": "S-048",
+      "name": "provider_adapter_settings",
+      "category": "ai_management",
+      "source": "v3-added"
+    },
+    {
+      "id": "S-049",
+      "name": "constitution_diff_review",
+      "category": "safety",
+      "source": "v3-added"
+    },
+    {
+      "id": "S-050",
+      "name": "ears_ac_editor",
+      "category": "spec",
+      "source": "v3-added"
+    },
+    {
+      "id": "S-051",
+      "name": "api_endpoint_catalog",
+      "category": "spec",
+      "source": "v3-added"
+    },
+    {
+      "id": "S-052",
+      "name": "entity_schema_viewer",
+      "category": "spec",
+      "source": "v3-added"
+    },
+    {
+      "id": "S-053",
+      "name": "rls_policy_explorer",
+      "category": "safety",
+      "source": "v3-added"
+    },
+    {
+      "id": "S-054",
+      "name": "drift_detection_dashboard",
+      "category": "ops",
+      "source": "v3-added"
+    },
+    {
+      "id": "S-055",
+      "name": "wave_schedule_viewer",
+      "category": "ops",
+      "source": "v3-added"
+    },
+    {
+      "id": "S-056",
+      "name": "ci_gate_dashboard",
+      "category": "ops",
+      "source": "v3-added"
+    },
+    {
+      "id": "S-057",
+      "name": "obsidian_vault_browser",
+      "category": "knowledge",
+      "source": "v3-added"
+    },
+    {
+      "id": "S-058",
+      "name": "mem0_search",
+      "category": "knowledge",
+      "source": "v3-added"
+    },
+    {
+      "id": "S-059",
+      "name": "cost_anomaly_alert",
+      "category": "ops",
+      "source": "v3-added"
+    },
+    {
+      "id": "S-060",
+      "name": "byok_key_manager",
+      "category": "account",
+      "source": "v3-added"
+    },
+    {
+      "id": "S-061",
+      "name": "template_bootstrap_manager",
+      "category": "ops",
+      "source": "v3-added"
+    },
+    {
+      "id": "S-062",
+      "name": "integration_health",
+      "category": "ops",
+      "source": "v3-added"
+    },
+    {
+      "id": "S-063",
+      "name": "client_invite_landing",
+      "category": "client",
+      "source": "v3-added"
+    },
+    {
+      "id": "S-064",
+      "name": "public_landing",
+      "category": "public",
+      "source": "v3-added"
+    }
+  ]
+}
