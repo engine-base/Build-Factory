@@ -1,10 +1,15 @@
-"""T-V3-B-15 / F-010: Sessions backend router (list / detail / kill / kill-all).
+"""T-V3-B-15 / T-V3-B-16 / F-010: Sessions backend router.
 
 OpenAPI: docs/api-design/2026-05-16_v3/openapi.yaml
+  T-V3-B-15:
   - GET  /api/workspaces/{id}/sessions          (workspaces.py 経由で別途登録)
   - GET  /api/sessions/{id}
   - POST /api/sessions/{id}/kill
   - POST /api/workspaces/{id}/sessions/kill-all (workspaces.py 経由で別途登録)
+  T-V3-B-16:
+  - POST /api/sessions/{id}/pause
+  - POST /api/sessions/{id}/resume
+  - POST /api/sessions/{id}/rollback
 
 Entity:
   - E-024 Session (table: sessions)
@@ -22,16 +27,28 @@ Entity:
   AC-F12 POST /api/workspaces/{id}/sessions/kill-all 2xx + killed_count
   AC-F13 401 if no auth
 
-Pause/resume/rollback (AC-F1〜F3) は T-V3-B-16 で実装する.
+該当 AC (T-V3-B-16 audit MD):
+  AC-F1 EVENT-DRIVEN: pause → status=paused + checkpoint within 5 s
+  AC-F2 UNWANTED   : resume not in paused/crashed → 409
+  AC-F3 EVENT-DRIVEN: rollback (workspace_admin) → restore + audit log
+  AC-F4 EVENT-DRIVEN: pause 2xx + paused_at
+  AC-F5 UNWANTED   : pause 401
+  AC-F6 EVENT-DRIVEN: resume 2xx + resumed_at
+  AC-F7 UNWANTED   : resume 401
+  AC-F8 EVENT-DRIVEN: rollback 2xx + rolled_back_at
+  AC-F9 UNWANTED   : rollback 401
 """
 from __future__ import annotations
 
 import logging
 from typing import Any, Optional
 
-from fastapi import APIRouter, Header, HTTPException, Query
+from fastapi import APIRouter, Body, Header, HTTPException, Query
 
-from schemas.sessions import VALID_SESSION_STATUS_FILTER
+from schemas.sessions import (
+    RollbackRequest,
+    VALID_SESSION_STATUS_FILTER,
+)
 from services import sessions_v3
 
 logger = logging.getLogger(__name__)
@@ -238,6 +255,195 @@ async def kill_all_workspace_sessions_endpoint(
         detail={
             "workspace_id": workspace_id,
             "killed_count": result["killed_count"],
+        },
+    )
+    return result
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# T-V3-B-16: POST /api/sessions/{id}/pause
+# AC-F1 EVENT / AC-F4 EVENT / AC-F5 UNWANTED
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@router.post("/{session_id}/pause")
+async def pause_session_endpoint(
+    session_id: int,
+    authorization: Optional[str] = Header(default=None),
+    actor_user_id: Optional[str] = Query(default=None),
+) -> dict[str, Any]:
+    """running session を pause し checkpoint を返す.
+
+    AC-F1: 5s 以内に checkpoint 保存 + status='paused' 遷移.
+    AC-F4: 2xx + paused_at + checkpoint_id (OpenAPI contract).
+    AC-F5: auth なし → 401.
+    """
+    _require_auth(authorization)  # AC-F5
+    if session_id <= 0:
+        raise _error(
+            "sessions.invalid_session_id",
+            "session_id must be > 0",
+            status_code=422,
+        )
+    store = _get_runner_store()
+    try:
+        result = await sessions_v3.pause_session(
+            store, session_id, actor_user_id=actor_user_id,
+        )
+    except sessions_v3.SessionNotFoundError as e:
+        raise _error("sessions.not_found", str(e), status_code=404)
+    except sessions_v3.SessionAlreadyTerminatedError as e:
+        raise _error("sessions.already_terminated", str(e), status_code=409)
+    except sessions_v3.SessionStateConflictError as e:
+        # OpenAPI: 409 if session not running (pause)
+        raise _error("sessions.not_pausable", str(e), status_code=409)
+    except ValueError as e:
+        raise _error("sessions.invalid", str(e), status_code=422)
+
+    await _audit(
+        "sessions.paused",
+        user_id=actor_user_id,
+        detail={
+            "session_id": session_id,
+            "paused_at": result["paused_at"],
+            "checkpoint_id": result["checkpoint_id"],
+        },
+    )
+    return result
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# T-V3-B-16: POST /api/sessions/{id}/resume
+# AC-F2 UNWANTED / AC-F6 EVENT / AC-F7 UNWANTED
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@router.post("/{session_id}/resume")
+async def resume_session_endpoint(
+    session_id: int,
+    authorization: Optional[str] = Header(default=None),
+    actor_user_id: Optional[str] = Query(default=None),
+    body: Optional[dict[str, Any]] = Body(default=None),
+) -> dict[str, Any]:
+    """paused / crashed session を resume → status=running.
+
+    AC-F2 UNWANTED: paused / crashed 以外 → 409.
+    AC-F6: 2xx + resumed_at.
+    AC-F7: auth なし → 401.
+    """
+    _require_auth(authorization)  # AC-F7
+    if session_id <= 0:
+        raise _error(
+            "sessions.invalid_session_id",
+            "session_id must be > 0",
+            status_code=422,
+        )
+    # body は optional. checkpoint_id 指定なら from_checkpoint resume.
+    checkpoint_id: Optional[str] = None
+    if body:
+        raw_cp = body.get("checkpoint_id")
+        if raw_cp is not None:
+            if not isinstance(raw_cp, str) or not raw_cp.strip():
+                raise _error(
+                    "sessions.invalid",
+                    "checkpoint_id must be non-empty string",
+                    status_code=422,
+                )
+            checkpoint_id = raw_cp.strip()
+
+    store = _get_runner_store()
+    try:
+        result = await sessions_v3.resume_session(
+            store,
+            session_id,
+            checkpoint_id=checkpoint_id,
+            actor_user_id=actor_user_id,
+        )
+    except sessions_v3.SessionNotFoundError as e:
+        raise _error("sessions.not_found", str(e), status_code=404)
+    except sessions_v3.SessionStateConflictError as e:
+        # AC-F2: paused / crashed 以外 → 409
+        raise _error("sessions.not_resumable", str(e), status_code=409)
+    except sessions_v3.CheckpointNotFoundError as e:
+        raise _error("sessions.checkpoint_not_found", str(e), status_code=409)
+    except ValueError as e:
+        raise _error("sessions.invalid", str(e), status_code=422)
+
+    await _audit(
+        "sessions.resumed",
+        user_id=actor_user_id,
+        detail={
+            "session_id": session_id,
+            "resumed_at": result["resumed_at"],
+            "checkpoint_id": checkpoint_id,
+        },
+    )
+    return result
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# T-V3-B-16: POST /api/sessions/{id}/rollback
+# AC-F3 EVENT / AC-F8 EVENT / AC-F9 UNWANTED
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@router.post("/{session_id}/rollback")
+async def rollback_session_endpoint(
+    session_id: int,
+    body: RollbackRequest,
+    authorization: Optional[str] = Header(default=None),
+    actor_user_id: Optional[str] = Query(default=None),
+) -> dict[str, Any]:
+    """指定 checkpoint まで session 状態を巻き戻す (workspace_admin).
+
+    AC-F3: workspace_admin による rollback + audit log emit.
+    AC-F8: 2xx + rolled_back_at.
+    AC-F9: auth なし → 401.
+
+    NOTE: workspace_admin role の検証は F-001 (auth middleware) が担当.
+    本タスクの範囲では bearer token 必須 + audit emit までを保証する.
+    """
+    _require_auth(authorization)  # AC-F9
+    if session_id <= 0:
+        raise _error(
+            "sessions.invalid_session_id",
+            "session_id must be > 0",
+            status_code=422,
+        )
+
+    cp_id = (body.checkpoint_id or "").strip()
+    if not cp_id:
+        raise _error(
+            "sessions.invalid",
+            "checkpoint_id is required (non-empty string)",
+            status_code=422,
+        )
+
+    store = _get_runner_store()
+    try:
+        result = await sessions_v3.rollback_session(
+            store,
+            session_id,
+            checkpoint_id=cp_id,
+            actor_user_id=actor_user_id,
+        )
+    except sessions_v3.SessionNotFoundError as e:
+        raise _error("sessions.not_found", str(e), status_code=404)
+    except sessions_v3.CheckpointNotFoundError as e:
+        # OpenAPI x-bf-error-seeds: 409 if checkpoint not found
+        raise _error("sessions.checkpoint_not_found", str(e), status_code=409)
+    except ValueError as e:
+        raise _error("sessions.invalid", str(e), status_code=422)
+
+    # AC-F3: rollback は必ず audit log を残す
+    await _audit(
+        "sessions.rolled_back",
+        user_id=actor_user_id,
+        detail={
+            "session_id": session_id,
+            "checkpoint_id": cp_id,
+            "rolled_back_at": result["rolled_back_at"],
+            "restored_status": result.get("restored_status"),
         },
     )
     return result

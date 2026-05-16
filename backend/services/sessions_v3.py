@@ -20,6 +20,7 @@ list / detail / kill / kill-all のビジネスロジックを SessionStore (抽
 """
 from __future__ import annotations
 
+import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -32,6 +33,19 @@ class SessionNotFoundError(LookupError):
 
 class SessionAlreadyTerminatedError(RuntimeError):
     """session が既に terminal 状態 (done / cancelled) — kill 不可 (409)."""
+
+
+class SessionStateConflictError(RuntimeError):
+    """session が要求された遷移を許す状態ではない (409).
+
+    例:
+      - pause: running 以外を pause しようとした
+      - resume: paused / crashed 以外を resume しようとした (AC-F2)
+    """
+
+
+class CheckpointNotFoundError(LookupError):
+    """指定された checkpoint_id が存在しない (rollback 時 409 にマップ)."""
 
 
 # DDL CHECK と一致: running / done / crashed / cancelled / paused
@@ -274,12 +288,223 @@ async def kill_all_sessions(
     return {"killed_count": killed}
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# T-V3-B-16: pause / resume / rollback
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# Checkpoint は SessionRecord.metadata["checkpoints"] に dict として格納する.
+#   metadata = {
+#       "checkpoints": {
+#           "<uuid>": {
+#               "checkpoint_id": "<uuid>",
+#               "created_at": "<iso>",
+#               "status_at_checkpoint": "running",
+#               "actor_user_id": "<uid or None>",
+#           },
+#           ...
+#       },
+#       "active_checkpoint_id": "<uuid>",  # 直近 pause 時の checkpoint
+#   }
+#
+# rollback は metadata["checkpoints"][checkpoint_id] を読み戻し、session の
+# status / crash_reason / resume_choice を復元する.
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+_PAUSABLE_DB_STATUSES = frozenset({"running"})
+_RESUMABLE_DB_STATUSES = frozenset({"paused", "crashed"})
+
+
+def _ensure_checkpoint_store(rec: SessionRecord) -> dict[str, dict]:
+    """SessionRecord.metadata["checkpoints"] を必要に応じて初期化して返す."""
+    meta = rec.metadata
+    cps = meta.get("checkpoints")
+    if not isinstance(cps, dict):
+        cps = {}
+        meta["checkpoints"] = cps
+    return cps
+
+
+async def pause_session(
+    store: SessionStore,
+    session_id: int,
+    *,
+    actor_user_id: Optional[str] = None,
+) -> dict:
+    """running session を pause し checkpoint を作って返す.
+
+    AC-F1 (EVENT-DRIVEN): When POST /api/sessions/{id}/pause is called for a
+        running session, the system shall save a checkpoint and transition
+        status to 'paused' within 5 seconds.
+    AC-F4 (EVENT-DRIVEN): 2xx + paused_at (+ checkpoint_id) を返す.
+    409 (state conflict): pause 対象が running ではない場合 → SessionStateConflictError.
+
+    Returns:
+        {"paused_at": "<iso>", "checkpoint_id": "<uuid>"}
+    """
+    if not isinstance(session_id, int) or session_id <= 0:
+        raise ValueError(f"session_id must be > 0, got {session_id!r}")
+    if actor_user_id is not None and (
+        not isinstance(actor_user_id, str) or not actor_user_id.strip()
+    ):
+        raise ValueError("actor_user_id must be non-empty string when provided")
+
+    rec = await store.get_session(session_id)
+    if rec is None:
+        raise SessionNotFoundError(f"session not found: {session_id}")
+    if rec.status in _TERMINAL_DB_STATUSES:
+        raise SessionAlreadyTerminatedError(
+            f"session {session_id} already terminated (status={rec.status!r})"
+        )
+    if rec.status not in _PAUSABLE_DB_STATUSES:
+        # AC-F1 由来: running 以外は pause できない (paused → 409)
+        raise SessionStateConflictError(
+            f"session {session_id} is not pausable (status={rec.status!r}; "
+            f"expected one of {sorted(_PAUSABLE_DB_STATUSES)})"
+        )
+
+    now_iso = _now_iso()
+    checkpoint_id = str(uuid.uuid4())
+    cps = _ensure_checkpoint_store(rec)
+    cps[checkpoint_id] = {
+        "checkpoint_id": checkpoint_id,
+        "created_at": now_iso,
+        "status_at_checkpoint": rec.status,
+        "actor_user_id": actor_user_id,
+        "sdk_session_id": rec.sdk_session_id,
+    }
+    rec.metadata["active_checkpoint_id"] = checkpoint_id
+
+    rec.status = "paused"
+    rec.resume_choice = None
+    await store.finalize_session(rec)
+
+    return {"paused_at": now_iso, "checkpoint_id": checkpoint_id}
+
+
+async def resume_session(
+    store: SessionStore,
+    session_id: int,
+    *,
+    checkpoint_id: Optional[str] = None,
+    actor_user_id: Optional[str] = None,
+) -> dict:
+    """paused / crashed session を resume (-> running).
+
+    AC-F2 (UNWANTED): If POST /api/sessions/{id}/resume is called for a
+        session that is not in paused or crashed state, the system shall
+        return 409 → SessionStateConflictError.
+    AC-F6 (EVENT-DRIVEN): 2xx + resumed_at.
+
+    Returns:
+        {"resumed_at": "<iso>"}
+    """
+    if not isinstance(session_id, int) or session_id <= 0:
+        raise ValueError(f"session_id must be > 0, got {session_id!r}")
+    if actor_user_id is not None and (
+        not isinstance(actor_user_id, str) or not actor_user_id.strip()
+    ):
+        raise ValueError("actor_user_id must be non-empty string when provided")
+    if checkpoint_id is not None and (
+        not isinstance(checkpoint_id, str) or not checkpoint_id.strip()
+    ):
+        raise ValueError("checkpoint_id must be non-empty string when provided")
+
+    rec = await store.get_session(session_id)
+    if rec is None:
+        raise SessionNotFoundError(f"session not found: {session_id}")
+    if rec.status not in _RESUMABLE_DB_STATUSES:
+        # AC-F2 (UNWANTED): paused / crashed 以外 → 409
+        raise SessionStateConflictError(
+            f"session {session_id} is not resumable (status={rec.status!r}; "
+            f"expected one of {sorted(_RESUMABLE_DB_STATUSES)})"
+        )
+
+    # checkpoint 指定が存在し、かつ unknown UUID なら 409
+    if checkpoint_id is not None:
+        cps = _ensure_checkpoint_store(rec)
+        if checkpoint_id not in cps:
+            raise CheckpointNotFoundError(
+                f"checkpoint_id {checkpoint_id!r} not found for session "
+                f"{session_id}"
+            )
+        rec.metadata["active_checkpoint_id"] = checkpoint_id
+
+    now_iso = _now_iso()
+    rec.status = "running"
+    rec.crash_reason = None
+    rec.resume_choice = "from_checkpoint" if checkpoint_id else "rerun_full"
+    await store.finalize_session(rec)
+    return {"resumed_at": now_iso}
+
+
+async def rollback_session(
+    store: SessionStore,
+    session_id: int,
+    *,
+    checkpoint_id: str,
+    actor_user_id: Optional[str] = None,
+) -> dict:
+    """workspace_admin が指定 checkpoint まで session 状態を巻き戻す.
+
+    AC-F3 (EVENT-DRIVEN): When POST /api/sessions/{id}/rollback is called by
+        workspace_admin, the system shall restore the session state to the
+        given checkpoint and emit audit log.
+    AC-F8: 2xx + rolled_back_at を返す.
+    404: session_id 不存在.
+    409: checkpoint_id が session 配下に無い (OpenAPI x-bf-error-seeds).
+
+    Returns:
+        {"rolled_back_at": "<iso>", "restored_status": "<str>"}
+    """
+    if not isinstance(session_id, int) or session_id <= 0:
+        raise ValueError(f"session_id must be > 0, got {session_id!r}")
+    if not isinstance(checkpoint_id, str) or not checkpoint_id.strip():
+        raise ValueError("checkpoint_id is required (non-empty string)")
+    if actor_user_id is not None and (
+        not isinstance(actor_user_id, str) or not actor_user_id.strip()
+    ):
+        raise ValueError("actor_user_id must be non-empty string when provided")
+
+    rec = await store.get_session(session_id)
+    if rec is None:
+        raise SessionNotFoundError(f"session not found: {session_id}")
+
+    cps = _ensure_checkpoint_store(rec)
+    cp = cps.get(checkpoint_id)
+    if cp is None:
+        raise CheckpointNotFoundError(
+            f"checkpoint_id {checkpoint_id!r} not found for session "
+            f"{session_id}"
+        )
+
+    now_iso = _now_iso()
+    restored_status = str(cp.get("status_at_checkpoint", "running"))
+    rec.status = restored_status
+    rec.crash_reason = None
+    rec.resume_choice = "from_checkpoint"
+    rec.metadata["active_checkpoint_id"] = checkpoint_id
+    rec.metadata["last_rollback_at"] = now_iso
+    rec.metadata["last_rollback_actor"] = actor_user_id
+    await store.finalize_session(rec)
+
+    return {
+        "rolled_back_at": now_iso,
+        "restored_status": restored_status,
+    }
+
+
 __all__ = (
     "SessionNotFoundError",
     "SessionAlreadyTerminatedError",
+    "SessionStateConflictError",
+    "CheckpointNotFoundError",
     "serialize_session",
     "list_sessions_for_workspace",
     "get_session_detail",
     "kill_session",
     "kill_all_sessions",
+    "pause_session",
+    "resume_session",
+    "rollback_session",
 )
