@@ -1,12 +1,16 @@
-"""T-V3-B-08 / F-005b: Mocks backend router (list / detail / html GET/PUT).
+"""T-V3-B-08 / T-V3-B-09 / F-005b: Mocks backend router.
 
 F-005b 画面モック自動生成パイプライン (M-5b) — backend endpoint surface.
 
-Endpoints (scope of T-V3-B-08):
-  GET    /api/workspaces/{workspace_id}/mocks
-  GET    /api/workspaces/{workspace_id}/mocks/{screen_id}
-  GET    /api/workspaces/{workspace_id}/mocks/{screen_id}/html
-  PUT    /api/workspaces/{workspace_id}/mocks/{screen_id}/html
+Endpoints:
+  T-V3-B-08:
+    GET    /api/workspaces/{workspace_id}/mocks
+    GET    /api/workspaces/{workspace_id}/mocks/{screen_id}
+    GET    /api/workspaces/{workspace_id}/mocks/{screen_id}/html
+    PUT    /api/workspaces/{workspace_id}/mocks/{screen_id}/html
+  T-V3-B-09 (this PR):
+    POST   /api/workspaces/{workspace_id}/mocks/{screen_id}/ai-edit
+           (rate-limited to 30/min/workspace per F-005b policy)
 
 Auth role: member (GET) / workspace_admin (PUT) — access enforced via
 Supabase RLS + workspace_member_select / workspace_admin_rw policies
@@ -39,6 +43,8 @@ from typing import Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from schemas.mocks import (
+    MockAiEditRequest,
+    MockAiEditResponse,
     MockDetailResponse,
     MockHtmlPutRequest,
     MockHtmlPutResponse,
@@ -71,6 +77,9 @@ def _map_service_error(e: Exception) -> HTTPException:
         return _error("mocks.not_found", str(e), status_code=404)
     if isinstance(e, svc.MockLockedError):
         return _error("mocks.locked", str(e), status_code=409)
+    if isinstance(e, svc.MockRateLimitedError):
+        # T-V3-B-09 AC-F1 / AC-F5: ai-edit > 30/min/workspace → 429
+        return _error("mocks.rate_limited", str(e), status_code=429)
     if isinstance(e, svc.MockHtmlTooLargeError):
         return _error("mocks.html_too_large", str(e), status_code=422)
     if isinstance(e, svc.MockValidationError):
@@ -216,6 +225,57 @@ async def put_mock_html(
         },
     )
     return MockHtmlPutResponse(**result)
+
+
+# ──────────────────────────────────────────────────────────────────────
+# T-V3-B-09: POST /api/workspaces/{workspace_id}/mocks/{screen_id}/ai-edit
+# ──────────────────────────────────────────────────────────────────────
+
+
+@router.post(
+    "/{workspace_id}/mocks/{screen_id}/ai-edit",
+    response_model=MockAiEditResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="画面モック AI 編集 (F-005b / 30/min/workspace)",
+)
+async def post_mock_ai_edit(
+    workspace_id: int,
+    screen_id: str,
+    body: MockAiEditRequest,
+    user: dict = Depends(require_user),
+) -> MockAiEditResponse:
+    """T-V3-B-09 — F-005b POST /api/workspaces/{id}/mocks/{screen_id}/ai-edit.
+
+    AC マッピング:
+      AC-F1  UNWANTED   : > 30/min/workspace → 429
+      AC-F2  EVENT      : valid input → 201 {diff, new_html, tokens_used}
+      AC-F3  UNWANTED   : without auth → 401 (require_user)
+      AC-F4  UNWANTED   : invalid body → 422
+      AC-F5  UNWANTED   : same as AC-F1 (rate limit alias)
+    """
+    _validate_workspace_id(workspace_id)
+    actor = _actor_id_from_user(user)
+    try:
+        result = svc.ai_edit_mock(
+            workspace_id,
+            screen_id,
+            body.prompt,
+            actor_user_id=actor,
+        )
+    except Exception as e:
+        raise _map_service_error(e) from e
+
+    # audit_logs: mock_ai_edited (best-effort, non-blocking)
+    await _emit_audit(
+        "mock_ai_edited",
+        user_id=actor,
+        detail={
+            "workspace_id": workspace_id,
+            "screen_id": screen_id,
+            "tokens_used": result["tokens_used"],
+        },
+    )
+    return MockAiEditResponse(**result)
 
 
 # ──────────────────────────────────────────────────────────────────────
