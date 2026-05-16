@@ -1,1 +1,343 @@
-PLACEHOLDER
+{
+  "version": "v3",
+  "skill": "schedule-design",
+  "project": "Build-Factory",
+  "project_profile": "build-factory",
+  "phase": "Phase 1 (dogfood)",
+  "created_at": "2026-05-16",
+  "timezone": "Asia/Tokyo (+09:00)",
+  "parallel_capacity": 30,
+  "total_tasks": 100,
+  "summary": {
+    "wave_count": 6,
+    "task_count_by_wave": {
+      "W1": 21,
+      "W2": 8,
+      "W3": 1,
+      "W4": 25,
+      "W5": 30,
+      "W6": 15
+    },
+    "phase_count": 3,
+    "milestone_count": 3,
+    "total_elapsed_hours": 97,
+    "total_estimate_hours": 437.9,
+    "real_time_estimate_hours_parallel": 91
+  },
+  "phases": [
+    {
+      "phase_id": "P1A",
+      "name": "Phase 1A Backend (dogfood Slice backend)",
+      "wave_ids": ["W1", "W2", "W3"],
+      "start_date": "2026-05-17",
+      "end_date": "2026-05-18",
+      "completion_gate": "30 backend tasks auto-merged + 8 CI gate all pass + contract test green",
+      "phase_review_required": true
+    },
+    {
+      "phase_id": "P1B",
+      "name": "Phase 1B UI (dogfood Slice UI)",
+      "wave_ids": ["W4", "W5"],
+      "start_date": "2026-05-18",
+      "end_date": "2026-05-20",
+      "completion_gate": "55 UI tasks auto-merged + mock-impl-diff (lint #17) 0 件 + a11y check pass",
+      "phase_review_required": true
+    },
+    {
+      "phase_id": "P1D",
+      "name": "Phase 1 Drift Fix (Group D)",
+      "wave_ids": ["W6"],
+      "start_date": "2026-05-20",
+      "end_date": "2026-05-24",
+      "completion_gate": "15 drift fix tasks auto-merged + lint #17-19 0 件 + entity table drift 0 件",
+      "phase_review_required": true
+    }
+  ],
+  "waves": [
+    {
+      "wave_id": "W1",
+      "phase_id": "P1A",
+      "phase_layer": "backend",
+      "name": "Backend Wave 1 — auth/workspace/profile/account/admin/RBAC + 17 backend layers (21 並列)",
+      "start_estimate": "2026-05-17T09:00:00+09:00",
+      "end_estimate": "2026-05-17T16:00:00+09:00",
+      "duration_hours": 6,
+      "ci_buffer_hours": 1,
+      "parallel_session_count_target": 21,
+      "parallel_capacity_max": 30,
+      "task_count": 21,
+      "group_split": {"A": 0, "B": 21, "C": 0, "D": 0},
+      "tasks": ["T-V3-B-01","T-V3-B-03","T-V3-B-04","T-V3-B-05","T-V3-B-07","T-V3-B-08","T-V3-B-10","T-V3-B-11","T-V3-B-13","T-V3-B-14","T-V3-B-15","T-V3-B-17","T-V3-B-19","T-V3-B-22","T-V3-B-23","T-V3-B-24","T-V3-B-26","T-V3-B-27","T-V3-B-28","T-V3-B-29","T-V3-B-30"],
+      "task_category_breakdown": {"backend": 21},
+      "total_estimate_hours": 103.9,
+      "max_single_task_hours": 6.0,
+      "depends_on_waves": [],
+      "completion_criteria": [
+        "all tasks auto-merged via 8 CI gate pipeline",
+        "contract test (Schemathesis) green for all touched endpoints",
+        "RLS coverage (verify-rls-coverage.py) 100%",
+        "pytest cov >= 70% (delta) on backend/app/",
+        "pyright strict 0 errors",
+        "audit MD existence check pass (audit-md-check.sh)"
+      ],
+      "exit_criteria_summary": "all 21 tasks auto-merged + CI gates green",
+      "sub_waves": null,
+      "sub_wave_count": 1,
+      "sub_wave_note": "no mutex conflict / parallel 起動可能"
+    },
+    {
+      "wave_id": "W2",
+      "phase_id": "P1A",
+      "phase_layer": "backend",
+      "name": "Backend Wave 2 — auth-deps + invitation/mock/task/session/AI (8 並列 / depends W1)",
+      "start_estimate": "2026-05-17T16:00:00+09:00",
+      "end_estimate": "2026-05-18T10:00:00+09:00",
+      "duration_hours": 6,
+      "ci_buffer_hours": 1,
+      "parallel_session_count_target": 8,
+      "parallel_capacity_max": 30,
+      "task_count": 8,
+      "group_split": {"A": 0, "B": 8, "C": 0, "D": 0},
+      "tasks": ["T-V3-B-02","T-V3-B-06","T-V3-B-09","T-V3-B-12","T-V3-B-16","T-V3-B-18","T-V3-B-20","T-V3-B-25"],
+      "task_category_breakdown": {"backend": 8},
+      "total_estimate_hours": 40.1,
+      "max_single_task_hours": 6.0,
+      "depends_on_waves": ["W1"],
+      "completion_criteria": [
+        "all tasks auto-merged via 8 CI gate pipeline",
+        "contract test (Schemathesis) green for all touched endpoints",
+        "RLS coverage (verify-rls-coverage.py) 100%",
+        "pytest cov >= 70% (delta) on backend/app/",
+        "pyright strict 0 errors",
+        "audit MD existence check pass (audit-md-check.sh)"
+      ],
+      "exit_criteria_summary": "all 8 tasks auto-merged + CI gates green",
+      "sub_waves": null,
+      "sub_wave_count": 1,
+      "sub_wave_note": "no mutex conflict / parallel 起動可能"
+    },
+    {
+      "wave_id": "W3",
+      "phase_id": "P1A",
+      "phase_layer": "backend",
+      "name": "Backend Wave 3 — phase orchestration final (1 task / depends W2)",
+      "start_estimate": "2026-05-18T10:00:00+09:00",
+      "end_estimate": "2026-05-18T16:00:00+09:00",
+      "duration_hours": 5,
+      "ci_buffer_hours": 1,
+      "parallel_session_count_target": 1,
+      "parallel_capacity_max": 30,
+      "task_count": 1,
+      "group_split": {"A": 0, "B": 1, "C": 0, "D": 0},
+      "tasks": ["T-V3-B-21"],
+      "task_category_breakdown": {"backend": 1},
+      "total_estimate_hours": 4.9,
+      "max_single_task_hours": 4.9,
+      "depends_on_waves": ["W2"],
+      "completion_criteria": [
+        "all tasks auto-merged via 8 CI gate pipeline",
+        "contract test (Schemathesis) green for all touched endpoints",
+        "RLS coverage (verify-rls-coverage.py) 100%",
+        "pytest cov >= 70% (delta) on backend/app/",
+        "pyright strict 0 errors",
+        "audit MD existence check pass (audit-md-check.sh)"
+      ],
+      "exit_criteria_summary": "all 1 tasks auto-merged + CI gates green",
+      "sub_waves": null,
+      "sub_wave_count": 1,
+      "sub_wave_note": "no mutex conflict / parallel 起動可能"
+    },
+    {
+      "wave_id": "W4",
+      "phase_id": "P1B",
+      "phase_layer": "ui",
+      "name": "UI Part 1 — auth/account/AI/client/email/export (25 並列 / depends W1-W3)",
+      "start_estimate": "2026-05-18T16:00:00+09:00",
+      "end_estimate": "2026-05-20T15:00:00+09:00",
+      "duration_hours": 24,
+      "ci_buffer_hours": 1,
+      "parallel_session_count_target": 25,
+      "parallel_capacity_max": 30,
+      "task_count": 25,
+      "group_split": {"A": 0, "B": 0, "C": 25, "D": 0},
+      "tasks": ["T-V3-C-01","T-V3-C-02","T-V3-C-03","T-V3-C-04","T-V3-C-05","T-V3-C-06","T-V3-C-07","T-V3-C-08","T-V3-C-09","T-V3-C-10","T-V3-C-11","T-V3-C-12","T-V3-C-13","T-V3-C-14","T-V3-C-15","T-V3-C-16","T-V3-C-17","T-V3-C-18","T-V3-C-19","T-V3-C-20","T-V3-C-21","T-V3-C-22","T-V3-C-23","T-V3-C-24","T-V3-C-25"],
+      "task_category_breakdown": {"frontend": 25},
+      "total_estimate_hours": 104,
+      "max_single_task_hours": 5,
+      "depends_on_waves": ["W3"],
+      "completion_criteria": [
+        "all tasks auto-merged via 8 CI gate pipeline",
+        "mock-impl-diff (lint #17) 0 件 for touched screens",
+        "tsc strict 0 errors",
+        "a11y check pass (axe-core)",
+        "TanStack Query integration smoke test green",
+        "audit MD existence check pass"
+      ],
+      "exit_criteria_summary": "all 25 tasks auto-merged + CI gates green",
+      "sub_waves": {
+        "W4.a": ["T-V3-C-01","T-V3-C-06","T-V3-C-07","T-V3-C-09","T-V3-C-10","T-V3-C-14","T-V3-C-15","T-V3-C-17","T-V3-C-22","T-V3-C-25"],
+        "W4.b": ["T-V3-C-02","T-V3-C-08","T-V3-C-11","T-V3-C-12","T-V3-C-16","T-V3-C-18","T-V3-C-23"],
+        "W4.c": ["T-V3-C-03","T-V3-C-13","T-V3-C-19","T-V3-C-24"],
+        "W4.d": ["T-V3-C-04","T-V3-C-20"],
+        "W4.e": ["T-V3-C-05","T-V3-C-21"]
+      },
+      "sub_wave_count": 5,
+      "sub_wave_note": "file mutex に基づき 5 sub-wave に分割。claude-runner は sub-wave 順に直列起動、各 sub-wave 内では parallel 起動可能。"
+    },
+    {
+      "wave_id": "W5",
+      "phase_id": "P1B",
+      "phase_layer": "ui",
+      "name": "UI Part 2 — mocks/feature/screens/tasks/sessions (30 並列 / depends W1-W3)",
+      "start_estimate": "2026-05-20T15:00:00+09:00",
+      "end_estimate": "2026-05-20T22:00:00+09:00",
+      "duration_hours": 6,
+      "ci_buffer_hours": 1,
+      "parallel_session_count_target": 30,
+      "parallel_capacity_max": 30,
+      "task_count": 30,
+      "group_split": {"A": 0, "B": 0, "C": 30, "D": 0},
+      "tasks": ["T-V3-C-37","T-V3-C-38","T-V3-C-39","T-V3-C-40","T-V3-C-41","T-V3-C-42","T-V3-C-43","T-V3-C-44","T-V3-C-45","T-V3-C-46","T-V3-C-47","T-V3-C-48","T-V3-C-49","T-V3-C-50","T-V3-C-51","T-V3-C-52","T-V3-C-53","T-V3-C-54","T-V3-C-55","T-V3-C-56","T-V3-C-57-1","T-V3-C-57-2","T-V3-C-57-3","T-V3-C-58","T-V3-C-59","T-V3-C-60","T-V3-C-61","T-V3-C-62","T-V3-C-63","T-V3-C-64"],
+      "task_category_breakdown": {"frontend": 30},
+      "total_estimate_hours": 122.0,
+      "max_single_task_hours": 6.0,
+      "depends_on_waves": ["W4"],
+      "completion_criteria": [
+        "all tasks auto-merged via 8 CI gate pipeline",
+        "mock-impl-diff (lint #17) 0 件 for touched screens",
+        "tsc strict 0 errors",
+        "a11y check pass (axe-core)",
+        "TanStack Query integration smoke test green",
+        "audit MD existence check pass"
+      ],
+      "exit_criteria_summary": "all 30 tasks auto-merged + CI gates green",
+      "sub_waves": null,
+      "sub_wave_count": 1,
+      "sub_wave_note": "no mutex conflict / parallel 起動可能"
+    },
+    {
+      "wave_id": "W6",
+      "phase_id": "P1D",
+      "phase_layer": "polish",
+      "name": "Drift Fix — Group D entity/api/screen drift (15 並列 / depends W1-W5)",
+      "start_estimate": "2026-05-20T22:00:00+09:00",
+      "end_estimate": "2026-05-24T15:00:00+09:00",
+      "duration_hours": 44,
+      "ci_buffer_hours": 1,
+      "parallel_session_count_target": 15,
+      "parallel_capacity_max": 30,
+      "task_count": 15,
+      "group_split": {"A": 0, "B": 0, "C": 0, "D": 15},
+      "tasks": ["T-V3-D-01","T-V3-D-02","T-V3-D-03","T-V3-D-04","T-V3-D-05","T-V3-D-06","T-V3-D-07","T-V3-D-08","T-V3-D-09","T-V3-D-10","T-V3-D-11","T-V3-D-12","T-V3-D-13","T-V3-D-14","T-V3-D-15"],
+      "task_category_breakdown": {"db": 10, "cleanup": 1, "backend": 2, "frontend": 1, "infra": 1},
+      "total_estimate_hours": 63,
+      "max_single_task_hours": 6,
+      "depends_on_waves": ["W5"],
+      "completion_criteria": [
+        "all 15 drift fix tasks auto-merged",
+        "lint #17 (mock-impl-diff) / #18 (screens-API) / #19 (entity-table-naming) 0 件",
+        "entity drift list -> 0 entries in inventory",
+        "API method mismatch (HEAD/lint) 0 件",
+        "screen drift (H1/KPI) 0 件"
+      ],
+      "exit_criteria_summary": "all 15 tasks auto-merged + CI gates green",
+      "sub_waves": {
+        "W6.a": ["T-V3-D-01","T-V3-D-04","T-V3-D-09","T-V3-D-10","T-V3-D-11","T-V3-D-15"],
+        "W6.b": ["T-V3-D-02","T-V3-D-03"],
+        "W6.c": ["T-V3-D-05"],
+        "W6.d": ["T-V3-D-06"],
+        "W6.e": ["T-V3-D-07"],
+        "W6.f": ["T-V3-D-08"],
+        "W6.g": ["T-V3-D-12"],
+        "W6.h": ["T-V3-D-13"],
+        "W6.i": ["T-V3-D-14"]
+      },
+      "sub_wave_count": 9,
+      "sub_wave_note": "file mutex に基づき 9 sub-wave に分割。claude-runner は sub-wave 順に直列起動、各 sub-wave 内では parallel 起動可能。"
+    }
+  ],
+  "milestones": [
+    {
+      "milestone_id": "M1",
+      "name": "Phase 1A Backend 完成",
+      "type": "phase_gate",
+      "after_wave": "W3",
+      "date": "2026-05-18T16:00:00+09:00",
+      "depends_on": ["W1","W2","W3"],
+      "exit_criteria": [
+        "30 backend tasks merged into main",
+        "94 endpoint contract tests green",
+        "RLS coverage 100% on touched tables",
+        "no critical drift in inventory"
+      ],
+      "deliverable": "Phase 1 Backend = 8 Slice の data/service/API layer 完成"
+    },
+    {
+      "milestone_id": "M2",
+      "name": "Phase 1B UI 完成",
+      "type": "phase_gate",
+      "after_wave": "W5",
+      "date": "2026-05-20T22:00:00+09:00",
+      "depends_on": ["W4","W5"],
+      "exit_criteria": [
+        "55 UI tasks merged",
+        "mock-impl-diff (lint #17) 0 件",
+        "a11y check pass",
+        "screens.json と route 一致 (lint #18)"
+      ],
+      "deliverable": "Phase 1 UI = 60 screen + component 完成 (dialog 5 件 merge 反映)"
+    },
+    {
+      "milestone_id": "M3",
+      "name": "Phase 1 完成 (dogfood ready)",
+      "type": "phase_gate",
+      "after_wave": "W6",
+      "date": "2026-05-24T15:00:00+09:00",
+      "depends_on": ["W1","W2","W3","W4","W5","W6"],
+      "exit_criteria": [
+        "100 tasks merged",
+        "Group D drift fix 完了 (entity/api/screen drift 0 件)",
+        "8 CI gate all green on main",
+        "Build-Factory 自身を Build-Factory で dogfood 起動可能"
+      ],
+      "deliverable": "Phase 1 全完成 / dogfood 起動可能状態"
+    }
+  ],
+  "critical_path": ["T-V3-B-01","T-V3-B-02","T-V3-C-01","T-V3-C-02","T-V3-D-01","T-V3-D-15"],
+  "ci_gate_auto_merge": {
+    "enabled": true,
+    "gates": [
+      "1: lint-mock (19 checks)",
+      "2: AC validator (validate-tickets.py / 3-tier schema + EARS form)",
+      "3: RLS coverage (verify-rls-coverage.py)",
+      "4: audit MD existence (audit-md-check.sh)",
+      "5: pytest cov >= 70% (delta)",
+      "6: pyright strict",
+      "7: tsc strict",
+      "8: mock-impl-diff (lint-mock-impl-diff.py / lint #17)"
+    ],
+    "consecutive_failure_threshold": 3,
+    "human_escalation_after": 3,
+    "retry_protocol": "1st fail = auto-retry / 2nd fail = enrich audit MD / 3rd fail = human (high.takamoto@engine-base.com)"
+  },
+  "file_mutex_validation": {
+    "tool": "scripts/check-wave-mutex.py",
+    "tickets_path": "docs/schedule-design/2026-05-16_v3_phase1/wave-tickets.json",
+    "validated_waves": ["W1","W2","W3","W4","W5","W6"],
+    "validated_sub_waves": ["W1.a","W2.a","W3.a","W4.a","W4.b","W4.c","W4.d","W4.e","W5.a","W6.a","W6.b","W6.c","W6.d","W6.e","W6.f","W6.g","W6.h","W6.i"],
+    "strict_mode": true,
+    "all_pass": true
+  },
+  "input_sources": [
+    "docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-b-backend.json",
+    "docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part1.json",
+    "docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-c-ui-part2.json",
+    "docs/task-decomposition/2026-05-16_v3_phase1/tickets-group-d-drift.json"
+  ],
+  "downstream_consumers": [
+    "distributed-dev (wave-schedule.json で並列起動順序決定)",
+    "claude-runner / Swarm (parallel session orchestration)",
+    "integration (Wave 完了集計 + Phase gate 判定)",
+    "delivery (M1-M3 milestone exit criteria)"
+  ]
+}
