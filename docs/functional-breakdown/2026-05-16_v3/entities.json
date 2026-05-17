@@ -3771,34 +3771,45 @@
           "operation": "ALL",
           "role": "service_role",
           "predicate": "true",
-          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)"
+          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)",
+          "source_migration": "20260516150000_rls_ai_family.sql"
         },
         {
           "name": "ai_clones_self_select",
           "operation": "SELECT",
           "role": "authenticated",
           "predicate": "user_id = auth.uid()::text",
-          "rationale": "ユーザーは自分の record のみ参照可"
+          "rationale": "ユーザーは自分の record のみ参照可",
+          "source_migration": "20260512200000_ai_hierarchy_clone_tables.sql"
         },
         {
           "name": "ai_clones_self_write",
           "operation": "ALL",
           "role": "authenticated",
           "predicate": "user_id = auth.uid()::text",
-          "rationale": "ユーザーは自分の record のみ書き込み可"
+          "rationale": "ユーザーは自分の record のみ書き込み可",
+          "source_migration": "20260512200000_ai_hierarchy_clone_tables.sql"
+        },
+        {
+          "name": "ai_clones_account_member_select",
+          "operation": "SELECT",
+          "role": "authenticated",
+          "predicate": "workspace_id IS NOT NULL AND workspace_id IN (SELECT id FROM workspaces WHERE account_id IN (SELECT bf_current_user_account_ids()))",
+          "rationale": "T-V3-D-05: account_members 経由で同 account 配下 workspace の clone を SELECT 可 (account_owner クロス workspace 閲覧経路)",
+          "source_migration": "20260516150000_rls_ai_family.sql"
         }
       ],
-      "status": "discovered_in_migration",
+      "status": "rls_complete",
       "legacy_drift_notes": {
         "spec_table": null,
         "impl_table": "ai_clones",
         "diff_severity": "new",
-        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化",
-        "task_id": "T-V3-DRIFT-E-044",
-        "policy_count_actual": 2,
-        "source_migration": "20260512200000_ai_hierarchy_clone_tables.sql"
+        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化. T-V3-D-05 で account_member_select policy を補完済.",
+        "task_id": "T-V3-D-05",
+        "policy_count_actual": 4,
+        "source_migration": "20260516150000_rls_ai_family.sql"
       },
-      "policy_count_in_migration": 2,
+      "policy_count_in_migration": 4,
       "purpose": "ユーザーの personal clone 保持 (user_clone_opt_in と関連) — clone behavior / system prompt / approval history を持つ",
       "constraints": null
     },
@@ -3861,34 +3872,37 @@
           "operation": "ALL",
           "role": "service_role",
           "predicate": "true",
-          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)"
+          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)",
+          "source_migration": "20260516150000_rls_ai_family.sql"
+        },
+        {
+          "name": "ai_hierarchies_member",
+          "operation": "ALL",
+          "role": "authenticated",
+          "predicate": "workspace_id IS NULL OR bf_can_access_workspace(workspace_id)",
+          "rationale": "workspace member であれば read/write 可 (legacy workspace_members 経由)",
+          "source_migration": "20260512200000_ai_hierarchy_clone_tables.sql"
         },
         {
           "name": "ai_hierarchies_account_member_select",
           "operation": "SELECT",
           "role": "authenticated",
-          "predicate": "account_id IN (SELECT account_id FROM account_members WHERE user_id = auth.uid()::text)",
-          "rationale": "account_members に参加していれば SELECT 可"
-        },
-        {
-          "name": "ai_hierarchies_account_owner_write",
-          "operation": "ALL",
-          "role": "authenticated",
-          "predicate": "account_id IN (SELECT account_id FROM account_members WHERE user_id = auth.uid()::text AND role = 'account_owner')",
-          "rationale": "account_owner のみ書き込み可"
+          "predicate": "workspace_id IS NOT NULL AND workspace_id IN (SELECT id FROM workspaces WHERE account_id IN (SELECT bf_current_user_account_ids()))",
+          "rationale": "T-V3-D-05: account_members 経由で同 account 配下 workspace の hierarchy を SELECT 可 (account_owner クロス workspace 閲覧経路)",
+          "source_migration": "20260516150000_rls_ai_family.sql"
         }
       ],
-      "status": "discovered_in_migration",
+      "status": "rls_complete",
       "legacy_drift_notes": {
         "spec_table": null,
         "impl_table": "ai_hierarchies",
         "diff_severity": "new",
-        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化",
-        "task_id": "T-V3-DRIFT-E-045",
-        "policy_count_actual": 2,
-        "source_migration": "20260512200000_ai_hierarchy_clone_tables.sql"
+        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化. T-V3-D-05 で account_member_select policy を補完済.",
+        "task_id": "T-V3-D-05",
+        "policy_count_actual": 3,
+        "source_migration": "20260516150000_rls_ai_family.sql"
       },
-      "policy_count_in_migration": 2,
+      "policy_count_in_migration": 3,
       "purpose": "AI employee の親子関係 (csuite / lead / member) を materialize したリンクテーブル. cycle prevention trigger (20260512300000) で循環防止",
       "constraints": [
         "no_circular_parent (trigger from 20260512300000)"
@@ -3958,20 +3972,37 @@
           "operation": "ALL",
           "role": "service_role",
           "predicate": "true",
-          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)"
+          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)",
+          "source_migration": "20260516150000_rls_ai_family.sql"
+        },
+        {
+          "name": "ai_personas_read",
+          "operation": "SELECT",
+          "role": "authenticated",
+          "predicate": "true",
+          "rationale": "global seed table: 認証済 user は persona 一覧を読み取り可 (legacy global open SELECT)",
+          "source_migration": "20260512200000_ai_hierarchy_clone_tables.sql"
+        },
+        {
+          "name": "ai_personas_account_member_select",
+          "operation": "SELECT",
+          "role": "authenticated",
+          "predicate": "EXISTS (SELECT 1 FROM account_members WHERE user_id = auth.uid()::text)",
+          "rationale": "T-V3-D-05: account_members に 1 件以上参加している authenticated user に persona seed を開示 (未 onboard user を排除)",
+          "source_migration": "20260516150000_rls_ai_family.sql"
         }
       ],
-      "status": "discovered_in_migration",
+      "status": "rls_complete",
       "legacy_drift_notes": {
         "spec_table": null,
         "impl_table": "ai_personas",
         "diff_severity": "new",
-        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化",
-        "task_id": "T-V3-DRIFT-E-046",
-        "policy_count_actual": 2,
-        "source_migration": "20260512200000_ai_hierarchy_clone_tables.sql"
+        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化. T-V3-D-05 で account_member_select policy を補完済.",
+        "task_id": "T-V3-D-05",
+        "policy_count_actual": 3,
+        "source_migration": "20260516150000_rls_ai_family.sql"
       },
-      "policy_count_in_migration": 2,
+      "policy_count_in_migration": 3,
       "purpose": "BMAD 10 ペルソナの seed table (mary / preston / winston / sally / devon / quinn / reviewer / brand / mockup / logan). 20260512400000_bmad_personas_seed.sql で seed",
       "constraints": null
     },
