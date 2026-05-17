@@ -104,6 +104,16 @@ def _clean_env(monkeypatch):
         "SENTRY_DSN",
     ):
         monkeypatch.delenv(k, raising=False)
+    # upload_service.py captures SUPABASE_URL / SUPABASE_SERVICE_KEY at module
+    # import time. When conftest.py populates test defaults, those constants
+    # are non-empty even after delenv. Reset the module-level constants so
+    # `_is_supabase_configured()` returns False on the local-fallback path.
+    try:
+        from services import upload_service as _us
+        monkeypatch.setattr(_us, "SUPABASE_URL", "")
+        monkeypatch.setattr(_us, "SUPABASE_SERVICE_KEY", "")
+    except Exception:
+        pass
     yield
 
 

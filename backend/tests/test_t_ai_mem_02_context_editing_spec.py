@@ -466,13 +466,12 @@ def test_lint_full_run_passes(repo_root):
     assert result.returncode == 0, (
         f"lint-mock.sh 失敗: stdout={result.stdout[-2000:]} stderr={result.stderr[-1000:]}"
     )
-    # server-side compaction check が走っており最後の check (number=total) であることを確認
-    # number/total は main の状態に応じて変動するため regex で柔軟 match
+    # server-side compaction check が走っていることだけを保証する.
+    # 過去の運用では「最後の check」を invariant としたが、ADR-014
+    # (entity-table-naming) 追加で実行順は流動的になった。順位ではなく
+    # 「all モードに含まれている」ことを regression guard とする.
     import re
     m = re.search(r"\[(\d+)/(\d+)\] server-side compaction", result.stdout)
     assert m, (
         f"server-side compaction check が走っていない. stdout 末尾:\n{result.stdout[-2000:]}"
-    )
-    assert m.group(1) == m.group(2), (
-        f"server-side compaction が最後の check として走っていない: {m.group(0)}"
     )

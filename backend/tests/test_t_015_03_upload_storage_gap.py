@@ -39,8 +39,14 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 def isolated_local_dir(tmp_path, monkeypatch):
     monkeypatch.setattr(us, "LOCAL_FALLBACK_DIR", tmp_path)
     # supabase 未設定で local fallback 経路
+    # NOTE: upload_service.py captures SUPABASE_URL / SUPABASE_SERVICE_KEY at
+    # module import time, so monkeypatch.setenv alone is insufficient when
+    # conftest.py has already populated test defaults. We patch both the env
+    # (for any lazy readers) and the captured module-level constants.
     monkeypatch.setenv("SUPABASE_URL", "")
     monkeypatch.setenv("SUPABASE_SERVICE_KEY", "")
+    monkeypatch.setattr(us, "SUPABASE_URL", "")
+    monkeypatch.setattr(us, "SUPABASE_SERVICE_KEY", "")
     return tmp_path
 
 
