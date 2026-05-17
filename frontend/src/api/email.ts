@@ -444,3 +444,35 @@ export async function sendTestEmail(
   }
   return { message_id: "", status: "queued" };
 }
+
+// ---------------------------------------------------------------------------
+// T-V3-C-21 / S-060 — weekly-summary template selector (additive, Open/Closed).
+//
+// Locates the `weekly_summary` template among the GET /api/email/templates
+// response. Picks by canonical name (`weekly_summary` / `weekly-summary` /
+// contains `weekly`). Returns `null` when no matching row exists so the UI
+// can render the mock-default copy (S-060 mock parity) instead of crashing.
+// ---------------------------------------------------------------------------
+
+/**
+ * Locate the weekly-summary template among the listed templates.
+ *
+ * @screen-id S-060
+ * @feature-id F-028
+ * @task-ids T-V3-C-21
+ */
+export function findWeeklySummaryTemplate(
+  templates: EmailTemplate[] | undefined,
+): EmailTemplate | null {
+  if (!templates || templates.length === 0) return null;
+  const normalised = templates.map((t) => ({
+    t,
+    name: String(t.name ?? "").toLowerCase(),
+  }));
+  return (
+    normalised.find((row) => row.name === "weekly_summary")?.t ??
+    normalised.find((row) => row.name === "weekly-summary")?.t ??
+    normalised.find((row) => row.name.includes("weekly"))?.t ??
+    null
+  );
+}
