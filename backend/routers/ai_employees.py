@@ -344,6 +344,22 @@ async def update_employee(employee_id: int, body: EmployeeUpdate) -> dict[str, A
     return e.to_dict()
 
 
+# ──────────────────────────────────────────────────────────────────────────
+# T-V3-D-09 (F-003 / drift fix): PUT alias for PATCH /api/ai-employees/{id}
+#   mock 宣言は PUT、既存 backend は PATCH のみ (high method-mismatch drift).
+#   ADR-016: PATCH を canonical、PUT を alias とし frontend 移行後に deprecate.
+# ──────────────────────────────────────────────────────────────────────────
+
+
+@employees_router.put("/{employee_id}")
+async def put_update_employee(employee_id: int, body: EmployeeUpdate) -> dict[str, Any]:
+    """T-V3-D-09 (F-003 AC-F1/AC-F2): PUT alias for PATCH /api/ai-employees/{id}.
+
+    See ADR-016. Identical handler logic / response shape to PATCH.
+    """
+    return await update_employee(employee_id, body)
+
+
 @employees_router.post("/{employee_id}/retire")
 async def retire_employee(employee_id: int, body: RetireRequest) -> dict[str, Any]:
     _check_actor(body.actor_user_id)

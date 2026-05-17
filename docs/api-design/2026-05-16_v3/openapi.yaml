@@ -1343,7 +1343,7 @@ paths:
     put:
       operationId: put_ai_employees_by_id
       summary: AI 社員ハイブリッド統合 (BMAD + Agent Teams + 既存) — PUT /api/ai-employees/{id}
-      description: "Feature: F-003 (AI 社員ハイブリッド統合 (BMAD + Agent Teams + 既存)). Auth role: workspace_admin. Related entities: E-008 AIEmployee. Related screens: S-036, S-037, S-038."
+      description: "Feature: F-003 (AI 社員ハイブリッド統合 (BMAD + Agent Teams + 既存)). Auth role: workspace_admin. Related entities: E-008 AIEmployee. Related screens: S-036, S-037, S-038. NOTE: Currently aliases PATCH; see ADR-016 (T-V3-D-09). Will be deprecated after frontend migrates to PATCH."
       tags:
         - ai
       security:
@@ -1425,10 +1425,11 @@ paths:
           trigger: internal server error
           ears_form: "UNWANTED: If internal server error, the system shall return 500."
       x-bf-drift:
-        severity: high
+        severity: resolved_by_adr_016
         task_id: T-V3-DRIFT-F-003-02
-        recommendation: Group D (Drift fix) で対応
-        impl_router_state: path exists with methods ['DELETE', 'GET', 'PATCH'], mock expects PUT
+        recommendation: T-V3-D-09 で PUT alias を追加し PATCH に delegate (ADR-016)
+        impl_router_state: path now exposes ['DELETE', 'GET', 'PATCH', 'PUT'] — PUT aliases PATCH
+        adr_ref: ADR-016
 
       parameters:
         - name: id
@@ -1795,7 +1796,7 @@ paths:
     put:
       operationId: put_accounts_by_id
       summary: account / workspace / members 階層管理 — PUT /api/accounts/{id}
-      description: "Feature: F-004 (account / workspace / members 階層管理). Auth role: account_owner. Related entities: E-001 Account. Related screens: S-007, S-008, S-013, S-014, S-015."
+      description: "Feature: F-004 (account / workspace / members 階層管理). Auth role: account_owner. Related entities: E-001 Account. Related screens: S-007, S-008, S-013, S-014, S-015. NOTE: Currently aliases PATCH; see ADR-016 (T-V3-D-09). Will be deprecated after frontend migrates to PATCH."
       tags:
         - infra
       security:
@@ -1872,10 +1873,11 @@ paths:
           trigger: internal server error
           ears_form: "UNWANTED: If internal server error, the system shall return 500."
       x-bf-drift:
-        severity: high
+        severity: resolved_by_adr_016
         task_id: T-V3-DRIFT-F-004-01
-        recommendation: Group D (Drift fix) で対応
-        impl_router_state: path exists with methods ['DELETE', 'GET', 'PATCH'], mock expects PUT
+        recommendation: T-V3-D-09 で PUT alias を追加し PATCH に delegate (ADR-016)
+        impl_router_state: path now exposes ['DELETE', 'GET', 'PATCH', 'PUT'] — PUT aliases PATCH
+        adr_ref: ADR-016
 
       parameters:
         - name: id
@@ -2532,7 +2534,7 @@ paths:
     put:
       operationId: put_workspaces_by_id
       summary: account / workspace / members 階層管理 — PUT /api/workspaces/{id}
-      description: "Feature: F-004 (account / workspace / members 階層管理). Auth role: workspace_admin. Related entities: E-003 Workspace. Related screens: S-007, S-008, S-013, S-014, S-015."
+      description: "Feature: F-004 (account / workspace / members 階層管理). Auth role: workspace_admin. Related entities: E-003 Workspace. Related screens: S-007, S-008, S-013, S-014, S-015. NOTE: Currently aliases PATCH; see ADR-016 (T-V3-D-09). Will be deprecated after frontend migrates to PATCH."
       tags:
         - infra
       security:
@@ -2609,10 +2611,11 @@ paths:
           trigger: internal server error
           ears_form: "UNWANTED: If internal server error, the system shall return 500."
       x-bf-drift:
-        severity: high
+        severity: resolved_by_adr_016
         task_id: T-V3-DRIFT-F-004-05
-        recommendation: Group D (Drift fix) で対応
-        impl_router_state: path exists with methods ['DELETE', 'GET', 'PATCH'], mock expects PUT
+        recommendation: T-V3-D-09 で PUT alias を追加し PATCH に delegate (ADR-016)
+        impl_router_state: path now exposes ['DELETE', 'GET', 'PATCH', 'PUT'] — PUT aliases PATCH
+        adr_ref: ADR-016
 
       parameters:
         - name: id
@@ -3162,7 +3165,7 @@ paths:
     get:
       operationId: get_workspaces_by_id_invitations
       summary: account / workspace / members 階層管理 — GET /api/workspaces/{id}/invitations
-      description: "Feature: F-004 (account / workspace / members 階層管理). Auth role: workspace_admin. Related entities: E-003 Workspace. Related screens: S-007, S-008, S-013, S-014, S-015."
+      description: "Feature: F-004 (account / workspace / members 階層管理). Auth role: workspace_admin. Related entities: E-003 Workspace. Related screens: S-007, S-008, S-013, S-014, S-015. NOTE: New endpoint added in T-V3-D-09 (ADR-016). POST on same path remains the invitation-create endpoint."
       tags:
         - infra
       security:
@@ -3237,10 +3240,11 @@ paths:
           trigger: internal server error
           ears_form: "UNWANTED: If internal server error, the system shall return 500."
       x-bf-drift:
-        severity: high
+        severity: resolved_by_adr_016
         task_id: T-V3-DRIFT-F-004-07
-        recommendation: Group D (Drift fix) で対応
-        impl_router_state: path exists with methods ['POST'], mock expects GET
+        recommendation: T-V3-D-09 で GET endpoint を新規追加 (ADR-016)
+        impl_router_state: path now exposes ['POST', 'GET'] — GET added by T-V3-D-09
+        adr_ref: ADR-016
 
       parameters:
         - name: id
@@ -5118,7 +5122,7 @@ paths:
     put:
       operationId: put_tasks_by_id
       summary: 機能・タスク分解 + acceptance-criteria (EARS) — PUT /api/tasks/{id}
-      description: "Feature: F-006 (機能・タスク分解 + acceptance-criteria (EARS)). Auth role: member. Related entities: E-016 Task. Related screens: S-021, S-030."
+      description: "Feature: F-006 (機能・タスク分解 + acceptance-criteria (EARS)). Auth role: member. Related entities: E-016 Task. Related screens: S-021, S-030. NOTE: Currently aliases PATCH; see ADR-016 (T-V3-D-09). Will be deprecated after frontend migrates to PATCH."
       tags:
         - spec
       security:
@@ -5199,10 +5203,11 @@ paths:
           trigger: internal server error
           ears_form: "UNWANTED: If internal server error, the system shall return 500."
       x-bf-drift:
-        severity: high
+        severity: resolved_by_adr_016
         task_id: T-V3-DRIFT-F-006-04
-        recommendation: Group D (Drift fix) で対応
-        impl_router_state: path exists with methods ['GET', 'PATCH'], mock expects PUT
+        recommendation: T-V3-D-09 で PUT alias を追加し PATCH に delegate (ADR-016)
+        impl_router_state: path now exposes ['GET', 'PATCH', 'PUT'] — PUT aliases PATCH
+        adr_ref: ADR-016
 
       parameters:
         - name: id

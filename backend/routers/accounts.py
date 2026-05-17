@@ -152,6 +152,23 @@ async def update_account(account_id: int, body: AccountUpdate):
         )
 
 
+# ──────────────────────────────────────────────────────────────────────────
+# T-V3-D-09 (F-004 / drift fix): PUT alias for PATCH /api/accounts/{id}
+#   mock 宣言は PUT、既存 backend は PATCH のみ (high method-mismatch drift).
+#   ADR-016: PATCH を canonical、PUT を alias とし frontend 移行後に deprecate.
+# ──────────────────────────────────────────────────────────────────────────
+
+
+@router.put("/{account_id}")
+async def put_update_account(account_id: int, body: AccountUpdate):
+    """T-V3-D-09 (F-004 AC-F1/AC-F2): PUT alias for PATCH /api/accounts/{id}.
+
+    See ADR-016 (API method alignment). Identical handler logic / response
+    shape to PATCH; merely alias-routing to keep mock contract green.
+    """
+    return await update_account(account_id, body)
+
+
 @router.delete("/{account_id}")
 async def deactivate_account(account_id: int):
     return await acc.deactivate_account(account_id)
