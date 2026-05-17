@@ -220,6 +220,26 @@ async def update_workspace(
         raise _error("workspaces.invalid_preferred_provider", str(e))
 
 
+# ──────────────────────────────────────────────────────────────────────────
+# T-V3-D-09 (F-004 / drift fix): PUT alias for PATCH /api/workspaces/{id}
+#   mock 宣言は PUT、既存 backend は PATCH のみ (high method-mismatch drift).
+#   ADR-016: PATCH を canonical、PUT を alias とし frontend 移行後に deprecate.
+# ──────────────────────────────────────────────────────────────────────────
+
+
+@router.put("/{workspace_id}")
+async def put_update_workspace(
+    workspace_id: int,
+    body: WorkspaceUpdate,
+    actor_user_id: Optional[str] = None,
+):
+    """T-V3-D-09 (F-004 AC-F1/AC-F2): PUT alias for PATCH /api/workspaces/{id}.
+
+    See ADR-016. Identical handler logic / response shape to PATCH.
+    """
+    return await update_workspace(workspace_id, body, actor_user_id)
+
+
 @router.delete("/{workspace_id}")
 async def archive_workspace(workspace_id: int, actor_user_id: Optional[str] = None):
     return await ws.archive_workspace(workspace_id, actor_user_id=actor_user_id)
@@ -544,6 +564,33 @@ async def create_invitation(workspace_id: int, body: InvitationCreate):
         },
     )
     return result
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# T-V3-D-09 (F-004 / drift fix): GET /api/workspaces/{id}/invitations
+#   mock 宣言は GET、既存 backend は POST のみ (high method-mismatch drift).
+# ──────────────────────────────────────────────────────────────────────────
+
+
+@router.get("/{workspace_id}/invitations")
+async def list_invitations(
+    workspace_id: int,
+    status: Optional[str] = Query(
+        None, description="status filter ('pending' default, 'all' for all)",
+    ),
+):
+    """T-V3-D-09 (F-004 AC-F1/AC-F3): list pending invitations for workspace.
+
+    OpenAPI 仕様: GET /api/workspaces/{id}/invitations
+      Response 200: { invitations: [Invitation] }
+    See ADR-016 (API method alignment).
+    """
+    if workspace_id <= 0:
+        raise _error("workspaces.invalid_id", "workspace_id must be > 0")
+    items = await ws.list_workspace_invitations(
+        workspace_id, status_filter=status,
+    )
+    return {"invitations": items}
 
 
 # ──────────────────────────────────────────────────────────────────────────

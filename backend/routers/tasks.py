@@ -269,6 +269,20 @@ async def update_task(task_id: int, body: TaskUpdate):
     return {"status": "updated"}
 
 
+# ──────────────────────────────────────────────────────────────────────────
+# T-V3-D-09 (F-006 / drift fix): PUT alias for PATCH /api/tasks/{id}
+#   mock 宣言は PUT、既存 backend は PATCH のみ (high method-mismatch drift).
+#   ADR-016: PATCH を canonical、PUT を alias とし frontend 移行後に deprecate.
+# ──────────────────────────────────────────────────────────────────────────
+@router.put("/tasks/{task_id}")
+async def put_update_task(task_id: int, body: TaskUpdate):
+    """T-V3-D-09 (F-006 AC-F1/AC-F2): PUT alias for PATCH /api/tasks/{id}.
+
+    See ADR-016. Identical handler logic / response shape to PATCH.
+    """
+    return await update_task(task_id, body)
+
+
 # ── 質問チケット ─────────────────────────────────────────────────────
 
 class QuestionCreate(BaseModel):

@@ -668,3 +668,61 @@ async def revoke_invitation(
         "token_prefix": token[:8],
         "revoked_at": revoked_at,
     }
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# T-V3-D-09 (F-004 / drift fix): GET /api/workspaces/{id}/invitations
+#   既存 router は POST のみだったため mock 宣言 (GET) と乖離 (high drift).
+#   `list_workspace_invitations` で pending 招待一覧を返す API を追加する.
+# ──────────────────────────────────────────────────────────────────────────
+
+
+async def list_workspace_invitations(
+    workspace_id: int,
+    *,
+    status_filter: Optional[str] = None,
+) -> list[dict]:
+    """workspace の招待一覧を返す (T-V3-D-09 / drift fix F-004).
+
+    既定では `pending` のみ. `status_filter` を指定すると指定 status のみ.
+    `status_filter='all'` で全 status を返す.
+    PII を含むため `token` は先頭 8 文字のみ (`token_prefix`) を返す.
+    """
+    if workspace_id <= 0:
+        return []
+
+    eff_status = (status_filter or "pending").strip().lower()
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        if eff_status == "all":
+            cur = await db.execute(
+                "SELECT id, workspace_id, email, role, token, invited_by, "
+                "status, expires_at, created_at FROM workspace_invitations "
+                "WHERE workspace_id = ? ORDER BY created_at DESC",
+                (workspace_id,),
+            )
+        else:
+            cur = await db.execute(
+                "SELECT id, workspace_id, email, role, token, invited_by, "
+                "status, expires_at, created_at FROM workspace_invitations "
+                "WHERE workspace_id = ? AND status = ? "
+                "ORDER BY created_at DESC",
+                (workspace_id, eff_status),
+            )
+        rows = await cur.fetchall()
+    items: list[dict] = []
+    for r in rows:
+        d = dict(r)
+        tok = d.get("token") or ""
+        items.append({
+            "id": d.get("id"),
+            "workspace_id": d.get("workspace_id"),
+            "email": d.get("email"),
+            "role": d.get("role"),
+            "token_prefix": tok[:8],
+            "invited_by": d.get("invited_by"),
+            "status": d.get("status"),
+            "expires_at": d.get("expires_at"),
+            "created_at": d.get("created_at"),
+        })
+    return items
