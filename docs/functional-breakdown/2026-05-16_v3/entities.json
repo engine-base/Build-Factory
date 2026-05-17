@@ -4154,6 +4154,14 @@
           "role": "authenticated",
           "predicate": "user_id = auth.uid()::text",
           "rationale": "ユーザーは自分の record のみ書き込み可"
+        },
+        {
+          "name": "user_clone_optin_owner_only",
+          "operation": "ALL",
+          "role": "authenticated",
+          "predicate": "user_id = auth.uid()::text",
+          "rationale": "T-V3-D-06 canonical 命名: 本人のみ全 operation 可 (self_select + self_write 統合)",
+          "source_migration": "20260516160000_rls_auth_profile_family.sql"
         }
       ],
       "status": "discovered_in_migration",
@@ -4249,6 +4257,14 @@
           "role": "authenticated",
           "predicate": "user_id = auth.uid()::text",
           "rationale": "ユーザーは自分の record のみ書き込み可"
+        },
+        {
+          "name": "user_deletion_requests_owner_only",
+          "operation": "ALL",
+          "role": "authenticated",
+          "predicate": "user_id = auth.uid()::text",
+          "rationale": "T-V3-D-06 canonical 命名: 本人のみ全 operation 可",
+          "source_migration": "20260516160000_rls_auth_profile_family.sql"
         }
       ],
       "status": "discovered_in_migration",
@@ -4346,6 +4362,14 @@
           "role": "authenticated",
           "predicate": "user_id = auth.uid()::text",
           "rationale": "ユーザーは自分の record のみ書き込み可"
+        },
+        {
+          "name": "user_profiles_owner_only",
+          "operation": "ALL",
+          "role": "authenticated",
+          "predicate": "user_id = auth.uid()::text",
+          "rationale": "T-V3-D-06 canonical 命名: 本人のみ全 operation 可",
+          "source_migration": "20260516160000_rls_auth_profile_family.sql"
         }
       ],
       "status": "discovered_in_migration",
@@ -4442,6 +4466,14 @@
           "role": "authenticated",
           "predicate": "owner_id IN (SELECT account_id FROM account_members WHERE user_id = auth.uid()::text AND role = 'account_owner')",
           "rationale": "account_owner のみ書き込み可"
+        },
+        {
+          "name": "encrypted_secrets_owner_only",
+          "operation": "ALL",
+          "role": "authenticated",
+          "predicate": "owner_id = auth.uid()::text",
+          "rationale": "T-V3-D-06 canonical 命名: polymorphic owner check で非所有者には encrypted_value 非露出 (AC-F5)",
+          "source_migration": "20260516160000_rls_auth_profile_family.sql"
         }
       ],
       "status": "discovered_in_migration",
@@ -4545,6 +4577,14 @@
           "role": "authenticated",
           "predicate": "user_id = auth.uid()::text",
           "rationale": "ユーザーは自分の record のみ書き込み可"
+        },
+        {
+          "name": "auth_sessions_owner_only",
+          "operation": "ALL",
+          "role": "authenticated",
+          "predicate": "auth.uid() = user_id",
+          "rationale": "T-V3-D-06 canonical 命名: user_id は実装上 UUID column のため auth.uid() = user_id で直接比較",
+          "source_migration": "20260516160000_rls_auth_profile_family.sql"
         }
       ],
       "status": "discovered_in_migration",
@@ -4656,6 +4696,14 @@
           "role": "authenticated",
           "predicate": "user_id = auth.uid()::text",
           "rationale": "ユーザーは自分の record のみ書き込み可"
+        },
+        {
+          "name": "oauth_connections_owner_only",
+          "operation": "ALL",
+          "role": "authenticated",
+          "predicate": "auth.uid() = user_id",
+          "rationale": "T-V3-D-06 canonical 命名: user_id は実装上 UUID column のため auth.uid() = user_id で直接比較",
+          "source_migration": "20260516160000_rls_auth_profile_family.sql"
         }
       ],
       "status": "discovered_in_migration",
@@ -4740,6 +4788,14 @@
           "role": "authenticated",
           "predicate": "user_id = auth.uid()::text",
           "rationale": "ユーザーは自分の record のみ書き込み可"
+        },
+        {
+          "name": "user_2fa_secrets_owner_only",
+          "operation": "ALL",
+          "role": "authenticated",
+          "predicate": "auth.uid() = user_id",
+          "rationale": "T-V3-D-06 canonical 命名 (SECURITY CRITICAL: TOTP secret は本人のみ access 可, cross-user 一切禁止). user_id は UUID column のため auth.uid() = user_id で直接比較",
+          "source_migration": "20260516160000_rls_auth_profile_family.sql"
         }
       ],
       "status": "discovered_in_migration",
@@ -4829,6 +4885,14 @@
           "role": "authenticated",
           "predicate": "user_id = auth.uid()::text",
           "rationale": "ユーザーは自分の record のみ書き込み可"
+        },
+        {
+          "name": "user_2fa_recovery_codes_owner_only",
+          "operation": "ALL",
+          "role": "authenticated",
+          "predicate": "auth.uid() = user_id",
+          "rationale": "T-V3-D-06 canonical 命名 (SECURITY CRITICAL: recovery codes は本人のみ access 可). user_id は UUID column のため auth.uid() = user_id で直接比較",
+          "source_migration": "20260516160000_rls_auth_profile_family.sql"
         }
       ],
       "status": "discovered_in_migration",
@@ -4927,6 +4991,14 @@
           "role": "authenticated",
           "predicate": "user_id = auth.uid()::text",
           "rationale": "ユーザーは自分の record のみ書き込み可"
+        },
+        {
+          "name": "auth_audit_log_account_member_select",
+          "operation": "SELECT",
+          "role": "authenticated",
+          "predicate": "auth.uid() = user_id",
+          "rationale": "T-V3-D-06 canonical 命名: 本人 event のみ SELECT 可 (他人 event は 0 row). user_id は UUID column. INSERT/UPDATE/DELETE は service_role 経由のみ",
+          "source_migration": "20260516160000_rls_auth_profile_family.sql"
         }
       ],
       "status": "discovered_in_migration",
