@@ -41,6 +41,7 @@ export const CLIENT_SPEC_ENDPOINT_PATTERN = "/api/client/workspaces/{token}/spec
 export const CLIENT_COMMENTS_ENDPOINT = "/api/client/comments";
 export const CLIENT_COMMENTS_THREAD_ENDPOINT_PATTERN =
   "/api/client/comments/{thread_id}";
+export const COMMENTS_RESOLVE_ENDPOINT_PATTERN = "/api/comments/{id}/resolve";
 
 /** Build the canonical workspace endpoint path for the given client token. */
 export function clientWorkspaceEndpoint(token: string): string {
@@ -55,6 +56,11 @@ export function clientWorkspaceSpecEndpoint(token: string): string {
 /** Build the canonical comments-by-thread endpoint path. */
 export function clientCommentsThreadEndpoint(threadId: string): string {
   return `/api/client/comments/${encodeURIComponent(threadId)}`;
+}
+
+/** Build the canonical comment-resolve endpoint path (member-only). */
+export function commentResolveEndpoint(commentId: string): string {
+  return `/api/comments/${encodeURIComponent(commentId)}/resolve`;
 }
 
 // --------------------------------------------------------------------------
@@ -383,4 +389,70 @@ export async function getClientComments(
     throw await parseErrorEnvelope(response, endpoint);
   }
   return (await response.json()) as ClientCommentsResponse;
+}
+
+/**
+ * Response shape for `POST /api/comments/{id}/resolve`. The backend stamps
+ * `resolved_at` server-side (see backend/services/client_portal_service.py
+ * `resolve_comment`).
+ */
+export interface ResolveCommentResponse {
+  id: string;
+  resolved_at: string;
+}
+
+export interface ResolveCommentRequestOptions
+  extends ClientPortalRequestOptions {
+  /**
+   * Optional session token forwarded as `Authorization: Bearer <token>`. The
+   * resolve endpoint is **member-only** (require_user dependency) — when the
+   * portal viewer is the public client, the backend returns 401 / 403 and the
+   * S-043 page surfaces the friendly toast tagged with the failing endpoint.
+   */
+  authToken?: string | null;
+}
+
+/**
+ * POST /api/comments/{id}/resolve via the typed client. Used by S-043 when a
+ * workspace member chooses to resolve a comment thread. For the public client
+ * viewer (no auth token), the backend returns 401 — caught and surfaced as a
+ * non-technical toast tagged with the endpoint (AC-F4 on S-043).
+ */
+export async function resolveComment(
+  commentId: string,
+  opts: ResolveCommentRequestOptions = {},
+): Promise<ResolveCommentResponse> {
+  const endpoint = commentResolveEndpoint(commentId);
+  const baseUrl = resolveApiBase(opts.apiBase).replace(/\/$/, "");
+  const url = `${baseUrl}${endpoint}`;
+  const fetchImpl = opts.fetchImpl ?? fetch;
+
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+  };
+  if (opts.authToken) {
+    headers.Authorization = `Bearer ${opts.authToken}`;
+  }
+
+  let response: Response;
+  try {
+    response = await fetchImpl(url, {
+      method: "POST",
+      headers,
+      signal: opts.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") throw err;
+    throw new ClientPortalApiError(
+      "network_error",
+      "network error",
+      0,
+      endpoint,
+    );
+  }
+
+  if (!response.ok) {
+    throw await parseErrorEnvelope(response, endpoint);
+  }
+  return (await response.json()) as ResolveCommentResponse;
 }
