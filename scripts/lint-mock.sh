@@ -31,7 +31,7 @@ MODE="${1:-all}"
 # 1. 絵文字検出
 # ----------------------------------------------------------------
 check_emoji() {
-  echo "[1/16] 絵文字検出..."
+  echo "[1/17] 絵文字検出..."
   # 検出範囲: docs/mocks/ + frontend/src/ + backend/ (生成スクリプトと .git は除く)
   # スクリプト自体は除外
   local violations
@@ -103,7 +103,7 @@ PY
 # 2. AGPL 依存検出
 # ----------------------------------------------------------------
 check_agpl() {
-  echo "[2/16] AGPL ライセンス依存検出..."
+  echo "[2/17] AGPL ライセンス依存検出..."
   local found=0
 
   # frontend (package.json)
@@ -142,7 +142,7 @@ check_agpl() {
 #      - penpot 統合コードは Phase 1.5 (S-3) で GrapesJS に置換するまで残置
 # ----------------------------------------------------------------
 check_archive() {
-  echo "[3/16] ARCHIVE 対象 (onlook/penpot) 残留検出..."
+  echo "[3/17] ARCHIVE 対象 (onlook/penpot) 残留検出..."
   local found=0
 
   # ディレクトリ自体は両方とも削除必須
@@ -187,7 +187,7 @@ check_archive() {
 #    対象: claude-agent-sdk runner + 会話オーケストレータ + 秘書エージェント
 # ----------------------------------------------------------------
 check_no_langgraph() {
-  echo "[6/16] backend メイン経路の LangGraph/LangChain 混入検出..."
+  echo "[6/17] backend メイン経路の LangGraph/LangChain 混入検出..."
   # T-003-02 AC-5 (#2): handoff path (secretary_chat / delegation_service)
   # に LangGraph / LangChain が紛れ込まないことも機械検知 (ADR-010 §UNWANTED).
   # T-M27-01b: Intent Router entry node (intent_router_entry.py / routers/intent_router.py)
@@ -215,7 +215,7 @@ check_no_langgraph() {
 #    メイン経路は claude-agent-sdk + anthropic-python のみ。 LiteLLM はサブ用途専用.
 # ----------------------------------------------------------------
 check_no_litellm_in_runner() {
-  echo "[7/16] backend メイン経路の LiteLLM 混入検出..."
+  echo "[7/17] backend メイン経路の LiteLLM 混入検出..."
   local targets="backend/integrations/claude_agent_runner.py backend/services/orchestrator_graph.py backend/ai_agents/secretary_agent.py"
   local found=0
   for f in $targets; do
@@ -240,7 +240,7 @@ check_no_litellm_in_runner() {
 #    .env.example 以外のコミット対象ファイルに混入していたら FAIL
 # ----------------------------------------------------------------
 check_secrets() {
-  echo "[5/16] 実鍵リーク検出..."
+  echo "[5/17] 実鍵リーク検出..."
   local pattern='sb_(publishable|secret)_[A-Za-z0-9_-]{20,}'
   # 除外: .env (gitignore済) / .env.example (placeholder のみ許可) / lock files
   # CI で repo が大きく育ち subprocess timeout を超えるため exclude-dir を拡張.
@@ -266,7 +266,7 @@ check_secrets() {
 # 4. tickets.json メタ検証
 # ----------------------------------------------------------------
 check_tickets() {
-  echo "[4/16] tickets.json メタ検証..."
+  echo "[4/17] tickets.json メタ検証..."
   if python3 scripts/validate-tickets.py > /tmp/lint_validate.log 2>&1; then
     echo -e "${GREEN}OK: 全タスクが必須メタを保持${NC}"
   else
@@ -286,7 +286,7 @@ check_tickets() {
 # Dispatch
 # ----------------------------------------------------------------
 check_domain_boundaries() {
-  echo "[8/16] backend bounded-context domain barrel + 循環依存検出..."
+  echo "[8/17] backend bounded-context domain barrel + 循環依存検出..."
   if python3 scripts/check-domain-boundaries.py > /tmp/lint_domains.log 2>&1; then
     echo -e "${GREEN}OK: backend/domains/ 13 barrel 健全 (no bypass / no cycle)${NC}"
   else
@@ -303,7 +303,7 @@ check_domain_boundaries() {
 #    (provider_adapter / provider_adapter_memory 経由を強制).
 # ----------------------------------------------------------------
 check_no_self_provider_routing() {
-  echo "[9/16] provider 切替 routing 自前実装検知 (T-AI-MEM-04 / ADR-012 Decision 5)..."
+  echo "[9/17] provider 切替 routing 自前実装検知 (T-AI-MEM-04 / ADR-012 Decision 5)..."
   # 禁止語: provider 切替の自前 routing 関数 / private resolver / route hack
   local forbidden_re='\bdef[[:space:]]+(_resolve_provider_locally|_route_to_provider|_custom_provider_switch|_pick_provider_inline|_byok_then_anthropic)\b'
   local hits
@@ -329,7 +329,7 @@ check_no_self_provider_routing() {
 #     dedup / truncate / window eviction の自前実装を行わない.
 # ----------------------------------------------------------------
 check_no_self_tool_trim() {
-  echo "[10/16] tool result trim 自前実装検知 (T-M28-02 AC-4)..."
+  echo "[10/17] tool result trim 自前実装検知 (T-M28-02 AC-4)..."
   local forbidden_re='\b(trim_tool_result|_apply_size_cap|_apply_age_cap|_dedup_tool_results|truncate_tool_result|_compute_trimmed_payload|_run_trim_policy|_apply_window_eviction)\b'
   local hits
   hits=$(grep -rnE "$forbidden_re" \
@@ -351,7 +351,7 @@ check_no_self_tool_trim() {
 #     関連: ADR-009 / M-31 / T-BTSTRAP-02 (WorkspaceService.bootstrap で参照).
 # ----------------------------------------------------------------
 check_template_skeleton_complete() {
-  echo "[11/16] templates/project-bootstrap/ 必須スケルトン完整性検査 (T-BTSTRAP-01 AC-4)..."
+  echo "[11/17] templates/project-bootstrap/ 必須スケルトン完整性検査 (T-BTSTRAP-01 AC-4)..."
   local required=(
     "templates/project-bootstrap/CLAUDE.md.j2"
     "templates/project-bootstrap/docs/HANDOVER.md.j2"
@@ -391,7 +391,7 @@ check_template_skeleton_complete() {
 #     してはならない (ADR-010 + T-AI-08 spec).
 # ----------------------------------------------------------------
 check_no_self_fallback_circuit() {
-  echo "[13/16] fallback / circuit-breaker 自前実装検知 (T-AI-08 AC-UNWANTED)..."
+  echo "[13/17] fallback / circuit-breaker 自前実装検知 (T-AI-08 AC-UNWANTED)..."
   local forbidden_re='\bdef[[:space:]]+(_custom_health_circuit|_self_failover_loop|_inline_3_strike_fallback|_manual_recovery_streak|_route_to_untested_provider)\b'
   local hits
   hits=$(grep -rnE "$forbidden_re" \
@@ -410,7 +410,7 @@ check_no_self_fallback_circuit() {
 }
 
 check_no_self_constitution_inject() {
-  echo "[12/16] Constitution 自前 inject 検知 (T-AI-04 AC-1/4)..."
+  echo "[12/17] Constitution 自前 inject 検知 (T-AI-04 AC-1/4)..."
   # 禁止語: constitution を自前で system prompt に組み込む関数 / 文字列
   local forbidden_re='\bdef[[:space:]]+(_build_constitution_prompt|_inject_constitution_manually|_compose_red_lines_inline|_manual_constitution_inject)\b'
   local hits
@@ -438,7 +438,7 @@ check_no_self_constitution_inject() {
 #     G22 register_handoff_backend (SDK 差替点) は許可.
 # ----------------------------------------------------------------
 check_no_self_handoff() {
-  echo "[14/16] handoff 自前実装検知 (T-M27-03 AC-4)..."
+  echo "[14/17] handoff 自前実装検知 (T-M27-03 AC-4)..."
   local target="backend/services/handoff_service.py"
   if [ ! -f "$target" ]; then
     echo -e "${GREEN}OK: handoff_service.py が存在しない (skip)${NC}"
@@ -470,7 +470,7 @@ check_no_self_handoff() {
 #         : T-M28-04 SDK wrapper. 存在する場合のみ exempt.
 # ----------------------------------------------------------------
 check_no_self_9section_summary() {
-  echo "[15/16] 9-section summary 自前実装検知 (T-M30-03 AC-4 / T-M28-04 cross-ref)..."
+  echo "[15/17] 9-section summary 自前実装検知 (T-M30-03 AC-4 / T-M28-04 cross-ref)..."
   # 通用語 pattern (hard-coded list ではない):
   #   verb 語: generate / build / make / compose / synthesize / create /
   #            produce / assemble / construct / render / emit / write
@@ -516,7 +516,7 @@ check_no_self_9section_summary() {
 #     services/anthropic_context_editing.py (factory + validator) は除外.
 # ----------------------------------------------------------------
 check_no_self_compaction() {
-  echo "[16/16] server-side compaction 自前実装検知 (T-AI-MEM-02 AC-4)..."
+  echo "[16/17] server-side compaction 自前実装検知 (T-AI-MEM-02 AC-4)..."
   local forbidden_re='\bdef[[:space:]]+(_self_serverside_compact|_compact_conversation_history|_compose_structured_summary|_run_window_eviction_at_95|_manual_conversation_compaction|_inline_9_section_compaction|_apply_serverside_compact_strategy|_self_compact_messages)\b'
   local hits
   hits=$(grep -rnE "$forbidden_re" \
@@ -531,6 +531,100 @@ check_no_self_compaction() {
   else
     echo -e "${GREEN}OK: app code に server-side compaction 自前実装なし${NC}"
   fi
+}
+
+# ----------------------------------------------------------------
+# 19. entity-table-naming drift detection (T-V3-D-02 / ADR-014)
+#     docs/functional-breakdown/2026-05-16_v3/entities.json で
+#     `table_name` (impl) と `spec_table_name` (spec) が一致しているかを検証する.
+#
+#     ADR-014 allow-list: E-014/15/16/17 (bf_tasks / bf_task_dependencies /
+#     bf_acceptance_criteria / bf_constitutions) は bf_ prefix を canonical と
+#     宣言済. spec 側を impl に揃えるという ADR が確定しているため、これら
+#     4 entity は drift があっても fail にしない. ただし `spec_table_name` も
+#     `bf_*` で揃っていることを別途確認する (= ADR-014 適用済の二段確認).
+#
+#     その他 entity で table_name != spec_table_name の場合は drift として
+#     NG 扱いとし、対応する Group D drift task の起票を促す.
+# ----------------------------------------------------------------
+check_entity_table_naming() {
+  echo "[17/17] entity-table-naming drift 検出 (T-V3-D-02 / ADR-014)..."
+  local entities_file="docs/functional-breakdown/2026-05-16_v3/entities.json"
+  if [ ! -f "$entities_file" ]; then
+    echo -e "${YELLOW}WARN: $entities_file が存在しない (skip)${NC}"
+    return 0
+  fi
+  local output
+  output=$(python3 - "$entities_file" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+ENTITIES_PATH = Path(sys.argv[1])
+# ADR-014 で keep bf_ prefix as canonical と決定された entity の allow-list
+ADR014_ALLOW = {
+    "E-014": "bf_tasks",
+    "E-015": "bf_task_dependencies",
+    "E-016": "bf_acceptance_criteria",
+    "E-017": "bf_constitutions",
+}
+
+data = json.loads(ENTITIES_PATH.read_text(encoding="utf-8"))
+entities = data.get("entities", data) if isinstance(data, dict) else data
+
+drift = []
+allow_misaligned = []
+for e in entities:
+    eid = e.get("id")
+    impl = e.get("table_name")
+    spec = e.get("spec_table_name")
+    if not eid or not impl or not spec:
+        continue
+    if eid in ADR014_ALLOW:
+        # ADR-014 allow-list: spec も bf_ prefix で揃っていることを確認
+        expected = ADR014_ALLOW[eid]
+        if spec != expected or impl != expected:
+            allow_misaligned.append((eid, impl, spec, expected))
+        continue
+    if impl != spec:
+        drift.append((eid, e.get("name", "?"), spec, impl))
+
+if allow_misaligned:
+    print("ALLOWLIST_MISALIGNED")
+    for eid, impl, spec, expected in allow_misaligned:
+        print(f"  {eid}: expected '{expected}', got impl='{impl}' spec='{spec}'")
+else:
+    print("ALLOWLIST_OK")
+    for eid, expected in ADR014_ALLOW.items():
+        print(f"  {eid}: spec=impl='{expected}' (ADR-014)")
+if drift:
+    print("DRIFT")
+    for eid, name, spec, impl in drift:
+        print(f"  {eid} {name}: spec='{spec}' impl='{impl}'")
+if not allow_misaligned and not drift:
+    print("OK")
+PY
+)
+  if echo "$output" | grep -q "^ALLOWLIST_MISALIGNED"; then
+    echo -e "${RED}NG: ADR-014 allow-list entity (E-014/15/16/17) が canonical bf_ prefix で揃っていない${NC}"
+    echo "$output" | sed -n '/^ALLOWLIST_MISALIGNED/,/^DRIFT\|^OK/p' | head -10
+    echo "→ ADR-014 では spec_table_name と table_name を bf_* で揃えることが必須"
+    EXIT_CODE=1
+    return 0
+  fi
+  # Allow-list (E-014/15/16/17) は ADR-014 で confirmed = OK 出力
+  if echo "$output" | grep -q "^ALLOWLIST_OK"; then
+    echo -e "${GREEN}OK[allowlist]: ADR-014 allow-list (E-014/15/16/17) は spec=impl で揃っている${NC}"
+    echo "$output" | sed -n '/^ALLOWLIST_OK/,/^DRIFT\|^OK/p' | grep -v "^ALLOWLIST_OK" | grep -v "^DRIFT" | grep -v "^OK" | head -4
+  fi
+  if echo "$output" | grep -q "^DRIFT"; then
+    echo -e "${RED}NG: entity-table-naming drift (spec != impl) を検出 (allow-list 対象外)${NC}"
+    echo "$output" | sed -n '/^DRIFT/,$p' | head -10
+    echo "→ 対応する Group D drift task (T-V3-D-*) で fix or ADR で明示判断すること"
+    EXIT_CODE=1
+    return 0
+  fi
+  echo -e "${GREEN}OK: 全 entity で table_name == spec_table_name (ADR-014 allow-list 含む)${NC}"
 }
 
 case "$MODE" in
@@ -550,6 +644,7 @@ case "$MODE" in
   --no-self-handoff) check_no_self_handoff ;;
   --no-self-9section) check_no_self_9section_summary ;;
   --no-self-compaction) check_no_self_compaction ;;
+  --entity-table-naming) check_entity_table_naming ;;
   all|"")
     check_emoji
     check_agpl
@@ -567,9 +662,10 @@ case "$MODE" in
     check_no_self_handoff
     check_no_self_9section_summary
     check_no_self_compaction
+    check_entity_table_naming
     ;;
   *)
-    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|--no-self-provider-routing|--no-self-tool-trim|--template-skeleton|--no-self-constitution|--no-self-fallback-circuit|--no-self-handoff|--no-self-9section|all]"
+    echo "Usage: $0 [--emoji|--agpl|--archive|--tickets|--secrets|--no-langgraph|--no-litellm-in-runner|--domains|--no-self-provider-routing|--no-self-tool-trim|--template-skeleton|--no-self-constitution|--no-self-fallback-circuit|--no-self-handoff|--no-self-9section|--no-self-compaction|--entity-table-naming|all]"
     exit 2
     ;;
 esac

@@ -1174,7 +1174,7 @@
       "id": "E-014",
       "name": "Task",
       "table_name": "bf_tasks",
-      "spec_table_name": "tasks",
+      "spec_table_name": "bf_tasks",
       "fields": [
         {
           "name": "id",
@@ -1301,11 +1301,12 @@
       ],
       "status": "decided",
       "legacy_drift_notes": {
-        "spec_table": "tasks",
+        "spec_table": "bf_tasks",
         "impl_table": "bf_tasks",
-        "diff_severity": "critical",
-        "recommendation": "spec 'tasks' に対し legacy 'tasks' (single-user) と modern 'bf_tasks' の **二重実装** が並存. v3 では bf_tasks が正で legacy tasks は ARCHIVE 推奨. T-V3-DRIFT-E-014 で legacy tasks 削除を計画",
-        "task_id": "T-V3-DRIFT-E-014",
+        "diff_severity": "resolved_by_adr_014",
+        "recommendation": "ADR-014 (2026-05-17) で 'keep bf_ prefix as canonical' を決定. spec_table_name を impl_table に揃えた. legacy 'tasks' (single-user / 二重実装) の ARCHIVE 判断は別途 T-V3-DRIFT-E-014 で扱う (本 ADR スコープ外)",
+        "task_id": "T-V3-D-02",
+        "adr_ref": "ADR-014",
         "policy_count_actual": 2,
         "source_migration": "20260510000001_bf_project_tables.sql"
       },
@@ -1315,7 +1316,7 @@
       "id": "E-015",
       "name": "TaskDependency",
       "table_name": "bf_task_dependencies",
-      "spec_table_name": "task_dependencies",
+      "spec_table_name": "bf_task_dependencies",
       "fields": [
         {
           "name": "parent_task_id",
@@ -1374,11 +1375,12 @@
       ],
       "status": "decided",
       "legacy_drift_notes": {
-        "spec_table": "task_dependencies",
+        "spec_table": "bf_task_dependencies",
         "impl_table": "bf_task_dependencies",
-        "diff_severity": "medium",
-        "recommendation": "spec 'task_dependencies' に対し impl は 'bf_task_dependencies'. bf_ prefix drift",
-        "task_id": "T-V3-DRIFT-E-015",
+        "diff_severity": "resolved_by_adr_014",
+        "recommendation": "ADR-014 (2026-05-17) で 'keep bf_ prefix as canonical' を決定. spec_table_name を impl_table に揃えた.",
+        "task_id": "T-V3-D-02",
+        "adr_ref": "ADR-014",
         "policy_count_actual": 2,
         "source_migration": "20260510000001_bf_project_tables.sql"
       },
@@ -1392,7 +1394,7 @@
       "id": "E-016",
       "name": "AcceptanceCriterion",
       "table_name": "bf_acceptance_criteria",
-      "spec_table_name": "acceptance_criteria",
+      "spec_table_name": "bf_acceptance_criteria",
       "fields": [
         {
           "name": "task_id",
@@ -1478,11 +1480,12 @@
       ],
       "status": "decided",
       "legacy_drift_notes": {
-        "spec_table": "acceptance_criteria",
+        "spec_table": "bf_acceptance_criteria",
         "impl_table": "bf_acceptance_criteria",
-        "diff_severity": "medium",
-        "recommendation": "spec 'acceptance_criteria' に対し impl は 'bf_acceptance_criteria'. bf_ prefix drift",
-        "task_id": "T-V3-DRIFT-E-016",
+        "diff_severity": "resolved_by_adr_014",
+        "recommendation": "ADR-014 (2026-05-17) で 'keep bf_ prefix as canonical' を決定. spec_table_name を impl_table に揃えた.",
+        "task_id": "T-V3-D-02",
+        "adr_ref": "ADR-014",
         "policy_count_actual": 2,
         "source_migration": "20260510000001_bf_project_tables.sql"
       },
@@ -1492,7 +1495,7 @@
       "id": "E-017",
       "name": "Constitution",
       "table_name": "bf_constitutions",
-      "spec_table_name": "constitutions",
+      "spec_table_name": "bf_constitutions",
       "fields": [
         {
           "name": "id",
@@ -1571,11 +1574,12 @@
       ],
       "status": "decided",
       "legacy_drift_notes": {
-        "spec_table": "constitutions",
+        "spec_table": "bf_constitutions",
         "impl_table": "bf_constitutions",
-        "diff_severity": "medium",
-        "recommendation": "spec 'constitutions' に対し impl は 'bf_constitutions'. version 管理は bf_constitution_revisions が担当 (E-NEW)",
-        "task_id": "T-V3-DRIFT-E-017",
+        "diff_severity": "resolved_by_adr_014",
+        "recommendation": "ADR-014 (2026-05-17) で 'keep bf_ prefix as canonical' を決定. spec_table_name を impl_table に揃えた. version 管理は bf_constitution_revisions が担当 (E-060).",
+        "task_id": "T-V3-D-02",
+        "adr_ref": "ADR-014",
         "policy_count_actual": 2,
         "source_migration": "20260510000001_bf_project_tables.sql"
       },
