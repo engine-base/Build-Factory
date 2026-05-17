@@ -72,7 +72,7 @@ export default function AIEmployeesPage() {
       <div className="flex-1 overflow-y-auto p-8">
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold" style={{ fontFamily: "var(--font-noto-sans-jp)" }}>AI社員（組織図）</h1>
+            <h1 className="text-2xl font-bold" style={{ fontFamily: "var(--font-noto-sans-jp)" }}>AI 社員 組織図</h1>
             <p className="text-sm mt-1 inline-flex items-center gap-1 flex-wrap" style={{ color: "var(--eb-neutral)" }}>
               秘書<ChevronRightIcon className="w-3 h-3" aria-hidden />リーダー<ChevronRightIcon className="w-3 h-3" aria-hidden />メンバー の階層構造。クリックで個性確認・チャット・編集・退職処理。
             </p>

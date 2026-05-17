@@ -195,7 +195,7 @@ export default function TasksPage() {
       <div className="w-72 shrink-0 flex flex-col bg-white" style={{ borderRight: "1px solid var(--eb-border)" }}>
         <div className="p-4" style={{ borderBottom: "1px solid var(--eb-border)" }}>
           <h1 className="font-bold text-base" style={{ fontFamily: "var(--font-noto-sans-jp)" }}>
-            タスク管理
+            タスクリスト
           </h1>
           <p className="text-[10px] mt-1" style={{ color: "var(--eb-neutral)" }}>
             秘書チャットから自動分解されたプロジェクト
