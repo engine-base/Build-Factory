@@ -3533,6 +3533,10 @@
         {
           "name": "user_agent",
           "raw_v1_descriptor": "user_agent text"
+        },
+        {
+          "name": "source",
+          "raw_v1_descriptor": "source TEXT NOT NULL DEFAULT 'generic' CHECK (source IN ('generic','auth','workspace','system','cost','red_line')) — T-V3-D-14 / ADR-018"
         }
       ],
       "relations": [
@@ -3552,7 +3556,8 @@
         "BRIN(created_at)",
         "user_id",
         "workspace_id",
-        "action"
+        "action",
+        "(source, created_at DESC)"
       ],
       "tenant_isolation": {
         "type": "workspace_scoped",
@@ -3565,36 +3570,45 @@
           "operation": "ALL",
           "role": "service_role",
           "predicate": "true",
-          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)"
+          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)",
+          "source_migration": "20260516210000_audit_log_unification.sql"
         },
         {
-          "name": "audit_logs_workspace_member_select",
+          "name": "audit_logs_account_member_select",
           "operation": "SELECT",
           "role": "authenticated",
-          "predicate": "bf_can_access_workspace(workspace_id)",
-          "rationale": "workspace_members に参加していれば SELECT 可"
+          "predicate": "workspace_id IS NOT NULL AND bf_can_access_workspace(workspace_id)",
+          "rationale": "T-V3-D-14 canonical: workspace_members 参加者のみ workspace 内の audit を SELECT 可. source='auth' (workspace_id NULL) は service_role 経由のみ可視 (SOC 用途は専用 API 経由)",
+          "source_migration": "20260516210000_audit_log_unification.sql"
         },
         {
           "name": "audit_logs_workspace_member_write",
           "operation": "ALL",
           "role": "authenticated",
           "predicate": "bf_can_access_workspace(workspace_id) AND bf_can_write_workspace(workspace_id)",
-          "rationale": "contributor 以上の workspace_member は書き込み可"
+          "rationale": "contributor 以上の workspace_member は書き込み可 (spec 上の宣言 / 実 INSERT は service 層経由)"
         }
       ],
       "status": "decided",
       "legacy_drift_notes": {
         "spec_table": "audit_logs",
         "impl_table": "audit_logs",
-        "diff_severity": "medium",
-        "recommendation": "audit_logs (impl) と auth_audit_log (impl) が並存. auth-specific 系は別 table. spec の 1 table 想定と差異",
-        "task_id": "T-V3-DRIFT-E-037",
-        "policy_count_actual": 2,
-        "source_migration": "20260510000001_bf_project_tables.sql"
+        "diff_severity": "resolved_by_adr_018",
+        "adr_ref": "ADR-018",
+        "recommendation": "T-V3-D-14 / ADR-018: audit_logs に source 列を追加し auth_audit_log を VIEW に置換することで二重実装を解消した. 旧 auth_audit_log は backward-compat VIEW (audit_logs WHERE source='auth') として 1 release cycle 維持. E-055 と統合.",
+        "task_id": "T-V3-D-14",
+        "policy_count_actual": 4,
+        "source_migration": "20260510000001_bf_project_tables.sql + 20260516210000_audit_log_unification.sql"
       },
-      "policy_count_in_migration": 2,
+      "policy_count_in_migration": 4,
       "partition_strategy": "monthly via pg_partman (P2)",
-      "retention_years": 7
+      "retention_years": 7,
+      "unification_notes": {
+        "merged_from": ["E-055 AuthAuditLog"],
+        "discriminator_column": "source",
+        "discriminator_enum": ["generic", "auth", "workspace", "system", "cost", "red_line"],
+        "backward_compat_view": "auth_audit_log (SELECT 専用 / source='auth')"
+      }
     },
     {
       "id": "E-038",
@@ -5274,19 +5288,26 @@
           "source_migration": "20260516160000_rls_auth_profile_family.sql"
         }
       ],
-      "status": "discovered_in_migration",
+      "status": "archived_as_view",
       "legacy_drift_notes": {
         "spec_table": null,
         "impl_table": "auth_audit_log",
-        "diff_severity": "new",
-        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化",
-        "task_id": "T-V3-DRIFT-E-055",
+        "diff_severity": "resolved_by_adr_018",
+        "adr_ref": "ADR-018",
+        "recommendation": "T-V3-D-14 / ADR-018: auth_audit_log table は _archived_auth_audit_log に rename され、同名 backward-compat VIEW (audit_logs WHERE source='auth') に置換された. 新規 write は backend/services/audit_service.py::emit_auth_event 経由で audit_logs(source='auth') に書く. VIEW は 1 release cycle 維持 → Phase 2 で 410 Gone deprecate → 物理削除予定 (E-055 → E-037 へ統合).",
+        "task_id": "T-V3-D-14",
         "policy_count_actual": 2,
-        "source_migration": "20260510000000_auth_tables.sql"
+        "source_migration": "20260510000000_auth_tables.sql + 20260516210000_audit_log_unification.sql",
+        "merged_into_entity": "E-037 AuditLog (source='auth')"
       },
       "policy_count_in_migration": 2,
-      "purpose": "auth 専用の audit (login / logout / 2FA enable / password change). 汎用 audit_logs と別 table",
-      "constraints": null
+      "purpose": "[DEPRECATED] auth 専用の audit table. T-V3-D-14 / ADR-018 で E-037 AuditLog に統合され audit_logs(source='auth') として保持. 同名 VIEW は backward-compat (SELECT 専用). 新規実装は E-037 を参照すること.",
+      "constraints": null,
+      "deprecation_notes": {
+        "phase_out": "Phase 2",
+        "replacement": "audit_logs(source='auth') / backend/services/audit_service.py::emit_auth_event",
+        "removed_in_migration": "TBD (Phase 2 follow-up T-V3-D-14-FOLLOWUP-2)"
+      }
     },
     {
       "id": "E-056",
