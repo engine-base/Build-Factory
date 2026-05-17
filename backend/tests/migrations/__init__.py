@@ -5,3 +5,4 @@ ALTER TABLE, RLS policies, idempotency guards, etc) without requiring a
 live Postgres connection. This keeps Wave-4 drift-fix tasks unit-testable
 in CI without infrastructure setup.
 """
+"""Migration-level static AC validation tests (v3 Wave 4+)."""
