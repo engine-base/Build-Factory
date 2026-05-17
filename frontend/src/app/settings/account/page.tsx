@@ -80,7 +80,7 @@ export default function AccountSettingsPage() {
       {/* ヘッダー */}
       <div style={{ marginBottom: 24, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: "var(--bf-text-1)", marginBottom: 4 }}>会社設定</h1>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: "var(--bf-text-1)", marginBottom: 4 }}>アカウント設定</h1>
           <p style={{ fontSize: 12.5, color: "var(--bf-text-3)" }}>
             提案書・見積書・請求書のすべてに自動的に流し込まれる発行者情報・ブランド・実績を管理します
           </p>

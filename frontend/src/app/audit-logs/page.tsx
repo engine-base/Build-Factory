@@ -70,7 +70,7 @@ export default function AuditLogViewerPage() {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold mb-4 flex items-center gap-2 text-eb-500">
-        <FileText className="w-6 h-6" /> Audit Log Viewer
+        <FileText className="w-6 h-6" /> 監査ログ
       </h1>
 
       {errorMessage && (
