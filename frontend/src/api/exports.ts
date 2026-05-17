@@ -1,35 +1,48 @@
 /**
- * T-V3-C-22 / F-031: Typed client for the Export pipeline endpoints backing
- * the S-061 (仕様書 PDF) and adjacent S-062 (納品レポート) preview screens.
+ * T-V3-C-22 / C-23 — Typed client for the Export / Delivery endpoints (F-031).
+ *
+ * Consolidated module backing the S-061 (仕様書 PDF) and S-062 (納品レポート)
+ * screens.
+ *
+ * (Phase 1.0-fix Wave 0 D: reconciles two concurrent vertical-slice merges
+ * that previously left the file with stacked duplicate declarations and a
+ * missing comment opener that broke `next build` type-check.)
  *
  * Backend contracts:
  *   POST /api/workspaces/{id}/exports       — queue spec_pdf / delivery_report job
  *   GET  /api/exports/{id}                  — poll status, fetch download_url
+ *   GET  /api/workspaces/{id}/delivery               — delivery package
+ *   POST /api/workspaces/{id}/delivery/approve       — approve delivery
+ *   POST /api/workspaces/{id}/delivery/send-client   — send to client
  *
- * OpenAPI:
- *   docs/api-design/2026-05-16_v3/openapi.yaml#/paths/~1api~1workspaces~1{id}~1exports
- *   docs/api-design/2026-05-16_v3/openapi.yaml#/paths/~1api~1exports~1{id}
+ * OpenAPI: docs/api-design/2026-05-16_v3/openapi.yaml (F-031 group)
  *
- * Implementation seed (backend, REUSE/REFACTOR):
- *   backend/routers/workspaces.py::post_workspaces_by_id_exports
- *   backend/routers/exports.py::get_exports_by_id
+ * Errors follow the project-wide {detail: {code, message}} contract.
+ * `ExportsApiError` (and back-compat alias `ExportApiError`) surface a
+ * non-technical, endpoint-tagged message via `.toUserMessage()` and never
+ * leak server stack traces (AC-F1 / AC-F4).
  *
- * The thrown {@link ExportApiError} surfaces a non-technical message tagged
- * with the failing endpoint so the UI toast can satisfy AC-F1 (UNWANTED 4xx/5xx
- * → endpoint-referenced toast, no server stack-trace leak).
- *
- * @screen-id S-061
+ * @screen-id S-061,S-062
  * @feature-id F-031
- * @task-ids T-V3-C-22
+ * @task-ids T-V3-C-22,T-V3-C-23
  * @entities E-014
  * @phase Phase 1B
  */
+
+// ---------------------------------------------------------------------------
+// Endpoint constants + helpers.
+// ---------------------------------------------------------------------------
 
 export const EXPORTS_BY_WORKSPACE_ENDPOINT_TEMPLATE =
   "/api/workspaces/{id}/exports";
 export const EXPORT_BY_ID_ENDPOINT_TEMPLATE = "/api/exports/{id}";
 
-/** Render `POST /api/workspaces/{id}/exports` with the workspace UUID inlined. */
+export const WORKSPACE_DELIVERY_ENDPOINT_PATTERN =
+  "/api/workspaces/{id}/delivery";
+export const WORKSPACE_EXPORTS_ENDPOINT_PATTERN =
+  "/api/workspaces/{id}/exports";
+export const EXPORT_BY_ID_ENDPOINT_PATTERN = "/api/exports/{id}";
+
 export function buildExportsByWorkspaceEndpoint(workspaceId: string): string {
   return EXPORTS_BY_WORKSPACE_ENDPOINT_TEMPLATE.replace(
     "{id}",
@@ -37,7 +50,6 @@ export function buildExportsByWorkspaceEndpoint(workspaceId: string): string {
   );
 }
 
-/** Render `GET /api/exports/{id}` with the export UUID inlined. */
 export function buildExportByIdEndpoint(exportId: string): string {
   return EXPORT_BY_ID_ENDPOINT_TEMPLATE.replace(
     "{id}",
@@ -45,55 +57,134 @@ export function buildExportByIdEndpoint(exportId: string): string {
   );
 }
 
+export function workspaceDeliveryEndpoint(workspaceId: string): string {
+  return `/api/workspaces/${encodeURIComponent(workspaceId)}/delivery`;
+}
+
+export function workspaceDeliveryApproveEndpoint(workspaceId: string): string {
+  return `/api/workspaces/${encodeURIComponent(workspaceId)}/delivery/approve`;
+}
+
+export function workspaceDeliverySendClientEndpoint(
+  workspaceId: string,
+): string {
+  return `/api/workspaces/${encodeURIComponent(workspaceId)}/delivery/send-client`;
+}
+
+export function workspaceExportsEndpoint(workspaceId: string): string {
+  return `/api/workspaces/${encodeURIComponent(workspaceId)}/exports`;
+}
+
+export function exportByIdEndpoint(exportId: string): string {
+  return `/api/exports/${encodeURIComponent(exportId)}`;
+}
+
 // ---------------------------------------------------------------------------
-// Schema (mirrors openapi.yaml#/components/schemas/Export + request body)
+// Domain types.
 // ---------------------------------------------------------------------------
 
-/** Export job types supported by the backend (openapi.yaml#enum). */
-export type ExportType = "spec_pdf" | "delivery_report";
+export type ExportType = "spec_pdf" | "delivery_report" | "delivery_report_pdf" | string;
 
-/** Lifecycle status of an export job (informational; backend authoritative). */
 export type ExportStatus =
   | "queued"
   | "running"
   | "succeeded"
   | "failed"
-  | "cancelled";
+  | "cancelled"
+  | string;
 
 export interface ExportRecord {
   id: string;
-  type?: ExportType | string;
-  status?: ExportStatus | string;
+  type?: ExportType;
+  status?: ExportStatus;
   workspace_id?: string | number | null;
-  created_at?: string;
-  updated_at?: string;
-  /** Tolerate unknown server-side metadata (kept additive). */
+  /**
+   * Null while status is 'queued' or 'running' (AC-F3). The UI keeps the
+   * download button disabled until a non-null URL appears.
+   */
+  download_url?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  /** Tolerate unknown server-side metadata. */
   [extra: string]: unknown;
 }
 
-/** Response envelope for POST /api/workspaces/{id}/exports. */
-export interface ExportQueueResponse {
-  export_id: string;
-  status: string;
-}
-
-/** Response envelope for GET /api/exports/{id}. */
-export interface ExportStatusResponse {
-  export: ExportRecord | null;
-  /** null while status is queued / running (AC-F3). */
-  download_url: string | null;
-}
-
-/** Request body for POST /api/workspaces/{id}/exports. */
+/** POST /api/workspaces/{id}/exports request body (AC-F2). */
 export interface QueueExportRequest {
   type: ExportType;
   /** Optional renderer options (page size, watermark, …). */
   options?: Record<string, unknown> | string;
 }
 
+/** POST /api/workspaces/{id}/exports response. */
+export interface ExportQueueResponse {
+  export_id: string;
+  status?: string;
+}
+
+/** Shorter alias used by S-062 callers. */
+export type QueueExportResponse = ExportQueueResponse;
+
+/** GET /api/exports/{id} response (AC-F3) — S-061 shape. */
+export interface ExportStatusResponse {
+  export: ExportRecord | null;
+  /** Null while status is queued / running. */
+  download_url: string | null;
+}
+
+export interface VerificationRow {
+  label: string;
+  result: string;
+  note?: string | null;
+}
+
+/** Optional embedded summary block (KPI tiles + bullet lists). */
+export interface DeliverySummary {
+  title?: string | null;
+  subtitle?: string | null;
+  delivery_id_label?: string | null;
+  delivery_date?: string | null;
+  client_email?: string | null;
+  assignee_email?: string | null;
+  kpi?: {
+    completed_tasks?: number | null;
+    tests_passed?: number | null;
+    coverage_pct?: number | null;
+    redline_breaches?: number | null;
+  } | null;
+  implementation_items?: string[];
+  verification_rows?: VerificationRow[];
+}
+
+/** Delivery — mirrors the openapi.yaml `Delivery` component schema. */
+export interface Delivery {
+  id: string;
+  workspace_id: string;
+  /** Lifecycle status — draft / approved / sent / accepted. */
+  status: "draft" | "approved" | "sent" | "accepted" | string;
+  approved_at?: string | null;
+  sent_at?: string | null;
+  artifact_urls?: string[];
+  summary?: DeliverySummary | null;
+}
+
+export interface WorkspaceDeliveryResponse {
+  delivery: Delivery;
+}
+
 // ---------------------------------------------------------------------------
-// Error type (parity with auth.ApiError / EmailApiError shape)
+// Error envelope + class.
 // ---------------------------------------------------------------------------
+
+interface BackendErrorEnvelope {
+  detail?:
+    | string
+    | {
+        code?: string;
+        message?: string;
+        errors?: unknown;
+      };
+}
 
 const USER_MESSAGES: Record<number | "default", string> = {
   400: "リクエストが不正です",
@@ -108,172 +199,11 @@ const USER_MESSAGES: Record<number | "default", string> = {
 };
 
 /**
- * Structured error for the /api/exports/* + /api/workspaces/{id}/exports
- * endpoints. `toUserMessage()` produces a non-technical sentence referencing
- * the failing endpoint without leaking server stack traces (AC-F1).
+ * Structured error for /api/exports/* + /api/workspaces/{id}/exports +
+ * /api/workspaces/{id}/delivery endpoints. `toUserMessage()` produces a
+ * non-technical sentence referencing the failing endpoint without leaking
+ * server stack traces (AC-F1 / AC-F4).
  */
-export class ExportApiError extends Error {
-  public readonly code: string;
-  public readonly status: number;
-  public readonly endpoint: string;
-
-  constructor(code: string, message: string, status: number, endpoint: string) {
-    super(message);
-    this.name = "ExportApiError";
- * T-V3-C-23 / F-031 / S-062: Typed client for the delivery / export endpoints
- * backing the 納品レポート screen.
- *
- * Backend contract (T-V3-B-21):
- *   GET  /api/workspaces/{id}/delivery               — backend/routers/workspaces.py::get_workspaces_by_id_delivery
- *   POST /api/workspaces/{id}/delivery/approve       — backend/routers/workspaces.py::post_workspaces_by_id_delivery_approve
- *   POST /api/workspaces/{id}/delivery/send-client   — backend/routers/workspaces.py::post_workspaces_by_id_delivery_send_client
- *
- * OpenAPI: docs/api-design/2026-05-16_v3/openapi.yaml
- *          #/paths/~1api~1workspaces~1{id}~1delivery
- *          #/paths/~1api~1workspaces~1{id}~1delivery~1approve
- *          #/paths/~1api~1workspaces~1{id}~1delivery~1send-client
- *
- * Auth model: bearerAuth (workspace member for GET, workspace_admin for POSTs).
- * The thrown {@link ExportsApiError} surfaces a non-technical message tagged
- * with the failing endpoint (AC-F1 / AC-F4 on S-062), never leaking server
- * stack traces.
- *
- * 3-tier AC mapping (docs/audit/2026-05-16_v3/T-V3-C-23.md):
- *   functional.AC-F1 → `getWorkspaceDelivery(id)` GETs the delivery package.
- *                      4xx/5xx → ExportsApiError.toUserMessage() endpoint-tagged.
- *   functional.AC-F2 → `requestSpecPdfExport(id)` POSTs an export queue job and
- *                      returns the new export_id (best-effort within 1 second).
- *   functional.AC-F3 → `getExport(id)` returns download_url=null while status is
- *                      'queued' or 'running'; the page only enables the download
- *                      button once a download_url is present.
- */
-
-// --------------------------------------------------------------------------
-// Endpoint helpers (exposed so callers / tests can assert canonical paths).
-// --------------------------------------------------------------------------
-
-export const WORKSPACE_DELIVERY_ENDPOINT_PATTERN =
-  "/api/workspaces/{id}/delivery";
-export const WORKSPACE_EXPORTS_ENDPOINT_PATTERN =
-  "/api/workspaces/{id}/exports";
-export const EXPORT_BY_ID_ENDPOINT_PATTERN = "/api/exports/{id}";
-
-/** Build the canonical /api/workspaces/{id}/delivery path. */
-export function workspaceDeliveryEndpoint(workspaceId: string): string {
-  return `/api/workspaces/${encodeURIComponent(workspaceId)}/delivery`;
-}
-
-/** Build the canonical /api/workspaces/{id}/delivery/approve path. */
-export function workspaceDeliveryApproveEndpoint(workspaceId: string): string {
-  return `/api/workspaces/${encodeURIComponent(workspaceId)}/delivery/approve`;
-}
-
-/** Build the canonical /api/workspaces/{id}/delivery/send-client path. */
-export function workspaceDeliverySendClientEndpoint(
-  workspaceId: string,
-): string {
-  return `/api/workspaces/${encodeURIComponent(workspaceId)}/delivery/send-client`;
-}
-
-/** Build the canonical /api/workspaces/{id}/exports path. */
-export function workspaceExportsEndpoint(workspaceId: string): string {
-  return `/api/workspaces/${encodeURIComponent(workspaceId)}/exports`;
-}
-
-/** Build the canonical /api/exports/{id} path. */
-export function exportByIdEndpoint(exportId: string): string {
-  return `/api/exports/${encodeURIComponent(exportId)}`;
-}
-
-// --------------------------------------------------------------------------
-// Domain types — mirror the OpenAPI Delivery + Export schemas.
-// --------------------------------------------------------------------------
-
-/** Delivery — mirrors the openapi.yaml `Delivery` component schema. */
-export interface Delivery {
-  id: string;
-  workspace_id: string;
-  /** Lifecycle status — draft / approved / sent / accepted. */
-  status: "draft" | "approved" | "sent" | "accepted" | string;
-  approved_at?: string | null;
-  sent_at?: string | null;
-  artifact_urls?: string[];
-  /** Optional UI-friendly summary the report renders verbatim. */
-  summary?: DeliverySummary | null;
-}
-
-/** Optional embedded summary block (KPI tiles + bullet lists). */
-export interface DeliverySummary {
-  /** "Phase 1 納品レポート" 等のレポート種別ラベル. */
-  title?: string | null;
-  /** "受託 EC 構築 #4 / 基盤実装フェーズ" 等のサブタイトル. */
-  subtitle?: string | null;
-  delivery_id_label?: string | null;
-  delivery_date?: string | null;
-  client_email?: string | null;
-  assignee_email?: string | null;
-  /** 4 KPI tiles (完了タスク / Test PASS / Coverage / 赤線抵触). */
-  kpi?: {
-    completed_tasks?: number | null;
-    tests_passed?: number | null;
-    coverage_pct?: number | null;
-    redline_breaches?: number | null;
-  } | null;
-  /** "2. 実装内容" 箇条書きの行. */
-  implementation_items?: string[];
-  /** "3. 検証結果" 表の行 (項目 / 結果 / 備考). */
-  verification_rows?: VerificationRow[];
-}
-
-export interface VerificationRow {
-  label: string;
-  result: string;
-  note?: string | null;
-}
-
-export interface WorkspaceDeliveryResponse {
-  delivery: Delivery;
-}
-
-/** POST /api/workspaces/{id}/exports request body (AC-F2). */
-export interface QueueExportRequest {
-  type: "spec_pdf" | "delivery_report_pdf" | string;
-}
-
-/** POST /api/workspaces/{id}/exports response. */
-export interface QueueExportResponse {
-  export_id: string;
-}
-
-/** GET /api/exports/{id} response (AC-F3). */
-export interface ExportRecord {
-  id: string;
-  type: string;
-  status: "queued" | "running" | "succeeded" | "failed" | string;
-  /**
-   * Null while status is 'queued' or 'running' (AC-F3 contract). The UI keeps
-   * the download button disabled until a non-null URL appears.
-   */
-  download_url?: string | null;
-  created_at?: string | null;
-  updated_at?: string | null;
-}
-
-// --------------------------------------------------------------------------
-// Error envelope (FastAPI {detail: {code, message}} contract).
-// --------------------------------------------------------------------------
-
-interface BackendErrorEnvelope {
-  detail?:
-    | string
-    | {
-        code?: string;
-        message?: string;
-        errors?: unknown;
-      };
-}
-
-/** Thrown for any non-2xx response from a delivery / export endpoint. */
 export class ExportsApiError extends Error {
   readonly code: string;
   readonly status: number;
@@ -287,132 +217,52 @@ export class ExportsApiError extends Error {
     this.endpoint = endpoint;
   }
 
-  /**
-   * AC-F1 (S-061 UNWANTED): produce a non-technical, user-facing message that
-   * references the failing endpoint without exposing server stack traces.
-   */
   toUserMessage(): string {
     const friendly = USER_MESSAGES[this.status] ?? USER_MESSAGES.default;
-   * AC-F1 / AC-F4: non-technical, end-user friendly message tagged with the
-   * failing endpoint. Never embeds stack traces, SQL fragments, or raw
-   * exception class names from the server.
-   */
-  toUserMessage(): string {
-    const friendly =
-      EXPORTS_USER_MESSAGES[this.status] ?? EXPORTS_USER_MESSAGES.default;
     return `${friendly} (${this.endpoint})`;
   }
 }
 
+/** Back-compat alias for S-061 callers that imported the singular class name. */
+export const ExportApiError = ExportsApiError;
+export type ExportApiError = ExportsApiError;
+
 // ---------------------------------------------------------------------------
-// Internal helpers
+// Internal helpers.
 // ---------------------------------------------------------------------------
 
-interface ClientInit {
-  fetchImpl?: typeof fetch;
-  baseUrl?: string;
-  /** Bearer access token (workspace member scope required by backend). */
-  token?: string;
+export interface ExportsRequestOptions {
+  apiBase?: string;
   signal?: AbortSignal;
+  /** Bearer token forwarded as `Authorization: Bearer <token>`. */
+  authToken?: string | null;
+  /** Back-compat name used by S-061 callers. */
+  token?: string | null;
+  /** Test seam — defaults to the global `fetch`. */
+  fetchImpl?: typeof fetch;
+  /** Back-compat name used by S-061 callers. */
+  baseUrl?: string;
 }
 
-function resolveBaseUrl(init?: ClientInit): string {
-  if (init?.baseUrl) return init.baseUrl;
-  if (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_API_URL) {
-    return process.env.NEXT_PUBLIC_API_URL;
-const EXPORTS_USER_MESSAGES: Record<number | "default", string> = {
-  400: "リクエストに問題があります",
-  401: "認証が無効です。再度ログインしてください",
-  403: "この操作を実行する権限がありません",
-  404: "納品レポートが見つかりませんでした",
-  409: "現在この操作は実行できません",
-  422: "入力内容を確認してください",
-  429: "リクエストの上限に達しました。しばらく待って再試行してください",
-  500: "サーバーで一時的なエラーが発生しました",
-  default: "納品レポートの読み込みに失敗しました",
-};
-
-// --------------------------------------------------------------------------
-// Internal helpers
-// --------------------------------------------------------------------------
-
-function resolveApiBase(apiBase?: string): string {
-  if (apiBase) return apiBase;
+function resolveBaseUrl(opts: ExportsRequestOptions): string {
+  if (opts.baseUrl) return opts.baseUrl.replace(/\/$/, "");
+  if (opts.apiBase) return opts.apiBase.replace(/\/$/, "");
   if (typeof process !== "undefined") {
-    const env = process.env ?? {};
-    if (env.NEXT_PUBLIC_API_URL) return env.NEXT_PUBLIC_API_URL;
-    if (env.NEXT_PUBLIC_API_BASE) return env.NEXT_PUBLIC_API_BASE;
+    const e = process.env ?? {};
+    if (e.NEXT_PUBLIC_API_URL) return e.NEXT_PUBLIC_API_URL.replace(/\/$/, "");
+    if (e.NEXT_PUBLIC_API_BASE) return e.NEXT_PUBLIC_API_BASE.replace(/\/$/, "");
   }
   return "http://localhost:8001";
 }
 
-function buildHeaders(init?: ClientInit, withBody = false): HeadersInit {
-  const headers: Record<string, string> = { Accept: "application/json" };
-  if (withBody) headers["Content-Type"] = "application/json";
-  if (init?.token) headers["Authorization"] = `Bearer ${init.token}`;
-  return headers;
+function buildAuthHeader(
+  opts: ExportsRequestOptions,
+): Record<string, string> {
+  const token = opts.authToken ?? opts.token;
+  if (!token) return {};
+  return { Authorization: `Bearer ${token}` };
 }
 
-interface BackendErrorEnvelope {
-  detail?: { code?: string; message?: string } | string;
-}
-
-async function parseError(
-  response: Response,
-  endpoint: string,
-): Promise<ExportApiError> {
-  let code = "UNKNOWN";
-  let message = response.statusText || "request failed";
-  try {
-    const payload = (await response.json()) as BackendErrorEnvelope;
-    if (payload && typeof payload.detail === "object" && payload.detail) {
-      if (typeof payload.detail.code === "string") code = payload.detail.code;
-      if (typeof payload.detail.message === "string")
-        message = payload.detail.message;
-    } else if (typeof payload?.detail === "string") {
-      message = payload.detail;
-    }
-  } catch {
-    // Non-JSON body — keep the synthesised message. We deliberately do NOT
-    // embed the raw body to avoid leaking server stack traces (AC-F1).
-  }
-  return new ExportApiError(code, message, response.status, endpoint);
-}
-
-// ---------------------------------------------------------------------------
-// POST /api/workspaces/{id}/exports — queue export job
-// ---------------------------------------------------------------------------
-
-/**
- * Queue a PDF / report export job (AC-F2).
- *
- * EVENT-DRIVEN: When the user clicks the "PDF ダウンロード" button on S-061,
- * the system shall POST to /api/workspaces/{id}/exports with type=spec_pdf
- * and surface the returned export_id within 1 second.
- *
- * @throws ExportApiError on 4xx / 5xx / network failure.
- */
-export async function queueExport(
-  workspaceId: string,
-  payload: QueueExportRequest,
-  init?: ClientInit,
-): Promise<ExportQueueResponse> {
-  const endpoint = buildExportsByWorkspaceEndpoint(workspaceId);
-  const base = resolveBaseUrl(init);
-  const fetchImpl = init?.fetchImpl ?? fetch;
-
-  let response: Response;
-  try {
-    response = await fetchImpl(`${base}${endpoint}`, {
-      method: "POST",
-      headers: buildHeaders(init, true),
-      body: JSON.stringify(payload),
-      signal: init?.signal,
-    });
-  } catch (err) {
-    if ((err as { name?: string }).name === "AbortError") throw err;
-    throw new ExportApiError(
-      "export.network_error",
 async function parseErrorEnvelope(
   response: Response,
   endpoint: string,
@@ -430,53 +280,24 @@ async function parseErrorEnvelope(
       message = envelope.detail;
     }
   } catch {
-    // Non-JSON body — keep the synthesised message. We deliberately do not
-    // embed the raw body to avoid leaking server stack traces (AC-F1 / F4).
+    // Non-JSON body — keep the synthesised message. AC-F1: never embed raw body.
   }
   return new ExportsApiError(code, message, response.status, endpoint);
 }
 
-export interface ExportsRequestOptions {
-  apiBase?: string;
-  signal?: AbortSignal;
-  /** Bearer token forwarded as `Authorization: Bearer <token>`. */
-  authToken?: string | null;
-  /** Test seam — defaults to the global `fetch`. */
-  fetchImpl?: typeof fetch;
-}
-
-function buildAuthHeader(
+async function doFetch(
+  url: string,
+  init: RequestInit,
   opts: ExportsRequestOptions,
-): Record<string, string> {
-  if (!opts.authToken) return {};
-  return { Authorization: `Bearer ${opts.authToken}` };
-}
-
-// --------------------------------------------------------------------------
-// API functions
-// --------------------------------------------------------------------------
-
-/**
- * AC-F1: GET /api/workspaces/{id}/delivery via the typed client.
- *
- * Throws {@link ExportsApiError} on non-2xx — the error carries the failing
- * endpoint so the UI can surface a non-technical toast referencing it.
- */
-export async function getWorkspaceDelivery(
-  workspaceId: string,
-  opts: ExportsRequestOptions = {},
-): Promise<WorkspaceDeliveryResponse> {
-  const endpoint = workspaceDeliveryEndpoint(workspaceId);
-  const baseUrl = resolveApiBase(opts.apiBase).replace(/\/$/, "");
-  const url = `${baseUrl}${endpoint}`;
+  endpoint: string,
+): Promise<Response> {
   const fetchImpl = opts.fetchImpl ?? fetch;
-
-  let response: Response;
   try {
-    response = await fetchImpl(url, {
-      method: "GET",
+    return await fetchImpl(url, {
+      ...init,
       headers: {
         Accept: "application/json",
+        ...(init.headers as Record<string, string> | undefined),
         ...buildAuthHeader(opts),
       },
       signal: opts.signal,
@@ -490,65 +311,56 @@ export async function getWorkspaceDelivery(
       endpoint,
     );
   }
+}
 
+// ---------------------------------------------------------------------------
+// Delivery endpoints (S-062).
+// ---------------------------------------------------------------------------
+
+/** AC-F1 (S-062): GET /api/workspaces/{id}/delivery via the typed client. */
+export async function getWorkspaceDelivery(
+  workspaceId: string,
+  opts: ExportsRequestOptions = {},
+): Promise<WorkspaceDeliveryResponse> {
+  const endpoint = workspaceDeliveryEndpoint(workspaceId);
+  const base = resolveBaseUrl(opts);
+  const url = `${base}${endpoint}`;
+  const response = await doFetch(url, { method: "GET" }, opts, endpoint);
   if (!response.ok) {
     throw await parseErrorEnvelope(response, endpoint);
   }
   return (await response.json()) as WorkspaceDeliveryResponse;
 }
 
-/**
- * AC-F2: POST /api/workspaces/{id}/exports with type=spec_pdf queues a PDF
- * generation job server-side and returns the new export_id. The backend is
- * required to respond within 1 second; the client does not enforce that here
- * (left to a server-side SLO / contract test).
- */
-export async function requestSpecPdfExport(
-  workspaceId: string,
-  opts: ExportsRequestOptions = {},
-): Promise<QueueExportResponse> {
-  return queueExport(workspaceId, { type: "spec_pdf" }, opts);
-}
+// ---------------------------------------------------------------------------
+// Export queue endpoints (S-061 / S-062).
+// ---------------------------------------------------------------------------
 
 /**
- * Lower-level helper — POST /api/workspaces/{id}/exports with an explicit
- * payload. The S-062 page only needs `type=spec_pdf` today, but the helper
- * stays open for the sibling S-061 page (T-V3-C-22) to reuse.
+ * AC-F2: POST /api/workspaces/{id}/exports — queue a spec_pdf / delivery_report
+ * job and return the new export_id.
  */
 export async function queueExport(
   workspaceId: string,
   body: QueueExportRequest,
   opts: ExportsRequestOptions = {},
-): Promise<QueueExportResponse> {
+): Promise<ExportQueueResponse> {
   const endpoint = workspaceExportsEndpoint(workspaceId);
-  const baseUrl = resolveApiBase(opts.apiBase).replace(/\/$/, "");
-  const url = `${baseUrl}${endpoint}`;
-  const fetchImpl = opts.fetchImpl ?? fetch;
-
-  let response: Response;
-  try {
-    response = await fetchImpl(url, {
+  const base = resolveBaseUrl(opts);
+  const url = `${base}${endpoint}`;
+  const response = await doFetch(
+    url,
+    {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        ...buildAuthHeader(opts),
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-      signal: opts.signal,
-    });
-  } catch (err) {
-    if (err instanceof Error && err.name === "AbortError") throw err;
-    throw new ExportsApiError(
-      "network_error",
-      "network error",
-      0,
-      endpoint,
-    );
+    },
+    opts,
+    endpoint,
+  );
+  if (!response.ok) {
+    throw await parseErrorEnvelope(response, endpoint);
   }
-
-  if (!response.ok) throw await parseError(response, endpoint);
-
   let data: unknown;
   try {
     data = await response.json();
@@ -562,80 +374,48 @@ export async function queueExport(
   };
 }
 
-// ---------------------------------------------------------------------------
-// GET /api/exports/{id} — poll status, fetch download_url
-// ---------------------------------------------------------------------------
-
-/**
- * Fetch export status + download URL (AC-F3).
- *
- * STATE-DRIVEN: While an export status is 'queued' or 'running', the system
- * shall surface download_url=null so the UI keeps the download CTA disabled.
- *
- * @throws ExportApiError on 4xx / 5xx / network failure.
- */
-export async function getExportById(
-  exportId: string,
-  init?: ClientInit,
-): Promise<ExportStatusResponse> {
-  const endpoint = buildExportByIdEndpoint(exportId);
-  const base = resolveBaseUrl(init);
-  const fetchImpl = init?.fetchImpl ?? fetch;
-
-  let response: Response;
-  try {
-    response = await fetchImpl(`${base}${endpoint}`, {
-      method: "GET",
-      headers: buildHeaders(init),
-      signal: init?.signal,
-    });
-  } catch (err) {
-    if ((err as { name?: string }).name === "AbortError") throw err;
-    throw new ExportApiError(
-      "export.network_error",
-  if (!response.ok) {
-    throw await parseErrorEnvelope(response, endpoint);
-  }
-  return (await response.json()) as QueueExportResponse;
+/** Convenience: queue the spec_pdf job for S-062. */
+export function requestSpecPdfExport(
+  workspaceId: string,
+  opts: ExportsRequestOptions = {},
+): Promise<ExportQueueResponse> {
+  return queueExport(workspaceId, { type: "spec_pdf" }, opts);
 }
 
 /**
- * AC-F3: GET /api/exports/{id} via the typed client. The backend returns
- * download_url=null while status is 'queued' or 'running'. The S-062 page polls
- * this endpoint after queueing a spec_pdf job and only enables the download
- * button once a non-null URL appears.
+ * AC-F3 (S-062): GET /api/exports/{id} via the typed client. The backend
+ * returns download_url=null while status is 'queued' or 'running'.
  */
 export async function getExport(
   exportId: string,
   opts: ExportsRequestOptions = {},
 ): Promise<ExportRecord> {
   const endpoint = exportByIdEndpoint(exportId);
-  const baseUrl = resolveApiBase(opts.apiBase).replace(/\/$/, "");
-  const url = `${baseUrl}${endpoint}`;
-  const fetchImpl = opts.fetchImpl ?? fetch;
-
-  let response: Response;
-  try {
-    response = await fetchImpl(url, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        ...buildAuthHeader(opts),
-      },
-      signal: opts.signal,
-    });
-  } catch (err) {
-    if (err instanceof Error && err.name === "AbortError") throw err;
-    throw new ExportsApiError(
-      "network_error",
-      "network error",
-      0,
-      endpoint,
-    );
+  const base = resolveBaseUrl(opts);
+  const url = `${base}${endpoint}`;
+  const response = await doFetch(url, { method: "GET" }, opts, endpoint);
+  if (!response.ok) {
+    throw await parseErrorEnvelope(response, endpoint);
   }
+  return (await response.json()) as ExportRecord;
+}
 
-  if (!response.ok) throw await parseError(response, endpoint);
-
+/**
+ * AC-F3 (S-061): GET /api/exports/{id} via the typed client — returns the
+ * S-061-shaped envelope ({export, download_url}) so the page can drive the
+ * download CTA off a single object.
+ */
+export async function getExportById(
+  exportId: string,
+  opts: ExportsRequestOptions = {},
+): Promise<ExportStatusResponse> {
+  const endpoint = buildExportByIdEndpoint(exportId);
+  const base = resolveBaseUrl(opts);
+  const url = `${base}${endpoint}`;
+  const response = await doFetch(url, { method: "GET" }, opts, endpoint);
+  if (!response.ok) {
+    throw await parseErrorEnvelope(response, endpoint);
+  }
   let data: unknown;
   try {
     data = await response.json();
@@ -664,8 +444,4 @@ export function isExportDownloadable(
   status: string | undefined | null,
 ): boolean {
   return status === "succeeded";
-  if (!response.ok) {
-    throw await parseErrorEnvelope(response, endpoint);
-  }
-  return (await response.json()) as ExportRecord;
 }
