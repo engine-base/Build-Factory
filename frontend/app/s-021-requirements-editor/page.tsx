@@ -12,4 +12,9 @@
  * the same component as the live route.
  */
 
+// Mark dynamic so the page bypasses static prerender. Required because the
+// underlying client component calls `useSearchParams()` outside a Suspense
+// boundary, which trips the Next.js 15 CSR bailout during `next build`.
+export const dynamic = "force-dynamic";
+
 export { default } from "../../src/app/(app)/spec/requirements/page";

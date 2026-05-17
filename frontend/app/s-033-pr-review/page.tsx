@@ -12,4 +12,10 @@
  * the same component as the live route.
  */
 
+// Mark dynamic so the alias bypasses Next.js static prerender. The underlying
+// client component(s) call useSearchParams / useQuery without a Suspense or
+// QueryClient boundary, which trips the Next.js 15 CSR bailout during `next
+// build`. Phase 1.0-fix W0-D — restore Vercel deploy preview.
+export const dynamic = "force-dynamic";
+
 export { default } from "../../src/app/(app)/review/[pr_id]/page";
