@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
 /**
  * T-V3-C-11 / S-011 — Global Search (Cmd+K) screen specs.
  *

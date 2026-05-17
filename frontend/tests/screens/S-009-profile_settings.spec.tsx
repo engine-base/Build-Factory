@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * T-V3-C-09 / S-009 — Profile settings screen specs.
  *

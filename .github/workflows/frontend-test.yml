@@ -1,0 +1,94 @@
+###############################################################################
+# T-V3-C-TEST-01 — Frontend vitest + RTL infrastructure
+#
+# Wave 0 deliverable: stand up the frontend test harness so the 54+ existing
+# screen specs can actually run and have a 70% coverage gate available.
+#
+# Status (Phase 1.0-fix Wave 0):
+#   - Lands the infra and runs `pnpm test:cov` on every PR / push to main.
+#   - INFORMATIONAL ONLY for now (continue-on-error: true).
+#     Wave 1 cleanup of the remaining `// @ts-nocheck` specs will promote
+#     this job to a required status check.
+#
+# AC mapping (T-V3-C-TEST-01):
+#   structural.AC-S1 — workflow installs vitest devDeps and runs `pnpm test`.
+#   functional.AC-F1 — workflow runs `pnpm test:cov` and uploads the coverage
+#                      report as an artifact.
+#   functional.AC-F2 — workflow does NOT block merges until Wave 1 cleanup
+#                      lifts representative specs out of `// @ts-nocheck`.
+#   regression.AC-R1 — workflow is independent of the existing ci.yml /
+#                      ci-v3.yml (its own concurrency group).
+###############################################################################
+name: frontend-test
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-test.yml"
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-test.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: frontend-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  vitest:
+    name: vitest (informational, 70% threshold target)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    # T-V3-C-TEST-01: Wave 0 lands infra only. Promote to required status in
+    # Wave 1 after `// @ts-nocheck` cleanup.
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('frontend/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install frontend deps
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Run vitest with coverage
+        id: cov
+        run: pnpm test:cov
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage-${{ github.run_id }}
+          path: frontend/coverage
+          retention-days: 14
+          if-no-files-found: ignore
