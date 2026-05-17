@@ -5707,34 +5707,37 @@
           "operation": "ALL",
           "role": "service_role",
           "predicate": "true",
-          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)"
+          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)",
+          "source_migration": "20260516180000_rls_design_infra_family.sql"
         },
         {
           "name": "design_frames_workspace_member_select",
           "operation": "SELECT",
           "role": "authenticated",
           "predicate": "bf_can_access_workspace(workspace_id)",
-          "rationale": "workspace_members に参加していれば SELECT 可"
+          "rationale": "T-V3-D-08: workspace_members 経由で SELECT 可 (idempotent CREATE POLICY)",
+          "source_migration": "20260516180000_rls_design_infra_family.sql"
         },
         {
           "name": "design_frames_workspace_member_write",
           "operation": "ALL",
           "role": "authenticated",
           "predicate": "bf_can_access_workspace(workspace_id) AND bf_can_write_workspace(workspace_id)",
-          "rationale": "contributor 以上の workspace_member は書き込み可"
+          "rationale": "contributor 以上の workspace_member は書き込み可 (既存 _member policy 経由)",
+          "source_migration": "20260510000002_rls_full_enforcement.sql"
         }
       ],
-      "status": "discovered_in_migration",
+      "status": "rls_complete",
       "legacy_drift_notes": {
         "spec_table": null,
         "impl_table": "design_frames",
         "diff_severity": "new",
-        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化",
-        "task_id": "T-V3-DRIFT-E-062",
-        "policy_count_actual": 2,
-        "source_migration": "20260501230000_design_frames.sql"
+        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化. T-V3-D-08 で workspace_member_select policy を補完済.",
+        "task_id": "T-V3-D-08",
+        "policy_count_actual": 3,
+        "source_migration": "20260516180000_rls_design_infra_family.sql"
       },
-      "policy_count_in_migration": 2,
+      "policy_count_in_migration": 3,
       "purpose": "Penpot/GrapesJS の design frame (canvas 上の矩形領域 / コンポーネント配置情報)",
       "constraints": null
     },
@@ -5785,34 +5788,37 @@
           "operation": "ALL",
           "role": "service_role",
           "predicate": "true",
-          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)"
+          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)",
+          "source_migration": "20260516180000_rls_design_infra_family.sql"
         },
         {
           "name": "design_canvas_state_workspace_member_select",
           "operation": "SELECT",
           "role": "authenticated",
           "predicate": "bf_can_access_workspace(workspace_id)",
-          "rationale": "workspace_members に参加していれば SELECT 可"
+          "rationale": "T-V3-D-08: workspace_members 経由で SELECT 可 (idempotent CREATE POLICY)",
+          "source_migration": "20260516180000_rls_design_infra_family.sql"
         },
         {
           "name": "design_canvas_state_workspace_member_write",
           "operation": "ALL",
           "role": "authenticated",
           "predicate": "bf_can_access_workspace(workspace_id) AND bf_can_write_workspace(workspace_id)",
-          "rationale": "contributor 以上の workspace_member は書き込み可"
+          "rationale": "contributor 以上の workspace_member は書き込み可 (既存 _member policy 経由)",
+          "source_migration": "20260510000002_rls_full_enforcement.sql"
         }
       ],
-      "status": "discovered_in_migration",
+      "status": "rls_complete",
       "legacy_drift_notes": {
         "spec_table": null,
         "impl_table": "design_canvas_state",
         "diff_severity": "new",
-        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化",
-        "task_id": "T-V3-DRIFT-E-063",
-        "policy_count_actual": 2,
-        "source_migration": "20260501230000_design_frames.sql"
+        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化. T-V3-D-08 で workspace_member_select policy を補完済.",
+        "task_id": "T-V3-D-08",
+        "policy_count_actual": 3,
+        "source_migration": "20260516180000_rls_design_infra_family.sql"
       },
-      "policy_count_in_migration": 2,
+      "policy_count_in_migration": 3,
       "purpose": "Design editor の canvas 全体の状態 (zoom / pan / selected frames 等)",
       "constraints": null
     },
@@ -5876,34 +5882,37 @@
           "operation": "ALL",
           "role": "service_role",
           "predicate": "true",
-          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)"
+          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)",
+          "source_migration": "20260516180000_rls_design_infra_family.sql"
         },
         {
           "name": "design_mocks_workspace_member_select",
           "operation": "SELECT",
           "role": "authenticated",
           "predicate": "bf_can_access_workspace(workspace_id)",
-          "rationale": "workspace_members に参加していれば SELECT 可"
+          "rationale": "T-V3-D-08: workspace_members 経由で SELECT 可 (idempotent CREATE POLICY)",
+          "source_migration": "20260516180000_rls_design_infra_family.sql"
         },
         {
           "name": "design_mocks_workspace_member_write",
           "operation": "ALL",
           "role": "authenticated",
           "predicate": "bf_can_access_workspace(workspace_id) AND bf_can_write_workspace(workspace_id)",
-          "rationale": "contributor 以上の workspace_member は書き込み可"
+          "rationale": "contributor 以上の workspace_member は書き込み可 (既存 _member policy 経由)",
+          "source_migration": "20260510000002_rls_full_enforcement.sql"
         }
       ],
-      "status": "discovered_in_migration",
+      "status": "rls_complete",
       "legacy_drift_notes": {
         "spec_table": null,
         "impl_table": "design_mocks",
         "diff_severity": "new",
-        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化",
-        "task_id": "T-V3-DRIFT-E-064",
-        "policy_count_actual": 2,
-        "source_migration": "20260502000000_design_mocks.sql"
+        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化. T-V3-D-08 で workspace_member_select policy を補完済.",
+        "task_id": "T-V3-D-08",
+        "policy_count_actual": 3,
+        "source_migration": "20260516180000_rls_design_infra_family.sql"
       },
-      "policy_count_in_migration": 2,
+      "policy_count_in_migration": 3,
       "purpose": "GrapesJS 流の HTML エディタが生成する mock 中間表現 (design_frames とは別 namespace / S-023 GUI/AI/HTML 3 mode 編集)",
       "constraints": null
     },
@@ -5972,34 +5981,37 @@
           "operation": "ALL",
           "role": "service_role",
           "predicate": "true",
-          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)"
+          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)",
+          "source_migration": "20260516180000_rls_design_infra_family.sql"
         },
         {
           "name": "approval_queue_workspace_member_select",
           "operation": "SELECT",
           "role": "authenticated",
-          "predicate": "bf_can_access_workspace(workspace_id)",
-          "rationale": "workspace_members に参加していれば SELECT 可"
+          "predicate": "workspace_id IS NOT NULL AND bf_can_access_workspace(workspace_id)",
+          "rationale": "T-V3-D-08: workspace_id NULL row 漏洩防止のため explicit NULL check 付きで workspace_members 判定",
+          "source_migration": "20260516180000_rls_design_infra_family.sql"
         },
         {
           "name": "approval_queue_workspace_member_write",
           "operation": "ALL",
           "role": "authenticated",
           "predicate": "bf_can_access_workspace(workspace_id) AND bf_can_write_workspace(workspace_id)",
-          "rationale": "contributor 以上の workspace_member は書き込み可"
+          "rationale": "contributor 以上の workspace_member は書き込み可 (既存 _member policy 経由)",
+          "source_migration": "20260510000002_rls_full_enforcement.sql"
         }
       ],
-      "status": "discovered_in_migration",
+      "status": "rls_complete",
       "legacy_drift_notes": {
         "spec_table": null,
         "impl_table": "approval_queue",
         "diff_severity": "new",
-        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化",
-        "task_id": "T-V3-DRIFT-E-065",
-        "policy_count_actual": 2,
-        "source_migration": "20260501220000_initial_schema.sql"
+        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化. T-V3-D-08 で workspace_member_select policy を補完済.",
+        "task_id": "T-V3-D-08",
+        "policy_count_actual": 3,
+        "source_migration": "20260516180000_rls_design_infra_family.sql"
       },
-      "policy_count_in_migration": 2,
+      "policy_count_in_migration": 3,
       "purpose": "Red line 検出時の human-in-the-loop approval queue (PR merge / deploy / destructive op の承認待ち)",
       "constraints": null
     },
@@ -6060,34 +6072,29 @@
           "operation": "ALL",
           "role": "service_role",
           "predicate": "true",
-          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)"
+          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)",
+          "source_migration": "20260516180000_rls_design_infra_family.sql"
         },
         {
           "name": "checkpoints_workspace_member_select",
           "operation": "SELECT",
           "role": "authenticated",
-          "predicate": "bf_can_access_workspace(workspace_id)",
-          "rationale": "workspace_members に参加していれば SELECT 可"
-        },
-        {
-          "name": "checkpoints_workspace_member_write",
-          "operation": "ALL",
-          "role": "authenticated",
-          "predicate": "bf_can_access_workspace(workspace_id) AND bf_can_write_workspace(workspace_id)",
-          "rationale": "contributor 以上の workspace_member は書き込み可"
+          "predicate": "thread_id IN (SELECT id::text FROM chat_threads WHERE workspace_id IS NOT NULL AND bf_can_access_workspace(workspace_id))",
+          "rationale": "T-V3-D-08: checkpoints は workspace_id 列を持たないため、 chat_threads.id::text 経由で workspace_members に判定",
+          "source_migration": "20260516180000_rls_design_infra_family.sql"
         }
       ],
-      "status": "discovered_in_migration",
+      "status": "rls_complete",
       "legacy_drift_notes": {
         "spec_table": null,
         "impl_table": "checkpoints",
         "diff_severity": "new",
-        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化",
-        "task_id": "T-V3-DRIFT-E-066",
-        "policy_count_actual": 1,
-        "source_migration": "20260501220000_initial_schema.sql"
+        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化. T-V3-D-08 で workspace_member_select policy (chat_threads 経由 scope) を補完済.",
+        "task_id": "T-V3-D-08",
+        "policy_count_actual": 2,
+        "source_migration": "20260516180000_rls_design_infra_family.sql"
       },
-      "policy_count_in_migration": 1,
+      "policy_count_in_migration": 2,
       "purpose": "claude-agent-sdk session の checkpoint (resume 時に from_checkpoint で再開). sessions.resume_choice='from_checkpoint' で参照",
       "constraints": null
     },
@@ -6129,20 +6136,29 @@
           "operation": "ALL",
           "role": "service_role",
           "predicate": "true",
-          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)"
+          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)",
+          "source_migration": "20260516180000_rls_design_infra_family.sql"
+        },
+        {
+          "name": "schema_versions_service_role_select",
+          "operation": "SELECT",
+          "role": "service_role",
+          "predicate": "true",
+          "rationale": "T-V3-D-08: ops-internal table を service_role 限定で SELECT 可能 (defense-in-depth; AC-F1 policy_count >= 2 を満たすため二重宣言)",
+          "source_migration": "20260516180000_rls_design_infra_family.sql"
         }
       ],
-      "status": "discovered_in_migration",
+      "status": "rls_complete",
       "legacy_drift_notes": {
         "spec_table": null,
         "impl_table": "schema_versions",
         "diff_severity": "new",
-        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化",
-        "task_id": "T-V3-DRIFT-E-067",
-        "policy_count_actual": 1,
-        "source_migration": "20260512000000_impl_integration_ops_tables.sql"
+        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化. T-V3-D-08 で service_role_select policy を二重宣言し policy_count >= 2 を充足.",
+        "task_id": "T-V3-D-08",
+        "policy_count_actual": 2,
+        "source_migration": "20260516180000_rls_design_infra_family.sql"
       },
-      "policy_count_in_migration": 1,
+      "policy_count_in_migration": 2,
       "purpose": "Build-Factory 自身の schema migration バージョン管理 (alembic とは別 ops 用)",
       "constraints": null
     },
@@ -6217,34 +6233,45 @@
           "operation": "ALL",
           "role": "service_role",
           "predicate": "true",
-          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)"
+          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)",
+          "source_migration": "20260516180000_rls_design_infra_family.sql"
         },
         {
           "name": "knowledge_base_account_member_select",
           "operation": "SELECT",
           "role": "authenticated",
           "predicate": "account_id IN (SELECT account_id FROM account_members WHERE user_id = auth.uid()::text)",
-          "rationale": "account_members に参加していれば SELECT 可"
+          "rationale": "account_members に参加していれば SELECT 可 (既存 kb_account_shared_read policy)",
+          "source_migration": "20260501220300_rls_skeleton.sql"
         },
         {
           "name": "knowledge_base_account_owner_write",
           "operation": "ALL",
           "role": "authenticated",
           "predicate": "account_id IN (SELECT account_id FROM account_members WHERE user_id = auth.uid()::text AND role = 'account_owner')",
-          "rationale": "account_owner のみ書き込み可"
+          "rationale": "account_owner のみ書き込み可 (既存 policy)",
+          "source_migration": "20260501220300_rls_skeleton.sql"
+        },
+        {
+          "name": "knowledge_base_workspace_member_select",
+          "operation": "SELECT",
+          "role": "authenticated",
+          "predicate": "workspace_id IS NOT NULL AND bf_can_access_workspace(workspace_id)",
+          "rationale": "T-V3-D-08 OPTIONAL AC-F4: workspace-scoped に設定された row のみ workspace_members 経由で SELECT 制限 (account_scoped policy への overlay)",
+          "source_migration": "20260516180000_rls_design_infra_family.sql"
         }
       ],
-      "status": "discovered_in_migration",
+      "status": "rls_complete",
       "legacy_drift_notes": {
         "spec_table": null,
         "impl_table": "knowledge_base",
         "diff_severity": "new",
-        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化",
-        "task_id": "T-V3-DRIFT-E-068",
-        "policy_count_actual": 5,
-        "source_migration": "20260501220000_initial_schema.sql"
+        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化. T-V3-D-08 で workspace_member_select overlay policy を追加 (account_scoped と並列).",
+        "task_id": "T-V3-D-08",
+        "policy_count_actual": 7,
+        "source_migration": "20260516180000_rls_design_infra_family.sql"
       },
-      "policy_count_in_migration": 5,
+      "policy_count_in_migration": 7,
       "purpose": "汎用 RAG knowledge store (private/account_shared/public/ai_only 4 scope). pgvector + pg_trgm hybrid search",
       "constraints": null
     }
