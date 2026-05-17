@@ -66,7 +66,7 @@ export default function SwarmGridPage() {
     <main className="mx-auto max-w-6xl p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-lg font-semibold text-slate-800">
-          Swarm Grid
+          Swarm 並列実行
         </h1>
         <div
           className="flex items-center gap-1"

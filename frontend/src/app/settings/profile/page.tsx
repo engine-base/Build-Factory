@@ -86,7 +86,7 @@ export default function ProfileSettingsPage() {
             {activeTab === "appearance" && <AppearanceTab />}
             {activeTab === "api_keys" && <ApiKeysTab />}
             {activeTab === "notifications" && (
-              <StubTab title="通知" hint="Phase 1.5 で実装予定 (T-014 Slack 連携と統合)" />
+              <StubTab title="通知設定" hint="Phase 1.5 で実装予定 (T-014 Slack 連携と統合)" />
             )}
             {activeTab === "security" && (
               <StubTab title="セキュリティ" hint="2FA / セッション管理は Phase 1.5 (T-S0-08 後続) で実装" />
@@ -287,6 +287,14 @@ function AppearanceTab() {
 function ApiKeysTab() {
   return (
     <>
+      {/* T-V3-D-11 / S-009 mock parity: LLM プロバイダ (BYOK) section heading. */}
+      <div className="bg-white border border-slate-200 rounded-lg p-5">
+        <h2 className="text-sm font-bold mb-2">LLM プロバイダ (BYOK)</h2>
+        <p className="text-xs text-slate-500">
+          自前の Claude / OpenAI / Gemini API キーを workspace 単位で持ち込む (Bring Your Own Key)。
+          設定済みキーは下の「OAuth 連携」で管理します。
+        </p>
+      </div>
       <OAuthConnectionsCard />
       <CloneOptinCard />
       <DeleteAccountCard />
@@ -311,7 +319,7 @@ function OAuthConnectionsCard() {
     <div className="bg-white border border-slate-200 rounded-lg p-5">
       <div className="flex items-center gap-2 mb-3">
         <KeyRound className="w-4 h-4 text-eb-500" />
-        <h2 className="text-sm font-bold flex-1">外部サービス連携 (OAuth)</h2>
+        <h2 className="text-sm font-bold flex-1">OAuth 連携</h2>
       </div>
       <p className="text-xs text-slate-500 mb-4">
         backend `encrypted_store` 経由で暗号化保管 (Phase 1: Fernet local / Phase 2: pgsodium)。
@@ -399,7 +407,7 @@ function CloneOptinCard() {
     <div className="bg-white border border-slate-200 rounded-lg p-5">
       <div className="flex items-center gap-2 mb-2">
         <Bot className="w-4 h-4 text-eb-500" />
-        <h2 className="text-sm font-bold flex-1">AI 社員クローン</h2>
+        <h2 className="text-sm font-bold flex-1">ユーザークローン (高本さんの判断基準を学習)</h2>
       </div>
       <p className="text-xs text-slate-500 mb-3">
         自分の persona / 過去会話を AI 社員のクローン作成 (Phase 2) に使うことを許可します。
@@ -441,7 +449,7 @@ function DeleteAccountCard() {
     <div className="bg-rose-50 border border-rose-200 rounded-lg p-5">
       <div className="flex items-center gap-2 mb-2">
         <AlertTriangle className="w-4 h-4 text-rose-600" />
-        <h2 className="text-sm font-bold text-rose-700 flex-1">アカウント削除 (GDPR)</h2>
+        <h2 className="text-sm font-bold text-rose-700 flex-1">Danger Zone</h2>
       </div>
       <p className="text-xs text-rose-700/80 mb-3">
         削除リクエストは <strong>30 日間の grace 期間</strong> を経て確定実行されます (T-023-05)。

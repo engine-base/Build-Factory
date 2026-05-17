@@ -119,7 +119,7 @@ export default function KnowledgePage() {
       <div className="w-80 shrink-0 flex flex-col bg-white" style={{ borderRight: "1px solid var(--eb-border)" }}>
         <div className="p-3" style={{ borderBottom: "1px solid var(--eb-border)" }}>
           <div className="flex items-center justify-between mb-2">
-            <h1 className="font-bold text-sm" style={{ fontFamily: "var(--font-noto-sans-jp)" }}>ナレッジ</h1>
+            <h1 className="font-bold text-sm" style={{ fontFamily: "var(--font-noto-sans-jp)" }}>ナレッジベース</h1>
             <div className="flex gap-1">
               <button onClick={() => setShowAdd(true)} title="新規追加"
                 className="p-1.5 rounded hover:bg-gray-100" style={{ color: "var(--eb-primary)" }}>
