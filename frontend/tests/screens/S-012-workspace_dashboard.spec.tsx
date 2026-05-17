@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * T-V3-C-61 / S-012 — 案件ダッシュボード screen specs.
  *
