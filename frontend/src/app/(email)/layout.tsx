@@ -1,4 +1,10 @@
 /**
+ * T-V3-C-19 / (email) route group layout.
+ *
+ * The email-template preview screens (S-056〜S-060) are operator-facing
+ * previews of the templated emails dispatched by `backend/routers/email.py`
+ * (F-028 / T-V3-B-30). They render without the workspace sidebar so the
+ * preview occupies the full viewport and resembles the customer inbox view.
  * T-V3-C-17 / (email) route group layout.
  *
  * The email-template preview screens (S-056 〜 S-060) render the actual outbound
