@@ -70,6 +70,10 @@ from routers.anthropic_memory import router as anthropic_memory_router
 from routers.chat_search import router as chat_search_router
 from routers.bf_profile import router as bf_profile_router
 from routers.me import router as me_router
+# T-V3-D-10 (F-030/F-031/F-029 drift fix Wave 4): API non-method drift fix
+from routers.me_api_tokens import router as me_api_tokens_router
+from routers.workspace_exports import router as workspace_exports_router
+from routers.design_system import router as design_system_router
 from routers.ws import router as ws_router
 from routers.admin_fallback import router as admin_fallback_router
 from routers.phases import router as phases_router
@@ -264,6 +268,10 @@ app.include_router(anthropic_memory_router)
 app.include_router(chat_search_router)
 app.include_router(bf_profile_router)
 app.include_router(me_router)
+# T-V3-D-10: Wave 4 drift fix (F-030 / F-031 / F-029 missing endpoints)
+app.include_router(me_api_tokens_router)
+app.include_router(workspace_exports_router)
+app.include_router(design_system_router)
 app.include_router(ws_router)
 app.include_router(admin_fallback_router)
 app.include_router(phases_router)
