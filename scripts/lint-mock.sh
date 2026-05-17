@@ -143,6 +143,7 @@ check_agpl() {
 # ----------------------------------------------------------------
 check_archive() {
   echo "[3/17] ARCHIVE 対象 (onlook/penpot) 残留検出..."
+  echo "[3/16] ARCHIVE 対象 (onlook/penpot + T-V3-D-04 legacy twins) 残留検出..."
   local found=0
 
   # ディレクトリ自体は両方とも削除必須
@@ -171,6 +172,27 @@ check_archive() {
   if [ -n "$refs" ]; then
     echo -e "${YELLOW}WARN: 'onlook' の参照が残っている:${NC}"
     echo "$refs" | head -5
+    found=1
+  fi
+
+  # T-V3-D-04: legacy twin router / model 残留検査
+  #   spec: 4 legacy router file (legacy_tasks.py / legacy_pull_requests.py /
+  #         legacy_repos.py / legacy_ai_employee_config.py) と
+  #         backend/app/models/legacy/ ディレクトリは 0 残留であること.
+  local legacy_routers=(
+    "backend/routers/legacy_tasks.py"
+    "backend/routers/legacy_pull_requests.py"
+    "backend/routers/legacy_repos.py"
+    "backend/routers/legacy_ai_employee_config.py"
+  )
+  for f in "${legacy_routers[@]}"; do
+    if [ -f "$f" ]; then
+      echo -e "${YELLOW}WARN: legacy router 残留: $f${NC} (T-V3-D-04 ARCHIVE 対象)"
+      found=1
+    fi
+  done
+  if [ -d "backend/app/models/legacy" ]; then
+    echo -e "${YELLOW}WARN: legacy models dir 残留: backend/app/models/legacy/${NC} (T-V3-D-04)"
     found=1
   fi
 

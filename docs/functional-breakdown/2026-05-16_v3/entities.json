@@ -133,23 +133,35 @@
       "fields": [
         {
           "name": "id",
-          "raw_v1_descriptor": "id"
+          "raw_v1_descriptor": "id BIGSERIAL PRIMARY KEY (impl-aligned, T-V3-D-03)"
         },
         {
           "name": "name",
-          "raw_v1_descriptor": "name"
+          "raw_v1_descriptor": "name TEXT NOT NULL"
         },
         {
           "name": "type",
-          "raw_v1_descriptor": "type enum(company/individual)"
+          "raw_v1_descriptor": "type TEXT DEFAULT 'individual' (company/individual; impl uses TEXT not pg ENUM, T-V3-D-03)"
         },
         {
           "name": "plan",
-          "raw_v1_descriptor": "plan enum(free/pro/team/enterprise)"
+          "raw_v1_descriptor": "plan TEXT DEFAULT 'free' (free/pro/business/enterprise; impl uses TEXT not pg ENUM, 'team' renamed to 'business' per impl, T-V3-D-03)"
         },
         {
           "name": "owner_user_id",
-          "raw_v1_descriptor": "owner_user_id (FK→User)"
+          "raw_v1_descriptor": "owner_user_id TEXT NOT NULL (FK→User by auth.uid()::text, no FK constraint)"
+        },
+        {
+          "name": "billing_email",
+          "raw_v1_descriptor": "billing_email TEXT (impl-added, T-V3-D-03)"
+        },
+        {
+          "name": "metadata",
+          "raw_v1_descriptor": "metadata JSONB DEFAULT '{}'::jsonb (impl-added, T-V3-D-03)"
+        },
+        {
+          "name": "is_active",
+          "raw_v1_descriptor": "is_active BOOLEAN DEFAULT TRUE (replaces spec soft_delete flag, T-V3-D-03)"
         }
       ],
       "relations": [
@@ -163,13 +175,14 @@
           "raw_v1_descriptor": "N:1 owner User"
         }
       ],
-      "soft_delete": true,
+      "soft_delete": false,
       "timestamps": [
         "created_at",
-        "updated_at",
-        "deleted_at"
+        "updated_at"
       ],
-      "indexes": [],
+      "indexes": [
+        "ix_accounts_owner ON accounts(owner_user_id)"
+      ],
       "tenant_isolation": {
         "type": "none",
         "column": null,
@@ -188,8 +201,14 @@
       "legacy_drift_notes": {
         "spec_table": "accounts",
         "impl_table": "accounts",
-        "diff_severity": "high",
-        "recommendation": "spec は uuid PK / soft_delete / plan enum 想定. impl は BIGSERIAL PK / soft_delete カラム無し / status TEXT (DEFAULT 'active', plan enum 無し). 大きな型ギャップ",
+        "diff_severity": "resolved",
+        "previous_severity": "high",
+        "recommendation": "T-V3-D-03 で spec 側を impl に合わせて alignment 完了 (impl 既稼働 / breaking-change 回避). impl 採用事項: PK = BIGSERIAL (uuid v7 非採用 / Polish-phase で再評価予定), plan は TEXT (free/pro/business/enterprise) — spec の 'team' は 'business' に統一, type は TEXT (company/individual), soft_delete カラムは無し (is_active boolean で代替). 大規模 PK width 変更は本 task で実施せず Polish-phase で再評価.",
+        "resolution": {
+          "task_id": "T-V3-D-03",
+          "decision": "impl-as-source-of-truth",
+          "deferred_to_polish": ["uuid_v7_pk_migration", "soft_delete_column"]
+        },
         "task_id": "T-V3-DRIFT-E-002",
         "policy_count_actual": 5,
         "source_migration": "20260501220000_initial_schema.sql"
@@ -203,16 +222,20 @@
       "spec_table_name": "account_members",
       "fields": [
         {
+          "name": "id",
+          "raw_v1_descriptor": "id BIGSERIAL PRIMARY KEY (impl-aligned, T-V3-D-03)"
+        },
+        {
           "name": "account_id",
-          "raw_v1_descriptor": "account_id (FK)"
+          "raw_v1_descriptor": "account_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE"
         },
         {
           "name": "user_id",
-          "raw_v1_descriptor": "user_id (FK)"
+          "raw_v1_descriptor": "user_id TEXT NOT NULL (auth.uid()::text; impl uses TEXT polymorphism, T-V3-D-03)"
         },
         {
           "name": "role",
-          "raw_v1_descriptor": "role enum(account_owner)"
+          "raw_v1_descriptor": "role TEXT DEFAULT 'owner' (account_owner/owner; impl uses TEXT not pg ENUM, T-V3-D-03)"
         }
       ],
       "relations": [
@@ -223,14 +246,13 @@
           "raw_v1_descriptor": "N:1 User"
         }
       ],
-      "soft_delete": true,
+      "soft_delete": false,
       "timestamps": [
-        "created_at",
-        "updated_at",
-        "deleted_at"
+        "created_at"
       ],
       "indexes": [
-        "account_id, user_id (UNIQUE)"
+        "uq_account_member UNIQUE (account_id, user_id)",
+        "ix_account_members_account ON account_members(account_id)"
       ],
       "tenant_isolation": {
         "type": "account_scoped",
@@ -264,8 +286,14 @@
       "legacy_drift_notes": {
         "spec_table": "account_members",
         "impl_table": "account_members",
-        "diff_severity": "medium",
-        "recommendation": "spec は uuid FK / role enum. impl は BIGINT account_id + TEXT user_id (auth.uid()::text) / role TEXT (no enum). user_id polymorphism がスペックと一致せず",
+        "diff_severity": "resolved",
+        "previous_severity": "medium",
+        "recommendation": "T-V3-D-03 で spec 側を impl に合わせて alignment 完了. impl 採用事項: account_id = BIGINT FK (uuid 化は Polish-phase), user_id = TEXT (auth.uid()::text polymorphism / Supabase Auth との互換性のため TEXT 維持), role = TEXT (account_owner/owner; pg ENUM は導入せず application 層 CHECK で十分), soft_delete 不採用 (membership 解除は物理削除).",
+        "resolution": {
+          "task_id": "T-V3-D-03",
+          "decision": "impl-as-source-of-truth",
+          "deferred_to_polish": ["uuid_v7_pk_migration"]
+        },
         "task_id": "T-V3-DRIFT-E-003",
         "policy_count_actual": 2,
         "source_migration": "20260501220000_initial_schema.sql"
@@ -280,31 +308,39 @@
       "fields": [
         {
           "name": "id",
-          "raw_v1_descriptor": "id"
+          "raw_v1_descriptor": "id BIGSERIAL PRIMARY KEY (impl-aligned, T-V3-D-03)"
         },
         {
           "name": "account_id",
-          "raw_v1_descriptor": "account_id (FK, NOT NULL)"
+          "raw_v1_descriptor": "account_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE"
         },
         {
           "name": "name",
-          "raw_v1_descriptor": "name"
+          "raw_v1_descriptor": "name TEXT NOT NULL"
         },
         {
-          "name": "slug",
-          "raw_v1_descriptor": "slug"
+          "name": "description",
+          "raw_v1_descriptor": "description TEXT (impl-added, T-V3-D-03)"
+        },
+        {
+          "name": "status",
+          "raw_v1_descriptor": "status TEXT DEFAULT 'active' (impl, T-V3-D-03)"
         },
         {
           "name": "project_meta",
-          "raw_v1_descriptor": "project_meta jsonb"
+          "raw_v1_descriptor": "project_meta JSONB DEFAULT '{}'::jsonb (includes slug / is_confidential / token_limit_amount as nested keys per impl, T-V3-D-03)"
         },
         {
-          "name": "is_confidential",
-          "raw_v1_descriptor": "is_confidential bool DEFAULT FALSE"
+          "name": "client_visibility",
+          "raw_v1_descriptor": "client_visibility JSONB DEFAULT '[]'::jsonb (impl, T-V3-D-03)"
         },
         {
-          "name": "token_limit_amount",
-          "raw_v1_descriptor": "token_limit_amount numeric NULL"
+          "name": "design_system_ref",
+          "raw_v1_descriptor": "design_system_ref TEXT (impl, T-V3-D-03)"
+        },
+        {
+          "name": "preferred_provider",
+          "raw_v1_descriptor": "preferred_provider preferred_provider_enum NULL (anthropic/openai/gemini/auto; added by 20260513100000, T-V3-D-03)"
         }
       ],
       "relations": [
@@ -330,15 +366,14 @@
           "raw_v1_descriptor": "1:N Session"
         }
       ],
-      "soft_delete": true,
+      "soft_delete": false,
       "timestamps": [
         "created_at",
-        "updated_at",
-        "deleted_at"
+        "updated_at"
       ],
       "indexes": [
-        "account_id",
-        "(account_id, slug) UNIQUE"
+        "ix_workspaces_account ON workspaces(account_id)",
+        "ix_workspaces_status ON workspaces(status)"
       ],
       "tenant_isolation": {
         "type": "workspace_scoped",
@@ -372,8 +407,14 @@
       "legacy_drift_notes": {
         "spec_table": "workspaces",
         "impl_table": "workspaces",
-        "diff_severity": "high",
-        "recommendation": "spec uuid PK / slug / is_confidential bool / token_limit_amount. impl は BIGSERIAL PK / slug カラム無し / is_confidential 無し / project_meta + client_visibility + design_system_ref / preferred_provider_enum (20260513100000 で追加). Slug は project_meta JSONB に押し込まれている疑い",
+        "diff_severity": "resolved",
+        "previous_severity": "high",
+        "recommendation": "T-V3-D-03 で spec 側を impl に合わせて alignment 完了. impl 採用事項: PK = BIGSERIAL (uuid v7 Polish-phase), slug / is_confidential / token_limit_amount は project_meta JSONB の nested key (top-level column 化は Polish-phase で再評価), preferred_provider_enum (anthropic/openai/gemini/auto) は 20260513100000 で導入済 (ADR-012 Decision 5), soft_delete 不採用 (status='deleted' で代替).",
+        "resolution": {
+          "task_id": "T-V3-D-03",
+          "decision": "impl-as-source-of-truth",
+          "deferred_to_polish": ["uuid_v7_pk_migration", "slug_top_level_column", "is_confidential_top_level_column", "token_limit_amount_top_level_column"]
+        },
         "task_id": "T-V3-DRIFT-E-004",
         "policy_count_actual": 4,
         "source_migration": "20260501220000_initial_schema.sql"
@@ -387,24 +428,28 @@
       "spec_table_name": "workspace_members",
       "fields": [
         {
+          "name": "id",
+          "raw_v1_descriptor": "id BIGSERIAL PRIMARY KEY (impl-aligned, T-V3-D-03)"
+        },
+        {
           "name": "workspace_id",
-          "raw_v1_descriptor": "workspace_id (FK)"
+          "raw_v1_descriptor": "workspace_id BIGINT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE"
         },
         {
           "name": "user_id",
-          "raw_v1_descriptor": "user_id (FK)"
+          "raw_v1_descriptor": "user_id TEXT NOT NULL (auth.uid()::text; impl uses TEXT polymorphism, T-V3-D-03)"
         },
         {
           "name": "role",
-          "raw_v1_descriptor": "role enum(workspace_admin/contributor/viewer/client/monitor)"
+          "raw_v1_descriptor": "role TEXT DEFAULT 'contributor' (workspace_admin/contributor/viewer/client/monitor; impl uses TEXT not pg ENUM, T-V3-D-03)"
         },
         {
           "name": "custom_permissions",
-          "raw_v1_descriptor": "custom_permissions jsonb DEFAULT '{}'"
+          "raw_v1_descriptor": "custom_permissions JSONB DEFAULT '{}'::jsonb"
         },
         {
-          "name": "visible_tabs",
-          "raw_v1_descriptor": "visible_tabs jsonb DEFAULT '[]'"
+          "name": "invited_by",
+          "raw_v1_descriptor": "invited_by TEXT (impl-added, T-V3-D-03)"
         }
       ],
       "relations": [
@@ -415,15 +460,14 @@
           "raw_v1_descriptor": "N:1 User"
         }
       ],
-      "soft_delete": true,
+      "soft_delete": false,
       "timestamps": [
-        "created_at",
-        "updated_at",
-        "deleted_at"
+        "created_at"
       ],
       "indexes": [
-        "(workspace_id, user_id) UNIQUE WHERE deleted_at IS NULL",
-        "user_id, workspace_id"
+        "uq_workspace_member UNIQUE (workspace_id, user_id)",
+        "ix_workspace_members_workspace ON workspace_members(workspace_id)",
+        "ix_workspace_members_user ON workspace_members(user_id)"
       ],
       "tenant_isolation": {
         "type": "workspace_scoped",
@@ -457,8 +501,14 @@
       "legacy_drift_notes": {
         "spec_table": "workspace_members",
         "impl_table": "workspace_members",
-        "diff_severity": "medium",
-        "recommendation": "spec uuid user_id / role enum + custom_permissions jsonb + visible_tabs jsonb. impl は BIGINT + TEXT user_id / role TEXT / custom_permissions + visible_tabs columns confirmed",
+        "diff_severity": "resolved",
+        "previous_severity": "medium",
+        "recommendation": "T-V3-D-03 で spec 側を impl に合わせて alignment 完了. impl 採用事項: workspace_id = BIGINT FK, user_id = TEXT (auth.uid()::text), role = TEXT (workspace_admin/contributor/viewer/client/monitor; pg ENUM 不採用 / app 層 CHECK で十分), custom_permissions JSONB は impl にあり, visible_tabs JSONB は spec の概念だが impl に未実装 (Polish-phase で追加検討 — invited_by TEXT が代替的に存在), soft_delete 不採用 (membership 解除は物理削除).",
+        "resolution": {
+          "task_id": "T-V3-D-03",
+          "decision": "impl-as-source-of-truth",
+          "deferred_to_polish": ["uuid_v7_pk_migration", "visible_tabs_column"]
+        },
         "task_id": "T-V3-DRIFT-E-005",
         "policy_count_actual": 2,
         "source_migration": "20260501220000_initial_schema.sql"
@@ -664,10 +714,15 @@
         "spec_table": "ai_employees",
         "impl_table": "ai_employees",
         "diff_severity": "medium",
-        "recommendation": "spec name 'AIEmployee' → 旧 ai_employee_config と新 ai_employees (20260512200000_ai_hierarchy_clone_tables.sql) の 2 系統並存. 新規 ai_employees + ai_hierarchies (E-NEW) + ai_clones (E-NEW) が正系統. 旧 ai_employee_config は ARCHIVE 候補",
+        "recommendation": "spec name 'AIEmployee' → 旧 ai_employee_config と新 ai_employees (20260512200000_ai_hierarchy_clone_tables.sql) の 2 系統並存. 新規 ai_employees + ai_hierarchies (E-NEW) + ai_clones (E-NEW) が正系統. 旧 ai_employee_config は ARCHIVED in 20260516140000 (T-V3-D-04 / ADR-015) — renamed to _archived_ai_employee_config (data preserved, service_role-only RLS).",
         "task_id": "T-V3-DRIFT-E-007",
         "policy_count_actual": 2,
-        "source_migration": "20260512200000_ai_hierarchy_clone_tables.sql"
+        "source_migration": "20260512200000_ai_hierarchy_clone_tables.sql",
+        "legacy_archived": true,
+        "archived_table_name": "_archived_ai_employee_config",
+        "archived_in_migration": "20260516140000_archive_legacy_twins.sql",
+        "archived_by_task": "T-V3-D-04",
+        "archived_adr": "ADR-015"
       },
       "policy_count_in_migration": 2,
       "constraints": [
@@ -1307,8 +1362,16 @@
         "recommendation": "ADR-014 (2026-05-17) で 'keep bf_ prefix as canonical' を決定. spec_table_name を impl_table に揃えた. legacy 'tasks' (single-user / 二重実装) の ARCHIVE 判断は別途 T-V3-DRIFT-E-014 で扱う (本 ADR スコープ外)",
         "task_id": "T-V3-D-02",
         "adr_ref": "ADR-014",
+        "diff_severity": "critical",
+        "recommendation": "spec 'tasks' に対し legacy 'tasks' (single-user) と modern 'bf_tasks' の **二重実装** が並存していたが ARCHIVED in 20260516140000 (T-V3-D-04 / ADR-015) — legacy tasks は _archived_tasks に rename され data 保全 (service_role-only RLS). bf_tasks が唯一の正系統.",
+        "task_id": "T-V3-DRIFT-E-014",
         "policy_count_actual": 2,
-        "source_migration": "20260510000001_bf_project_tables.sql"
+        "source_migration": "20260510000001_bf_project_tables.sql",
+        "legacy_archived": true,
+        "archived_table_name": "_archived_tasks",
+        "archived_in_migration": "20260516140000_archive_legacy_twins.sql",
+        "archived_by_task": "T-V3-D-04",
+        "archived_adr": "ADR-015"
       },
       "policy_count_in_migration": 2
     },
@@ -1766,51 +1829,47 @@
       "fields": [
         {
           "name": "id",
-          "raw_v1_descriptor": "id"
-        },
-        {
-          "name": "workspace_id",
-          "raw_v1_descriptor": "workspace_id (FK)"
+          "raw_v1_descriptor": "id TEXT PRIMARY KEY (uuid stored as TEXT; impl-aligned, T-V3-D-03)"
         },
         {
           "name": "type",
-          "raw_v1_descriptor": "type enum(spec/mock_screen/mock_component/flow_map/progress/review/delivery/requirements/hearing/audit)"
-        },
-        {
-          "name": "format",
-          "raw_v1_descriptor": "format enum(html/markdown/json/svg/png)"
+          "raw_v1_descriptor": "type TEXT NOT NULL (list/kanban/spec/mock_screen/mock_component/flow_map/progress/review/delivery/requirements/hearing/audit; impl uses TEXT not pg ENUM — open set for runtime extensibility, T-V3-D-03)"
         },
         {
           "name": "title",
-          "raw_v1_descriptor": "title"
+          "raw_v1_descriptor": "title TEXT NOT NULL DEFAULT ''"
         },
         {
-          "name": "storage_url",
-          "raw_v1_descriptor": "storage_url"
+          "name": "data",
+          "raw_v1_descriptor": "data JSONB DEFAULT '{}'::jsonb (impl-added; holds format/storage_url/content_preview etc. as nested keys, T-V3-D-03)"
         },
         {
-          "name": "content_preview",
-          "raw_v1_descriptor": "content_preview text"
+          "name": "category_tags",
+          "raw_v1_descriptor": "category_tags JSONB DEFAULT '[]'::jsonb (impl-added, T-V3-D-03)"
         },
         {
-          "name": "tsv",
-          "raw_v1_descriptor": "tsv tsvector GENERATED"
+          "name": "pinned_by",
+          "raw_v1_descriptor": "pinned_by JSONB DEFAULT '[]'::jsonb (impl-added, T-V3-D-03)"
         },
         {
-          "name": "embedding",
-          "raw_v1_descriptor": "embedding vector(1536)"
+          "name": "thread_id",
+          "raw_v1_descriptor": "thread_id BIGINT REFERENCES threads(id) ON DELETE SET NULL (impl, T-V3-D-03)"
         },
         {
-          "name": "related_phase_id",
-          "raw_v1_descriptor": "related_phase_id"
+          "name": "employee_id",
+          "raw_v1_descriptor": "employee_id BIGINT REFERENCES ai_employee_config(id) ON DELETE SET NULL (impl, T-V3-D-03)"
         },
         {
-          "name": "related_task_id",
-          "raw_v1_descriptor": "related_task_id"
+          "name": "created_by",
+          "raw_v1_descriptor": "created_by TEXT DEFAULT 'ai' (impl-added, T-V3-D-03)"
         },
         {
-          "name": "related_session_id",
-          "raw_v1_descriptor": "related_session_id"
+          "name": "is_archived",
+          "raw_v1_descriptor": "is_archived BOOLEAN DEFAULT FALSE (impl-added; replaces soft_delete, T-V3-D-03)"
+        },
+        {
+          "name": "workspace_id",
+          "raw_v1_descriptor": "workspace_id BIGINT (FK applied post workspaces creation, T-V3-D-03)"
         }
       ],
       "relations": [
@@ -1821,17 +1880,15 @@
           "raw_v1_descriptor": "M:N Session (via session_artifacts)"
         }
       ],
-      "soft_delete": true,
+      "soft_delete": false,
       "timestamps": [
         "created_at",
-        "updated_at",
-        "deleted_at"
+        "updated_at"
       ],
       "indexes": [
-        "workspace_id",
-        "type",
-        "GIN(tsv)",
-        "ivfflat embedding"
+        "ix_artifacts_thread ON artifacts(thread_id)",
+        "ix_artifacts_type ON artifacts(type)",
+        "ix_artifacts_archived ON artifacts(is_archived)"
       ],
       "tenant_isolation": {
         "type": "workspace_scoped",
@@ -1865,8 +1922,14 @@
       "legacy_drift_notes": {
         "spec_table": "artifacts",
         "impl_table": "artifacts",
-        "diff_severity": "medium",
-        "recommendation": "spec の type enum (spec/mock_screen/...) が impl で TEXT か CHECK で表現されているか確認要. embedding vector(1536) は実装あり",
+        "diff_severity": "resolved",
+        "previous_severity": "medium",
+        "recommendation": "T-V3-D-03 で spec 側を impl に合わせて alignment 完了. impl 採用事項: id = TEXT PRIMARY KEY (uuid を TEXT で格納 / Supabase auth との互換性), type = TEXT NOT NULL (open enum / pg ENUM は導入せず — runtime 拡張性を優先), format / storage_url / content_preview は data JSONB の nested key, tsv tsvector + embedding vector(1536) は別 migration (20260501220100_pgvector.sql) で追加予定 (現状未実装 = Polish-phase 候補), related_phase_id / related_task_id / related_session_id は data JSONB に格納, soft_delete 不採用 (is_archived boolean で代替).",
+        "resolution": {
+          "task_id": "T-V3-D-03",
+          "decision": "impl-as-source-of-truth",
+          "deferred_to_polish": ["pg_enum_type_constraint", "tsv_generated_column", "embedding_vector_column", "related_id_top_level_columns"]
+        },
         "task_id": "T-V3-DRIFT-E-020",
         "policy_count_actual": 2,
         "source_migration": "20260501220000_initial_schema.sql"
@@ -2150,67 +2213,67 @@
       "fields": [
         {
           "name": "id",
-          "raw_v1_descriptor": "id"
+          "raw_v1_descriptor": "id BIGSERIAL PRIMARY KEY (impl-aligned, T-V3-D-03)"
         },
         {
-          "name": "task_id",
-          "raw_v1_descriptor": "task_id (FK)"
-        },
-        {
-          "name": "user_id",
-          "raw_v1_descriptor": "user_id (FK)"
+          "name": "sdk_session_id",
+          "raw_v1_descriptor": "sdk_session_id TEXT NOT NULL UNIQUE (claude-agent-sdk 発行, impl-added, T-V3-D-03)"
         },
         {
           "name": "workspace_id",
-          "raw_v1_descriptor": "workspace_id (FK)"
+          "raw_v1_descriptor": "workspace_id BIGINT REFERENCES workspaces(id) ON DELETE CASCADE"
+        },
+        {
+          "name": "project_id",
+          "raw_v1_descriptor": "project_id BIGINT REFERENCES bf_projects(id) ON DELETE SET NULL (impl, T-V3-D-03)"
+        },
+        {
+          "name": "bf_task_id",
+          "raw_v1_descriptor": "bf_task_id BIGINT REFERENCES bf_tasks(id) ON DELETE SET NULL (replaces spec task_id, impl-aligned, T-V3-D-03)"
+        },
+        {
+          "name": "agent_persona",
+          "raw_v1_descriptor": "agent_persona TEXT (mary/devon/quinn 等, impl-added, T-V3-D-03)"
+        },
+        {
+          "name": "skill_name",
+          "raw_v1_descriptor": "skill_name TEXT (impl-added, T-V3-D-03)"
+        },
+        {
+          "name": "prompt",
+          "raw_v1_descriptor": "prompt TEXT NOT NULL (impl, replaces spec initial_prompt, T-V3-D-03)"
         },
         {
           "name": "status",
-          "raw_v1_descriptor": "status enum(starting/running/paused/completed/failed/cancelled/crashed)"
+          "raw_v1_descriptor": "status TEXT NOT NULL DEFAULT 'running' CHECK (status IN ('running','done','crashed','cancelled','paused')); 5 values per impl (spec wanted 7; starting + completed + failed collapsed into running/done/crashed per state-machine simplification, T-V3-D-03)"
+        },
+        {
+          "name": "resume_choice",
+          "raw_v1_descriptor": "resume_choice TEXT CHECK (resume_choice IN ('from_checkpoint','rerun_full','manual_fix','cancel')) (impl-added, T-V3-D-03)"
+        },
+        {
+          "name": "crash_reason",
+          "raw_v1_descriptor": "crash_reason TEXT (impl-added, T-V3-D-03; replaces spec failure_reason)"
         },
         {
           "name": "started_at",
-          "raw_v1_descriptor": "started_at"
+          "raw_v1_descriptor": "started_at TIMESTAMPTZ DEFAULT NOW()"
         },
         {
-          "name": "ended_at",
-          "raw_v1_descriptor": "ended_at"
+          "name": "completed_at",
+          "raw_v1_descriptor": "completed_at TIMESTAMPTZ (impl, replaces spec ended_at, T-V3-D-03)"
         },
         {
-          "name": "cost",
-          "raw_v1_descriptor": "cost numeric"
+          "name": "last_heartbeat_at",
+          "raw_v1_descriptor": "last_heartbeat_at TIMESTAMPTZ (impl-added, T-V3-D-03)"
         },
         {
-          "name": "tokens_input",
-          "raw_v1_descriptor": "tokens_input int"
+          "name": "metadata",
+          "raw_v1_descriptor": "metadata JSONB DEFAULT '{}'::jsonb (impl; holds cost/tokens_input/tokens_output/retry_count/failure_count/langfuse_trace_id/constitution_version_at_start as nested keys, T-V3-D-03)"
         },
         {
-          "name": "tokens_output",
-          "raw_v1_descriptor": "tokens_output int"
-        },
-        {
-          "name": "retry_count",
-          "raw_v1_descriptor": "retry_count int"
-        },
-        {
-          "name": "failure_count",
-          "raw_v1_descriptor": "failure_count int"
-        },
-        {
-          "name": "failure_reason",
-          "raw_v1_descriptor": "failure_reason text"
-        },
-        {
-          "name": "langfuse_trace_id",
-          "raw_v1_descriptor": "langfuse_trace_id"
-        },
-        {
-          "name": "initial_prompt",
-          "raw_v1_descriptor": "initial_prompt text"
-        },
-        {
-          "name": "constitution_version_at_start",
-          "raw_v1_descriptor": "constitution_version_at_start int"
+          "name": "created_by",
+          "raw_v1_descriptor": "created_by TEXT (impl, replaces spec user_id, T-V3-D-03)"
         }
       ],
       "relations": [
@@ -2232,13 +2295,12 @@
       ],
       "soft_delete": false,
       "timestamps": [
-        "created_at",
-        "updated_at"
+        "started_at"
       ],
       "indexes": [
-        "task_id",
-        "workspace_id",
-        "(workspace_id, status, started_at DESC) WHERE status IN (starting,running,paused) for swarm"
+        "ix_sessions_ws ON sessions(workspace_id, started_at DESC)",
+        "ix_sessions_status ON sessions(status, started_at DESC)",
+        "ix_sessions_active ON sessions(workspace_id) WHERE status = 'running'"
       ],
       "tenant_isolation": {
         "type": "workspace_scoped",
@@ -2272,8 +2334,14 @@
       "legacy_drift_notes": {
         "spec_table": "sessions",
         "impl_table": "sessions",
-        "diff_severity": "medium",
-        "recommendation": "spec uuid PK / status enum 細粒度 (starting/running/paused/...). impl BIGSERIAL + status TEXT CHECK で 5 値. enum 数値が一致せず (spec 7 / impl 5)",
+        "diff_severity": "resolved",
+        "previous_severity": "medium",
+        "recommendation": "T-V3-D-03 で spec 側を impl に合わせて alignment 完了. impl 採用事項: PK = BIGSERIAL (uuid v7 Polish-phase), status = TEXT CHECK 5 values (running/done/crashed/cancelled/paused) — spec の starting/completed/failed は state-machine 簡素化により以下に統合: starting → 'running' に集約 (sdk_session_id 発行時点で running 開始), completed → 'done', failed → 'crashed', task_id 概念は bf_task_id に rename (Build-Factory 専用 task table), user_id 概念は created_by TEXT に rename, ended_at → completed_at, initial_prompt → prompt, failure_reason → crash_reason, cost/tokens_input/tokens_output/retry_count/failure_count/langfuse_trace_id/constitution_version_at_start は metadata JSONB に格納 (top-level column 化は Polish-phase で再評価).",
+        "resolution": {
+          "task_id": "T-V3-D-03",
+          "decision": "impl-as-source-of-truth",
+          "deferred_to_polish": ["uuid_v7_pk_migration", "top_level_cost_tokens_columns", "expanded_status_enum_to_7_values"]
+        },
         "task_id": "T-V3-DRIFT-E-025",
         "policy_count_actual": 2,
         "source_migration": "20260510000003_runner_session_tables.sql"
@@ -2447,10 +2515,15 @@
         "spec_table": "prs",
         "impl_table": "prs",
         "diff_severity": "medium",
-        "recommendation": "20260512000000 で prs と pull_requests (legacy single-user) の 2 表並存. 新は prs, ARCHIVE 候補は pull_requests",
+        "recommendation": "20260512000000 で prs と pull_requests (legacy single-user) の 2 表並存していたが ARCHIVED in 20260516140000 (T-V3-D-04 / ADR-015) — pull_requests は _archived_pull_requests に rename され data 保全. pr_comments.pr_id FK は同 migration で prs(id) に repoint 済. prs が唯一の正系統.",
         "task_id": "T-V3-DRIFT-E-027",
         "policy_count_actual": 2,
-        "source_migration": "20260512000000_impl_integration_ops_tables.sql"
+        "source_migration": "20260512000000_impl_integration_ops_tables.sql",
+        "legacy_archived": true,
+        "archived_table_name": "_archived_pull_requests",
+        "archived_in_migration": "20260516140000_archive_legacy_twins.sql",
+        "archived_by_task": "T-V3-D-04",
+        "archived_adr": "ADR-015"
       },
       "policy_count_in_migration": 2
     },
@@ -2803,10 +2876,15 @@
         "spec_table": "github_repos",
         "impl_table": "github_repos",
         "diff_severity": "medium",
-        "recommendation": "github_repos (modern) と repos (legacy) の 2 表並存. repos は ARCHIVE 候補",
+        "recommendation": "github_repos (modern) と repos (legacy) の 2 表並存していたが ARCHIVED in 20260516140000 (T-V3-D-04 / ADR-015) — repos は _archived_repos に rename され data 保全 (service_role-only RLS). github_repos が唯一の正系統.",
         "task_id": "T-V3-DRIFT-E-032",
         "policy_count_actual": 2,
-        "source_migration": "20260512000000_impl_integration_ops_tables.sql"
+        "source_migration": "20260512000000_impl_integration_ops_tables.sql",
+        "legacy_archived": true,
+        "archived_table_name": "_archived_repos",
+        "archived_in_migration": "20260516140000_archive_legacy_twins.sql",
+        "archived_by_task": "T-V3-D-04",
+        "archived_adr": "ADR-015"
       },
       "policy_count_in_migration": 2
     },
@@ -3775,34 +3853,45 @@
           "operation": "ALL",
           "role": "service_role",
           "predicate": "true",
-          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)"
+          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)",
+          "source_migration": "20260516150000_rls_ai_family.sql"
         },
         {
           "name": "ai_clones_self_select",
           "operation": "SELECT",
           "role": "authenticated",
           "predicate": "user_id = auth.uid()::text",
-          "rationale": "ユーザーは自分の record のみ参照可"
+          "rationale": "ユーザーは自分の record のみ参照可",
+          "source_migration": "20260512200000_ai_hierarchy_clone_tables.sql"
         },
         {
           "name": "ai_clones_self_write",
           "operation": "ALL",
           "role": "authenticated",
           "predicate": "user_id = auth.uid()::text",
-          "rationale": "ユーザーは自分の record のみ書き込み可"
+          "rationale": "ユーザーは自分の record のみ書き込み可",
+          "source_migration": "20260512200000_ai_hierarchy_clone_tables.sql"
+        },
+        {
+          "name": "ai_clones_account_member_select",
+          "operation": "SELECT",
+          "role": "authenticated",
+          "predicate": "workspace_id IS NOT NULL AND workspace_id IN (SELECT id FROM workspaces WHERE account_id IN (SELECT bf_current_user_account_ids()))",
+          "rationale": "T-V3-D-05: account_members 経由で同 account 配下 workspace の clone を SELECT 可 (account_owner クロス workspace 閲覧経路)",
+          "source_migration": "20260516150000_rls_ai_family.sql"
         }
       ],
-      "status": "discovered_in_migration",
+      "status": "rls_complete",
       "legacy_drift_notes": {
         "spec_table": null,
         "impl_table": "ai_clones",
         "diff_severity": "new",
-        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化",
-        "task_id": "T-V3-DRIFT-E-044",
-        "policy_count_actual": 2,
-        "source_migration": "20260512200000_ai_hierarchy_clone_tables.sql"
+        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化. T-V3-D-05 で account_member_select policy を補完済.",
+        "task_id": "T-V3-D-05",
+        "policy_count_actual": 4,
+        "source_migration": "20260516150000_rls_ai_family.sql"
       },
-      "policy_count_in_migration": 2,
+      "policy_count_in_migration": 4,
       "purpose": "ユーザーの personal clone 保持 (user_clone_opt_in と関連) — clone behavior / system prompt / approval history を持つ",
       "constraints": null
     },
@@ -3865,34 +3954,37 @@
           "operation": "ALL",
           "role": "service_role",
           "predicate": "true",
-          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)"
+          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)",
+          "source_migration": "20260516150000_rls_ai_family.sql"
+        },
+        {
+          "name": "ai_hierarchies_member",
+          "operation": "ALL",
+          "role": "authenticated",
+          "predicate": "workspace_id IS NULL OR bf_can_access_workspace(workspace_id)",
+          "rationale": "workspace member であれば read/write 可 (legacy workspace_members 経由)",
+          "source_migration": "20260512200000_ai_hierarchy_clone_tables.sql"
         },
         {
           "name": "ai_hierarchies_account_member_select",
           "operation": "SELECT",
           "role": "authenticated",
-          "predicate": "account_id IN (SELECT account_id FROM account_members WHERE user_id = auth.uid()::text)",
-          "rationale": "account_members に参加していれば SELECT 可"
-        },
-        {
-          "name": "ai_hierarchies_account_owner_write",
-          "operation": "ALL",
-          "role": "authenticated",
-          "predicate": "account_id IN (SELECT account_id FROM account_members WHERE user_id = auth.uid()::text AND role = 'account_owner')",
-          "rationale": "account_owner のみ書き込み可"
+          "predicate": "workspace_id IS NOT NULL AND workspace_id IN (SELECT id FROM workspaces WHERE account_id IN (SELECT bf_current_user_account_ids()))",
+          "rationale": "T-V3-D-05: account_members 経由で同 account 配下 workspace の hierarchy を SELECT 可 (account_owner クロス workspace 閲覧経路)",
+          "source_migration": "20260516150000_rls_ai_family.sql"
         }
       ],
-      "status": "discovered_in_migration",
+      "status": "rls_complete",
       "legacy_drift_notes": {
         "spec_table": null,
         "impl_table": "ai_hierarchies",
         "diff_severity": "new",
-        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化",
-        "task_id": "T-V3-DRIFT-E-045",
-        "policy_count_actual": 2,
-        "source_migration": "20260512200000_ai_hierarchy_clone_tables.sql"
+        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化. T-V3-D-05 で account_member_select policy を補完済.",
+        "task_id": "T-V3-D-05",
+        "policy_count_actual": 3,
+        "source_migration": "20260516150000_rls_ai_family.sql"
       },
-      "policy_count_in_migration": 2,
+      "policy_count_in_migration": 3,
       "purpose": "AI employee の親子関係 (csuite / lead / member) を materialize したリンクテーブル. cycle prevention trigger (20260512300000) で循環防止",
       "constraints": [
         "no_circular_parent (trigger from 20260512300000)"
@@ -3962,20 +4054,37 @@
           "operation": "ALL",
           "role": "service_role",
           "predicate": "true",
-          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)"
+          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当)",
+          "source_migration": "20260516150000_rls_ai_family.sql"
+        },
+        {
+          "name": "ai_personas_read",
+          "operation": "SELECT",
+          "role": "authenticated",
+          "predicate": "true",
+          "rationale": "global seed table: 認証済 user は persona 一覧を読み取り可 (legacy global open SELECT)",
+          "source_migration": "20260512200000_ai_hierarchy_clone_tables.sql"
+        },
+        {
+          "name": "ai_personas_account_member_select",
+          "operation": "SELECT",
+          "role": "authenticated",
+          "predicate": "EXISTS (SELECT 1 FROM account_members WHERE user_id = auth.uid()::text)",
+          "rationale": "T-V3-D-05: account_members に 1 件以上参加している authenticated user に persona seed を開示 (未 onboard user を排除)",
+          "source_migration": "20260516150000_rls_ai_family.sql"
         }
       ],
-      "status": "discovered_in_migration",
+      "status": "rls_complete",
       "legacy_drift_notes": {
         "spec_table": null,
         "impl_table": "ai_personas",
         "diff_severity": "new",
-        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化",
-        "task_id": "T-V3-DRIFT-E-046",
-        "policy_count_actual": 2,
-        "source_migration": "20260512200000_ai_hierarchy_clone_tables.sql"
+        "recommendation": "v1 entities.json に未掲載. v3 で正式 entity 化. T-V3-D-05 で account_member_select policy を補完済.",
+        "task_id": "T-V3-D-05",
+        "policy_count_actual": 3,
+        "source_migration": "20260516150000_rls_ai_family.sql"
       },
-      "policy_count_in_migration": 2,
+      "policy_count_in_migration": 3,
       "purpose": "BMAD 10 ペルソナの seed table (mary / preston / winston / sally / devon / quinn / reviewer / brand / mockup / logan). 20260512400000_bmad_personas_seed.sql で seed",
       "constraints": null
     },
