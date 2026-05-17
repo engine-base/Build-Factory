@@ -664,10 +664,15 @@
         "spec_table": "ai_employees",
         "impl_table": "ai_employees",
         "diff_severity": "medium",
-        "recommendation": "spec name 'AIEmployee' → 旧 ai_employee_config と新 ai_employees (20260512200000_ai_hierarchy_clone_tables.sql) の 2 系統並存. 新規 ai_employees + ai_hierarchies (E-NEW) + ai_clones (E-NEW) が正系統. 旧 ai_employee_config は ARCHIVE 候補",
+        "recommendation": "spec name 'AIEmployee' → 旧 ai_employee_config と新 ai_employees (20260512200000_ai_hierarchy_clone_tables.sql) の 2 系統並存. 新規 ai_employees + ai_hierarchies (E-NEW) + ai_clones (E-NEW) が正系統. 旧 ai_employee_config は ARCHIVED in 20260516140000 (T-V3-D-04 / ADR-015) — renamed to _archived_ai_employee_config (data preserved, service_role-only RLS).",
         "task_id": "T-V3-DRIFT-E-007",
         "policy_count_actual": 2,
-        "source_migration": "20260512200000_ai_hierarchy_clone_tables.sql"
+        "source_migration": "20260512200000_ai_hierarchy_clone_tables.sql",
+        "legacy_archived": true,
+        "archived_table_name": "_archived_ai_employee_config",
+        "archived_in_migration": "20260516140000_archive_legacy_twins.sql",
+        "archived_by_task": "T-V3-D-04",
+        "archived_adr": "ADR-015"
       },
       "policy_count_in_migration": 2,
       "constraints": [
@@ -1304,10 +1309,15 @@
         "spec_table": "tasks",
         "impl_table": "bf_tasks",
         "diff_severity": "critical",
-        "recommendation": "spec 'tasks' に対し legacy 'tasks' (single-user) と modern 'bf_tasks' の **二重実装** が並存. v3 では bf_tasks が正で legacy tasks は ARCHIVE 推奨. T-V3-DRIFT-E-014 で legacy tasks 削除を計画",
+        "recommendation": "spec 'tasks' に対し legacy 'tasks' (single-user) と modern 'bf_tasks' の **二重実装** が並存していたが ARCHIVED in 20260516140000 (T-V3-D-04 / ADR-015) — legacy tasks は _archived_tasks に rename され data 保全 (service_role-only RLS). bf_tasks が唯一の正系統.",
         "task_id": "T-V3-DRIFT-E-014",
         "policy_count_actual": 2,
-        "source_migration": "20260510000001_bf_project_tables.sql"
+        "source_migration": "20260510000001_bf_project_tables.sql",
+        "legacy_archived": true,
+        "archived_table_name": "_archived_tasks",
+        "archived_in_migration": "20260516140000_archive_legacy_twins.sql",
+        "archived_by_task": "T-V3-D-04",
+        "archived_adr": "ADR-015"
       },
       "policy_count_in_migration": 2
     },
@@ -2443,10 +2453,15 @@
         "spec_table": "prs",
         "impl_table": "prs",
         "diff_severity": "medium",
-        "recommendation": "20260512000000 で prs と pull_requests (legacy single-user) の 2 表並存. 新は prs, ARCHIVE 候補は pull_requests",
+        "recommendation": "20260512000000 で prs と pull_requests (legacy single-user) の 2 表並存していたが ARCHIVED in 20260516140000 (T-V3-D-04 / ADR-015) — pull_requests は _archived_pull_requests に rename され data 保全. pr_comments.pr_id FK は同 migration で prs(id) に repoint 済. prs が唯一の正系統.",
         "task_id": "T-V3-DRIFT-E-027",
         "policy_count_actual": 2,
-        "source_migration": "20260512000000_impl_integration_ops_tables.sql"
+        "source_migration": "20260512000000_impl_integration_ops_tables.sql",
+        "legacy_archived": true,
+        "archived_table_name": "_archived_pull_requests",
+        "archived_in_migration": "20260516140000_archive_legacy_twins.sql",
+        "archived_by_task": "T-V3-D-04",
+        "archived_adr": "ADR-015"
       },
       "policy_count_in_migration": 2
     },
@@ -2799,10 +2814,15 @@
         "spec_table": "github_repos",
         "impl_table": "github_repos",
         "diff_severity": "medium",
-        "recommendation": "github_repos (modern) と repos (legacy) の 2 表並存. repos は ARCHIVE 候補",
+        "recommendation": "github_repos (modern) と repos (legacy) の 2 表並存していたが ARCHIVED in 20260516140000 (T-V3-D-04 / ADR-015) — repos は _archived_repos に rename され data 保全 (service_role-only RLS). github_repos が唯一の正系統.",
         "task_id": "T-V3-DRIFT-E-032",
         "policy_count_actual": 2,
-        "source_migration": "20260512000000_impl_integration_ops_tables.sql"
+        "source_migration": "20260512000000_impl_integration_ops_tables.sql",
+        "legacy_archived": true,
+        "archived_table_name": "_archived_repos",
+        "archived_in_migration": "20260516140000_archive_legacy_twins.sql",
+        "archived_by_task": "T-V3-D-04",
+        "archived_adr": "ADR-015"
       },
       "policy_count_in_migration": 2
     },
