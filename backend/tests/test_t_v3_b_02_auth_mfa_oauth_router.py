@@ -366,9 +366,7 @@ def test_ac_f10_oauth_callback_valid_returns_200_with_tokens(client: TestClient)
     import asyncio
     from services.auth import get_oauth_state_store
 
-    state = asyncio.get_event_loop().run_until_complete(
-        get_oauth_state_store().issue("github")
-    )
+    state = asyncio.run(get_oauth_state_store().issue("github"))
     r = client.get(
         f"/api/auth/oauth/github/callback?code=valid_code_abc&state={state}",
     )
@@ -394,9 +392,7 @@ def test_ac_f10_oauth_callback_state_is_single_use(client: TestClient) -> None:
     import asyncio
     from services.auth import get_oauth_state_store
 
-    state = asyncio.get_event_loop().run_until_complete(
-        get_oauth_state_store().issue("slack")
-    )
+    state = asyncio.run(get_oauth_state_store().issue("slack"))
     first = client.get(f"/api/auth/oauth/slack/callback?code=c1&state={state}")
     assert first.status_code == 200
     second = client.get(f"/api/auth/oauth/slack/callback?code=c1&state={state}")
@@ -466,9 +462,7 @@ def test_supported_providers_enum(client: TestClient) -> None:
     from services.auth import get_oauth_state_store
 
     for p in ("anthropic", "github", "slack", "google"):
-        state = asyncio.get_event_loop().run_until_complete(
-            get_oauth_state_store().issue(p)
-        )
+        state = asyncio.run(get_oauth_state_store().issue(p))
         r = client.get(f"/api/auth/oauth/{p}/callback?code=c&state={state}")
         assert r.status_code == 200, f"provider={p}: {r.text}"
 

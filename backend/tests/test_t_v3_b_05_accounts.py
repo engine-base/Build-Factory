@@ -109,6 +109,17 @@ def _fake_account(monkeypatch):
             {"account_id": account_id, "old": old, "new": new_owner_user_id}
         )
         a["owner_user_id"] = new_owner_user_id
+        # Mirror real account_service.transfer_owner audit emit so audit-assertion
+        # tests see the event.
+        await acc._emit_audit(
+            "accounts.owner_transferred",
+            user_id=actor_user_id or old,
+            detail={
+                "account_id": int(account_id),
+                "old_owner_id": old,
+                "new_owner_id": new_owner_user_id,
+            },
+        )
         return {
             "old_owner_id": old,
             "new_owner_id": new_owner_user_id,

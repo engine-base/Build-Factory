@@ -1625,9 +1625,9 @@
       "legacy_drift_notes": {
         "spec_table": "bf_tasks",
         "impl_table": "bf_tasks",
-        "diff_severity": "critical",
-        "recommendation": "spec 'tasks' に対し legacy 'tasks' (single-user) と modern 'bf_tasks' の **二重実装** が並存していたが ARCHIVED in 20260516140000 (T-V3-D-04 / ADR-015) — legacy tasks は _archived_tasks に rename され data 保全 (service_role-only RLS). bf_tasks が唯一の正系統.",
-        "task_id": "T-V3-DRIFT-E-014",
+        "diff_severity": "resolved_by_adr_014",
+        "recommendation": "spec 'tasks' に対し legacy 'tasks' (single-user) と modern 'bf_tasks' の **二重実装** が並存していたが ARCHIVED in 20260516140000 (T-V3-D-04 / ADR-015) — legacy tasks は _archived_tasks に rename され data 保全 (service_role-only RLS). bf_tasks が唯一の正系統. ADR-014 で bf_tasks を canonical と確定.",
+        "task_id": "T-V3-D-02",
         "adr_ref": "ADR-014",
         "policy_count_actual": 2,
         "source_migration": "20260510000001_bf_project_tables.sql",

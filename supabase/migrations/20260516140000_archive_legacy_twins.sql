@@ -18,7 +18,7 @@
 --   3. AC-F4 guard: 他に active FK が残っていたら relation_exception を raise
 --      し COMMIT 前に abort. legacy single-user 系の FK は全て一緒に rename
 --      される (initial_schema 同一ファイル内 / 同一 connected component) ので
---      該当しない判定とする (DO $$ block でも明示確認する).
+--      該当しない判定とする (DO block でも明示確認する).
 --   4. SaaS 利用範囲では legacy table はもう SELECT/INSERT されない. backend
 --      には対応 router/model が存在しない (T-V3-D-04 files_changed 参照).
 --
