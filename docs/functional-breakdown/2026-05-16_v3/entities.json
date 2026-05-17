@@ -733,7 +733,7 @@
       "id": "E-008",
       "name": "Skill",
       "table_name": "skill_definitions",
-      "spec_table_name": "skills",
+      "spec_table_name": "skill_definitions",
       "fields": [
         {
           "name": "id",
@@ -1058,7 +1058,7 @@
       "id": "E-012",
       "name": "Phase",
       "table_name": "bf_phases",
-      "spec_table_name": "phases",
+      "spec_table_name": "bf_phases",
       "fields": [
         {
           "name": "id",
@@ -1940,7 +1940,7 @@
       "id": "E-021",
       "name": "ArtifactVersion",
       "table_name": "artifact_events",
-      "spec_table_name": "artifact_versions",
+      "spec_table_name": "artifact_events",
       "fields": [
         {
           "name": "artifact_id",
