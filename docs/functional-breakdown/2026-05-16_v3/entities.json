@@ -2288,8 +2288,8 @@
     {
       "id": "E-022",
       "name": "Screen",
-      "table_name": "screens",
-      "spec_table_name": "screens",
+      "table_name": "bf_mocks",
+      "spec_table_name": "bf_mocks",
       "fields": [
         {
           "name": "id",
@@ -2346,17 +2346,24 @@
         "fk_table": "workspaces"
       },
       "access_control_policies": [],
-      "status": "decided",
+      "status": "deprecated_merged_into_e058",
       "legacy_drift_notes": {
         "spec_table": "screens",
-        "impl_table": "(missing)",
-        "diff_severity": "critical",
-        "recommendation": "Screen table は impl 無し. bf_mocks (E-NEW) で代替されているが Screen 単独 table としては未実装. functional-breakdown spec が Screen / Mock を分離している点と齟齬",
+        "impl_table": "bf_mocks",
+        "diff_severity": "resolved_by_adr_017",
+        "recommendation": "ADR-017 (2026-05-17) で E-022 Screen を E-058 BFMock に merge 済 (canonical = bf_mocks). 新規 screens table は作成しない. screen_components.screen_id は bf_mocks(id) を FK 参照する.",
         "task_id": "T-V3-DRIFT-E-022",
         "policy_count_actual": 0,
-        "source_migration": null
+        "source_migration": null,
+        "resolution": {
+          "adr": "ADR-017",
+          "task_id": "T-V3-D-13",
+          "merged_into_entity_id": "E-058",
+          "merged_into_table": "bf_mocks"
+        }
       },
-      "policy_count_in_migration": 0
+      "policy_count_in_migration": 0,
+      "replaced_by": "E-058"
     },
     {
       "id": "E-023",
@@ -2411,18 +2418,35 @@
         "column": "workspace_id",
         "fk_table": "workspaces"
       },
-      "access_control_policies": [],
-      "status": "decided",
+      "access_control_policies": [
+        {
+          "name": "components_service_role_all",
+          "operation": "ALL",
+          "role": "service_role",
+          "predicate": "true",
+          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当) — canonical 名 (T-V3-D-13)",
+          "source_migration": "20260516200000_components_screen_components.sql"
+        },
+        {
+          "name": "components_workspace_member_select",
+          "operation": "SELECT",
+          "role": "authenticated",
+          "predicate": "bf_can_access_workspace(workspace_id)",
+          "rationale": "同 workspace member のみ SELECT 可 — canonical 名 (T-V3-D-13)",
+          "source_migration": "20260516200000_components_screen_components.sql"
+        }
+      ],
+      "status": "formal",
       "legacy_drift_notes": {
         "spec_table": "components",
-        "impl_table": "(missing)",
-        "diff_severity": "high",
-        "recommendation": "Component table は impl 無し. design system → frontend component の関係は frontend repo の static 構造で管理されており DB 化されていない",
+        "impl_table": "components",
+        "diff_severity": "resolved_by_t_v3_d_13",
+        "recommendation": "T-V3-D-13 (2026-05-17) で components table を正式 entity 化. UNIQUE (workspace_id, name, version) で同名 component の version 管理. ADR-017 で E-022 Screen → E-058 BFMock merge 決定済.",
         "task_id": "T-V3-DRIFT-E-023",
-        "policy_count_actual": 0,
-        "source_migration": null
+        "policy_count_actual": 2,
+        "source_migration": "20260516200000_components_screen_components.sql"
       },
-      "policy_count_in_migration": 0
+      "policy_count_in_migration": 2
     },
     {
       "id": "E-024",
@@ -2461,18 +2485,35 @@
         "column": "workspace_id",
         "fk_table": "workspaces"
       },
-      "access_control_policies": [],
-      "status": "decided",
+      "access_control_policies": [
+        {
+          "name": "screen_components_service_role_all",
+          "operation": "ALL",
+          "role": "service_role",
+          "predicate": "true",
+          "rationale": "backend service は全 record にアクセス可 (RLS bypass 相当) — canonical 名 (T-V3-D-13)",
+          "source_migration": "20260516200000_components_screen_components.sql"
+        },
+        {
+          "name": "screen_components_workspace_member_select",
+          "operation": "SELECT",
+          "role": "authenticated",
+          "predicate": "bf_can_access_workspace(workspace_id)",
+          "rationale": "同 workspace member のみ SELECT 可 (workspace_id denormalized for RLS simplicity) — canonical 名 (T-V3-D-13)",
+          "source_migration": "20260516200000_components_screen_components.sql"
+        }
+      ],
+      "status": "formal",
       "legacy_drift_notes": {
         "spec_table": "screen_components",
-        "impl_table": "(missing)",
-        "diff_severity": "high",
-        "recommendation": "Screen と Component の junction table 未実装. 上記 2 entity が無いため必然的に未実装",
+        "impl_table": "screen_components",
+        "diff_severity": "resolved_by_t_v3_d_13",
+        "recommendation": "T-V3-D-13 (2026-05-17) で screen_components junction table を 正式 entity 化. screen_id は ADR-017 に従い bf_mocks(id) を FK 参照. workspace_id を denormalize 保存して RLS predicate を join なしで実装.",
         "task_id": "T-V3-DRIFT-E-024",
-        "policy_count_actual": 0,
-        "source_migration": null
+        "policy_count_actual": 2,
+        "source_migration": "20260516200000_components_screen_components.sql"
       },
-      "policy_count_in_migration": 0
+      "policy_count_in_migration": 2
     },
     {
       "id": "E-025",
@@ -3604,9 +3645,18 @@
       "partition_strategy": "monthly via pg_partman (P2)",
       "retention_years": 7,
       "unification_notes": {
-        "merged_from": ["E-055 AuthAuditLog"],
+        "merged_from": [
+          "E-055 AuthAuditLog"
+        ],
         "discriminator_column": "source",
-        "discriminator_enum": ["generic", "auth", "workspace", "system", "cost", "red_line"],
+        "discriminator_enum": [
+          "generic",
+          "auth",
+          "workspace",
+          "system",
+          "cost",
+          "red_line"
+        ],
         "backward_compat_view": "auth_audit_log (SELECT 専用 / source='auth')"
       }
     },
