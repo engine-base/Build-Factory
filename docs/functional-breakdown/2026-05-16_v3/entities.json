@@ -207,7 +207,10 @@
         "resolution": {
           "task_id": "T-V3-D-03",
           "decision": "impl-as-source-of-truth",
-          "deferred_to_polish": ["uuid_v7_pk_migration", "soft_delete_column"]
+          "deferred_to_polish": [
+            "uuid_v7_pk_migration",
+            "soft_delete_column"
+          ]
         },
         "task_id": "T-V3-DRIFT-E-002",
         "policy_count_actual": 5,
@@ -292,7 +295,9 @@
         "resolution": {
           "task_id": "T-V3-D-03",
           "decision": "impl-as-source-of-truth",
-          "deferred_to_polish": ["uuid_v7_pk_migration"]
+          "deferred_to_polish": [
+            "uuid_v7_pk_migration"
+          ]
         },
         "task_id": "T-V3-DRIFT-E-003",
         "policy_count_actual": 2,
@@ -413,7 +418,12 @@
         "resolution": {
           "task_id": "T-V3-D-03",
           "decision": "impl-as-source-of-truth",
-          "deferred_to_polish": ["uuid_v7_pk_migration", "slug_top_level_column", "is_confidential_top_level_column", "token_limit_amount_top_level_column"]
+          "deferred_to_polish": [
+            "uuid_v7_pk_migration",
+            "slug_top_level_column",
+            "is_confidential_top_level_column",
+            "token_limit_amount_top_level_column"
+          ]
         },
         "task_id": "T-V3-DRIFT-E-004",
         "policy_count_actual": 4,
@@ -507,7 +517,10 @@
         "resolution": {
           "task_id": "T-V3-D-03",
           "decision": "impl-as-source-of-truth",
-          "deferred_to_polish": ["uuid_v7_pk_migration", "visible_tabs_column"]
+          "deferred_to_polish": [
+            "uuid_v7_pk_migration",
+            "visible_tabs_column"
+          ]
         },
         "task_id": "T-V3-DRIFT-E-005",
         "policy_count_actual": 2,
@@ -837,48 +850,95 @@
       "spec_table_name": "skill_executions",
       "fields": [
         {
+          "name": "id",
+          "type": "bigint",
+          "primary_key": true,
+          "default": "BIGSERIAL"
+        },
+        {
           "name": "skill_id",
-          "raw_v1_descriptor": "skill_id (FK)"
+          "type": "bigint",
+          "fk": "skill_definitions.id",
+          "not_null": true,
+          "on_delete": "CASCADE"
         },
         {
           "name": "ai_employee_id",
-          "raw_v1_descriptor": "ai_employee_id (FK)"
+          "type": "bigint",
+          "fk": "ai_employees.id",
+          "nullable": true,
+          "on_delete": "SET NULL"
         },
         {
           "name": "user_id",
-          "raw_v1_descriptor": "user_id (FK)"
+          "type": "text",
+          "nullable": true
         },
         {
           "name": "workspace_id",
-          "raw_v1_descriptor": "workspace_id (FK)"
+          "type": "bigint",
+          "fk": "workspaces.id",
+          "not_null": true,
+          "on_delete": "CASCADE"
         },
         {
           "name": "session_id",
-          "raw_v1_descriptor": "session_id (FK NULL)"
+          "type": "bigint",
+          "fk": "sessions.id",
+          "nullable": true,
+          "on_delete": "SET NULL"
         },
         {
           "name": "input",
-          "raw_v1_descriptor": "input jsonb"
+          "type": "jsonb",
+          "default": "'{}'::jsonb",
+          "not_null": true
         },
         {
           "name": "output",
-          "raw_v1_descriptor": "output jsonb"
+          "type": "jsonb",
+          "default": "'{}'::jsonb",
+          "not_null": true
         },
         {
           "name": "cost",
-          "raw_v1_descriptor": "cost"
+          "type": "numeric(12,6)",
+          "default": "0",
+          "not_null": true
         },
         {
           "name": "tokens",
-          "raw_v1_descriptor": "tokens"
+          "type": "integer",
+          "default": "0",
+          "not_null": true
         },
         {
           "name": "status",
-          "raw_v1_descriptor": "status enum(success/failed/cancelled)"
+          "type": "text",
+          "enum": [
+            "success",
+            "failed",
+            "cancelled"
+          ],
+          "default": "'success'",
+          "not_null": true
         },
         {
           "name": "langfuse_trace_id",
-          "raw_v1_descriptor": "langfuse_trace_id"
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "default": "NOW()",
+          "not_null": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamptz",
+          "default": "NOW()",
+          "not_null": true
         }
       ],
       "relations": [
@@ -898,26 +958,73 @@
         "updated_at"
       ],
       "indexes": [
-        "workspace_id",
-        "user_id"
+        {
+          "name": "ix_skill_executions_workspace",
+          "columns": [
+            "workspace_id"
+          ]
+        },
+        {
+          "name": "ix_skill_executions_user",
+          "columns": [
+            "user_id"
+          ]
+        },
+        {
+          "name": "ix_skill_executions_skill",
+          "columns": [
+            "skill_id"
+          ]
+        },
+        {
+          "name": "ix_skill_executions_session",
+          "columns": [
+            "session_id"
+          ]
+        },
+        {
+          "name": "ix_skill_executions_created",
+          "columns": [
+            "created_at DESC"
+          ]
+        }
       ],
       "tenant_isolation": {
         "type": "workspace_scoped",
         "column": "workspace_id",
         "fk_table": "workspaces"
       },
-      "access_control_policies": [],
-      "status": "decided",
+      "access_control_policies": [
+        {
+          "name": "skill_executions_service_role_all",
+          "operation": "ALL",
+          "role": "service_role",
+          "predicate": "true",
+          "rationale": "T-V3-D-12: backend service_role による全 record access (RLS bypass 相当)",
+          "source_migration": "20260516190000_critical_new_entities.sql"
+        },
+        {
+          "name": "skill_executions_workspace_member_select",
+          "operation": "SELECT",
+          "role": "authenticated",
+          "predicate": "bf_can_access_workspace(workspace_id)",
+          "rationale": "T-V3-D-12: workspace_members 経由で同 workspace の skill_executions を SELECT 可",
+          "source_migration": "20260516190000_critical_new_entities.sql"
+        }
+      ],
+      "status": "formalized_in_migration",
       "legacy_drift_notes": {
         "spec_table": "skill_executions",
-        "impl_table": "(missing)",
+        "impl_table": "skill_executions",
         "diff_severity": "critical",
-        "recommendation": "spec 'skill_executions' に対応する impl 無し. execution_log (legacy single-user table) が代替か? 確認要 → 新規 migration 必要",
+        "recommendation": "T-V3-D-12 で正式 entity 化済 — 新規 migration 20260516190000_critical_new_entities.sql で table + RLS canonical policy 2 件 を整備.",
         "task_id": "T-V3-DRIFT-E-009",
-        "policy_count_actual": 0,
-        "source_migration": null
+        "policy_count_actual": 2,
+        "source_migration": "20260516190000_critical_new_entities.sql",
+        "resolved_by_task": "T-V3-D-12"
       },
-      "policy_count_in_migration": 0
+      "policy_count_in_migration": 2,
+      "purpose": "skill 実行 1 回ごとの履歴 (cost / tokens / status / langfuse_trace_id) を記録し /api/skills/{id}/test の outcome を audit 可能にする"
     },
     {
       "id": "E-010",
@@ -926,16 +1033,43 @@
       "spec_table_name": "user_knowledge_namespaces",
       "fields": [
         {
+          "name": "id",
+          "type": "bigint",
+          "primary_key": true,
+          "default": "BIGSERIAL"
+        },
+        {
           "name": "user_id",
-          "raw_v1_descriptor": "user_id (FK)"
+          "type": "text",
+          "not_null": true
         },
         {
           "name": "namespace_id",
-          "raw_v1_descriptor": "namespace_id text"
+          "type": "text",
+          "not_null": true
         },
         {
           "name": "scope",
-          "raw_v1_descriptor": "scope enum(private/shared)"
+          "type": "text",
+          "enum": [
+            "private",
+            "account",
+            "workspace"
+          ],
+          "default": "'private'",
+          "not_null": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "default": "NOW()",
+          "not_null": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamptz",
+          "default": "NOW()",
+          "not_null": true
         }
       ],
       "relations": [
@@ -948,24 +1082,66 @@
         "created_at",
         "updated_at"
       ],
-      "indexes": [],
+      "indexes": [
+        {
+          "name": "ix_user_knowledge_namespaces_user",
+          "columns": [
+            "user_id"
+          ]
+        },
+        {
+          "name": "ix_user_knowledge_namespaces_scope",
+          "columns": [
+            "scope"
+          ]
+        }
+      ],
       "tenant_isolation": {
         "type": "user_scoped",
         "column": "user_id",
         "fk_table": "users"
       },
-      "access_control_policies": [],
-      "status": "decided",
+      "access_control_policies": [
+        {
+          "name": "user_knowledge_namespaces_service_role_all",
+          "operation": "ALL",
+          "role": "service_role",
+          "predicate": "true",
+          "rationale": "T-V3-D-12: backend service_role による全 record access (RLS bypass 相当)",
+          "source_migration": "20260516190000_critical_new_entities.sql"
+        },
+        {
+          "name": "user_knowledge_namespaces_owner_only",
+          "operation": "ALL",
+          "role": "authenticated",
+          "predicate": "user_id = auth.uid()::text",
+          "rationale": "T-V3-D-12: 本人のみ (user_id = auth.uid()::text) ALL operation 許可",
+          "source_migration": "20260516190000_critical_new_entities.sql"
+        }
+      ],
+      "status": "formalized_in_migration",
       "legacy_drift_notes": {
         "spec_table": "user_knowledge_namespaces",
-        "impl_table": "(missing)",
+        "impl_table": "user_knowledge_namespaces",
         "diff_severity": "high",
-        "recommendation": "knowledge_base table に scope column で表現されているが、専用 user_knowledge_namespaces table は実装無し",
+        "recommendation": "T-V3-D-12 で正式 entity 化済 — 新規 migration 20260516190000_critical_new_entities.sql で table + RLS canonical policy 2 件 を整備.",
         "task_id": "T-V3-DRIFT-E-010",
-        "policy_count_actual": 0,
-        "source_migration": null
+        "policy_count_actual": 2,
+        "source_migration": "20260516190000_critical_new_entities.sql",
+        "resolved_by_task": "T-V3-D-12"
       },
-      "policy_count_in_migration": 0
+      "policy_count_in_migration": 2,
+      "constraints": [
+        {
+          "name": "uq_user_knowledge_namespaces_user_namespace",
+          "type": "UNIQUE",
+          "columns": [
+            "user_id",
+            "namespace_id"
+          ]
+        }
+      ],
+      "purpose": "user × namespace_id の scope (private/account/workspace) を保持し Mem0/Obsidian/Constitution namespace の isolation を担保"
     },
     {
       "id": "E-011",
@@ -1168,32 +1344,84 @@
       "spec_table_name": "phase_gates",
       "fields": [
         {
+          "name": "id",
+          "type": "bigint",
+          "primary_key": true,
+          "default": "BIGSERIAL"
+        },
+        {
           "name": "phase_id",
-          "raw_v1_descriptor": "phase_id (FK)"
+          "type": "bigint",
+          "fk": "bf_phases.id",
+          "not_null": true,
+          "on_delete": "CASCADE"
+        },
+        {
+          "name": "workspace_id",
+          "type": "bigint",
+          "fk": "workspaces.id",
+          "not_null": true,
+          "on_delete": "CASCADE",
+          "note": "denormalized from phase->project->workspace for direct RLS evaluation"
+        },
+        {
+          "name": "user_id",
+          "type": "text",
+          "nullable": true
         },
         {
           "name": "name",
-          "raw_v1_descriptor": "name"
+          "type": "text",
+          "not_null": true
         },
         {
           "name": "condition_type",
-          "raw_v1_descriptor": "condition_type enum(task_completion/review_approval/manual)"
+          "type": "text",
+          "enum": [
+            "task_completion",
+            "review_approval",
+            "manual"
+          ],
+          "not_null": true
         },
         {
           "name": "criteria",
-          "raw_v1_descriptor": "criteria jsonb"
+          "type": "jsonb",
+          "default": "'{}'::jsonb",
+          "not_null": true
         },
         {
           "name": "status",
-          "raw_v1_descriptor": "status enum(pending/passed/failed)"
+          "type": "text",
+          "enum": [
+            "pending",
+            "passed",
+            "failed"
+          ],
+          "default": "'pending'",
+          "not_null": true
         },
         {
           "name": "passed_at",
-          "raw_v1_descriptor": "passed_at"
+          "type": "timestamptz",
+          "nullable": true
         },
         {
           "name": "passed_by",
-          "raw_v1_descriptor": "passed_by"
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "default": "NOW()",
+          "not_null": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamptz",
+          "default": "NOW()",
+          "not_null": true
         }
       ],
       "relations": [
@@ -1206,24 +1434,63 @@
         "created_at",
         "updated_at"
       ],
-      "indexes": [],
+      "indexes": [
+        {
+          "name": "ix_phase_gates_phase",
+          "columns": [
+            "phase_id"
+          ]
+        },
+        {
+          "name": "ix_phase_gates_workspace",
+          "columns": [
+            "workspace_id"
+          ]
+        },
+        {
+          "name": "ix_phase_gates_status",
+          "columns": [
+            "status",
+            "updated_at DESC"
+          ]
+        }
+      ],
       "tenant_isolation": {
         "type": "workspace_scoped",
         "column": "workspace_id",
         "fk_table": "workspaces"
       },
-      "access_control_policies": [],
-      "status": "decided",
+      "access_control_policies": [
+        {
+          "name": "phase_gates_service_role_all",
+          "operation": "ALL",
+          "role": "service_role",
+          "predicate": "true",
+          "rationale": "T-V3-D-12: backend service_role による全 record access (RLS bypass 相当)",
+          "source_migration": "20260516190000_critical_new_entities.sql"
+        },
+        {
+          "name": "phase_gates_workspace_member_select",
+          "operation": "SELECT",
+          "role": "authenticated",
+          "predicate": "bf_can_access_workspace(workspace_id)",
+          "rationale": "T-V3-D-12: workspace_members 経由で同 workspace の phase_gates を SELECT 可",
+          "source_migration": "20260516190000_critical_new_entities.sql"
+        }
+      ],
+      "status": "formalized_in_migration",
       "legacy_drift_notes": {
         "spec_table": "phase_gates",
-        "impl_table": "(missing)",
+        "impl_table": "phase_gates",
         "diff_severity": "high",
-        "recommendation": "PhaseGate table は impl 無し. bf_phases に status column で類似機能あるが、phase_gates 別 table としては未実装",
+        "recommendation": "T-V3-D-12 で正式 entity 化済 — 新規 migration 20260516190000_critical_new_entities.sql で table + RLS canonical policy 2 件 を整備.",
         "task_id": "T-V3-DRIFT-E-013",
-        "policy_count_actual": 0,
-        "source_migration": null
+        "policy_count_actual": 2,
+        "source_migration": "20260516190000_critical_new_entities.sql",
+        "resolved_by_task": "T-V3-D-12"
       },
-      "policy_count_in_migration": 0
+      "policy_count_in_migration": 2,
+      "purpose": "bf_phases に対する gate 条件と通過状態を保持. passed_at/passed_by の transition で phase 完了判定を audit 可能にする (workspace_id 非正規化で直接 RLS 評価)"
     },
     {
       "id": "E-014",
@@ -1358,13 +1625,10 @@
       "legacy_drift_notes": {
         "spec_table": "bf_tasks",
         "impl_table": "bf_tasks",
-        "diff_severity": "resolved_by_adr_014",
-        "recommendation": "ADR-014 (2026-05-17) で 'keep bf_ prefix as canonical' を決定. spec_table_name を impl_table に揃えた. legacy 'tasks' (single-user / 二重実装) の ARCHIVE 判断は別途 T-V3-DRIFT-E-014 で扱う (本 ADR スコープ外)",
-        "task_id": "T-V3-D-02",
-        "adr_ref": "ADR-014",
         "diff_severity": "critical",
         "recommendation": "spec 'tasks' に対し legacy 'tasks' (single-user) と modern 'bf_tasks' の **二重実装** が並存していたが ARCHIVED in 20260516140000 (T-V3-D-04 / ADR-015) — legacy tasks は _archived_tasks に rename され data 保全 (service_role-only RLS). bf_tasks が唯一の正系統.",
         "task_id": "T-V3-DRIFT-E-014",
+        "adr_ref": "ADR-014",
         "policy_count_actual": 2,
         "source_migration": "20260510000001_bf_project_tables.sql",
         "legacy_archived": true,
@@ -1928,7 +2192,12 @@
         "resolution": {
           "task_id": "T-V3-D-03",
           "decision": "impl-as-source-of-truth",
-          "deferred_to_polish": ["pg_enum_type_constraint", "tsv_generated_column", "embedding_vector_column", "related_id_top_level_columns"]
+          "deferred_to_polish": [
+            "pg_enum_type_constraint",
+            "tsv_generated_column",
+            "embedding_vector_column",
+            "related_id_top_level_columns"
+          ]
         },
         "task_id": "T-V3-DRIFT-E-020",
         "policy_count_actual": 2,
@@ -2340,7 +2609,11 @@
         "resolution": {
           "task_id": "T-V3-D-03",
           "decision": "impl-as-source-of-truth",
-          "deferred_to_polish": ["uuid_v7_pk_migration", "top_level_cost_tokens_columns", "expanded_status_enum_to_7_values"]
+          "deferred_to_polish": [
+            "uuid_v7_pk_migration",
+            "top_level_cost_tokens_columns",
+            "expanded_status_enum_to_7_values"
+          ]
         },
         "task_id": "T-V3-DRIFT-E-025",
         "policy_count_actual": 2,
