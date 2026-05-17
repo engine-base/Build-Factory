@@ -53,8 +53,8 @@
 
 | entity_id | name | spec_table → impl_table | 内容 | task_id |
 |---|---|---|---|---|
-| E-002 | Account | `accounts` → `accounts` (一致) | spec uuid PK / soft_delete / plan enum, impl BIGSERIAL / soft_delete 無し / status TEXT (no enum) | T-V3-DRIFT-E-002 |
-| E-004 | Workspace | `workspaces` → `workspaces` (一致) | spec uuid / slug / is_confidential / token_limit_amount column 想定. impl BIGSERIAL / slug 無し / is_confidential 無し / project_meta + client_visibility + design_system_ref + preferred_provider_enum | T-V3-DRIFT-E-004 |
+| E-002 | Account | `accounts` → `accounts` (一致) | spec uuid PK / soft_delete / plan enum, impl BIGSERIAL / soft_delete 無し / status TEXT (no enum) | **T-V3-D-03 resolved** (impl-as-source) |
+| E-004 | Workspace | `workspaces` → `workspaces` (一致) | spec uuid / slug / is_confidential / token_limit_amount column 想定. impl BIGSERIAL / slug 無し / is_confidential 無し / project_meta + client_visibility + design_system_ref + preferred_provider_enum | **T-V3-D-03 resolved** (impl-as-source) |
 | E-008 | Skill | `skills` → `skill_definitions` | **table_name rename drift**. entity-table-naming lint で失敗する | T-V3-DRIFT-E-008 |
 | E-010 | UserKnowledgeNamespace | `user_knowledge_namespaces` → 無し | knowledge_base.scope column で代替表現. 専用 table 未実装 | T-V3-DRIFT-E-010 |
 | E-012 | Phase | `phases` → `bf_phases` | bf_ prefix drift (profile.md で禁止と宣言されているが既存実装は bf_ 付き) | T-V3-DRIFT-E-012 |
@@ -67,19 +67,21 @@
 
 ## 4. Medium drift (11 件) — bf_ prefix / enum 差異 / 二重実装
 
-| entity_id | name | 内容 |
-|---|---|---|
-| E-003 | AccountMember | uuid → BIGINT + TEXT user_id, role enum → TEXT |
-| E-005 | WorkspaceMember | uuid → BIGINT + TEXT user_id, role enum → TEXT |
-| E-007 | AIEmployee | `ai_employee_config` (legacy) と `ai_employees` (modern) の二重実装. 正系統は ai_employees |
-| E-015 | TaskDependency | `task_dependencies` → `bf_task_dependencies` (bf_ prefix drift) |
-| E-016 | AcceptanceCriterion | `acceptance_criteria` → `bf_acceptance_criteria` (bf_ prefix drift) |
-| E-017 | Constitution | `constitutions` → `bf_constitutions` (bf_ prefix drift + version 管理は別 table 化) |
-| E-020 | Artifact | type enum (spec/mock_screen/...) の impl 実装表現 (TEXT or CHECK) 確認要 |
-| E-025 | Session | spec uuid / status enum 7 値. impl BIGSERIAL / status CHECK 5 値. enum 値の縮小 |
-| E-027 | PR | `prs` (modern) と `pull_requests` (legacy) の二重実装 |
-| E-032 | GithubRepo | `github_repos` (modern) と `repos` (legacy) の二重実装 |
-| E-037 | AuditLog | `audit_logs` (汎用) と `auth_audit_log` (auth 専用) の 2 table 並存 |
+> **2026-05-17 update (T-V3-D-03)**: E-003 / E-005 / E-020 / E-025 + E-002 (high) / E-004 (high) の 6 件は **T-V3-D-03 で resolved**. impl 側 (Supabase migration 既稼働) を source-of-truth とし、entities.json の `fields` / `soft_delete` / `timestamps` / `indexes` / `legacy_drift_notes.recommendation` を impl に合わせて修正完了. 大規模 PK width 変更 (BIGSERIAL → uuid v7) は破壊的変更のため Polish-phase に deferred. 詳細は各 entity の `legacy_drift_notes.resolution.deferred_to_polish[]` を参照.
+
+| entity_id | name | 内容 | resolution |
+|---|---|---|---|
+| E-003 | AccountMember | uuid → BIGINT + TEXT user_id, role enum → TEXT | **resolved by T-V3-D-03** (impl-as-source) |
+| E-005 | WorkspaceMember | uuid → BIGINT + TEXT user_id, role enum → TEXT | **resolved by T-V3-D-03** (impl-as-source) |
+| E-007 | AIEmployee | `ai_employee_config` (legacy) と `ai_employees` (modern) の二重実装. 正系統は ai_employees | pending (T-V3-D-04 ARCHIVE batch) |
+| E-015 | TaskDependency | `task_dependencies` → `bf_task_dependencies` (bf_ prefix drift) | pending (T-V3-D-02) |
+| E-016 | AcceptanceCriterion | `acceptance_criteria` → `bf_acceptance_criteria` (bf_ prefix drift) | pending (T-V3-D-02) |
+| E-017 | Constitution | `constitutions` → `bf_constitutions` (bf_ prefix drift + version 管理は別 table 化) | pending (T-V3-D-02) |
+| E-020 | Artifact | type enum (spec/mock_screen/...) の impl 実装表現 (TEXT or CHECK) 確認要 | **resolved by T-V3-D-03** (impl-as-source / open TEXT enum) |
+| E-025 | Session | spec uuid / status enum 7 値. impl BIGSERIAL / status CHECK 5 値. enum 値の縮小 | **resolved by T-V3-D-03** (impl-as-source / 5-value state machine) |
+| E-027 | PR | `prs` (modern) と `pull_requests` (legacy) の二重実装 | pending (T-V3-D-04) |
+| E-032 | GithubRepo | `github_repos` (modern) と `repos` (legacy) の二重実装 | pending (T-V3-D-04) |
+| E-037 | AuditLog | `audit_logs` (汎用) と `auth_audit_log` (auth 専用) の 2 table 並存 | keep-both (different scope) |
 
 ---
 
